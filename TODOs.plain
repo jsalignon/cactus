@@ -1,0 +1,279 @@
+
+
+######################################
+## run cmd
+
+VERSION=21.11.03
+ATAC=/home/jersal/lluis/atac
+CACTUS=${ATAC}/src/${VERSION}/nextflow/pipeline_atac.nf
+
+nextflow run ${CACTUS} -bg > nf_log.txt
+mv nf_log.txt results/${VERSION}/Run_Info/nf_log.txt
+
+
+######################################
+## change log
+
+ 
+
+
+
+######################################
+## history of change logs
+
+
+# 20.09.23
+ - corrected the p-values method from chi2 to Fischer
+ - corrected my sample Log2 Odd Ratios (L2OR) to MLE L2OR
+ - changed completely the structure of the code: now all Enrichment pvalues and L2OR are computed in the same process. 
+ - rewrite the pipeline to include peaks and genes self overlap significance plots and tables
+ - changed the input to the process "compute_functional_annotations_enrichments" to make as many data_types as there are Functional Annotation Databases that are queried. This also help making the code much more smooth and streamlined. This required changing the parameters in the config file, to add a params.func_anno_databases parameter.
+ - export the DA genes together with the NDA (Not DA) to use as background for gene self enrichment and functional annotation databases enrichment 
+ - removed the filtering of non significant terms after the gene Ontologies analysis
+ - added automatic export of formatted Excel tables
+ - changed completely the structure of output files and added a Tables_Individual folder. 
+ - rewrite the pipeline to have a separated process for formatting (filtering, sorting...) and saving tables. 
+ - many other minor changes (variable/process renaming, bug fixing, code optimizing...)
+ 
+
+# 20.09.22
+ - implemented the new much faster trimming strategy
+
+# 20.09.21_1
+ - atropos trimming. This script version has corrected the bug were too many peaks were exported as DA bed. Results are similar to previous version (June 2020, November 2018)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### OLD TO DOs
+
+
+######################################
+## NEW TO DO LIST WITH ALAN LATEST ANALYSIS
+
+# correct the pvalue for overlap of peaks that are always significant or wrong
+# correct the export of "last bed" where just one file is exported as of now
+# re-rerun alan experiment with bigwig export and saturation curve, and the bed for macs2 and for DA
+# correct export of excel files where one was empty
+# fix the venn diagrams plots that are screwed  
+
+
+
+ ######################################
+ ## current TO DO list
+ 
+ TO DO URGENTs
+
+ 
+ - correct the issue of the singularity containers. The test dataset should run in one go. Try different workdir
+ solve the issue with the singularity workdir (that crashes with fastqc but crash without in Excel file)
+ remove the cache and runs everything again
+ - add the option up_down_pattern that can be either UDUD (up, down, up, down...) or UUDD (up, up, ..., down, down ...) 
+ Set the default option to UUDD
+ - fix: KEGG and GO have different types of IDs in the genes_id column of the enrichment table. Put Ensembl ID everywhere.
+ - change the tag id for processes (redundant so far. i.e. for ing_individual_tables (func))
+ - run lluis latest experiment. Set the special parameters for lluis (the motifs file specifically). If it works, run all experiments from Alan and Lluis. Debugger sur un vrai gros dataset
+
+
+ - streamline the code to merge the fastqc processes
+
+ - make all singularity containers auto-downloadable by nextfow and specifify in which folder they are downloaded (using variables to make it cleaner)
+ Something of this flavor should work
+ container = 'quay.io/biocontainers/r-openxlsx:4.0.17--r3.3.2_0'
+ env {
+   NXF_SINGULARITY_CACHEDIR = "${params.cactusdir}/bin/containers_v2"
+ }
+ https://www.nextflow.io/docs/latest/config.html#configuration-file
+ 
+ - double check why pvalues computed by clusterProfiler and by myself are different.
+ 
+ - add bigwig with kallisto using the genomeBAM option. 
+ 
+ - after that add coverage, PCA and correlation plots to mRNA data
+ 
+ - change the code of ATAC__removing_specific_regions that crashes once in a while. This snippet is clearly not robust. Replace it by something much more robust. THS IFS is probably causing the error. Here is the error message:
+ "Error: unable to open file or unable to determine types for file regions_to_remove.txt
+     - Please ensure that your file is TAB delimited (e.g., cat -t FILE).
+     - Also ensure that your file has integer chromosome coordinates in the 
+      expected columns (e.g., cols 2 and 3 for BED)."
+      
+  - make a small script to copy the new motifs data (plots and processed) in a joint folder. Then apply it and save the collapsed results to my computer
+  
+  - put the code of the sh function called in the big file directly into the pipeline since it is small, and code is easier to debug this way with Nextflow. Check there are other small scripts that are called to include them directly in the pipeline code.
+
+  - put the run_special.config file in the src folder not in the experiment folder (or not)
+  
+  - think about the correct way to filter gff3 files. Check with the annotation software how it works. Really think if the promoter definition that we use is correct. Check at specific locus if our annotation is correct. Determine if I should filter anything from the annotation file. Eventually make a test dataset with fictive bed regions that I create that correspond to different possibilities on the genome. And check if they are correctly annotated
+ 
+ - run all lluis and alan experiments
+
+
+
+
+######################################
+TO DO LATER
+
+ - create a type category CUMD and CDMU for Chromatin Up MRNA Down and the reverse for unexpected changes as they can happen sometimes from experience
+
+ - add tags to setup memory, CPU, and error strategies (as done in Sarek)
+
+ - also change these lines as they would only work on C elegans
+  BED_PATH="${cactusdir}/tools/cel_genome/annotations/refGene_UCSC" 
+  PROMOTER=`getTotalReadsMappedToBedFile \$BED_PATH/promoters.bed ${bam}`
+
+ - change the script to keep a single fastqc process (instead of 3) and a single multiqc process (instead of 2).
+
+ - replace this line otherwise it cannot work with other species 
+samtools view -b ${bam} I II III IV V X | tee ${id}_no_mito.bam | samtools view - | awk ' \$1 !~ /@/ {print \$3}' - | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+
+ - change the threshold for pvalues
+
+ - add options save_merged_tables, save_individual_tables. same for figures
+
+ - put all my scripts under the bin directory in the nextflow folder for a cleaner code
+ 
+anfederico @anfederico 20:55
+General question. Is there anywhere we can put custom scripts (e.g. An Rscript used in a process) within the nextflow directory so that it'll carry over to the Docker image? When running -with-docker
+so i think if that volume is mounted you should be able to run tht R scripts
+anfederico @anfederico 21:11
+So in the config
+docker { enabled = true engineOptions = "-v /path/to/scripts" }
+Rad Suchecki  @rsuchecki  02:06
+it should suffice to put your script under bin/ in the pipeline directory @anfederico and no need for the engineOptions
+
+
+
+
+
+
+TO DO later, for finalization and writing the manuscript
+ - maybe replace clusterProfiler by GeneSCF (https://www.biostars.org/p/108669/). Or another tool.
+ - add saturation curve for mRNA-Seq as well
+ - saturation curve plot: add predictions if doubling or tripling the sequencing depth. Add a fit. Make a nice plot with ggplot2
+ - fix issue with colors when padj_loglog is always above zero and plot both sides is true
+ - double check if there is no aligner that performs as well as bowtie2 for ATAC-Seq but being much faster
+ - replace all the macs2 business by Genrich, as now suggested here: https://informatics.fas.harvard.edu/atac-seq-guidelines.html
+ - add normalized bigwig as an option
+ - read all my code to spot potential mistakes
+ - faire relire le code de la pipeline par Maxime pour voir s'il peut eventuellement optimiser des trucks
+ - see with Maxime how to improve my multiQC plot (include sections...)
+ 
+ TO DO LATER
+ - add the pvalue on the venn diagrams
+ - add removal of RNAi locations for mRNA too
+ - add plot coverage after removing specific regions (RNAi regions for C elegans)
+ - add an option to force the inclusion of certain TF into the heatmap and CHIP (if present, it gives a warning if they are not)
+ - Check that I created the kallisto transcriptome properly (ref biostars)
+ - Add an option to be able to run the pipeline without genomic DNA sample.
+ - Use sampling to reduce the number of NDA in case it is really large => to reduce all computation times. In my case it is not needed since I do not have so many peaks and I don't care about running it during the night to have better results but it would be a good addition
+      reduce the maximal number of peaks in the background in order to reduce memory consumption and running time. i.e. it should be at least 1000 peaks and no more than 5 times the DA set for instance. Randomly sample entries and use that has the new background sequence.
+      "Since HOMER is a differential motif discovery algorithm, it must use background sequence regions as a control.  By default, HOMER selects enough random background regions such that the total number of regions is 50000 or 2x the total number of peaks, which ever is larger (to change use "-N <#>").  The more total sequence that is used, the slower the program will run, but you want to make sure there is enough background regions to reliably estimate motif frequency.  HOMER attempts to select background regions that match the GC-content distribution of the input sequences (in 5% increments).  For example, if your input regions are extremely GC-rich, HOMER will select random regions from GC-rich regions of the genome as a control.
+      If custom background regions are provided ("-bg <peak/BED file>"), HOMER will automatically ensure that these regions do NOT overlap with the target regions (using mergePeaks).  Custom regions will still be normalized for GC-content." http://homer.ucsd.edu/homer/ngs/peakMotifs.html
+      Since HOMER uses a differential motif discovery algorithm, different types of background sequences can be chosen to produce different results.  For example, you may want to compare the ChIP-Seq peaks specific in one cell type versus the peaks that are specific to another.  To do this, create a second peak/BED file and use it with the argument "-bg <peak/BED file>".
+      Please note, that if the number of background sequences is small, or similar in number to the number of target sequences, you should consider switching to the hypergeometric distribution to improve accuracy when using findMotifsGenome.pl ("-h"). http://homer.ucsd.edu/homer/motif/practicalTips.html
+  - alternatively, a great addition to the pipeline would be to implement a two stage strategy: run a first pass with all motifs and just 5K BG and DA peaks max. Then select the top 500 motifs and do a second pass with all peaks in both DA and BG. This strategy would be especially well suited if I go the CisBP road: since they have so many motifs it is untractable to run all of them. But this way it could be possible. The less precise first pass results will be merged with the second pass in order to have results for all motifs for the heatmaps.
+  - write a small tutorial somehow. Or documentation. Maybe a markdown file for github. The documentation should contain these sections: 1) Installation, 2) Pipeline configuration, 3) Running the pipeline, 4) Output and how to interpret the results, 5) Troubleshooting. I coulde use https://readthedocs.org/
+  - add 4 option to remove the output root folders (i.e. figures_merged, processed_data, ...)
+
+TO DO LATER LATER
+- check my code for errors in zero vs 1 based coordinate systems. Check this thread: https://www.biostars.org/p/84686/
+- check if trimming the end of reads with a too low quality improve analysis or not (i.e. using the -q 20 option with skewer). On the harvard guidelines they advise to not do it saying it can complicate the identification of duplicates. However, I am not 100% convinced, and doing a test might be worth it. 
+ - change tools for ontologies and motifs analysis. The new tools should be able to do enrichment or depletion depletion analysis, not just enrichment! 
+ - The new tool for gene enrichment could be GeneSCF (https://www.biostars.org/p/108669/), or some other recent tool that works locally.
+ The clusterprofiler function that I use is enrichGO. It does GO analysis on DA genes. clusterprofiler also has the function gseGO which do Gene Set Enrichment Analysis (GSEA)(Subramanian et al. 2005) that instead works on all genes in order to find more subtle effects by looking at detailed values. However, for this piepline it is probably not appropriate since it really work by splitting the list of DA in subsets. Here is a reference: https://yulab-smu.top/clusterProfiler-book/chapter5.html
+   
+ - The new tool for homer should be fast since it is really the time consumming part after alignment. Potential options are iFORM (https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0168607), FIMO from the MEME suite (http://meme-suite.org/doc/fimo.html?man_type=web), or Hemtools (https://hemtools.readthedocs.io/en/latest/content/Motif_analysis/human_motifs.html), MOST+ (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4474412/), seqkit (https://bioinf.shenwei.me/seqkit/usage/#locate), motifmap (http://motifmap.ics.uci.edu/). Another option could be to create a bed file for each motifs in each of my 4 genomes and then make the overlap between bed files (https://www.biostars.org/p/140337/). This could be super fast since once the bed files are made. However, it means less flexibility to use its own motifs file. but for the lambda user this should be the best option since computation time will be shrunk by a one or two order of magnitudes. Let's see what approach is the fastest in the end. If possible the chosen tool should be recent and still regularly updated.
+ - add de novo motifs discovery analysis, heatmaps and barplots. Either plot the motif file, or just motifs like this AaCaTTgT. With capitals used when probabilities are higher than 0.8% for instance.
+ - use grange instead of bedtools to overlap genomic regions. It will allow to simplify a lot the code by doing all overlap operations in R. The only question is: can it be as fast or almost as fast as bedtools? See: https://kasperdanielhansen.github.io/genbioconductor/html/GenomicRanges_GRanges_Usage.html
+ 
+  
+## TO DO TEST DATASETS
+ - test the script in the 4 species
+ - make a script to download all species test datasets and to create the config folders automatically
+ - make the genome config file for the other species
+ - add a test dataset with interpretation => use already published data and re-analyze them => use data from the arhinger lab (embryo elongation mRNA and ATAC)
+
+
+## TO DO CONTAINERS
+ - add a container with java, picard tools and R, for the process marking_duplicates and the process plot_insert_size_distribution
+ - check that all processes are running within a container!
+ - upload the containers on the singularity registry server
+ - solve the problem with the bigwig creation and the containers. This problem is probably related to the clusterprofiler container issue. 
+ - use a container for the process compute_gene_set_enrichments. It doesn't work now with the new version of singularity with clusterprofiler. it needs access to the web for some stupid check
+ Here is my gitter discussion about that
+ Hi all.
+ One of my containers need to download data internally for a function to work. I get this kind of errors:
+ Error in rsqlite_send_query(conn@ptr, statement) : database or disk is full.
+ When not using the container, the same command works.
+ This is probably due to the fact that all sif containers are immutable in the new version of singularity.
+ Should I use sandbox container, even thought it should be only used in development normally? Or is there another preferred way to make it work?
+ Vanessasaurus
+ @vsoch
+ 14:03
+ You can also customize the download folder, or bind a temporary directory with write there so it works. Heads up this message lobby isn’t monitored so you might try to Singularity slack or mailing list instead for more ideas.
+
+ => => the problem of clusterProfiler comes from this argument "use_internal_data = T" that is False by default. If True, then an error is displayed since one needs the "KEGG.db" package to be installed. In addition this KEGG.db package is definitely outdated as mentioned in its reference manual:
+"Welcome to the KEGG.db annotation Package. The purpose of this package was to provide detailed
+information about the latest version of the KEGG pathway databases. But a number of years ago,
+KEGG changed their policy about sharing their data and so this package is no longer allowed to
+be current. Users who are interested in a more current pathway data are encouraged to look at the
+KEGGREST or reactome.db packages."
+ => Need to see how to solve that... Probably use another package. Or use use_internal_data = F to query the online database
+
+
+
+
+############################################################
+## some useful commands
+
+# kill the last run
+cat .nextflow.pid | xargs kill -9
+
+
