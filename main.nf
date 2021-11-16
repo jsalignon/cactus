@@ -3,10 +3,7 @@
 // shortening certain oftenly used parameters
 out_dir = params.out_dir
 cactusdir = params.cactusdir
-srcdir = params.srcdir
-rdir = params.rdir
 
-// rdir = "${srcdir}/R_analysis"
 // grouped = params.grouped
 pub_mode = params.pub_mode
 
@@ -600,7 +597,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_reads_coverage_for_merging_pd
 
 
 // """
-//     ${srcdir}/alignment/plotBamCoverage.sh ${bam} ${id} ${params.binsize_bigwig_creation} ${params.nb_threads} ${params.blacklisted_regions} ${params.effective_genome_size} ${params.nb_1bp_site_to_sample_for_coverage}
+//     plotBamCoverage.sh ${bam} ${id} ${params.binsize_bigwig_creation} ${params.nb_threads} ${params.blacklisted_regions} ${params.effective_genome_size} ${params.nb_1bp_site_to_sample_for_coverage}
 // 
 // """
 
@@ -650,7 +647,7 @@ process ATAC__correlation_between_raw_bigwig_tracks {
   """
 
 
-    ${srcdir}/alignment/plotPCAandCorMat.sh ${gDNA_present} ${params.blacklisted_regions} ${params.binsize_bigwig_correlation}
+    plotPCAandCorMat.sh ${gDNA_present} ${params.blacklisted_regions} ${params.binsize_bigwig_correlation}
 
 
   """
@@ -750,7 +747,7 @@ process ATAC__bamToBed_and_atacShift {
   script:
   """
 
-    ${srcdir}/peak_calling/bamToBed_and_atacShift.sh ${bam} ${id} ${params.chromosomes_sizes}
+    bamToBed_and_atacShift.sh ${bam} ${id} ${params.chromosomes_sizes}
 
   """
 }
@@ -828,7 +825,7 @@ process ATAC__saturation_curve {
           --call-summits
       done
 
-      Rscript ${srcdir}/peak_calling/plot_saturation_curve.R
+      Rscript plot_saturation_curve.R
 
   """
 }
@@ -891,7 +888,7 @@ process ATAC__splitting_sub_peaks {
   script:
   """
 
-      perl "${srcdir}/peak_calling/splitMACS2SubPeaks.pl" "${peaks}" > "${id}_split_peaks.narrowPeak"
+      perl "splitMACS2SubPeaks.pl" "${peaks}" > "${id}_split_peaks.narrowPeak"
 
   """
 }
@@ -1655,7 +1652,7 @@ process ATAC__differential_abundance_analysis {
         library(magrittr)
 
         COMP = '!{COMP}'
-        source('!{rdir}/export_df_to_bed.R')
+        source('export_df_to_bed.R')
 
         conditions = strsplit(COMP, '_vs_')[[1]]
         cond1 = conditions[1]
@@ -1972,8 +1969,8 @@ process mRNA__differential_abundance_analysis {
       cond2 = '!{cond2}'
 
       promoters_df = readRDS('!{params.promoters_df}')
-      source('!{rdir}/export_df_to_bed.R')
-      source('!{rdir}/get_prom_bed_df_table.R')
+      source('export_df_to_bed.R')
+      source('get_prom_bed_df_table.R')
 
 
       s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), stringsAsFactors = F)
@@ -2080,7 +2077,7 @@ process plotting_differential_gene_expression_results {
       library(magrittr)
       library(grid)
 
-      source('!{rdir}/functions_plot_volcano_PCA.R')
+      source('functions_plot_volcano_PCA.R')
 
       sleo = readRDS('!{mRNA_DEG_rsleuth_rds}')
 
@@ -2179,7 +2176,7 @@ process plotting_differential_accessibility_results {
       library(grid)
       library(DiffBind)
 
-      source('!{rdir}/functions_plot_volcano_PCA.R')
+      source('functions_plot_volcano_PCA.R')
 
       COMP = '!{COMP}'
 
@@ -2342,7 +2339,7 @@ process ATAC__saving_detailed_results_tables {
       df_annotated_peaks = readRDS('!{annotated_peaks}')
       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
 
-      source('!{rdir}/get_merged_columns.R')
+      source('get_merged_columns.R')
 
 
       # setting up parameters
@@ -2473,10 +2470,10 @@ process splitting_differential_abundance_results_in_subsets {
       library(magrittr)
       library(purrr)
 
-      source('!{rdir}/read_from_nextflow.R')
-      source('!{rdir}/export_df_to_bed.R')
-      source('!{rdir}/get_prom_bed_df_table.R')
-      source('!{rdir}/get_merged_columns.R')
+      source('read_from_nextflow.R')
+      source('export_df_to_bed.R')
+      source('get_prom_bed_df_table.R')
+      source('get_merged_columns.R')
 
       COMP = '!{COMP}'
 
@@ -2758,7 +2755,7 @@ process plotting_venn_diagrams {
 
       library(VennDiagram)
 
-      source('!{rdir}/plot_venn_diagrams.R')
+      source('plot_venn_diagrams.R')
 
 
       all_files = list.files(pattern = '*.rds')
@@ -3216,7 +3213,7 @@ process compute_enrichment_pvalue {
         #!/usr/bin/env Rscript
 
         library(magrittr)
-        source('!{rdir}/get_chrom_states_names_vec.R')
+        source('get_chrom_states_names_vec.R')
 
         key = '!{key}'
         data_type = '!{data_type}'
@@ -3366,8 +3363,8 @@ process plot_enrichment_barplot {
       add_var_to_plot = '!{params.add_var_to_plot}'
       threshold_plot_adj_pval = !{params.threshold_plot_adj_pval}
 
-      source('!{rdir}/get_new_name_by_unique_character.R')
-      source('!{rdir}/functions_pvalue_plots.R')
+      source('get_new_name_by_unique_character.R')
+      source('functions_pvalue_plots.R')
 
 
 
@@ -3456,10 +3453,10 @@ process plot_enrichment_heatmap {
     add_var_to_plot         = '!{params.add_var_to_plot}'
     up_down_pattern         = '!{params.up_down_pattern}'
 
-    source('!{rdir}/get_new_name_by_unique_character.R')
-    source('!{rdir}/get_chrom_states_names_vec.R')
-    source('!{rdir}/functions_pvalue_plots.R')
-    source('!{rdir}/functions_grouped_plot.R')
+    source('get_new_name_by_unique_character.R')
+    source('get_chrom_states_names_vec.R')
+    source('functions_pvalue_plots.R')
+    source('functions_grouped_plot.R')
 
 
 
@@ -3610,8 +3607,8 @@ process formatting_individual_tables {
 
 
         library(magrittr)
-        source('!{rdir}/read_from_nextflow.R')
-        source('!{rdir}/get_formatted_table.R')
+        source('read_from_nextflow.R')
+        source('get_formatted_table.R')
 
         data_type = '!{data_type}'
         rds_file = '!{rds_file}'
@@ -3673,7 +3670,7 @@ process formatting_merged_tables {
 
       library(magrittr)
       library(dplyr)
-      source('!{rdir}/get_formatted_table.R')
+      source('get_formatted_table.R')
 
       data_type = '!{data_type}'
 

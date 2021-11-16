@@ -1,3 +1,9 @@
+## current TO DOs
+
+# make this line work for all species
+BED_PATH="${cactusdir}/tools/cel_genome/annotations/refGene_UCSC"
+
+
 
 
 ######################################
