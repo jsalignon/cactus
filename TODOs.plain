@@ -11,7 +11,6 @@ https://github.com/nf-core/atacseq/blob/master/main.nf
 # => faire une branche par espece
 
 
-# Plus tard => mettre la pipeline sur nf-core??
 
 
 ######################################
@@ -175,6 +174,9 @@ mv nf_log.txt results/${VERSION}/Run_Info/nf_log.txt
 
 ######################################
 TO DO LATER
+
+# Plus tard => mettre la pipeline sur nf-core?? For that I would need to put in place Continuous Integration Testing (CIT) with Travis. And to check if there is not too much overlap with their atac seq pipeline
+
 
  - create a type category CUMD and CDMU for Chromatin Up MRNA Down and the reverse for unexpected changes as they can happen sometimes from experience
 
