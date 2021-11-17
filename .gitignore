@@ -1,1 +1,6 @@
 TODOs.plain
+.nextflow*
+work/
+data/
+results/
+tests/

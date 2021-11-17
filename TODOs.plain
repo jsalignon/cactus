@@ -3,6 +3,12 @@
 # make this line work for all species
 BED_PATH="${cactusdir}/tools/cel_genome/annotations/refGene_UCSC"
 
+# ajouter un Header log info au debut de la pipeline
+https://github.com/nf-core/atacseq/blob/master/main.nf
+
+# mettre des jeux de donnees test en ligne sur github et les telecharger automatiquement
+# => s'inspirer fortement des test datasets nf-core (https://github.com/nf-core/test-datasets/tree/atacseq/testdata()
+# => faire une branche par espece
 
 
 
@@ -21,6 +27,8 @@ mv nf_log.txt results/${VERSION}/Run_Info/nf_log.txt
 ## change log
 
  
+
+
 
 
 
