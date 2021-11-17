@@ -11,6 +11,8 @@ https://github.com/nf-core/atacseq/blob/master/main.nf
 # => faire une branche par espece
 
 
+# Plus tard => mettre la pipeline sur nf-core??
+
 
 ######################################
 ## run cmd
