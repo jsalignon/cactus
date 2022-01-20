@@ -516,7 +516,7 @@ process ATAC__marking_duplicates {
   """
 
     java -Xmx${params.workMem} \
-    -jar "${params.picard_tools}" MarkDuplicates \
+    -jar picard.jar MarkDuplicates \
     INPUT="${bam}" \
     OUTPUT="${id}_dup_marked.bam" \
     METRICS_FILE="${id}_dup.qc" \
@@ -706,7 +706,7 @@ process ATAC__plot_insert_size_distribution {
   """
 
     java -Xms1g -Xmx${params.workMem} \
-    -jar  "${params.picard_tools}" CollectInsertSizeMetrics \
+    -jar  picard.jar CollectInsertSizeMetrics \
     OUTPUT="${id}.insertSizes.txt" \
     METRIC_ACCUMULATION_LEVEL=ALL_READS \
     HISTOGRAM_FILE="${id}.insertSizes.pdf" \
@@ -1084,7 +1084,7 @@ process ATAC__reads_stat_2_library_complexity {
   script:
   """
 
-    java -Xmx${params.workMem} -jar "${params.picard_tools}" \
+    java -Xmx${params.workMem} -jar picard.jar \
     EstimateLibraryComplexity \
     INPUT=${sam} \
     OUTPUT=${id}_library_complexity.txt
