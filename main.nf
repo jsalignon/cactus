@@ -1156,7 +1156,7 @@ process ATAC__reads_stat_3_alignment_sampled_reads {
       --no-mixed \
       -X 2000 \
       --met 1 \
-      -x "${params.bowtie2_indexes_op50}" \
+      -x op50_genome/bowtie2_op50_indexes \
       -q -1 "${read1}" -2 "${read2}" \
       | samtools view -bS -o "${id}_op50.bam" -
 
