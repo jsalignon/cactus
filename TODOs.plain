@@ -1,4 +1,126 @@
+
+
+
+######################################
+## run cmd
+
+
+CACTUS="/home/jersal/workspace/cactus/main.nf"
+nextflow run ${CACTUS} -bg > nf_log.txt
+mv nf_log.txt results/${VERSION}/Run_Info/nf_log.txt
+
+
+
+
+#####################################################################
+## TO DOs before submission of a manuscript
+###########################################
+
+###################################
+## TO DOs (in order of of priority)
+
+- make the pipeline work without gDNA. 
+- easy download of containers: create mulled containers (multi-tools containers) with Biocontainers 
+- easy download of data: put external datasets in a repository (i.e. NGI)
+- write an online documentation => faire en markdown directement sur Markdown
+- update the scripts to work with the latest versions of Nextflow and Singularity (ask Giuseppe to update the two tools before the final runs)
+- make Maxime read the code, and update it to include his advices/fix/comments
+- run the pipeline for all species, make sure everything run properly and add reproducible outputs in the doc
+- write the supplementary text that contains instructions for installation, setup, run, options, examples and references (if needed since the online doc could be enough)
+- make Maxime and Santilal read the manuscript and documentation and update it with their feeback, and submit paper
+
+
+##########
+## ONGOING
+
+- versioning with git
+- make a small test dataset for each species, and check that it works as expected (start with worm, and at the end do the other species) => Done for the worm. Now needs to be tested by running the pipeline. 
+
+######
+# DONE
+ - write the Manuscript and make the Figure with Inkscape
+
+
+
+#### - make the pipeline work without gDNA (in order to be able to test the pipeline) => there are two options here: 1/ to provide a "standard" genomic DNA to all users, 2/ to provide the option to not use any genomic DNA. => Check with Lluis what he thinks on that matter. And check in the literature what is commonly done. In any case, the pipeline should be written so that the genomic DNA has its own line on the input file
+
+ 
+ 
+################################################################
+## A note
+#########
+
+ => there is little chance that the new pipeline will give the same results as the old. I should probably forget about this idea, and just write the methods of ATAC-Seq analysis in the Lin-39 paper, without fear that it would be different from cactus. I should probably consider that as two separate projects. The lin-39 has been analyzed a while ago with the old version of the pipeline and the result may not be kept. I should just make sure I can repeat the old analysis that gave us the figure on which the lin-39 project is based on. And then develop the cactus code as I think is the best for its own publication. Otherwise, I will end up making a weirdly stretched pipeline that is not optimal on several aspects. This has advantages: I can work on the lin-39 paper independently from cactus, while assuming that they will probably not merge. I mean it is not impossible, but it should not be the goal anyway. Let's see anyway how the lin-39 project develops. Cactus is more predictable since the pipeline structure is pretty much set up.  
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ ################################################################
+ ## Technical TO DOs
+ ###################
+ 
+ TO DO
+ - make the pipeline work on the test dataset worm
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ ################################################################
+ ## Optional TO DOs for the future
+ ###################
+ 
+  - And maybe change the way the gDNA is used by using either "GreyListChIP", macs2, or both (preferably), instead of Diffbind.
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+################################################################
+## OTHER TO DOs (old lists)
+###########################
+
+
 ## current TO DOs
+
+# make the pipeline work without genomic DNA!!!
+# => no: change the script so that a specie specific gDNA sample bed file is donwloaded if no gDNA is provided
+# => no: make it work without gDNA
 
 # make this line work for all species
 BED_PATH="${cactusdir}/tools/cel_genome/annotations/refGene_UCSC"
@@ -9,6 +131,10 @@ https://github.com/nf-core/atacseq/blob/master/main.nf
 # mettre des jeux de donnees test en ligne sur github et les telecharger automatiquement
 # => s'inspirer fortement des test datasets nf-core (https://github.com/nf-core/test-datasets/tree/atacseq/testdata()
 # => faire une branche par espece
+
+
+
+
 
 
 
