@@ -345,23 +345,34 @@ process ATAC__trimming_adaptors {
       R1=!{read1}
       R2=!{read2}
       id=!{id}
-      NBT=!{params.nb_threads}
+      Nb_of_threads=!{params.nb_threads}
       
       R1TRIM=$(basename ${R1} .fastq.gz)_trim.fastq
-    	R2TRIM=$(basename ${R2} .fastq.gz)_trim.fastq
-    	
+      R2TRIM=$(basename ${R2} .fastq.gz)_trim.fastq
+      
       skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} -o !{id} > trimer_verbose.txt
       mv !{id}-trimmed.log ${id}_skewer_trimming.log
       mv !{id}-trimmed-pair1.fastq $R1TRIM
       mv !{id}-trimmed-pair2.fastq $R2TRIM
-      pigz -p 6 $R1TRIM
-      pigz -p 6 $R2TRIM
+      pigz -p ${Nb_of_threads} $R1TRIM
+      pigz -p ${Nb_of_threads} $R2TRIM
+      
       pigz -l $R1TRIM.gz > !{id}_pigz_compression.log
-      pigz -l $R2TRIM.gz | grep fastq - >> !{id}_pigz_compression.log
-  	
-    
+      pigz -l $R2TRIM.gz >> !{id}_pigz_compression.log
+      
   '''
 }
+
+// this line crashed the script somehow. I don't really get the grep fast here anyway so I changed it
+// pigz -l $R2TRIM.gz | grep fastq - >> !{id}_pigz_compression.log
+
+// cp $R1 $R1TRIM.gz
+// cp $R2 $R2TRIM.gz
+// touch tmp.log
+
+// R1TRIM=$(basename ${R1} .fastq.gz)_trim.fastq
+// R2TRIM=$(basename ${R2} .fastq.gz)_trim.fastq
+// 
 
 // skewer potentially useful options
 // -m, --mode <str> trimming mode; 1) single-end -- head: 5' end; tail: 3' end; any: anywhere
@@ -582,9 +593,9 @@ process ATAC__creation_of_raw_bigwig_tracks {
 
   script:
   """
-      
+
       bamCoverage --bam ${bam} --outFileName ${id}_raw.bw --binSize ${params.binsize_bigwig_creation} --numberOfProcessors ${params.nb_threads} --blackListFileName ${params.blacklisted_regions} --effectiveGenomeSize ${params.effective_genome_size}
-      
+
 
   """
 }
