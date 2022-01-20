@@ -240,7 +240,7 @@ static def returnR2ifExists(r2files) {
 MRNA_reads_for_merging = Channel.create()
 MRNA_reads_for_kallisto = Channel.create()
 
-fastq_files = file("config/mRNA_fastq.config")
+fastq_files = file("conf/mRNA_fastq.config")
 Channel
   .from(fastq_files.readLines())
   .map{ it.split() }
@@ -266,7 +266,7 @@ def customPath(foo) { file("data/ATAC/${foo}.fastq.gz") }
 ATAC_reads_for_merging = Channel.create()
 ATAC_reads_for_trimming = Channel.create()
 
-fastq_files = file("config/atac_fastq.config")
+fastq_files = file("conf/atac_fastq.config")
 Channel
 .from(fastq_files.readLines())
 .map{ it.split() }
@@ -1524,7 +1524,7 @@ process ATAC__plotting_grouped_peak_files {
 //////////////////////////////////////////////////////////////////////////////
 //// DIFFENRENTIAL BINDING
 
-comparisons_files = file("config/comparisons.config")
+comparisons_files = file("conf/comparisons.config")
 Channel
   .from(comparisons_files.readLines())
   .map {
@@ -1537,7 +1537,7 @@ Channel
   .dump(tag:'comp_file') {"comparison file: ${it}"}
   .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
 
-regions_to_remove = file("config/regions_to_remove.config")
+regions_to_remove = file("conf/regions_to_remove.config")
 Channel
   .from(regions_to_remove.readLines())
   .map { m = it.split(); [ m[0], m[1] ] }
@@ -2818,7 +2818,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(Venn_up_and_down_for_merging_pdfs.
 
 // importing groups of comparisons to plot together on the overlap matrix and the heatmaps
 
-comparisons_grouped = file("config/comparisons_grouped_for_plotting.config")
+comparisons_grouped = file("conf/comparisons_grouped_for_plotting.config")
 Channel
   .from( comparisons_grouped.readLines() )
   .map { it.split() }
