@@ -513,6 +513,8 @@ process ATAC__filtering_low_quality_reads {
 process ATAC__marking_duplicates {
   tag "${id}"
 
+  container = params.picard
+
   // publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", mode: "${pub_mode}", enabled: save_all_bam
 
   when: do_atac
@@ -527,15 +529,15 @@ process ATAC__marking_duplicates {
   script:
   """
 
-    java -Xmx${params.workMem} \
-    -jar picard.jar MarkDuplicates \
-    INPUT="${bam}" \
-    OUTPUT="${id}_dup_marked.bam" \
-    METRICS_FILE="${id}_dup.qc" \
-    VALIDATION_STRINGENCY=LENIENT \
-    ASSUME_SORTED=true \
-    REMOVE_DUPLICATES=false \
-    TMP_DIR="."
+    picard -Xmx20G MarkDuplicates \
+      -INPUT "${bam}" \
+      -OUTPUT "${id}_dup_marked.bam" \
+      -METRICS_FILE "${id}_dup.qc" \
+      -VALIDATION_STRINGENCY LENIENT \
+      -ASSUME_SORTED true \
+      -REMOVE_DUPLICATES false \
+      -TMP_DIR "."
+
 
   """
 }
@@ -703,6 +705,8 @@ process ATAC__removing_mitochondrial_reads {
 process ATAC__plot_insert_size_distribution {
   tag "${id}"
 
+  container = params.picard
+
   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__reads__insert_size", mode: "${pub_mode}"
 
   when: do_atac
@@ -716,14 +720,14 @@ process ATAC__plot_insert_size_distribution {
 
   script:
   """
+    
+    picard -Xmx${params.workMem} CollectInsertSizeMetrics \
+      -INPUT "${bam}" \
+      -OUTPUT "${id}.insertSizes.txt" \
+      -METRIC_ACCUMULATION_LEVEL ALL_READS \
+      -Histogram_FILE "${id}.insertSizes.pdf" \
+      -TMP_DIR .
 
-    java -Xms1g -Xmx${params.workMem} \
-    -jar  picard.jar CollectInsertSizeMetrics \
-    OUTPUT="${id}.insertSizes.txt" \
-    METRIC_ACCUMULATION_LEVEL=ALL_READS \
-    HISTOGRAM_FILE="${id}.insertSizes.pdf" \
-    INPUT="${bam}" \
-    TMP_DIR="."
 
   """
 }
@@ -1096,10 +1100,10 @@ process ATAC__reads_stat_2_library_complexity {
   script:
   """
 
-    java -Xmx${params.workMem} -jar picard.jar \
+    picard -Xmx${params.workMem} \
     EstimateLibraryComplexity \
-    INPUT=${sam} \
-    OUTPUT=${id}_library_complexity.txt
+    -INPUT ${sam} \
+    -OUTPUT ${id}_library_complexity.txt
 
   """
 
