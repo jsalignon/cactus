@@ -948,37 +948,20 @@ process ATAC__removing_blacklisted_regions {
     // cat "${id}_peaks_kept_after_blacklist_removal.bed" | awk -F'\t' 'BEGIN {OFS = FS} { if ( \$1 == "MtDNA" ) { \$1 = "chrM" } else { \$1 = "chr"\$1 };  print \$0 }' > "${id}_peaks_kept_after_blacklist_removal_2.bed"
 
 
-// fastq_files = file("design/atac_fastq.tsv")
-// Channel.from(fastq_files.readLines()).map{ it.split() }.map{ it[0] }.filter( ~/input/ )
-// 
-// 
-// .map{ [ it[0], it[1..-1] ] }
-// 
-// ch_bwa = params.bwa ? Channel.value(file(params.bwa)) : bwa_built
-// ch_dict = params.dict ? Channel.value(file(params.dict)) : dictBuilt
-// 
-// ch_dbsnp_tbi = params.dbsnp ? params.dbsnp_index ? Channel.value(file(params.dbsnp_index)) : dbsnp_tbi : "null"
-// 
-// input_sample == 'input_1' ? 1 : 0
-// if(input_is_included)
-// Peaks_for_input_peaks_removal
-// 
-
-bam_sentieon_all.choice(bam_sentieon_tumor, bam_sention_normal) {statusMap[it[0], it[1]] == 0 ? 1 : 0}
 
 Peaks_for_input_peaks_removal
-    .branch {
-        with_input: params.use_input_control
-        without_input: true
-    }
-    .set { Peaks_for_input_peaks_removal }
+  .branch {
+    with_input: params.use_input_control
+    without_input: true
+  }
+  .set { Peaks_for_input_peaks_removal_1 }
 
 
 
 peaks_treatment = Channel.create()
 peaks_control = Channel.create()
-Peaks_for_input_peaks_removal
-  .choice(peaks_treatment, peaks_control) { it[0] == 'input_1' ? 1 : 0 }
+Peaks_for_input_peaks_removal_1.with_input
+  .choice(peaks_treatment, peaks_control) { it[0] == 'input' ? 1 : 0 }
 
 peaks_treatment
     .combine(peaks_control)
@@ -1015,9 +998,11 @@ process ATAC__removing_input_peaks {
   """
 }
 
+Peaks_bed_format_for_diffbind_1 = Peaks_for_input_peaks_removal.without_input.concat(Peaks_bed_format_for_diffbind)
+
 
 //////////////////////////////////////////////////////////////////////////////
-//// READS METRICS
+//// READS STATISTICS
 
 process ATAC__sampling_aligned_reads_for_statistics {
   tag "${id}"
@@ -1588,7 +1573,7 @@ process ATAC__plotting_grouped_peak_files {
 //   .set{regions_to_remove_for_merging}
 // 
 // Reads_bam_format_for_diffbind
-//     .join(Peaks_bed_format_for_diffbind, remainder: true)
+//     .join(Peaks_bed_format_for_diffbind_1, remainder: true)
 //     .tap { channel_test }
 //     .map { [ it[0].split("_")[0], it[0..-1]] }
 //     .groupTuple()
