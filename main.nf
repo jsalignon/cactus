@@ -1590,6 +1590,7 @@ comparisons_files_for_merging
   .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
   .map { [ it[0] + '_vs_' + it[1], it[4,7].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
   // .map { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> [ id_comp_1 + '_vs_' + id_comp_2, [reads_and_peaks_1,reads_and_peaks_2].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] } // => not sure how to make this work
+  // format: id_comp, regions_to_remove_merged, bed_files, bam_files 
   .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
   .tap { Reads_for_diffbind_1 }
   .map { it[0,1,2] }
@@ -1635,6 +1636,9 @@ process ATAC__removing_specific_regions {
 
 }
 
+// note: the reason why this process is here and not upstread is because we want to remove in all bed files the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider all peaks for his analysis, so if we remove one such peak in just one of the two samples to compare, then it will likely be found as differential bound during the DBA 
+
+
 Reads_input_control
   .filter{ id, bam_files -> id == 'input'}
   .set{ Reads_input_control_1 }
@@ -1643,15 +1647,33 @@ Reads_for_diffbind_1
   .map { it[0,3] }
   .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
   .join(Peaks_for_diffbind)
-  .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
+  .branch {
+    with_input_control: params.use_input_control
+    without_input_control: true
+  }
+  .set { Reads_and_peaks_for_diffbind_1 }
+
+Reads_and_peaks_for_diffbind_1.with_input_control
   .combine(Reads_input_control_1)
-  .set { Peaks_and_reads_for_diffbind }
+  .map{ comp_id, bam_files, bed_files, input_id, imput_bam -> [ comp_id, bed_files, [bam_files, imput_bam].flatten() ] }
+  // .map{ it -> [ it[0], it[1], [it[2,4].flatten()]] }
+  .set{ Reads_and_peaks_with_input_control }
+  
+Reads_and_peaks_for_diffbind_1.without_input_control
+  .concat(Reads_and_peaks_with_input_control)
+  .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
+  .set{ Reads_and_peaks_for_diffbind_2 }
+
+
+// Reads_and_peaks_for_diffbind_1_with_input_control
+//   .set { Reads_and_peaks_for_diffbind }
+
 
   // .branch {
   //   with_input_control: params.use_input_control
   //   without_input_control: true
   // }
-  // .set { Peaks_and_reads_for_diffbind_1 }
+  // .set { Reads_and_peaks_for_diffbind_1 }
 
 
 
@@ -1674,7 +1696,7 @@ Reads_for_diffbind_1
 //   when: do_atac
 // 
 //   input:
-//       set COMP, file(bed), file(bam) from Peaks_and_reads_for_diffbind
+//       set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind
 // 
 //   output:
 //       set COMP, file('*__diffbind_peaks_dbo.rds') into Diffbind_object_for_plotting
