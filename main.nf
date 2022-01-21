@@ -759,7 +759,7 @@ process ATAC__bamToBed_and_atacShift {
 
   output:
     set id, file("*.bed") into Bed_for_extending_before_macs2
-    set id, file("*.bam*") into Reads_bam_format_for_diffbind
+    set id, file("*.bam*") into Reads_for_diffbind
 
   script:
   """
@@ -984,7 +984,7 @@ process ATAC__removing_input_control_peaks {
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_input_control_removal.bed") into Peaks_bed_format_for_diffbind
+    set id, file("*_peaks_kept_after_input_control_removal.bed") into Peaks_for_removing_specific_regions
 
   script:
   """
@@ -998,7 +998,7 @@ process ATAC__removing_input_control_peaks {
   """
 }
 
-Peaks_bed_format_for_diffbind_1 = Peaks_for_input_control_peaks_removal_1.without_input_control.concat(Peaks_bed_format_for_diffbind)
+Peaks_for_removing_specific_regions_1 = Peaks_for_input_control_peaks_removal_1.without_input_control.concat(Peaks_for_removing_specific_regions)
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1549,102 +1549,112 @@ process ATAC__plotting_grouped_peak_files {
 
 
 
-// // //////////////////////////////////////////////////////////////////////////////
-// // //// DIFFENRENTIAL BINDING
-// // 
-// comparisons_files = file("design/comparisons.tsv")
-// Channel
-//   .from(comparisons_files.readLines())
-//   .map {
-//           m = it.split()
-//           condition1 = m[0]
-//           condition2 = m[1]
-//           input_control = m[2]
-//           [ condition1, condition2, input_control ]
-//        }
-//   .dump(tag:'comp_file') {"comparison file: ${it}"}
-//   .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
+// //////////////////////////////////////////////////////////////////////////////
+// //// DIFFENRENTIAL BINDING
 // 
-// regions_to_remove = file("design/regions_to_remove.tsv")
-// Channel
-//   .from(regions_to_remove.readLines())
-//   .map { m = it.split(); [ m[0], m[1] ] }
-//   .dump(tag:'regions_to_remove') {"regions to remove: ${it}"}
-//   .set{regions_to_remove_for_merging}
-// 
-// Reads_bam_format_for_diffbind
-//     .join(Peaks_bed_format_for_diffbind_1, remainder: true)
-//     .tap { channel_test }
-//     .map { [ it[0].split("_")[0], it[0..-1]] }
-//     .groupTuple()
-//     .join(regions_to_remove_for_merging, remainder: true)
-//     .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
-//     .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
-// 
-// comparisons_files_for_merging
-//   .combine(reads_and_peaks_1)
-//   .combine(reads_and_peaks_2)
-//   .combine(reads_and_peaks_3)
-//   .filter { it[0] == it[3] && it[1] == it[6] && it[2] == it[9] }
-//   .map { [ it[0] + '_vs_' + it[1], it[5,8,11].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
-//   .tap { bam_and_bai_for_diffbind }
-//   .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
-//   .map { it[0,1,2] }
-//   .set { Peaks_for_removing_specific_regions }
+comparisons_files = file("design/comparisons.tsv")
+Channel
+  .from(comparisons_files.readLines())
+  .map {
+          m = it.split()
+          condition1 = m[0]
+          condition2 = m[1]
+          [ condition1, condition2 ]
+       }
+  .dump(tag:'comp_file') {"comparison file: ${it}"}
+  .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
+
+regions_to_remove = file("design/regions_to_remove.tsv")
+Channel
+  .from(regions_to_remove.readLines())
+  .map { m = it.split(); [ m[0], m[1] ] }
+  .dump(tag:'regions_to_remove') {"regions to remove: ${it}"}
+  .set{regions_to_remove_for_merging}
+
+Reads_for_diffbind
+  .tap{ Reads_input_control }
+  .join( Peaks_for_removing_specific_regions_1, remainder: true )
+  .tap { channel_test }
+  .map { [ it[0].split("_")[0], it[0..-1]] }
+  .groupTuple()
+  .join(regions_to_remove_for_merging, remainder: true)
+  .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
+  .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
+
+comparisons_files_for_merging
+  .combine(reads_and_peaks_1)
+  .combine(reads_and_peaks_2)
+  .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
+  .map { [ it[0] + '_vs_' + it[1], it[4,7].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
+  // .map { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> [ id_comp_1 + '_vs_' + id_comp_2, [reads_and_peaks_1,reads_and_peaks_2].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] } // => not sure how to make this work
+  .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
+  .tap { Reads_for_diffbind }
+  .map { it[0,1,2] }
+  .set { Peaks_for_removing_specific_regions_2 }
 
 
-// process ATAC__removing_specific_regions {
-//   tag "${COMP}"
-// 
-//   container = params.bowtie2_samtools_bedtools
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
-// 
-//   when: do_atac
-// 
-//   input:
-//       set COMP, regions_to_remove, file(bed_files) from Peaks_for_removing_specific_regions
-// 
-//   output:
-//       set COMP, file("*.bed") into Peaks_for_diffbind
-// 
-//   shell:
-//   '''
-// 
-//       RTR="!{regions_to_remove}"
-//       FOO1=`echo $RTR | sed 's/;/__/g' | sed 's/__/~/g' | sed 's/null//g'`
-//       IFS='~' read -r -a FOO2 <<< "$FOO1"
-// 
-//       for ((i=0; i<${#FOO2[@]}; i++));
-//       do
-//           FOO2[$i]=`echo "${FOO2[$i]}" | sed -r 's/.*chr//g' | sed -r 's/[:-]/\t/g'`
-//       done
-// 
-//       printf "%s\n" "${FOO2[@]}" > regions_to_remove.txt
-// 
-//       for FILE in !{bed_files}
-//       do
-//         CUR_NAME=`basename -s ".bed" $FILE`
-//         intersectBed -v -a $FILE -b regions_to_remove.txt > "${CUR_NAME}_filtered.bed"
-//       done
-// 
-//   '''
-// 
-// }
-// 
-// 
-// 
-// bam_and_bai_for_diffbind
-//   .map { it[0,3] }
-//   .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
-//   .set { bam_and_bai_for_diffbind_1 }
-// 
-// bam_and_bai_for_diffbind_1
-//   .join(Peaks_for_diffbind)
-//   .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
-//   .set { Peaks_and_reads_for_diffbind }
-// 
-// 
+process ATAC__removing_specific_regions {
+  tag "${COMP}"
+
+  container = params.bowtie2_samtools_bedtools
+
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
+
+  when: do_atac
+
+  input:
+      set COMP, regions_to_remove, file(bed_files) from Peaks_for_removing_specific_regions_2
+
+  output:
+      set COMP, file("*.bed") into Peaks_for_diffbind
+
+  shell:
+  '''
+
+      RTR="!{regions_to_remove}"
+      FOO1=`echo $RTR | sed 's/;/__/g' | sed 's/__/~/g' | sed 's/null//g'`
+      IFS='~' read -r -a FOO2 <<< "$FOO1"
+
+      for ((i=0; i<${#FOO2[@]}; i++));
+      do
+          FOO2[$i]=`echo "${FOO2[$i]}" | sed -r 's/.*chr//g' | sed -r 's/[:-]/\t/g'`
+      done
+
+      printf "%s\n" "${FOO2[@]}" > regions_to_remove.txt
+
+      for FILE in !{bed_files}
+      do
+        CUR_NAME=`basename -s ".bed" $FILE`
+        intersectBed -v -a $FILE -b regions_to_remove.txt > "${CUR_NAME}_filtered.bed"
+      done
+
+  '''
+
+}
+
+Reads_input_control
+  .filter{ id, bam_files -> id == 'input'}
+  .set{ Reads_input_control_1 }
+
+Reads_for_diffbind
+  .map { it[0,3] }
+  .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
+  .join(Peaks_for_diffbind)
+  .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
+  .combine(Reads_input_control)
+  .set { Peaks_and_reads_for_diffbind }
+
+  // .branch {
+  //   with_input_control: params.use_input_control
+  //   without_input_control: true
+  // }
+  // .set { Peaks_and_reads_for_diffbind_1 }
+
+
+
+
+
+
 // // This process generates the set of all peaks found in all replicates, and the set of differentially abundant/accessible peaks (can also be called differentially bound regions)
 // 
 // process ATAC__differential_abundance_analysis {
