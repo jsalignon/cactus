@@ -1665,211 +1665,209 @@ Reads_and_peaks_for_diffbind_1.without_input_control
   .set{ Reads_and_peaks_for_diffbind_2 }
 
 
-// Reads_and_peaks_for_diffbind_1_with_input_control
-//   .set { Reads_and_peaks_for_diffbind }
-
-
-  // .branch {
-  //   with_input_control: params.use_input_control
-  //   without_input_control: true
-  // }
-  // .set { Reads_and_peaks_for_diffbind_1 }
 
 
 
 
 
+// This process generates the set of all peaks found in all replicates, and the set of differentially abundant/accessible peaks (can also be called differentially bound regions)
 
-// // This process generates the set of all peaks found in all replicates, and the set of differentially abundant/accessible peaks (can also be called differentially bound regions)
-// 
-// process ATAC__differential_abundance_analysis {
-//   tag "${COMP}"
-// 
-//   container = params.diffbind
-// 
-//   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
-//      if (it.indexOf("__all_peaks.bed") > 0) "ATAC__all_peaks__bed/${it}"
-//      else if (it.indexOf("__diffbind_peaks_dbo.rds") > 0) "ATAC__all_peaks__DiffBind/${it}"
-//      else if (it.indexOf("__diffbind_peaks_gr.rds") > 0) "ATAC__all_peaks__gRange/${it}"
-//   }
-// 
-//   when: do_atac
-// 
-//   input:
-//       set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind
-// 
-//   output:
-//       set COMP, file('*__diffbind_peaks_dbo.rds') into Diffbind_object_for_plotting
-//       set COMP, file('*__diffbind_peaks_gr.rds'), file('*__diffbind_peaks_dbo.rds') into All_peaks_for_peak_annotation
-//       set COMP, file('*__all_peaks.bed') into All_detected_ATAC_peaks_for_background
-// 
-//   shell:
-//   '''
-// 
-//         #!/usr/bin/env Rscript
-// 
-// 
-//         ##### loading data and libraries
-// 
-//         library(DiffBind)
-//         library(magrittr)
-// 
-//         COMP = '!{COMP}'
-//         source('export_df_to_bed.R')
-// 
-//         conditions = strsplit(COMP, '_vs_')[[1]]
-//         cond1 = conditions[1]
-//         cond2 = conditions[2]
-// 
-// 
-//         ##### Preparing the metadata table
-//         cur_files = grep('diffbind_peaks', list.files(pattern = '*.bam$|*filtered.bed$'), value = T, invert = T)
-//         df = data.frame(path = cur_files, stringsAsFactors=F)
-//         cursplit = sapply(cur_files, strsplit, '_')
-//         df$condition = sapply(cursplit, '[[', 1)
-//         df$replicate = sapply(cursplit, '[[', 2)
-//         df$id = paste0(df$condition, '_', df$replicate)
-//         df$type = sapply(df$path, function(c1) ifelse(length(grep('reads', c1)) == 1, 'reads', ifelse(length(grep('peaks', c1)) == 1, 'peaks', '')))
-// 
-//         names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 'ControlID', 'bamControl', 'Peaks','PeakCaller')
-//         all_id = unique(df$id) %>% .[. != 'input']
-//         df1 = data.frame(matrix(nrow = length(all_id), ncol = length(names_df1)), stringsAsFactors=F)
-//         names(df1) = names_df1
-// 
-//         for(c1 in 1:length(all_id)){
-//           cur_id = all_id[c1]
-//           sel_reads = which(df$id == cur_id & df$type == 'reads')
-//           sel_peaks = which(df$id == cur_id & df$type == 'peaks')
-//           sel_input_control_reads = which(df$condition == 'input' & df$type == 'reads')
-// 
-//           df1$SampleID[c1] = cur_id
-//           df1$Condition[c1] = df$condition[sel_reads]
-//           df1$Replicate[c1] = df$replicate[sel_reads]
-//           df1$bamReads[c1] = df$path[sel_reads]
-//           df1$ControlID[c1] = df$id[sel_input_control_reads]
-//           df1$bamControl[c1] = df$path[sel_input_control_reads]
-//           df1$Peaks[c1] = df$path[sel_peaks]
-//           df1$PeakCaller[c1] = 'bed'
-// 
-//         }
-// 
-// 
-//         ##### Running DiffBind
-// 
-//         dbo <- dba(sampleSheet = df1, minOverlap = 0)
-//         dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM)
-//         dbo <- dba.contrast(dbo, dbo$masks[[cond1]], dbo$masks[[cond2]], cond1, cond2, minMembers = 2)
-//         dbo$config$AnalysisMethod = DBA_EDGER  # instead of DBA_DESEQ2
-//         dbo <- dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE, bReduceObjects = FALSE)
-// 
-//         saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
-// 
-// 
-//         ##### Exporting all peaks as a data frame
-// 
-//         # extracting all peaks (note: th is the fdr threshold, so with th = 1 we keep all peaks)
-//         all_peaks_gr = suppressWarnings(dba.report(dbo, th = 1))
-// 
-//         # recomputing the FDR to have more precise values (DiffBind round them at 3 digits)
-//         all_peaks_gr$FDR <- NULL
-//         all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, method = 'BH')
-// 
-//         # adding the raw reads counts of each replicate
-//         dbo1 <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_READS)
-//         cp_raw = dba.peakset(dbo1, bRetrieve = TRUE, score = DBA_SCORE_READS)
-//         mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
-//         m <- findOverlaps(all_peaks_gr, cp_raw)
-//         names_subject = names(mcols(cp_raw))
-//         mcols(all_peaks_gr)[queryHits(m), names_subject] = mcols(cp_raw)[subjectHits(m), names_subject]
-//         saveRDS(all_peaks_gr, paste0(COMP, '__diffbind_peaks_gr.rds'))
-// 
-// 
-//         ##### Exporting all peaks as a bed file
-// 
-//         all_peaks_df = as.data.frame(all_peaks_gr)
-//         all_peaks_df %<>% dplyr::mutate(name = rownames(.), score = round(-log10(p.value), 2))
-//         all_peaks_df %<>% dplyr::rename(chr = seqnames)
-//         all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
-//         export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
-// 
-// 
-//     '''
-// }
-// 
-// // rtracklayer::export(promoters, 'promoters.bed')
-// 
-// // note: diffbind_peaks: means the peaks from diffbind, not that these peaks are diffbound (differentially bound). This set is in fact all the peaks that diffbind found in all replicates. The corresponding bed file will be used as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
-// 
-// 
-// process ATAC__annotating_all_peaks {
-//   tag "${COMP}"
-// 
-//   container = params.multiple_R_packages
-// 
-//   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
-//      if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
-//      else if (it.indexOf("_cs.rds") > 0) "ATAC__all_peaks__ChIPseeker/${it}"
-//   }
-// 
-//   when: do_atac
-// 
-//   input:
-//     set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) from All_peaks_for_peak_annotation
-// 
-//   output:
-//     file('*.rds')
-//     set COMP, file("*_df.rds") into Annotated_peaks_for_saving_tables, Annotated_peaks_for_plotting
-//     set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) into Diffbind_object_and_peaks_anno_for_plotting
-// 
-//   when: params.do_diffbind_peak_annotation
-// 
-//   shell:
-//   '''
-//       #!/usr/bin/env Rscript
-// 
-// 
-//       ##### loading data and libraries
-// 
-//       library(GenomicFeatures)
-//       library(ChIPseeker)
-//       library(magrittr)
-// 
-//       COMP = '!{COMP}'
-//       tx_db <- loadDb('!{params.txdb}')
-//       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-//       upstream = !{params.promoter_up_diffbind_peaks}
-//       downstream = !{params.promoter_down_diffbind_peaks}
-//       diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
-// 
-// 
-//       ##### annotating all peaks
-// 
-//       # annotating peaks
-//       anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
-// 
-//       # creating data frame
-//       anno_peak_gr = anno_peak_cs@anno
-//       df = as.data.frame(anno_peak_gr)
-//       anno_peak_df = cbind(peak_id = rownames(df), df, anno_peak_cs@detailGenomicAnnotation)
-//       anno_peak_df$peak_id %<>% as.character %>% as.integer
-// 
-// 
-//       ##### saving all peaks
-// 
-//       name0 = paste0(COMP, '__diffb_anno_peaks')
-//       saveRDS(anno_peak_df, paste0(name0, '_df.rds'))
-//       saveRDS(anno_peak_cs, paste0(name0, '_cs.rds'))
-// 
-//   '''
-// }
-// 
-// // cs: for ChIPseeker
-// // rtracklayer::export(anno_peak_df, paste0(name0, '.bed'))
-// // these are peaks of differential chromatin accessibility called by DiffBind
-// 
-// // note that in df_annotated_peaks: the geneStart and geneEnd field reflect actually the transcript start and transcript end. This is if the level = 'transcript' option is used. If the option level = 'gene' is used then the coordinates correspond to gene. (same goes for distanceToTSS, genLength...)
-// 
-// 
+process ATAC__differential_abundance_analysis {
+  tag "${COMP}"
+
+  container = params.diffbind
+
+  publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
+     if (it.indexOf("__all_peaks.bed") > 0) "ATAC__all_peaks__bed/${it}"
+     else if (it.indexOf("__diffbind_peaks_dbo.rds") > 0) "ATAC__all_peaks__DiffBind/${it}"
+     else if (it.indexOf("__diffbind_peaks_gr.rds") > 0) "ATAC__all_peaks__gRange/${it}"
+  }
+
+  when: do_atac
+
+  input:
+      set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
+
+  output:
+      set COMP, file('*__diffbind_peaks_dbo.rds') into Diffbind_object_for_plotting
+      set COMP, file('*__diffbind_peaks_gr.rds'), file('*__diffbind_peaks_dbo.rds') into All_peaks_for_peak_annotation
+      set COMP, file('*__all_peaks.bed') into All_detected_ATAC_peaks_for_background
+
+  shell:
+  '''
+
+        #!/usr/bin/env Rscript
+
+
+        ##### loading data and libraries
+
+        library(DiffBind)
+        library(magrittr)
+
+        COMP = '!{COMP}'
+        use_input_control = '!{params.use_input_control}'
+        source('!{projectDir}/bin/export_df_to_bed.R')
+
+        conditions = strsplit(COMP, '_vs_')[[1]]
+        cond1 = conditions[1]
+        cond2 = conditions[2]
+
+
+        ##### Preparing the metadata table
+        use_input_control %<>% toupper %>% as.logical
+        cur_files = grep('diffbind_peaks', list.files(pattern = '*.bam$|*filtered.bed$'), value = T, invert = T)
+        df = data.frame(path = cur_files, stringsAsFactors=F)
+        cursplit = sapply(cur_files, strsplit, '_')
+        df$condition = sapply(cursplit, '[[', 1)
+        df$replicate = sapply(cursplit, '[[', 2)
+        df$id = paste0(df$condition, '_', df$replicate)
+        df$id[df$condition == 'input'] = 'input'
+        df$type = sapply(df$path, function(c1) ifelse(length(grep('reads', c1)) == 1, 'reads', ifelse(length(grep('peaks', c1)) == 1, 'peaks', '')))
+
+        names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 'ControlID', 'bamControl', 'Peaks','PeakCaller')
+        all_id = unique(df$id) %>% .[. != 'input']
+        df1 = data.frame(matrix(nrow = length(all_id), ncol = length(names_df1)), stringsAsFactors=F)
+        names(df1) = names_df1
+
+        for(c1 in 1:length(all_id)){
+          cur_id = all_id[c1]
+          sel_reads = which(df$id == cur_id & df$type == 'reads')
+          sel_peaks = which(df$id == cur_id & df$type == 'peaks')
+
+          df1$SampleID[c1] = cur_id
+          df1$Condition[c1] = df$condition[sel_reads]
+          df1$Replicate[c1] = df$replicate[sel_reads]
+          df1$bamReads[c1] = df$path[sel_reads]
+          df1$Peaks[c1] = df$path[sel_peaks]
+          df1$PeakCaller[c1] = 'bed'
+
+          if(use_input_control){
+            sel_input_control_reads = which(df$condition == 'input' & df$type == 'reads')
+            df1$ControlID[c1] = df$id[sel_input_control_reads]
+            df1$bamControl[c1] = df$path[sel_input_control_reads]
+          } else {
+            df1$ControlID <- NULL
+            df1$bamControl <- NULL
+          }
+        }
+
+
+        ##### Running DiffBind
+
+        dbo <- dba(sampleSheet = df1, minOverlap = 0)
+        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM)
+        dbo <- dba.contrast(dbo, dbo$masks[[cond1]], dbo$masks[[cond2]], cond1, cond2, minMembers = 2)
+        dbo$config$AnalysisMethod = DBA_EDGER  # instead of DBA_DESEQ2
+        dbo <- dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE, bReduceObjects = FALSE)
+
+        saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
+
+
+        ##### Exporting all peaks as a data frame
+
+        # extracting all peaks (note: th is the fdr threshold, so with th = 1 we keep all peaks)
+        all_peaks_gr = suppressWarnings(dba.report(dbo, th = 1))
+
+        # recomputing the FDR to have more precise values (DiffBind round them at 3 digits)
+        all_peaks_gr$FDR <- NULL
+        all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, method = 'BH')
+
+        # adding the raw reads counts of each replicate
+        dbo1 <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_READS)
+        cp_raw = dba.peakset(dbo1, bRetrieve = TRUE, score = DBA_SCORE_READS)
+        mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
+        m <- findOverlaps(all_peaks_gr, cp_raw)
+        names_subject = names(mcols(cp_raw))
+        mcols(all_peaks_gr)[queryHits(m), names_subject] = mcols(cp_raw)[subjectHits(m), names_subject]
+        saveRDS(all_peaks_gr, paste0(COMP, '__diffbind_peaks_gr.rds'))
+
+
+        ##### Exporting all peaks as a bed file
+
+        all_peaks_df = as.data.frame(all_peaks_gr)
+        all_peaks_df %<>% dplyr::mutate(name = rownames(.), score = round(-log10(p.value), 2))
+        all_peaks_df %<>% dplyr::rename(chr = seqnames)
+        all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
+        export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
+
+
+    '''
+}
+
+// rtracklayer::export(promoters, 'promoters.bed')
+
+// note: diffbind_peaks: means the peaks from diffbind, not that these peaks are diffbound (differentially bound). This set is in fact all the peaks that diffbind found in all replicates. The corresponding bed file will be used as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
+
+
+process ATAC__annotating_all_peaks {
+  tag "${COMP}"
+
+  container = params.multiple_R_packages
+
+  publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
+     if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
+     else if (it.indexOf("_cs.rds") > 0) "ATAC__all_peaks__ChIPseeker/${it}"
+  }
+
+  when: do_atac
+
+  input:
+    set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) from All_peaks_for_peak_annotation
+
+  output:
+    file('*.rds')
+    set COMP, file("*_df.rds") into Annotated_peaks_for_saving_tables, Annotated_peaks_for_plotting
+    set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) into Diffbind_object_and_peaks_anno_for_plotting
+
+  when: params.do_diffbind_peak_annotation
+
+  shell:
+  '''
+      #!/usr/bin/env Rscript
+
+
+      ##### loading data and libraries
+
+      library(GenomicFeatures)
+      library(ChIPseeker)
+      library(magrittr)
+
+      COMP = '!{COMP}'
+      tx_db <- loadDb('!{params.txdb}')
+      df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+      upstream = !{params.promoter_up_diffbind_peaks}
+      downstream = !{params.promoter_down_diffbind_peaks}
+      diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
+
+
+      ##### annotating all peaks
+
+      # annotating peaks
+      anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
+
+      # creating data frame
+      anno_peak_gr = anno_peak_cs@anno
+      df = as.data.frame(anno_peak_gr)
+      anno_peak_df = cbind(peak_id = rownames(df), df, anno_peak_cs@detailGenomicAnnotation)
+      anno_peak_df$peak_id %<>% as.character %>% as.integer
+
+
+      ##### saving all peaks
+
+      name0 = paste0(COMP, '__diffb_anno_peaks')
+      saveRDS(anno_peak_df, paste0(name0, '_df.rds'))
+      saveRDS(anno_peak_cs, paste0(name0, '_cs.rds'))
+
+  '''
+}
+
+// cs: for ChIPseeker
+// rtracklayer::export(anno_peak_df, paste0(name0, '.bed'))
+// these are peaks of differential chromatin accessibility called by DiffBind
+
+// note that in df_annotated_peaks: the geneStart and geneEnd field reflect actually the transcript start and transcript end. This is if the level = 'transcript' option is used. If the option level = 'gene' is used then the coordinates correspond to gene. (same goes for distanceToTSS, genLength...)
+
+
 // 
 // //////////////////////////////////////////////////////////////////////////////
 // //// MRNA SEQ
