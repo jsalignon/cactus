@@ -65,7 +65,7 @@ do_mRNA = params.experiment_types in ['mRNA', 'both']
 //       1_raw
 //       2_split
 //       3_blacklist_removed
-//       4_input_removed
+//       4_input_control_removed
 //       5_annotated
 //         1_individual
 //         2_grouped
@@ -157,7 +157,7 @@ do_mRNA = params.experiment_types in ['mRNA', 'both']
 // ATAC__calling_peaks
 // ATAC__splitting_sub_peaks
 // ATAC__removing_blacklisted_regions
-// ATAC__removing_input_peaks
+// ATAC__removing_input_control_peaks
 //
 //// READS METRICS
 // ATAC__sampling_aligned_reads_for_statistics
@@ -620,25 +620,25 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_reads_coverage_for_merging_pd
 
 Bigwig_for_correlation
     .collect()
-    .into{ bw_with_input; bw_without_input }
+    .into{ bw_with_input_control; bw_without_input_control }
 
-bw_without_input
+bw_without_input_control
     .flatten()
     .filter{ !(it =~ /input/) }
     .collect()
     .map{ [ 'without_control', it ] }
-    .set{ bw_without_input1 }
+    .set{ bw_without_input_control1 }
 
-bw_with_input
+bw_with_input_control
     .map{ [ 'with_control', it ] }
-    .concat(bw_without_input1)
+    .concat(bw_without_input_control1)
     .dump(tag:'bigwigs') {"bigwigs for cor and PCA: ${it}"}
     .set{ Bigwig_for_correlation1 }
 
 
 process ATAC__correlation_between_raw_bigwig_tracks {
 
-  tag "${input_present}"
+  tag "${input_control_present}"
 
   container = params.deeptools
 
@@ -651,7 +651,7 @@ process ATAC__correlation_between_raw_bigwig_tracks {
 
   input:
     val out_path from Channel.value('1_Preprocessing') 
-    set input_present, file("*") from Bigwig_for_correlation1
+    set input_control_present, file("*") from Bigwig_for_correlation1
 
   output:
     file("*.npz")
@@ -662,7 +662,7 @@ process ATAC__correlation_between_raw_bigwig_tracks {
   """
 
 
-    plotPCAandCorMat.sh ${input_present} ${params.blacklisted_regions} ${params.binsize_bigwig_correlation}
+    plotPCAandCorMat.sh ${input_control_present} ${params.blacklisted_regions} ${params.binsize_bigwig_correlation}
 
 
   """
@@ -925,7 +925,7 @@ process ATAC__removing_blacklisted_regions {
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_blacklist_removal.bed") into Peaks_for_input_peaks_removal
+    set id, file("*_peaks_kept_after_blacklist_removal.bed") into Peaks_for_input_control_peaks_removal
     set id, file("*_peaks_kept_after_blacklist_removal.bed") into Raw_peaks_for_annotations_in_R
 
 
@@ -942,40 +942,40 @@ process ATAC__removing_blacklisted_regions {
 }
 
 // there are two output channels because:
-// all peaks including input are sent for annotation by ChipSeeker to get the distribution of peaks in various genomic locations
-// the peaks are then sent for input removal before DiffBind analysis
+// all peaks including input control are sent for annotation by ChipSeeker to get the distribution of peaks in various genomic locations
+// the peaks are then sent for input control removal before DiffBind analysis
 
     // cat "${id}_peaks_kept_after_blacklist_removal.bed" | awk -F'\t' 'BEGIN {OFS = FS} { if ( \$1 == "MtDNA" ) { \$1 = "chrM" } else { \$1 = "chr"\$1 };  print \$0 }' > "${id}_peaks_kept_after_blacklist_removal_2.bed"
 
 
 
-Peaks_for_input_peaks_removal
+Peaks_for_input_control_peaks_removal
   .branch {
-    with_input: params.use_input_control
-    without_input: true
+    with_input_control: params.use_input_control
+    without_input_control: true
   }
-  .set { Peaks_for_input_peaks_removal_1 }
+  .set { Peaks_for_input_control_peaks_removal_1 }
 
 
 
 peaks_treatment = Channel.create()
 peaks_control = Channel.create()
-Peaks_for_input_peaks_removal_1.with_input
-  .choice(peaks_treatment, peaks_control) { it[0] == 'input' ? 1 : 0 }
+Peaks_for_input_control_peaks_removal_1.with_input_control
+  .choice(peaks_treatment, peaks_control) { it[0] == 'input_control' ? 1 : 0 }
 
 peaks_treatment
     .combine(peaks_control)
     .map { it[0, 1, 3] }
-    .dump(tag:'peaks_input') {"Peaks with input controls: ${it}"}
+    .dump(tag:'peaks_input_control') {"Peaks with input_control controls: ${it}"}
     .set { Peaks_treatment_with_control }
 
 
-process ATAC__removing_input_peaks {
+process ATAC__removing_input_control_peaks {
   tag "${id}"
 
   container = params.bowtie2_samtools_bedtools
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input", mode: "${pub_mode}", enabled: save_all_bed
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_control", mode: "${pub_mode}", enabled: save_all_bed
 
   when: do_atac
 
@@ -984,21 +984,21 @@ process ATAC__removing_input_peaks {
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_input_removal.bed") into Peaks_bed_format_for_diffbind
+    set id, file("*_peaks_kept_after_input_control_removal.bed") into Peaks_bed_format_for_diffbind
 
   script:
   """
 
-      input_overlap_portion="0.2"
+      input_control_overlap_portion="0.2"
 
-      intersectBed -wa -v -f \${input_overlap_portion} -a "${peaks}" -b "${input_peaks}" > "${id}_peaks_kept_after_input_removal.bed"
+      intersectBed -wa -v -f \${input_control_overlap_portion} -a "${peaks}" -b "${input_control_peaks}" > "${id}_peaks_kept_after_input_control_removal.bed"
 
-      intersectBed -wa -u -f \${input_overlap_portion} -a "${peaks}" -b "${input_peaks}" > "${id}_peaks_lost_after_input_removal.bed"
+      intersectBed -wa -u -f \${input_control_overlap_portion} -a "${peaks}" -b "${input_control_peaks}" > "${id}_peaks_lost_after_input_control_removal.bed"
 
   """
 }
 
-Peaks_bed_format_for_diffbind_1 = Peaks_for_input_peaks_removal.without_input.concat(Peaks_bed_format_for_diffbind)
+Peaks_bed_format_for_diffbind_1 = Peaks_for_input_control_peaks_removal_1.without_input_control.concat(Peaks_bed_format_for_diffbind)
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1697,7 +1697,7 @@ process ATAC__plotting_grouped_peak_files {
 //         df$type = sapply(df$path, function(c1) ifelse(length(grep('reads', c1)) == 1, 'reads', ifelse(length(grep('peaks', c1)) == 1, 'peaks', '')))
 // 
 //         names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 'ControlID', 'bamControl', 'Peaks','PeakCaller')
-//         all_id = unique(df$id) %>% .[. != 'input_1']
+//         all_id = unique(df$id) %>% .[. != 'input']
 //         df1 = data.frame(matrix(nrow = length(all_id), ncol = length(names_df1)), stringsAsFactors=F)
 //         names(df1) = names_df1
 // 
@@ -1705,14 +1705,14 @@ process ATAC__plotting_grouped_peak_files {
 //           cur_id = all_id[c1]
 //           sel_reads = which(df$id == cur_id & df$type == 'reads')
 //           sel_peaks = which(df$id == cur_id & df$type == 'peaks')
-//           sel_input_reads = which(df$condition == 'input' & df$type == 'reads')
+//           sel_input_control_reads = which(df$condition == 'input' & df$type == 'reads')
 // 
 //           df1$SampleID[c1] = cur_id
 //           df1$Condition[c1] = df$condition[sel_reads]
 //           df1$Replicate[c1] = df$replicate[sel_reads]
 //           df1$bamReads[c1] = df$path[sel_reads]
-//           df1$ControlID[c1] = df$id[sel_input_reads]
-//           df1$bamControl[c1] = df$path[sel_input_reads]
+//           df1$ControlID[c1] = df$id[sel_input_control_reads]
+//           df1$bamControl[c1] = df$path[sel_input_control_reads]
 //           df1$Peaks[c1] = df$path[sel_peaks]
 //           df1$PeakCaller[c1] = 'bed'
 // 
