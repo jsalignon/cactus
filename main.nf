@@ -925,7 +925,7 @@ process ATAC__removing_blacklisted_regions {
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_blacklist_removal.bed") into Peaks_for_input_control_peaks_removal
+    set id, file("*_peaks_kept_after_blacklist_removal.bed") into Peaks_wo_blacklist
     set id, file("*_peaks_kept_after_blacklist_removal.bed") into Raw_peaks_for_annotations_in_R
 
 
@@ -949,22 +949,24 @@ process ATAC__removing_blacklisted_regions {
 
 
 
-Peaks_for_input_control_peaks_removal
+Peaks_wo_blacklist
   .branch {
-    with_input_control: params.use_input_control
-    without_input_control: true
+    w_input_control: params.use_input_control
+    wo_input_control: true
   }
-  .set { Peaks_for_input_control_peaks_removal_1 }
+  .set { Peaks_wo_blacklist_1 }
 
 
+Peaks_wo_blacklist_1.w_input_control
+  .branch { it ->
+    peaks_control: it[0] == 'input'
+    peaks_treatment: true
+  }
+  .set { Peaks_wo_blacklist_2 }
 
-peaks_treatment = Channel.create()
-peaks_control = Channel.create()
-Peaks_for_input_control_peaks_removal_1.with_input_control
-  .choice(peaks_treatment, peaks_control) { it[0] == 'input_control' ? 1 : 0 }
 
-peaks_treatment
-    .combine(peaks_control)
+Peaks_wo_blacklist_2.peaks_treatment
+    .combine(Peaks_wo_blacklist_2.peaks_control)
     .map { it[0, 1, 3] }
     .dump(tag:'peaks_input_control') {"Peaks with input_control controls: ${it}"}
     .set { Peaks_treatment_with_control }
@@ -980,7 +982,7 @@ process ATAC__removing_input_control_peaks {
   when: do_atac
 
   input:
-    set id, file(peaks), file(input_peaks) from Peaks_treatment_with_control
+    set id, file(peaks), file(input_control_peaks) from Peaks_treatment_with_control
 
   output:
     file("*.bed")
@@ -998,7 +1000,8 @@ process ATAC__removing_input_control_peaks {
   """
 }
 
-Peaks_for_removing_specific_regions_1 = Peaks_for_input_control_peaks_removal_1.without_input_control.concat(Peaks_for_removing_specific_regions)
+Peaks_for_removing_specific_regions_1 = Peaks_wo_blacklist_1.wo_input_control.concat(Peaks_for_removing_specific_regions)
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1588,7 +1591,7 @@ comparisons_files_for_merging
   .map { [ it[0] + '_vs_' + it[1], it[4,7].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
   // .map { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> [ id_comp_1 + '_vs_' + id_comp_2, [reads_and_peaks_1,reads_and_peaks_2].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] } // => not sure how to make this work
   .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
-  .tap { Reads_for_diffbind }
+  .tap { Reads_for_diffbind_1 }
   .map { it[0,1,2] }
   .set { Peaks_for_removing_specific_regions_2 }
 
@@ -1636,12 +1639,12 @@ Reads_input_control
   .filter{ id, bam_files -> id == 'input'}
   .set{ Reads_input_control_1 }
 
-Reads_for_diffbind
+Reads_for_diffbind_1
   .map { it[0,3] }
   .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
   .join(Peaks_for_diffbind)
   .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
-  .combine(Reads_input_control)
+  .combine(Reads_input_control_1)
   .set { Peaks_and_reads_for_diffbind }
 
   // .branch {
