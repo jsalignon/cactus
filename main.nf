@@ -65,7 +65,7 @@ do_mRNA = params.experiment_types in ['mRNA', 'both']
 //       1_raw
 //       2_split
 //       3_blacklist_removed
-//       4_gDNA_removed
+//       4_input_removed
 //       5_annotated
 //         1_individual
 //         2_grouped
@@ -157,7 +157,7 @@ do_mRNA = params.experiment_types in ['mRNA', 'both']
 // ATAC__calling_peaks
 // ATAC__splitting_sub_peaks
 // ATAC__removing_blacklisted_regions
-// ATAC__removing_gDNA_peaks
+// ATAC__removing_input_peaks
 //
 //// READS METRICS
 // ATAC__sampling_aligned_reads_for_statistics
@@ -620,25 +620,25 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_reads_coverage_for_merging_pd
 
 Bigwig_for_correlation
     .collect()
-    .into{ bw_with_gDNA; bw_without_gDNA }
+    .into{ bw_with_input; bw_without_input }
 
-bw_without_gDNA
+bw_without_input
     .flatten()
-    .filter{ !(it =~ /gDNA/) }
+    .filter{ !(it =~ /input/) }
     .collect()
     .map{ [ 'without_control', it ] }
-    .set{ bw_without_gDNA1 }
+    .set{ bw_without_input1 }
 
-bw_with_gDNA
+bw_with_input
     .map{ [ 'with_control', it ] }
-    .concat(bw_without_gDNA1)
+    .concat(bw_without_input1)
     .dump(tag:'bigwigs') {"bigwigs for cor and PCA: ${it}"}
     .set{ Bigwig_for_correlation1 }
 
 
 process ATAC__correlation_between_raw_bigwig_tracks {
 
-  tag "${gDNA_present}"
+  tag "${input_present}"
 
   container = params.deeptools
 
@@ -651,7 +651,7 @@ process ATAC__correlation_between_raw_bigwig_tracks {
 
   input:
     val out_path from Channel.value('1_Preprocessing') 
-    set gDNA_present, file("*") from Bigwig_for_correlation1
+    set input_present, file("*") from Bigwig_for_correlation1
 
   output:
     file("*.npz")
@@ -662,7 +662,7 @@ process ATAC__correlation_between_raw_bigwig_tracks {
   """
 
 
-    plotPCAandCorMat.sh ${gDNA_present} ${params.blacklisted_regions} ${params.binsize_bigwig_correlation}
+    plotPCAandCorMat.sh ${input_present} ${params.blacklisted_regions} ${params.binsize_bigwig_correlation}
 
 
   """
@@ -925,7 +925,7 @@ process ATAC__removing_blacklisted_regions {
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_blacklist_removal.bed") into Peaks_for_gDNA_peaks_removal
+    set id, file("*_peaks_kept_after_blacklist_removal.bed") into Peaks_for_input_peaks_removal
     set id, file("*_peaks_kept_after_blacklist_removal.bed") into Raw_peaks_for_annotations_in_R
 
 
@@ -942,8 +942,8 @@ process ATAC__removing_blacklisted_regions {
 }
 
 // there are two output channels because:
-// all peaks including gDNA are sent for annotation by ChipSeeker to get the distribution of peaks in various genomic locations
-// the peaks are then sent for gDNA removal before DiffBind analysis
+// all peaks including input are sent for annotation by ChipSeeker to get the distribution of peaks in various genomic locations
+// the peaks are then sent for input removal before DiffBind analysis
 
     // cat "${id}_peaks_kept_after_blacklist_removal.bed" | awk -F'\t' 'BEGIN {OFS = FS} { if ( \$1 == "MtDNA" ) { \$1 = "chrM" } else { \$1 = "chr"\$1 };  print \$0 }' > "${id}_peaks_kept_after_blacklist_removal_2.bed"
 
@@ -959,49 +959,58 @@ process ATAC__removing_blacklisted_regions {
 // 
 // ch_dbsnp_tbi = params.dbsnp ? params.dbsnp_index ? Channel.value(file(params.dbsnp_index)) : dbsnp_tbi : "null"
 // 
-// input_sample == 'gDNA_1' ? 1 : 0
-// if(gDNA_is_included)
-// Peaks_for_gDNA_peaks_removal
+// input_sample == 'input_1' ? 1 : 0
+// if(input_is_included)
+// Peaks_for_input_peaks_removal
 // 
 
-params.use_input_control
+bam_sentieon_all.choice(bam_sentieon_tumor, bam_sention_normal) {statusMap[it[0], it[1]] == 0 ? 1 : 0}
+
+Peaks_for_input_peaks_removal
+    .branch {
+        with_input: params.use_input_control
+        without_input: true
+    }
+    .set { Peaks_for_input_peaks_removal }
+
+
 
 peaks_treatment = Channel.create()
 peaks_control = Channel.create()
-Peaks_for_gDNA_peaks_removal
-  .choice(peaks_treatment, peaks_control) { it[0] == 'gDNA_1' ? 1 : 0 }
+Peaks_for_input_peaks_removal
+  .choice(peaks_treatment, peaks_control) { it[0] == 'input_1' ? 1 : 0 }
 
 peaks_treatment
     .combine(peaks_control)
     .map { it[0, 1, 3] }
-    .dump(tag:'peaks_gDNA') {"Peaks with gDNA controls: ${it}"}
+    .dump(tag:'peaks_input') {"Peaks with input controls: ${it}"}
     .set { Peaks_treatment_with_control }
 
 
-process ATAC__removing_gDNA_peaks {
+process ATAC__removing_input_peaks {
   tag "${id}"
 
   container = params.bowtie2_samtools_bedtools
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_gDNA", mode: "${pub_mode}", enabled: save_all_bed
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input", mode: "${pub_mode}", enabled: save_all_bed
 
   when: do_atac
 
   input:
-    set id, file(peaks), file(gDNA_peaks) from Peaks_treatment_with_control
+    set id, file(peaks), file(input_peaks) from Peaks_treatment_with_control
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_gDNA_removal.bed") into Peaks_bed_format_for_diffbind
+    set id, file("*_peaks_kept_after_input_removal.bed") into Peaks_bed_format_for_diffbind
 
   script:
   """
 
-      gDNA_overlap_portion="0.2"
+      input_overlap_portion="0.2"
 
-      intersectBed -wa -v -f \${gDNA_overlap_portion} -a "${peaks}" -b "${gDNA_peaks}" > "${id}_peaks_kept_after_gDNA_removal.bed"
+      intersectBed -wa -v -f \${input_overlap_portion} -a "${peaks}" -b "${input_peaks}" > "${id}_peaks_kept_after_input_removal.bed"
 
-      intersectBed -wa -u -f \${gDNA_overlap_portion} -a "${peaks}" -b "${gDNA_peaks}" > "${id}_peaks_lost_after_gDNA_removal.bed"
+      intersectBed -wa -u -f \${input_overlap_portion} -a "${peaks}" -b "${input_peaks}" > "${id}_peaks_lost_after_input_removal.bed"
 
   """
 }
@@ -1565,8 +1574,8 @@ process ATAC__plotting_grouped_peak_files {
 //           m = it.split()
 //           condition1 = m[0]
 //           condition2 = m[1]
-//           gDNA_control = m[2]
-//           [ condition1, condition2, gDNA_control ]
+//           input_control = m[2]
+//           [ condition1, condition2, input_control ]
 //        }
 //   .dump(tag:'comp_file') {"comparison file: ${it}"}
 //   .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
@@ -1604,7 +1613,7 @@ process ATAC__plotting_grouped_peak_files {
 // 
 //   container = params.bowtie2_samtools_bedtools
 // 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_gDNA_RNAi", mode: "${pub_mode}", enabled: save_last_bed
+//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
 // 
 //   when: do_atac
 // 
@@ -1703,7 +1712,7 @@ process ATAC__plotting_grouped_peak_files {
 //         df$type = sapply(df$path, function(c1) ifelse(length(grep('reads', c1)) == 1, 'reads', ifelse(length(grep('peaks', c1)) == 1, 'peaks', '')))
 // 
 //         names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 'ControlID', 'bamControl', 'Peaks','PeakCaller')
-//         all_id = unique(df$id) %>% .[. != 'gDNA_1']
+//         all_id = unique(df$id) %>% .[. != 'input_1']
 //         df1 = data.frame(matrix(nrow = length(all_id), ncol = length(names_df1)), stringsAsFactors=F)
 //         names(df1) = names_df1
 // 
@@ -1711,14 +1720,14 @@ process ATAC__plotting_grouped_peak_files {
 //           cur_id = all_id[c1]
 //           sel_reads = which(df$id == cur_id & df$type == 'reads')
 //           sel_peaks = which(df$id == cur_id & df$type == 'peaks')
-//           sel_gDNA_reads = which(df$condition == 'gDNA' & df$type == 'reads')
+//           sel_input_reads = which(df$condition == 'input' & df$type == 'reads')
 // 
 //           df1$SampleID[c1] = cur_id
 //           df1$Condition[c1] = df$condition[sel_reads]
 //           df1$Replicate[c1] = df$replicate[sel_reads]
 //           df1$bamReads[c1] = df$path[sel_reads]
-//           df1$ControlID[c1] = df$id[sel_gDNA_reads]
-//           df1$bamControl[c1] = df$path[sel_gDNA_reads]
+//           df1$ControlID[c1] = df$id[sel_input_reads]
+//           df1$bamControl[c1] = df$path[sel_input_reads]
 //           df1$Peaks[c1] = df$path[sel_peaks]
 //           df1$PeakCaller[c1] = 'bed'
 // 
