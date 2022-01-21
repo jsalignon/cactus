@@ -268,22 +268,22 @@ ATAC_reads_for_trimming = Channel.create()
 
 fastq_files = file("design/atac_fastq.tsv")
 Channel
-.from(fastq_files.readLines())
-.map{ it.split() }
-.map{ [ it[0], it[1..-1] ] }
-.transpose()
-.map{ [ it[0], it[1], it[1].replace("R1", "R2") ] }
-.map{ [ it[0], customPath(it[1]), customPath(it[2]) ] }
-.tap{ ATAC_reads_for_fastqc }
-.map{ [ it[0], [ it[1], it[2] ] ] }
-.transpose()
-.groupTuple()
-.dump(tag:'atac_fastq') {"ATAC peaks for fastqc: ${it}"}
-.choice(ATAC_reads_for_trimming, ATAC_reads_for_merging) { it[1].size() == 2 ? 0 : 1 }
+  .from(fastq_files.readLines())
+  .map{ it.split() }
+  .map{ [ it[0], it[1..-1] ] }
+  .transpose()
+  .map{ [ it[0], it[1], it[1].replace("R1", "R2") ] }
+  .map{ [ it[0], customPath(it[1]), customPath(it[2]) ] }
+  .tap{ ATAC_reads_for_fastqc }
+  .map{ [ it[0], [ it[1], it[2] ] ] }
+  .transpose()
+  .groupTuple()
+  .dump(tag:'atac_fastq') {"ATAC peaks for fastqc: ${it}"}
+  .choice(ATAC_reads_for_trimming, ATAC_reads_for_merging) { it[1].size() == 2 ? 0 : 1 }
 
 ATAC_reads_for_merging
-.dump(tag:'atac_merging') {"ATAC peaks for merging: ${it}"}
-.set{ ATAC_reads_for_merging1 }
+  .dump(tag:'atac_merging') {"ATAC peaks for merging: ${it}"}
+  .set{ ATAC_reads_for_merging1 }
 
 
 
@@ -842,7 +842,7 @@ process ATAC__saturation_curve {
           --call-summits
       done
 
-      Rscript plot_saturation_curve.R
+      Rscript "${projectDir}/bin/plot_saturation_curve.R"
 
   """
 }
@@ -905,7 +905,7 @@ process ATAC__splitting_sub_peaks {
   script:
   """
 
-      perl "splitMACS2SubPeaks.pl" "${peaks}" > "${id}_split_peaks.narrowPeak"
+      perl "${projectDir}/bin/splitMACS2SubPeaks.pl" "${peaks}" > "${id}_split_peaks.narrowPeak"
 
   """
 }
@@ -948,6 +948,23 @@ process ATAC__removing_blacklisted_regions {
     // cat "${id}_peaks_kept_after_blacklist_removal.bed" | awk -F'\t' 'BEGIN {OFS = FS} { if ( \$1 == "MtDNA" ) { \$1 = "chrM" } else { \$1 = "chr"\$1 };  print \$0 }' > "${id}_peaks_kept_after_blacklist_removal_2.bed"
 
 
+// fastq_files = file("design/atac_fastq.tsv")
+// Channel.from(fastq_files.readLines()).map{ it.split() }.map{ it[0] }.filter( ~/input/ )
+// 
+// 
+// .map{ [ it[0], it[1..-1] ] }
+// 
+// ch_bwa = params.bwa ? Channel.value(file(params.bwa)) : bwa_built
+// ch_dict = params.dict ? Channel.value(file(params.dict)) : dictBuilt
+// 
+// ch_dbsnp_tbi = params.dbsnp ? params.dbsnp_index ? Channel.value(file(params.dbsnp_index)) : dbsnp_tbi : "null"
+// 
+// input_sample == 'gDNA_1' ? 1 : 0
+// if(gDNA_is_included)
+// Peaks_for_gDNA_peaks_removal
+// 
+
+params.use_input_control
 
 peaks_treatment = Channel.create()
 peaks_control = Channel.create()
@@ -1538,9 +1555,9 @@ process ATAC__plotting_grouped_peak_files {
 
 
 
-// //////////////////////////////////////////////////////////////////////////////
-// //// DIFFENRENTIAL BINDING
-// 
+// // //////////////////////////////////////////////////////////////////////////////
+// // //// DIFFENRENTIAL BINDING
+// // 
 // comparisons_files = file("design/comparisons.tsv")
 // Channel
 //   .from(comparisons_files.readLines())
@@ -1580,8 +1597,8 @@ process ATAC__plotting_grouped_peak_files {
 //   .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
 //   .map { it[0,1,2] }
 //   .set { Peaks_for_removing_specific_regions }
-// 
-// 
+
+
 // process ATAC__removing_specific_regions {
 //   tag "${COMP}"
 // 
