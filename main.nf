@@ -3426,8 +3426,8 @@ process plot_enrichment_barplot {
       add_var_to_plot = '!{params.add_var_to_plot}'
       threshold_plot_adj_pval = !{params.threshold_plot_adj_pval}
 
-      source('!{projectDir}/bin/get_new_name_by_unique_character.R.R')
-      source('!{projectDir}/bin/functions_pvalue_plots.R.R')
+      source('!{projectDir}/bin/get_new_name_by_unique_character.R')
+      source('!{projectDir}/bin/functions_pvalue_plots.R')
 
 
 
@@ -3516,9 +3516,9 @@ process plot_enrichment_heatmap {
     add_var_to_plot         = '!{params.add_var_to_plot}'
     up_down_pattern         = '!{params.up_down_pattern}'
 
-    source('!{projectDir}/bin/get_new_name_by_unique_character.R.R')
+    source('!{projectDir}/bin/get_new_name_by_unique_character.R')
     source('!{projectDir}/bin/get_chrom_states_names_vec.R')
-    source('!{projectDir}/bin/functions_pvalue_plots.R.R')
+    source('!{projectDir}/bin/functions_pvalue_plots.R')
     source('!{projectDir}/bin/functions_grouped_plot.R')
 
 
