@@ -399,7 +399,7 @@ process ATAC__trimming_adaptors {
 process ATAC__reads_fastqc_before_trimming {
   tag "${id}"
 
-  container = 'quay.io/biocontainers/fastqc:0.11.7--4'
+  container = params.fastqc
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastqc_raw", mode: "${pub_mode}"
 
@@ -425,7 +425,7 @@ process ATAC__reads_fastqc_before_trimming {
 process ATAC__reads_fastqc_after_trimming {
   tag "${id}"
 
-  container = 'quay.io/biocontainers/fastqc:0.11.7--4'
+  container = params.fastqc
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastqc_trimmed", mode: "${pub_mode}"
 
@@ -449,7 +449,13 @@ process ATAC__reads_fastqc_after_trimming {
 process ATAC__alignment_with_bowtie2 {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  // container = params.bowtie2_samtools_bedtools
+  // mulled container found using this command:
+  // mulled-search --destination quay singularity --channel bioconda --search bowtie samtools | grep "mulled"
+  // and then checking here for the latest version: https://depot.galaxyproject.org/singularity/
+  // container = 'quay.io/biocontainers/mulled-v2-ffbf83a6b0ab6ec567a336cf349b80637135bca3:3A676c5bcfe34af6097728fea60fb7ea83f94a4a5f-0'
+
+  container = params.bowtie2_samtools_container
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", enabled: save_all_bam
 
