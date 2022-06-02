@@ -2313,7 +2313,7 @@ process mRNA__saving_detailed_results_tables {
 
     container = params.multiple_R_packages
 
-    // publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", mode: pub_mode, enabled: params.save_tables_as_csv
+    publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", mode: pub_mode, enabled: params.save_tables_as_csv
 
     when: do_mRNA
 

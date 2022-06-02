@@ -3,4 +3,5 @@ TODOs.plain
 work/
 data/
 results/
-tests/
+bin/
+containers_old_scripts/
