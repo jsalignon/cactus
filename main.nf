@@ -449,12 +449,6 @@ process ATAC__reads_fastqc_after_trimming {
 process ATAC__alignment_with_bowtie2 {
   tag "${id}"
 
-  // container = params.bowtie2_samtools_bedtools
-  // mulled container found using this command:
-  // mulled-search --destination quay singularity --channel bioconda --search bowtie samtools | grep "mulled"
-  // and then checking here for the latest version: https://depot.galaxyproject.org/singularity/
-  // container = 'quay.io/biocontainers/mulled-v2-ffbf83a6b0ab6ec567a336cf349b80637135bca3:3A676c5bcfe34af6097728fea60fb7ea83f94a4a5f-0'
-
   container = params.bowtie2_samtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", enabled: save_all_bam
@@ -901,7 +895,7 @@ process ATAC__calling_peaks {
 process ATAC__splitting_sub_peaks {
   tag "${id}"
 
-  container = params.samtools_bedtools
+  container = params.bioperl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -1611,7 +1605,7 @@ comparisons_files_for_merging
 process ATAC__removing_specific_regions {
   tag "${COMP}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.samtools_bedtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
 
@@ -3096,7 +3090,7 @@ DA_regions_with_bg_for_bed_overlap2
 process compute_peaks_self_overlap {
   tag "${key}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.samtools_bedtools
 
   input:
     set key, data_type, file(DA_regions), file(all_regions), file("BED_FILES/*") from DA_regions_with_bg_and_bed_for_overlap
