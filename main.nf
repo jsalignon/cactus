@@ -292,9 +292,9 @@ ATAC_reads_for_merging
 process ATAC__merging_reads {
   tag "${id}"
 
-  // container = params.fastqc
+  container = params.fastqc
   // container = 'fastqc:0.11.7--4'
-  container = 'quay.io/biocontainers/fastqc:0.11.7--4sdfsf'
+  // container = 'quay.io/biocontainers/fastqc:0.11.7--4sdfsf'
   // container = 'docker://quay.io/biocontainers/r-openxlsx:4.0.17--r3.3.2_0'
   // container = 'gibonet/r-cubiesterni-xml:locale'
 
@@ -312,7 +312,6 @@ process ATAC__merging_reads {
 
   script:
   """
-  
       cat `ls *R1* | sort` > ${id}_R1_merged.fastq.gz
       cat `ls *R2* | sort` > ${id}_R2_merged.fastq.gz
   """
@@ -400,7 +399,7 @@ process ATAC__trimming_adaptors {
 process ATAC__reads_fastqc_before_trimming {
   tag "${id}"
 
-  container = params.fastqc
+  container = 'quay.io/biocontainers/fastqc:0.11.7--4'
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastqc_raw", mode: "${pub_mode}"
 
@@ -426,7 +425,7 @@ process ATAC__reads_fastqc_before_trimming {
 process ATAC__reads_fastqc_after_trimming {
   tag "${id}"
 
-  container = params.fastqc
+  container = 'quay.io/biocontainers/fastqc:0.11.7--4'
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastqc_trimmed", mode: "${pub_mode}"
 
