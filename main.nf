@@ -455,7 +455,7 @@ process ATAC__alignment_with_bowtie2 {
   // and then checking here for the latest version: https://depot.galaxyproject.org/singularity/
   // container = 'quay.io/biocontainers/mulled-v2-ffbf83a6b0ab6ec567a336cf349b80637135bca3:3A676c5bcfe34af6097728fea60fb7ea83f94a4a5f-0'
 
-  container = params.bowtie2_samtools_container
+  container = params.bowtie2_samtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", enabled: save_all_bam
 
@@ -493,7 +493,7 @@ process ATAC__alignment_with_bowtie2 {
 process ATAC__filtering_low_quality_reads {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.bowtie2_samtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", mode: "${pub_mode}", enabled: save_all_bam
 
@@ -559,7 +559,7 @@ process ATAC__marking_duplicates {
 process ATAC__removing_duplicates {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.bowtie2_samtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", mode: "${pub_mode}", enabled: save_all_bam
 
@@ -688,7 +688,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Reads_Correl_for_merging_pdfs
 process ATAC__removing_mitochondrial_reads {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.bowtie2_samtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", mode: "${pub_mode}", enabled: save_last_bam
 
@@ -759,7 +759,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Reads_InsertSize_for_merging_
 process ATAC__bamToBed_and_atacShift {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.samtools_bedtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", mode: "${pub_mode}", enabled: save_all_bam, saveAs: { if (it.indexOf(".bam") > 0) "$it" }
 
@@ -784,7 +784,7 @@ process ATAC__bamToBed_and_atacShift {
 process ATAC__extend_bed_before_peak_calling {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.samtools_bedtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift_extendedBed", mode: "${pub_mode}", enabled: save_last_bam
 
@@ -901,7 +901,7 @@ process ATAC__calling_peaks {
 process ATAC__splitting_sub_peaks {
   tag "${id}"
 
-  container = params.minideb
+  container = params.samtools_bedtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -925,7 +925,7 @@ process ATAC__splitting_sub_peaks {
 process ATAC__removing_blacklisted_regions {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.samtools_bedtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -986,7 +986,7 @@ Peaks_wo_blacklist_2.peaks_treatment
 process ATAC__removing_input_control_peaks {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.samtools_bedtools
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_control", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -1021,7 +1021,7 @@ Peaks_for_removing_specific_regions_1 = Peaks_wo_blacklist_1.wo_input_control.co
 process ATAC__sampling_aligned_reads_for_statistics {
   tag "${id}"
 
-  container = params.samtools17
+  container = params.samtools_bedtools
 
   when: do_atac
 
@@ -1063,7 +1063,7 @@ process ATAC__sampling_aligned_reads_for_statistics {
 process ATAC__reads_stat_1_features_enrichment {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.samtools_bedtools
 
   // publishDir path: "${out_processed}/1_Preprocessing/ATAC/1_reads/5_metrics/1_features_enrichment", mode: "${pub_mode}"
 
@@ -1165,7 +1165,7 @@ process ATAC__reads_stat_3_subsample_trimmed_reads {
 process ATAC__reads_stat_3_alignment_sampled_reads {
   tag "${id}"
 
-  container = params.bowtie2_samtools_bedtools
+  container = params.bowtie2_samtools
 
   // publishDir path: "${out_processed}/1_Preprocessing/ATAC/1_reads/5_metrics/3_alignment_op50_genome", mode: "${pub_mode}"
 
@@ -1219,7 +1219,7 @@ Stats_results = Features_enrichment_for_statistics
 process ATAC__statistics_on_aligned_reads {
   tag "${id}"
 
-  container = params.samtools17
+  container = params.samtools_bedtools
 
   // publishDir path: "${out_processed}/1_Preprocessing/ATAC/1_reads/5_metrics/4_intermediate_files", mode: "${pub_mode}"
 
@@ -1274,7 +1274,7 @@ process ATAC__statistics_on_aligned_reads {
 
 process ATAC__gathering_statistics_on_aligned_reads {
 
-  container = params.minideb
+  container = params.samtools_bedtools
 
   publishDir path: "${out_dir}/Tables_Merged/1_Preprocessing", mode: "${pub_mode}"
   publishDir path: "${out_dir}/Tables_Individual/1_Preprocessing", mode: "${pub_mode}"
@@ -2931,7 +2931,7 @@ DA_genes_for_func_anno_overlap
 process compute_functional_annotations_overlap {
   tag "${key}"
 
-  // container = params.clusterprofiler
+  container = params.clusterprofiler
 
   // publishDir path: "${out_processed}/3_Enrichment/a_gene_set_enrichment", mode: "${pub_mode}"
 
