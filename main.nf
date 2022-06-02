@@ -292,7 +292,12 @@ ATAC_reads_for_merging
 process ATAC__merging_reads {
   tag "${id}"
 
-  container = params.fastqc
+  // container = params.fastqc
+  // container = 'fastqc:0.11.7--4'
+  container = 'quay.io/biocontainers/fastqc:0.11.7--4sdfsf'
+  // container = 'docker://quay.io/biocontainers/r-openxlsx:4.0.17--r3.3.2_0'
+  // container = 'gibonet/r-cubiesterni-xml:locale'
+
 
   when: do_atac
 
