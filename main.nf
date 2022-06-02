@@ -312,6 +312,7 @@ process ATAC__merging_reads {
 
   script:
   """
+  
       cat `ls *R1* | sort` > ${id}_R1_merged.fastq.gz
       cat `ls *R2* | sort` > ${id}_R2_merged.fastq.gz
   """
