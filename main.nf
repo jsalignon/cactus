@@ -1376,80 +1376,80 @@ process ATAC__multiQC {
 // cut -d "," -f 1-6 ${bam_stat} > \${FILENAME}_percentage_mqc.csv
 // cut -d "," -f 1,7-10 ${bam_stat} > \${FILENAME}_counts_mqc.csv
 
-// 
-// //////////////////////////////////////////////////////////////////////////////
-// //// PEAKS ANNOTATION AND VISUALISATION
-// 
-// process ATAC__annotating_individual_peaks {
-// 
-//   tag "${id}"
-// 
-//   container = params.multiple_R_packages
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", mode: "${pub_mode}", enabled: save_all_bed
-// 
-//   when: do_atac
-// 
-//   input:
-//     set id, file(peaks) from Raw_peaks_for_annotations_in_R
-// 
-//   output:
-//     set id, file("*.rds") into Annotated_peaks_for_individual_plots, Annotated_peaks_for_collecting_as_lists
-// 
-//   when: params.do_raw_peak_annotation
-// 
-//   shell:
-//   '''
-// 
-//       #!/usr/bin/env Rscript
-// 
-//       library(ChIPseeker)
-//       id = '!{id}'
-//       upstream = !{params.promoter_up_macs2_peaks}
-//       downstream = !{params.promoter_down_macs2_peaks}
-//       tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
-//       peaks = readPeakFile('!{peaks}')
-// 
-//       promoter <- getPromoters(TxDb = tx_db, upstream = upstream, downstream = downstream)
-// 
-//       tag_matrix = getTagMatrix(peaks, windows = promoter)
-// 
-//       annotated_peaks = annotatePeak(peaks, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
-// 
-//       genes = as.data.frame(annotated_peaks)$geneId
-// 
-//       lres = list(
-//         id = id,
-//         peaks = peaks,
-//         tag_matrix = tag_matrix,
-//         annotated_peaks = annotated_peaks,
-//         genes = genes
-//       )
-// 
-//       saveRDS(lres, file = paste0('annotated_peaks__', id, '.rds'))
-// 
-//   '''
-// }
-// 
-// // these are ATAC-Seq peaks from macs
-// 
-// // defaults parameters for the annotation function
-// // 1 function (peak, tssRegion = c(-3000, 3000), TxDb = NULL, level = "transcript", assignGenomicAnnotation = TRUE, genomicAnnotationPriority = c("Promoter", "5UTR", "3UTR", "Exon", "Intron", "Downstream", "Intergenic"), annoDb = NULL, addFlankGeneInfo = FALSE, flankDistance = 5000, sameStrand = FALSE, ignoreOverlap = FALSE, ignoreUpstream = FALSE, ignoreDownstream = FALSE, overlap = "TSS", verbose = TRUE)
-// 
-// // the addFlankGeneInfo gives rather confusing output so we ignore it
-//   // geneId          transcriptId distanceToTSS                                                     flank_txIds         flank_gene
-// 
-// // select(txdb, keys = keys(txdb)[1:1], columns = columns(txdb), keytype = 'GENEID')
-// 
-// 
-// Annotated_peaks_for_collecting_as_lists
-//   .map { it[1] }
-//   // .groupTuple () // legacy: before there was the option type that was equal to either "raw" or "norm", so we would group tupple this way. Now there is only "raw", so we just collect peaks
-//   .collect()
-//   .dump(tag:'anno_list') {"annotated peaks as list: ${it}"}
-//   .set { Annotated_peaks_for_collecting_as_lists1 }
-// 
-// 
+
+//////////////////////////////////////////////////////////////////////////////
+//// PEAKS ANNOTATION AND VISUALISATION
+
+process ATAC__annotating_individual_peaks {
+
+  tag "${id}"
+
+  container = params.multiple_R_packages
+
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", mode: "${pub_mode}", enabled: save_all_bed
+
+  when: do_atac
+
+  input:
+    set id, file(peaks) from Raw_peaks_for_annotations_in_R
+
+  output:
+    set id, file("*.rds") into Annotated_peaks_for_individual_plots, Annotated_peaks_for_collecting_as_lists
+
+  when: params.do_raw_peak_annotation
+
+  shell:
+  '''
+
+      #!/usr/bin/env Rscript
+
+      library(ChIPseeker)
+      id = '!{id}'
+      upstream = !{params.promoter_up_macs2_peaks}
+      downstream = !{params.promoter_down_macs2_peaks}
+      tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
+      peaks = readPeakFile('!{peaks}')
+
+      promoter <- getPromoters(TxDb = tx_db, upstream = upstream, downstream = downstream)
+
+      tag_matrix = getTagMatrix(peaks, windows = promoter)
+
+      annotated_peaks = annotatePeak(peaks, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
+
+      genes = as.data.frame(annotated_peaks)$geneId
+
+      lres = list(
+        id = id,
+        peaks = peaks,
+        tag_matrix = tag_matrix,
+        annotated_peaks = annotated_peaks,
+        genes = genes
+      )
+
+      saveRDS(lres, file = paste0('annotated_peaks__', id, '.rds'))
+
+  '''
+}
+
+// these are ATAC-Seq peaks from macs
+
+// defaults parameters for the annotation function
+// 1 function (peak, tssRegion = c(-3000, 3000), TxDb = NULL, level = "transcript", assignGenomicAnnotation = TRUE, genomicAnnotationPriority = c("Promoter", "5UTR", "3UTR", "Exon", "Intron", "Downstream", "Intergenic"), annoDb = NULL, addFlankGeneInfo = FALSE, flankDistance = 5000, sameStrand = FALSE, ignoreOverlap = FALSE, ignoreUpstream = FALSE, ignoreDownstream = FALSE, overlap = "TSS", verbose = TRUE)
+
+// the addFlankGeneInfo gives rather confusing output so we ignore it
+  // geneId          transcriptId distanceToTSS                                                     flank_txIds         flank_gene
+
+// select(txdb, keys = keys(txdb)[1:1], columns = columns(txdb), keytype = 'GENEID')
+
+
+Annotated_peaks_for_collecting_as_lists
+  .map { it[1] }
+  // .groupTuple () // legacy: before there was the option type that was equal to either "raw" or "norm", so we would group tupple this way. Now there is only "raw", so we just collect peaks
+  .collect()
+  .dump(tag:'anno_list') {"annotated peaks as list: ${it}"}
+  .set { Annotated_peaks_for_collecting_as_lists1 }
+
+
 // process ATAC__plotting_individual_peak_files {
 //   tag "${id}"
 // 
