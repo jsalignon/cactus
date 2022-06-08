@@ -13,8 +13,10 @@ There are three main types of outputs: processed data, figures and tables. Both 
 Here is the structure of the output file with a short description of each output file and examples when relevant: 
 TO DO. [add the tree of output as clickable and with a submenu, and description and image for each item]
 
+
+<!-- Tree structure obtained with this command in the results folder: tree -I Run_Info -d -L 3 -->
+
 ```
-.
 ├── Figures_Individual
 │   ├── 1_Preprocessing
 │   │   ├── ATAC__peaks__average_profile
