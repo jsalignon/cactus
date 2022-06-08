@@ -20,5 +20,4 @@ Split and filtered DA results are then used as input for various enrichment anal
 For more details see the publication (manuscript under preparation).
 
 
-[Cactus' Directed Acyclic Graph](/docs/images/dag.html)
-[Cactus' Directed Acyclic Graph svg](/docs/images/dag.svg)
+A detailed view of the pipeline structure can be found on the [Cactus' Directed Acyclic Graph](/docs/images/dag.svg).
