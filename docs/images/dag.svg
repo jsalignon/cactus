@@ -1,0 +1,4641 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="2947pt"
+   height="2318pt"
+   viewBox="0.00 0.00 2946.64 2317.80"
+   version="1.1"
+   id="svg1607"
+   sodipodi:docname="dag.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <metadata
+     id="metadata1613">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs1611" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1200"
+     inkscape:window-height="1857"
+     id="namedview1609"
+     showgrid="false"
+     inkscape:zoom="0.33545775"
+     inkscape:cx="1199.8802"
+     inkscape:cy="1237.3306"
+     inkscape:window-x="5032"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1607" />
+  <polygon
+     fill="#ffffff"
+     stroke="transparent"
+     points="2942.6373,4 -4,4 -4,-2313.8 2942.6373,-2313.8 "
+     id="polygon4"
+     transform="translate(115.7779,2283.62)" />
+  <g
+     id="node1"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title6">p0</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1146.6373"
+       cy="-2291.2"
+       id="ellipse8"
+       r="3.5999999" />
+    <text
+       text-anchor="middle"
+       x="1101.0374"
+       y="-2298.6001"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text10">Channel.empty</text>
+  </g>
+  <g
+     id="node2"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title13">p1</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1146.6373"
+       cy="-2233.1001"
+       id="ellipse15"
+       r="1.8" />
+  </g>
+  <g
+     id="edge1"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title18">p0-&gt;p1</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1146.6373,-2287.3879 c 0,8.4825 0,29.2116 0,42.4605"
+       id="path20" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1143.1374,-2244.9026 1150.1374,-2244.9025 1146.6373,-2234.9025 "
+       id="polygon22" />
+    <text
+       text-anchor="middle"
+       x="1211.1373"
+       y="-2258.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text24">Counts_tables_Channel</text>
+  </g>
+  <g
+     id="node3"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title27">p2</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1298.6373"
+       cy="-2291.2"
+       id="ellipse29"
+       r="3.5999999" />
+    <text
+       text-anchor="middle"
+       x="1253.0374"
+       y="-2298.6001"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text31">Channel.empty</text>
+  </g>
+  <g
+     id="node4"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title34">p3</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1298.6373"
+       cy="-2233.1001"
+       id="ellipse36"
+       r="1.8" />
+  </g>
+  <g
+     id="edge2"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title39">p2-&gt;p3</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1298.6373,-2287.3879 c 0,8.4825 0,29.2116 0,42.4605"
+       id="path41" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1295.1374,-2244.9026 1302.1374,-2244.9025 1298.6373,-2234.9025 "
+       id="polygon43" />
+    <text
+       text-anchor="middle"
+       x="1374.1373"
+       y="-2258.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text45">Formatting_tables_Channel</text>
+  </g>
+  <g
+     id="node5"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title48">p4</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1472.6373"
+       cy="-2291.2"
+       id="ellipse50"
+       r="3.5999999" />
+    <text
+       text-anchor="middle"
+       x="1427.0374"
+       y="-2298.6001"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text52">Channel.empty</text>
+  </g>
+  <g
+     id="node6"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title55">p5</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1472.6373"
+       cy="-2233.1001"
+       id="ellipse57"
+       r="1.8" />
+  </g>
+  <g
+     id="edge3"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title60">p4-&gt;p5</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1472.6373,-2287.3879 c 0,8.4825 0,29.2116 0,42.4605"
+       id="path62" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1469.1374,-2244.9026 1476.1374,-2244.9025 1472.6373,-2234.9025 "
+       id="polygon64" />
+    <text
+       text-anchor="middle"
+       x="1553.1373"
+       y="-2258.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text66">Exporting_to_Excel_Channel</text>
+  </g>
+  <g
+     id="node7"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title69">p6</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="401.6373"
+       cy="-986.59998"
+       id="ellipse71"
+       r="3.5999999" />
+    <text
+       text-anchor="middle"
+       x="356.03729"
+       y="-994"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text73">Channel.empty</text>
+  </g>
+  <g
+     id="node8"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title76">p40</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="401.6373"
+       cy="-899.59998"
+       id="ellipse78"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="387.1373"
+       y="-906.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text80">mix</text>
+  </g>
+  <g
+     id="edge4"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title83">p6-&gt;p40</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 401.6373,-982.8617 c 0,11.851 0,49.0039 0,69.4433"
+       id="path85" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="398.1374,-913.2276 405.1374,-913.2275 401.6373,-903.2275 "
+       id="polygon87" />
+  </g>
+  <g
+     id="node48"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title90">p52</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="214.6373"
+       cy="-232.60001"
+       id="ellipse92"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="200.1373"
+       y="-239.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text94">mix</text>
+  </g>
+  <g
+     id="edge44"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title97">p40-&gt;p52</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 397.6847,-899.2609 c -17.9196,1.6569 -93.0362,9.895 -148.0474,35.6609 -34.2112,16.0236 -68,13.2222 -68,51 0,0 0,0 0,507.5 0,23.5834 14.6434,47.9183 24.4211,61.5386"
+       id="path99" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="203.4168,-241.2534 208.9829,-245.4983 212.264,-235.4243 "
+       id="polygon101" />
+  </g>
+  <g
+     id="node9"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title104">p7</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1926.6373"
+       cy="-2291.2"
+       id="ellipse106"
+       r="3.5999999" />
+    <text
+       text-anchor="middle"
+       x="1885.0374"
+       y="-2298.6001"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text108">Channel.from</text>
+  </g>
+  <g
+     id="node10"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title111">p8</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1926.6373"
+       cy="-2233.1001"
+       id="ellipse113"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1910.6373"
+       y="-2240.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text115">map</text>
+  </g>
+  <g
+     id="edge5"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title118">p7-&gt;p8</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1926.6373,-2287.3879 c 0,8.0352 0,27.0593 0,40.3049"
+       id="path120" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1923.1374,-2246.7015 1930.1374,-2246.7015 1926.6373,-2236.7015 "
+       id="polygon122" />
+  </g>
+  <g
+     id="node11"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title125">p9</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1926.6373"
+       cy="-2189.1001"
+       id="ellipse127"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1910.6373"
+       y="-2196.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text129">map</text>
+  </g>
+  <g
+     id="edge6"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title132">p8-&gt;p9</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1926.6373,-2229.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path134" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1923.1374,-2202.842 1930.1374,-2202.8419 1926.6373,-2192.8419 "
+       id="polygon136" />
+  </g>
+  <g
+     id="node12"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title139">p10</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1926.6373"
+       cy="-2145.1001"
+       id="ellipse141"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1897.1373"
+       y="-2152.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text143">transpose</text>
+  </g>
+  <g
+     id="edge7"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title146">p9-&gt;p10</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1926.6373,-2185.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path148" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1923.1374,-2158.842 1930.1374,-2158.8419 1926.6373,-2148.8419 "
+       id="polygon150" />
+  </g>
+  <g
+     id="node13"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title153">p11</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1926.6373"
+       cy="-2101.1001"
+       id="ellipse155"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1910.6373"
+       y="-2108.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text157">map</text>
+  </g>
+  <g
+     id="edge8"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title160">p10-&gt;p11</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1926.6373,-2141.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path162" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1923.1374,-2114.842 1930.1374,-2114.8419 1926.6373,-2104.8419 "
+       id="polygon164" />
+  </g>
+  <g
+     id="node14"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title167">p12</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1926.6373"
+       cy="-2057.1001"
+       id="ellipse169"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1910.6373"
+       y="-2064.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text171">map</text>
+  </g>
+  <g
+     id="edge9"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title174">p11-&gt;p12</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1926.6373,-2097.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path176" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1923.1374,-2070.842 1930.1374,-2070.8419 1926.6373,-2060.8419 "
+       id="polygon178" />
+  </g>
+  <g
+     id="node15"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title181">p13</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1926.6373"
+       cy="-2013.1"
+       id="ellipse183"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1910.6373"
+       y="-2020.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text185">map</text>
+  </g>
+  <g
+     id="edge10"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title188">p12-&gt;p13</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1926.6373,-2053.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path190" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1923.1374,-2026.842 1930.1374,-2026.8419 1926.6373,-2016.8419 "
+       id="polygon192" />
+  </g>
+  <g
+     id="node16"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title195">p14</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1926.6373"
+       cy="-1955.1"
+       id="ellipse197"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1912.1373"
+       y="-1962.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text199">into</text>
+  </g>
+  <g
+     id="edge11"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title202">p13-&gt;p14</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1926.6373,-2009.2945 c 0,8.0214 0,27.0128 0,40.2356"
+       id="path204" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1923.1374,-1968.6953 1930.1374,-1968.6953 1926.6373,-1958.6953 "
+       id="polygon206" />
+  </g>
+  <g
+     id="node17"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title209">p16</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1845.6373"
+       cy="-1872.1"
+       id="ellipse211"
+       r="1.8" />
+  </g>
+  <g
+     id="edge12"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title214">p14-&gt;p16</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1922.9132,-1954.6842 c -14.458,1.6971 -66.5484,8.6085 -76.2759,21.0842 -11.1461,14.2949 -7.9503,36.6728 -4.5316,50.129"
+       id="path216" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1838.7638,-1882.4301 1845.4683,-1884.4424 1844.9908,-1873.8584 "
+       id="polygon218" />
+    <text
+       text-anchor="middle"
+       x="1916.1373"
+       y="-1911.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text220">MRNA_reads_for_fastqc</text>
+  </g>
+  <g
+     id="node18"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title223">p15</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="2007.6373"
+       cy="-1872.1"
+       id="ellipse225"
+       r="1.8" />
+  </g>
+  <g
+     id="edge13"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title228">p14-&gt;p15</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1930.396,-1954.812 c 10.2969,0.988 39.2543,5.1303 55.2413,21.212 13.4309,13.5106 18.7084,35.7744 20.7495,49.4843"
+       id="path230" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2002.9398,-1883.4464 2009.8963,-1884.2257 2007.5314,-1873.8982 "
+       id="polygon232" />
+    <text
+       text-anchor="middle"
+       x="2075.6372"
+       y="-1911.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text234">MRNA_reads_for_kallisto</text>
+  </g>
+  <g
+     id="node19"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title237">p17</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1648.6373"
+       cy="-2291.2"
+       id="ellipse239"
+       r="3.5999999" />
+    <text
+       text-anchor="middle"
+       x="1607.0374"
+       y="-2298.6001"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text241">Channel.from</text>
+  </g>
+  <g
+     id="node20"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title244">p18</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1648.6373"
+       cy="-2233.1001"
+       id="ellipse246"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1632.6373"
+       y="-2240.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text248">map</text>
+  </g>
+  <g
+     id="edge14"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title251">p17-&gt;p18</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1648.6373,-2287.3879 c 0,8.0352 0,27.0593 0,40.3049"
+       id="path253" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1645.1374,-2246.7015 1652.1374,-2246.7015 1648.6373,-2236.7015 "
+       id="polygon255" />
+  </g>
+  <g
+     id="node21"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title258">p19</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1648.6373"
+       cy="-2189.1001"
+       id="ellipse260"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1632.6373"
+       y="-2196.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text262">map</text>
+  </g>
+  <g
+     id="edge15"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title265">p18-&gt;p19</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1648.6373,-2229.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path267" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1645.1374,-2202.842 1652.1374,-2202.8419 1648.6373,-2192.8419 "
+       id="polygon269" />
+  </g>
+  <g
+     id="node22"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title272">p20</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1648.6373"
+       cy="-2145.1001"
+       id="ellipse274"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1619.1373"
+       y="-2152.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text276">transpose</text>
+  </g>
+  <g
+     id="edge16"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title279">p19-&gt;p20</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1648.6373,-2185.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path281" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1645.1374,-2158.842 1652.1374,-2158.8419 1648.6373,-2148.8419 "
+       id="polygon283" />
+  </g>
+  <g
+     id="node23"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title286">p21</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1648.6373"
+       cy="-2101.1001"
+       id="ellipse288"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1632.6373"
+       y="-2108.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text290">map</text>
+  </g>
+  <g
+     id="edge17"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title293">p20-&gt;p21</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1648.6373,-2141.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path295" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1645.1374,-2114.842 1652.1374,-2114.8419 1648.6373,-2104.8419 "
+       id="polygon297" />
+  </g>
+  <g
+     id="node24"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title300">p22</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1648.6373"
+       cy="-2057.1001"
+       id="ellipse302"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1632.6373"
+       y="-2064.3999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text304">map</text>
+  </g>
+  <g
+     id="edge18"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title307">p21-&gt;p22</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1648.6373,-2097.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path309" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1645.1374,-2070.842 1652.1374,-2070.8419 1648.6373,-2060.8419 "
+       id="polygon311" />
+  </g>
+  <g
+     id="node25"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title314">p23</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1648.6373"
+       cy="-2013.1"
+       id="ellipse316"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1636.6373"
+       y="-2020.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text318">tap</text>
+  </g>
+  <g
+     id="edge19"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title321">p22-&gt;p23</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1648.6373,-2053.3486 c 0,5.78 0,17.1571 0,26.3448"
+       id="path323" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1645.1374,-2026.842 1652.1374,-2026.8419 1648.6373,-2016.8419 "
+       id="polygon325" />
+  </g>
+  <g
+     id="node26"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title328">p32</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="1557.6373"
+       cy="-1915.6"
+       rx="152.1731"
+       ry="18"
+       id="ellipse330" />
+    <text
+       text-anchor="middle"
+       x="1557.6373"
+       y="-1911.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text332">ATAC__reads_fastqc_before_trimming</text>
+  </g>
+  <g
+     id="edge20"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title335">p23-&gt;p32</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1644.8897,-2012.5221 c -13.6269,2.1755 -60.2693,10.2926 -70.2524,20.9221 -11.8826,12.6519 -16.1227,31.7263 -17.3971,47.6004"
+       id="path337" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1553.7271,-1943.7866 1560.7201,-1943.472 1556.7742,-1933.6394 "
+       id="polygon339" />
+    <text
+       text-anchor="middle"
+       x="1641.6373"
+       y="-1980.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text341">ATAC_reads_for_fastqc</text>
+  </g>
+  <g
+     id="node27"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title344">p24</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1774.6373"
+       cy="-1955.1"
+       id="ellipse346"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1758.6373"
+       y="-1962.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text348">map</text>
+  </g>
+  <g
+     id="edge21"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title351">p23-&gt;p24</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1652.2042,-2012.1833 c 9.8654,2.5946 38.2527,10.4623 60.4331,20.5833 18.281,8.3417 38.0702,20.6135 50.2526,28.5816"
+       id="path353" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1761.1483,-1959.9728 1765.0352,-1965.7945 1771.4084,-1957.3309 "
+       id="polygon355" />
+  </g>
+  <g
+     id="node38"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title358">p92</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1417.6373"
+       cy="-1843.1"
+       id="ellipse360"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1396.6373"
+       y="-1850.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text362">flatten</text>
+  </g>
+  <g
+     id="edge33"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title365">p32-&gt;p92</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1523.7472,-1898.0498 c -30.3164,15.6996 -73.0764,37.8432 -93.8399,48.5957"
+       id="path367" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1428.1243,-1852.4723 1431.3433,-1846.2563 1420.8538,-1844.7657 "
+       id="polygon369" />
+    <text
+       text-anchor="middle"
+       x="1619.1373"
+       y="-1868.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text371">FastQC_reports_before_trimming_for_multiQC</text>
+  </g>
+  <g
+     id="node28"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title374">p25</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1817.6373"
+       cy="-1872.1"
+       id="ellipse376"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1788.1373"
+       y="-1879.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text378">transpose</text>
+  </g>
+  <g
+     id="edge22"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title381">p24-&gt;p25</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1776.2704,-1951.9477 c 5.7204,11.0418 25.0504,48.3532 35.132,67.8129"
+       id="path383" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1808.2947,-1882.5246 1814.5101,-1885.7447 1816.0025,-1875.2555 "
+       id="polygon385" />
+  </g>
+  <g
+     id="node29"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title388">p26</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1850.6373"
+       cy="-1818.1"
+       id="ellipse390"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1815.1373"
+       y="-1825.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text392">groupTuple</text>
+  </g>
+  <g
+     id="edge23"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title395">p25-&gt;p26</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1819.6027,-1868.8838 c 4.5963,7.5212 16.2355,26.5671 23.8806,39.0773"
+       id="path397" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1840.5224,-1827.9395 1846.4954,-1831.5897 1848.7234,-1821.2317 "
+       id="polygon399" />
+  </g>
+  <g
+     id="node30"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title402">p27</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1872.6373"
+       cy="-1768.1"
+       id="ellipse404"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1851.1373"
+       y="-1775.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text406">choice</text>
+  </g>
+  <g
+     id="edge24"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title409">p26-&gt;p27</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1852.0807,-1814.8194 c 2.9826,6.7785 9.9636,22.6444 14.9623,34.0053"
+       id="path411" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1863.9286,-1779.2018 1870.3358,-1782.021 1871.1596,-1771.4583 "
+       id="polygon413" />
+  </g>
+  <g
+     id="node31"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title416">p29</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1902.6373"
+       cy="-1695.6"
+       id="ellipse418"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1886.6373"
+       y="-1702.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text420">map</text>
+  </g>
+  <g
+     id="edge25"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title423">p27-&gt;p29</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1872.0051,-1764.5385 c -1.0328,6.6964 -2.5728,21.5167 1.6322,32.9385 3.8125,10.3558 11.8956,19.9727 18.5619,26.6569"
+       id="path425" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1890.1564,-1702.0654 1894.9057,-1707.2079 1899.8774,-1697.852 "
+       id="polygon427" />
+    <text
+       text-anchor="middle"
+       x="1950.6373"
+       y="-1735.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text429">ATAC_reads_for_trimming</text>
+  </g>
+  <g
+     id="node32"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title432">p28</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="2049.6372"
+       cy="-1695.6"
+       rx="96.383301"
+       ry="18"
+       id="ellipse434" />
+    <text
+       text-anchor="middle"
+       x="2049.6372"
+       y="-1691.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text436">ATAC__merging_reads</text>
+  </g>
+  <g
+     id="edge26"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title439">p27-&gt;p28</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1876.3397,-1768.0654 c 21.1337,0.2668 126.4389,2.5408 151.2976,21.4654 7.5256,5.7292 12.514,14.555 15.8047,23.2635"
+       id="path441" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2040.1289,-1722.2051 2046.8032,-1724.3154 2046.4807,-1713.7255 "
+       id="polygon443" />
+    <text
+       text-anchor="middle"
+       x="2113.6372"
+       y="-1735.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text445">ATAC_reads_for_merging</text>
+  </g>
+  <g
+     id="node33"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title448">p30</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="2049.6372"
+       cy="-1623.1"
+       id="ellipse450"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="2035.1373"
+       y="-1630.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text452">mix</text>
+  </g>
+  <g
+     id="edge28"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title455">p29-&gt;p30</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1905.9838,-1693.9495 c 17.5846,8.6727 99.6845,49.1641 131.2472,64.7308"
+       id="path457" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2035.843,-1626.0008 2038.9394,-1632.2788 2046.3598,-1624.7165 "
+       id="polygon459" />
+  </g>
+  <g
+     id="edge27"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title462">p28-&gt;p30</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2049.6373,-1677.3052 c 0,12.5688 0,28.9903 0,40.4509"
+       id="path464" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2046.1374,-1636.7825 2053.1374,-1636.7824 2049.6373,-1626.7824 "
+       id="polygon466" />
+    <text
+       text-anchor="middle"
+       x="2129.6372"
+       y="-1648.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text468">ATAC_reads_for_trimming1</text>
+  </g>
+  <g
+     id="node34"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title471">p31</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="2167.6372"
+       cy="-1550.6"
+       rx="111.2805"
+       ry="18"
+       id="ellipse473" />
+    <text
+       text-anchor="middle"
+       x="2167.6372"
+       y="-1546.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text475">ATAC__trimming_adaptors</text>
+  </g>
+  <g
+     id="edge29"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title478">p30-&gt;p31</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2052.7935,-1621.1608 c 10.9941,6.7549 48.5261,29.8148 77.7264,47.7556"
+       id="path480" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2128.9234,-1570.2782 2132.5879,-1576.2425 2139.276,-1568.0254 "
+       id="polygon482" />
+    <text
+       text-anchor="middle"
+       x="2188.6372"
+       y="-1590.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text484">ATAC_reads_for_trimming2</text>
+  </g>
+  <g
+     id="node35"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title487">p33</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="2664.6372"
+       cy="-1463.6"
+       rx="145.67419"
+       ry="18"
+       id="ellipse489" />
+    <text
+       text-anchor="middle"
+       x="2664.6372"
+       y="-1459.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text491">ATAC__reads_fastqc_after_trimming</text>
+  </g>
+  <g
+     id="edge30"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title494">p31-&gt;p33</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2274.0902,-1545.2465 c 67.9605,4.8528 157.6174,13.9243 235.5471,30.6465 34.3417,7.3691 71.7759,19.5628 101.2519,30.1794"
+       id="path496" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2609.9704,-1481.0301 2612.3701,-1487.606 2620.5643,-1480.8899 "
+       id="polygon498" />
+    <text
+       text-anchor="middle"
+       x="2657.1372"
+       y="-1503.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text500">Trimmed_ATAC_reads_for_fastqc</text>
+  </g>
+  <g
+     id="node36"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title503">p34</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="2056.6372"
+       cy="-1463.6"
+       rx="131.8766"
+       ry="18"
+       id="ellipse505" />
+    <text
+       text-anchor="middle"
+       x="2056.6372"
+       y="-1459.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text507">ATAC__alignment_with_bowtie2</text>
+  </g>
+  <g
+     id="edge31"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title510">p31-&gt;p34</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2144.9069,-1532.7843 c -16.6109,13.0193 -39.3233,30.821 -57.5493,45.1062"
+       id="path512" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2085.0487,-1490.3154 2089.3669,-1484.806 2079.3372,-1481.3919 "
+       id="polygon514" />
+    <text
+       text-anchor="middle"
+       x="2204.6372"
+       y="-1503.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text516">Trimmed_reads_for_alignment</text>
+  </g>
+  <g
+     id="node37"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title519">p81</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="2430.6372"
+       cy="-1409.6"
+       rx="187.367"
+       ry="18"
+       id="ellipse521" />
+    <text
+       text-anchor="middle"
+       x="2430.6372"
+       y="-1405.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text523">ATAC__reads_stat_3_subsample_trimmed_reads</text>
+  </g>
+  <g
+     id="edge32"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title526">p31-&gt;p81</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2236.0078,-1536.3475 c 19.5162,5.4196 40.4156,12.5677 58.6295,21.7475 22.4076,11.2935 74.1021,53.0931 106.9111,80.4241"
+       id="path528" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2399.5366,-1431.2958 2404.0267,-1436.666 2409.4534,-1427.5664 "
+       id="polygon530" />
+    <text
+       text-anchor="middle"
+       x="2409.6372"
+       y="-1503.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text532">Trimmed_reads_for_subsampling</text>
+  </g>
+  <g
+     id="node39"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title535">p94</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="2697.6372"
+       cy="-1355.6"
+       id="ellipse537"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="2676.6372"
+       y="-1362.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text539">flatten</text>
+  </g>
+  <g
+     id="edge34"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title542">p33-&gt;p94</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2670.2353,-1445.2793 c 6.6081,21.6268 17.4391,57.0734 23.3097,76.2864"
+       id="path544" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2690.2657,-1367.7476 2696.9601,-1369.7932 2696.5352,-1359.2068 "
+       id="polygon546" />
+    <text
+       text-anchor="middle"
+       x="2812.1372"
+       y="-1405.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text548">FastQC_reports_after_trimming_for_multiQC</text>
+  </g>
+  <g
+     id="node40"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title551">p35</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="1600.6373"
+       cy="-1355.6"
+       rx="141.075"
+       ry="18"
+       id="ellipse553" />
+    <text
+       text-anchor="middle"
+       x="1600.6373"
+       y="-1351.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text555">ATAC__filtering_low_quality_reads</text>
+  </g>
+  <g
+     id="edge35"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title558">p34-&gt;p35</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1985.5101,-1448.4032 c -28.8617,6.2749 -62.4959,13.7253 -92.8728,20.8032 -74.6284,17.3887 -159.6567,38.503 -218.6342,53.3565"
+       id="path560" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1672.8768,-1377.5691 1674.5882,-1370.7816 1664.036,-1371.7304 "
+       id="polygon562" />
+    <text
+       text-anchor="middle"
+       x="1972.6373"
+       y="-1405.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text564">Bam_for_filtering_LQ_reads</text>
+  </g>
+  <g
+     id="node41"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title567">p78</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="2056.6372"
+       cy="-1355.6"
+       rx="178.9686"
+       ry="18"
+       id="ellipse569" />
+    <text
+       text-anchor="middle"
+       x="2056.6372"
+       y="-1351.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text571">ATAC__sampling_aligned_reads_for_statistics</text>
+  </g>
+  <g
+     id="edge36"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title574">p34-&gt;p78</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2056.6373,-1445.2793 c 0,16.8583 0,42.1142 0,61.5323"
+       id="path576" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2053.1374,-1383.6502 2060.1374,-1383.6501 2056.6373,-1373.6502 "
+       id="polygon578" />
+    <text
+       text-anchor="middle"
+       x="2109.6372"
+       y="-1405.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text580">Bam_for_sampling</text>
+  </g>
+  <g
+     id="node90"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title583">p82</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="2511.6372"
+       cy="-1301.6"
+       rx="184.6673"
+       ry="18"
+       id="ellipse585" />
+    <text
+       text-anchor="middle"
+       x="2511.6372"
+       y="-1297.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text587">ATAC__reads_stat_3_alignment_sampled_reads</text>
+  </g>
+  <g
+     id="edge94"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title590">p81-&gt;p82</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2444.3778,-1391.2793 c 13.0535,17.4047 32.8199,43.76 47.5509,63.4013"
+       id="path592" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2489.2996,-1325.5502 2494.8996,-1329.7502 2498.0996,-1319.6502 "
+       id="polygon594" />
+    <text
+       text-anchor="middle"
+       x="2566.6372"
+       y="-1351.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text596">Sampled_reads_for_alignment</text>
+  </g>
+  <g
+     id="node97"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title599">p93</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1334.6373"
+       cy="-1793.1"
+       id="ellipse601"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1315.1373"
+       y="-1800.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text603">toList</text>
+  </g>
+  <g
+     id="edge105"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title606">p92-&gt;p93</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1414.4849,-1841.201 c -11.0931,6.6826 -48.7008,29.3378 -68.0833,41.014"
+       id="path608" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1344.5525,-1803.1591 1348.1646,-1797.163 1337.7927,-1795.0009 "
+       id="polygon610" />
+  </g>
+  <g
+     id="node98"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title613">p95</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="2711.6372"
+       cy="-1204.1"
+       id="ellipse615"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="2724.1372"
+       y="-1211.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text617">toList</text>
+  </g>
+  <g
+     id="edge107"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title620">p94-&gt;p95</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2697.9833,-1351.855 c 1.71,18.504 9.297,100.6062 12.3625,133.7799"
+       id="path622" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2706.8979,-1217.3495 2713.8682,-1217.9937 2711.3033,-1207.7141 "
+       id="polygon624" />
+  </g>
+  <g
+     id="node42"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title627">p36</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="1461.6373"
+       cy="-1247.6"
+       rx="113.18"
+       ry="18"
+       id="ellipse629" />
+    <text
+       text-anchor="middle"
+       x="1461.6373"
+       y="-1243.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text631">ATAC__marking_duplicates</text>
+  </g>
+  <g
+     id="edge37"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title634">p35-&gt;p36</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1490.6277,-1344.2578 c -29.4598,5.4196 -55.7298,13.2982 -64.9904,24.6578 -10.1099,12.4013 -6.123,21.2179 0,36 1.5538,3.7513 3.7092,7.3154 6.2002,10.6389"
+       id="path636" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1429.3641,-1270.4717 1434.6443,-1275.0673 1438.5694,-1265.2263 "
+       id="polygon638" />
+    <text
+       text-anchor="middle"
+       x="1507.1373"
+       y="-1297.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text640">Bam_for_marking_duplicates</text>
+  </g>
+  <g
+     id="node85"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title643">p80</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="1789.6373"
+       cy="-1247.6"
+       rx="159.47211"
+       ry="18"
+       id="ellipse645" />
+    <text
+       text-anchor="middle"
+       x="1789.6373"
+       y="-1243.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text647">ATAC__reads_stat_2_library_complexity</text>
+  </g>
+  <g
+     id="edge88"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title650">p78-&gt;p80</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1947.7135,-1341.2922 c -22.4675,5.1678 -45.5271,12.1816 -66.0762,21.6922 -25.0599,11.5983 -49.4862,31.2246 -66.8647,47.0594"
+       id="path652" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1812.2305,-1274.9557 1817.006,-1269.8376 1807.3068,-1265.5744 "
+       id="polygon654" />
+    <text
+       text-anchor="middle"
+       x="1977.1373"
+       y="-1297.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text656">Bam_for_stats_library_complexity</text>
+  </g>
+  <g
+     id="node86"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title659">p79</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="2130.6372"
+       cy="-1247.6"
+       rx="163.5712"
+       ry="18"
+       id="ellipse661" />
+    <text
+       text-anchor="middle"
+       x="2130.6372"
+       y="-1243.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text663">ATAC__reads_stat_1_features_enrichment</text>
+  </g>
+  <g
+     id="edge89"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title666">p78-&gt;p79</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2066.2447,-1337.6025 c 8.2206,14.9015 20.7059,36.4051 33.3926,54.0025 2.374,3.293 4.981,6.6504 7.6438,9.9259"
+       id="path668" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2104.7995,-1271.1869 2110.1577,-1275.6914 2113.9136,-1265.7846 "
+       id="polygon670" />
+    <text
+       text-anchor="middle"
+       x="2198.6372"
+       y="-1297.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text672">Bam_for_stats_features_enrichment</text>
+  </g>
+  <g
+     id="node87"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title675">p85</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="2204.6372"
+       cy="-986.59998"
+       id="ellipse677"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="2190.1372"
+       y="-993.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text679">join</text>
+  </g>
+  <g
+     id="edge90"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title682">p78-&gt;p85</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2183.6301,-1342.8931 c 53.2057,6.4793 104.9203,14.7775 114.0072,23.2931 38.3237,35.9146 25,62.9779 25,115.5 0,0 0,0 0,130.5 0,51.4553 -73.5886,75.8977 -104.5394,83.9024"
+       id="path684" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2217.2099,-993.084 2218.838,-986.276 2208.2982,-987.3541 "
+       id="polygon686" />
+    <text
+       text-anchor="middle"
+       x="2402.1372"
+       y="-1156.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text688">Bam_for_stats_mito_percent</text>
+  </g>
+  <g
+     id="node88"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title691">p86</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1602.6373"
+       cy="-899.59998"
+       id="ellipse693"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1588.1373"
+       y="-906.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text695">join</text>
+  </g>
+  <g
+     id="edge91"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title698">p78-&gt;p86</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1896.8931,-1347.4563 c -130.7626,11.1897 -294.2558,37.6236 -294.2558,99.8563 0,0 0,0 0,261 0,25.8836 0,56.0988 0,73.248"
+       id="path700" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1599.1374,-913.2468 1606.1374,-913.2467 1602.6373,-903.2468 "
+       id="polygon702" />
+    <text
+       text-anchor="middle"
+       x="1677.6373"
+       y="-1113.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text704">Nb_aligned_pairs_for_stats</text>
+  </g>
+  <g
+     id="node43"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title707">p37</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="841.63733"
+       cy="-1160.6"
+       rx="117.7793"
+       ry="18"
+       id="ellipse709" />
+    <text
+       text-anchor="middle"
+       x="841.63733"
+       y="-1156.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text711">ATAC__removing_duplicates</text>
+  </g>
+  <g
+     id="edge38"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title714">p36-&gt;p37</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1376.7289,-1235.6854 c -114.5148,16.069 -317.9401,44.6141 -438.2702,61.4992"
+       id="path716" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="937.9278,-1177.6461 938.9006,-1170.714 928.5112,-1172.7904 "
+       id="polygon718" />
+    <text
+       text-anchor="middle"
+       x="1274.6373"
+       y="-1200.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text720">Bam_for_removing_duplicates</text>
+  </g>
+  <g
+     id="node44"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title723">p38</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="841.63733"
+       cy="-1073.6"
+       rx="155.17261"
+       ry="18"
+       id="ellipse725" />
+    <text
+       text-anchor="middle"
+       x="841.63733"
+       y="-1069.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text727">ATAC__creation_of_raw_bigwig_tracks</text>
+  </g>
+  <g
+     id="edge39"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title730">p37-&gt;p38</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 841.6373,-1142.5735 c 0,11.7817 0,27.4128 0,40.8154"
+       id="path732" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="838.1374,-1101.6034 845.1374,-1101.6033 841.6373,-1091.6034 "
+       id="polygon734" />
+    <text
+       text-anchor="middle"
+       x="902.13733"
+       y="-1113.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text736">Bam_for_raw_bigwig</text>
+  </g>
+  <g
+     id="node45"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title739">p55</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="513.63733"
+       cy="-1073.6"
+       rx="154.8728"
+       ry="18"
+       id="ellipse741" />
+    <text
+       text-anchor="middle"
+       x="513.63733"
+       y="-1069.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text743">ATAC__removing_mitochondrial_reads</text>
+  </g>
+  <g
+     id="edge40"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title746">p37-&gt;p55</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 738.4384,-1151.8784 c -40.5472,5.3187 -87.0489,13.804 -127.8011,27.2784 -20.9207,6.9173 -42.7646,18.0135 -60.4148,28.0919"
+       id="path748" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="548.273,-1099.4227 551.8025,-1093.3777 541.402,-1091.358 "
+       id="polygon750" />
+    <text
+       text-anchor="middle"
+       x="724.13733"
+       y="-1113.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text752">Bam_for_removing_mitochondrial_reads</text>
+  </g>
+  <g
+     id="node46"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title755">p39</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="431.6373"
+       cy="-986.59998"
+       id="ellipse757"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="396.1373"
+       y="-971.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text759">groupTuple</text>
+  </g>
+  <g
+     id="edge41"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title762">p38-&gt;p39</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 730.9786,-1060.9104 c -17.8249,1.8873 -36.0847,3.7274 -53.3413,5.3104 -27.0712,2.4833 -225.1114,-1.5507 -244,18 -9.5047,9.8377 -8.2735,26.3564 -5.7982,37.9209"
+       id="path764" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="424.4904,-998.6539 431.2495,-1000.4748 430.4712,-989.9085 "
+       id="polygon766" />
+    <text
+       text-anchor="middle"
+       x="550.13733"
+       y="-1026.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text768">ATAC_reads_coverage_for_merging_pdfs</text>
+  </g>
+  <g
+     id="node47"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title771">p41</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="552.63733"
+       cy="-986.59998"
+       id="ellipse773"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="530.63733"
+       y="-993.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text775">collect</text>
+  </g>
+  <g
+     id="edge42"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title778">p38-&gt;p41</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 838.537,-1055.3997 c -2.9108,11.2685 -8.4578,25.0261 -18.8997,32.7997 -27.6375,20.575 -119.8684,13.2889 -154,18 -36.0215,4.9719 -78.3031,12.0365 -99.4761,15.6591"
+       id="path780" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="565.4038,-992.362 566.5936,-985.4639 556.1442,-987.2132 "
+       id="polygon782" />
+    <text
+       text-anchor="middle"
+       x="896.63733"
+       y="-1026.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text784">Bigwig_for_correlation</text>
+  </g>
+  <g
+     id="node62"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title787">p57</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="143.6373"
+       cy="-986.59998"
+       rx="143.7746"
+       ry="18"
+       id="ellipse789" />
+    <text
+       text-anchor="middle"
+       x="143.6373"
+       y="-982.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text791">ATAC__plot_insert_size_distribution</text>
+  </g>
+  <g
+     id="edge61"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title794">p55-&gt;p57</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 376.5103,-1065.1475 c -67.2328,5.6579 -140.2221,14.5032 -170.873,27.5475 -7.7529,3.2994 -22.0122,14.8582 -34.9027,26.1388"
+       id="path796" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="168.1067,-1013.8082 172.7561,-1008.5753 162.9558,-1004.5497 "
+       id="polygon798" />
+    <text
+       text-anchor="middle"
+       x="310.1373"
+       y="-1026.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text800">Bam_for_plotting_inserts_distribution</text>
+  </g>
+  <g
+     id="node63"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title803">p60</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="810.63733"
+       cy="-986.59998"
+       rx="135.6761"
+       ry="18"
+       id="ellipse805" />
+    <text
+       text-anchor="middle"
+       x="810.63733"
+       y="-982.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text807">ATAC__bamToBed_and_atacShift</text>
+  </g>
+  <g
+     id="edge62"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title810">p55-&gt;p60</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 607.2641,-1059.2602 c 21.4438,5.2107 43.7026,12.2346 63.3732,21.6602 9.7025,4.6492 9.4506,10.0439 19,15 13.1186,6.8086 27.7223,12.5283 42.1183,17.2602"
+       id="path812" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="731.0786,-1001.8837 733.1799,-1008.5608 741.6681,-1002.2204 "
+       id="polygon814" />
+    <text
+       text-anchor="middle"
+       x="752.63733"
+       y="-1026.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text816">Bam_for_atac_shifting</text>
+  </g>
+  <g
+     id="edge43"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title819">p39-&gt;p40</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 430.3482,-982.8617 c -4.1251,11.9628 -17.1404,49.7071 -24.1439,70.0172"
+       id="path821" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="402.8393,-913.8222 409.4569,-911.5403 402.8881,-903.2275 "
+       id="polygon823" />
+  </g>
+  <g
+     id="node49"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title826">p42</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="426.6373"
+       cy="-899.59998"
+       id="ellipse828"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="412.1373"
+       y="-906.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text830">into</text>
+  </g>
+  <g
+     id="edge45"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title833">p41-&gt;p42</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 549.5226,-984.4494 c -15.4576,10.6731 -84.2778,58.1918 -111.6263,77.0753"
+       id="path835" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="435.8833,-910.2375 439.8607,-904.4772 429.643,-901.6754 "
+       id="polygon837" />
+  </g>
+  <g
+     id="node60"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title840">p54</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="307.6373"
+       cy="-160.10001"
+       id="ellipse842"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="293.1373"
+       y="-167.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text844">mix</text>
+  </g>
+  <g
+     id="edge58"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title847">p52-&gt;p54</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 217.7315,-230.1878 c 12.2982,9.5873 58.0702,45.2697 79.1511,61.7038"
+       id="path849" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="294.771,-165.6923 299.0747,-171.213 304.8095,-162.3044 "
+       id="polygon851" />
+  </g>
+  <g
+     id="node50"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title854">p47</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="426.6373"
+       cy="-769.09998"
+       id="ellipse856"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="410.6373"
+       y="-776.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text858">map</text>
+  </g>
+  <g
+     id="edge46"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title861">p42-&gt;p47</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 426.6373,-895.8351 c 0,16.6 0,83.7239 0,112.9855"
+       id="path863" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="423.1374,-782.6328 430.1374,-782.6328 426.6373,-772.6328 "
+       id="polygon865" />
+    <text
+       text-anchor="middle"
+       x="490.1373"
+       y="-852.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text867">bw_with_input_control</text>
+  </g>
+  <g
+     id="node51"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title870">p43</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="259.6373"
+       cy="-812.59998"
+       id="ellipse872"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="238.6373"
+       y="-819.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text874">flatten</text>
+  </g>
+  <g
+     id="edge47"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title877">p42-&gt;p43</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 425.2037,-896.142 c -1.9457,4.2138 -5.8486,11.1854 -11.5664,14.542 -29.7137,17.443 -131.0944,-7.7389 -154,18 -9.0869,10.2108 -7.2145,26.6526 -4.296,38.0973"
+       id="path879" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="252.0306,-824.3624 258.7139,-826.444 258.346,-815.8555 "
+       id="polygon881" />
+    <text
+       text-anchor="middle"
+       x="332.1373"
+       y="-852.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text883">bw_without_input_control</text>
+  </g>
+  <g
+     id="node55"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title886">p48</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="418.6373"
+       cy="-464.60001"
+       id="ellipse888"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="397.1373"
+       y="-471.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text890">concat</text>
+  </g>
+  <g
+     id="edge52"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title893">p47-&gt;p48</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 426.6373,-765.4532 c 0,11.9524 0,51.0303 0,83.3532 0,0 0,0 0,130.5 0,25.9928 -3.5848,56.171 -5.9551,73.2838"
+       id="path895" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="417.1919,-478.6361 424.1187,-477.6262 419.2126,-468.2358 "
+       id="polygon897" />
+  </g>
+  <g
+     id="node52"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title900">p44</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="259.6373"
+       cy="-725.59998"
+       id="ellipse902"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="242.6373"
+       y="-732.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text904">filter</text>
+  </g>
+  <g
+     id="edge48"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title907">p43-&gt;p44</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 259.6373,-808.8617 c 0,11.851 0,49.0039 0,69.4433"
+       id="path909" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="256.1374,-739.2276 263.1374,-739.2275 259.6373,-729.2275 "
+       id="polygon911" />
+  </g>
+  <g
+     id="node53"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title914">p45</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="259.6373"
+       cy="-638.59998"
+       id="ellipse916"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="237.6373"
+       y="-645.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text918">collect</text>
+  </g>
+  <g
+     id="edge49"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title921">p44-&gt;p45</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 259.6373,-721.8617 c 0,11.851 0,49.0039 0,69.4433"
+       id="path923" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="256.1374,-652.2276 263.1374,-652.2275 259.6373,-642.2275 "
+       id="polygon925" />
+  </g>
+  <g
+     id="node54"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title928">p46</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="260.6373"
+       cy="-551.59998"
+       id="ellipse930"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="244.6373"
+       y="-558.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text932">map</text>
+  </g>
+  <g
+     id="edge50"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title935">p45-&gt;p46</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 259.6802,-634.8617 c 0.1362,11.851 0.5633,49.0039 0.7982,69.4433"
+       id="path937" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="256.9808,-565.1866 263.9803,-565.2671 260.5956,-555.2275 "
+       id="polygon939" />
+  </g>
+  <g
+     id="edge51"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title942">p46-&gt;p48</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 259.3834,-548.1132 c -3.0132,9.0634 -9.5721,33.6223 2.2539,47.5132 14.4951,17.0262 77.2822,12.6764 99,18 15.656,3.8377 33.2992,9.5117 44.9717,13.4598"
+       id="path944" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="404.6833,-465.7571 406.969,-472.3734 415.278,-465.8 "
+       id="polygon946" />
+    <text
+       text-anchor="middle"
+       x="337.1373"
+       y="-504.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text948">bw_without_input_control1</text>
+  </g>
+  <g
+     id="node56"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title951">p50</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="403.6373"
+       cy="-377.60001"
+       rx="186.56689"
+       ry="18"
+       id="ellipse953" />
+    <text
+       text-anchor="middle"
+       x="403.6373"
+       y="-373.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text955">ATAC__correlation_between_raw_bigwig_tracks</text>
+  </g>
+  <g
+     id="edge53"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title958">p48-&gt;p50</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 417.9927,-460.8617 c -1.6236,9.4167 -6.0015,34.8087 -9.4995,55.097"
+       id="path960" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="405.0135,-406.1815 411.9117,-404.9921 406.7635,-395.7322 "
+       id="polygon962" />
+    <text
+       text-anchor="middle"
+       x="480.1373"
+       y="-417.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text964">Bigwig_for_correlation1</text>
+  </g>
+  <g
+     id="node58"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title967">p51</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="214.6373"
+       cy="-305.10001"
+       id="ellipse969"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="179.1373"
+       y="-312.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text971">groupTuple</text>
+  </g>
+  <g
+     id="edge55"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title974">p50-&gt;p51</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 273.3766,-364.7026 c -26.455,5.2967 -48.9151,12.7211 -57.7393,23.1026 -5.2808,6.2127 -5.5075,15.3967 -4.4257,22.9978"
+       id="path976" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="207.8477,-317.6074 214.6782,-319.1385 213.4502,-308.6151 "
+       id="polygon978" />
+    <text
+       text-anchor="middle"
+       x="323.1373"
+       y="-330.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text980">ATAC_Reads_PCA_for_merging_pdfs</text>
+  </g>
+  <g
+     id="node59"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title983">p53</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="425.6373"
+       cy="-276.10001"
+       id="ellipse985"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="390.1373"
+       y="-283.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text987">groupTuple</text>
+  </g>
+  <g
+     id="edge56"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title990">p50-&gt;p53</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 420.7325,-359.4909 c 4.0359,5.3627 7.7801,11.5169 9.9048,17.8909 5.7985,17.3955 2.3412,38.7769 -1.0328,52.2758"
+       id="path992" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="426.1749,-290.0602 432.9063,-288.1398 426.7971,-279.4837 "
+       id="polygon994" />
+    <text
+       text-anchor="middle"
+       x="545.13733"
+       y="-330.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text996">ATAC_Reads_Correl_for_merging_pdfs</text>
+  </g>
+  <g
+     id="node57"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title999">p49</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="347.6373"
+       cy="-464.60001"
+       id="ellipse1001"
+       r="3.5999999" />
+  </g>
+  <g
+     id="edge54"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1004">p49-&gt;p50</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 347.6137,-460.8263 c 0.1123,8.9093 1.394,31.6686 11.0236,47.2263 2.4353,3.9346 5.4594,7.6225 8.7802,11.0244"
+       id="path1006" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="365.3052,-399.7644 370.0285,-404.9308 375.0474,-395.6001 "
+       id="polygon1008" />
+    <text
+       text-anchor="middle"
+       x="382.6373"
+       y="-417.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1010">out_path</text>
+  </g>
+  <g
+     id="edge57"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1013">p51-&gt;p52</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 214.6373,-301.2021 c 0,10.1251 0,37.6478 0,54.5959"
+       id="path1015" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="211.1374,-246.1706 218.1374,-246.1705 214.6373,-236.1706 "
+       id="polygon1017" />
+  </g>
+  <g
+     id="edge59"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1020">p53-&gt;p54</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 422.7204,-273.2326 c -14.5399,14.2935 -79.4957,78.1483 -104.8752,103.0977"
+       id="path1022" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="315.1298,-172.3736 320.0371,-167.3817 310.4522,-162.8672 "
+       id="polygon1024" />
+  </g>
+  <g
+     id="node61"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1027">p59</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="307.6373"
+       cy="-102.1"
+       id="ellipse1029"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="293.1373"
+       y="-109.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1031">mix</text>
+  </g>
+  <g
+     id="edge60"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1034">p54-&gt;p59</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 307.6373,-156.2945 c 0,8.0214 0,27.0128 0,40.2356"
+       id="path1036" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="304.1374,-115.6953 311.1374,-115.6953 307.6373,-105.6953 "
+       id="polygon1038" />
+  </g>
+  <g
+     id="node66"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1041">p66</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="571.63733"
+       cy="-58.099998"
+       id="ellipse1043"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="557.13733"
+       y="-65.400002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1045">mix</text>
+  </g>
+  <g
+     id="edge66"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1048">p59-&gt;p66</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 311.3692,-101.478 c 27.3275,4.5546 196.8811,32.8135 246.5874,41.0979"
+       id="path1050" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="557.6006,-56.8912 558.7515,-63.796 568.04,-58.6995 "
+       id="polygon1052" />
+  </g>
+  <g
+     id="node65"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1055">p58</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="143.6373"
+       cy="-856.09998"
+       id="ellipse1057"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="108.1373"
+       y="-863.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1059">groupTuple</text>
+  </g>
+  <g
+     id="edge64"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1062">p57-&gt;p58</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 143.6373,-968.4545 c 0,26.3582 0,74.6752 0,98.4259"
+       id="path1064" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="140.1374,-869.8736 147.1374,-869.8736 143.6373,-859.8736 "
+       id="polygon1066" />
+    <text
+       text-anchor="middle"
+       x="265.1373"
+       y="-939.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1068">ATAC_Reads_InsertSize_for_merging_pdfs</text>
+  </g>
+  <g
+     id="node67"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1071">p62</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="825.63733"
+       cy="-899.59998"
+       rx="159.7717"
+       ry="18"
+       id="ellipse1073" />
+    <text
+       text-anchor="middle"
+       x="825.63733"
+       y="-895.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1075">ATAC__extend_bed_before_peak_calling</text>
+  </g>
+  <g
+     id="edge67"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1078">p60-&gt;p62</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 809.4614,-968.4974 c -0.2558,9.8226 0.0454,22.1248 2.1759,32.8974 0.5305,2.6828 1.2473,5.4245 2.0776,8.1381"
+       id="path1080" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="810.4575,-926.1748 817.0578,-928.5065 817.0887,-917.9117 "
+       id="polygon1082" />
+    <text
+       text-anchor="middle"
+       x="905.63733"
+       y="-939.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1084">Bed_for_extending_before_macs2</text>
+  </g>
+  <g
+     id="node68"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1087">p61</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1021.6373"
+       cy="-899.59998"
+       id="ellipse1089"
+       r="1.8" />
+  </g>
+  <g
+     id="edge68"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1092">p60-&gt;p61</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 916.3089,-975.2106 c 35.5569,5.6509 69.6799,13.6663 83.3284,24.6106 12.0249,9.6424 17.6103,27.1266 20.1097,38.9007"
+       id="path1094" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1016.3411,-910.8439 1023.2461,-911.9938 1021.4363,-901.5546 "
+       id="polygon1096" />
+    <text
+       text-anchor="middle"
+       x="1064.6373"
+       y="-939.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1098">Reads_for_diffbind</text>
+  </g>
+  <g
+     id="node64"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1101">p56</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="133.6373"
+       cy="-1073.6"
+       id="ellipse1103"
+       r="3.5999999" />
+  </g>
+  <g
+     id="edge63"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1106">p56-&gt;p57</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 133.4245,-1069.8668 c -0.4197,8.4577 -1.1235,29.7098 1.2128,47.2668 0.342,2.5704 0.799,5.2224 1.3263,7.8669"
+       id="path1108" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="132.604,-1013.7242 139.4268,-1015.2894 138.2514,-1004.76 "
+       id="polygon1110" />
+    <text
+       text-anchor="middle"
+       x="158.6373"
+       y="-1026.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1112">out_path</text>
+  </g>
+  <g
+     id="edge65"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1115">p58-&gt;p59</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 143.6373,-852.4532 c 0,11.9524 0,51.0303 0,83.3532 0,0 0,0 0,609 0,15.9419 111.568,45.0431 150.6617,54.7508"
+       id="path1117" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="293.6662,-101.9007 295.3323,-108.6996 304.2119,-102.92 "
+       id="polygon1119" />
+  </g>
+  <g
+     id="node74"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1122">p67</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="571.63733"
+       cy="-1.8"
+       id="ellipse1124"
+       r="1.8" />
+  </g>
+  <g
+     id="edge75"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1127">p66-&gt;p67</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 571.6373,-54.406 c 0,7.9888 0,27.1875 0,40.0465"
+       id="path1129" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="568.1374,-13.9898 575.1374,-13.9897 571.6373,-3.9897 "
+       id="polygon1131" />
+    <text
+       text-anchor="middle"
+       x="633.63733"
+       y="-25.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1133">Merging_pdf_Channel</text>
+  </g>
+  <g
+     id="node69"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1136">p87</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1545.6373"
+       cy="-812.59998"
+       id="ellipse1138"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1531.1373"
+       y="-819.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1140">join</text>
+  </g>
+  <g
+     id="edge69"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1143">p62-&gt;p87</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 934.9898,-886.3866 c 179.6182,21.7039 524.4994,63.377 597.0488,72.1434"
+       id="path1145" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1531.7188,-810.7564 1532.5586,-817.7059 1542.0665,-813.0315 "
+       id="polygon1147" />
+    <text
+       text-anchor="middle"
+       x="1323.1373"
+       y="-852.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1149">Reads_bed_format_for_bam_stats</text>
+  </g>
+  <g
+     id="node70"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1152">p68</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="893.63733"
+       cy="-812.59998"
+       rx="91.783997"
+       ry="18"
+       id="ellipse1154" />
+    <text
+       text-anchor="middle"
+       x="893.63733"
+       y="-808.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1156">ATAC__calling_peaks</text>
+  </g>
+  <g
+     id="edge70"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1159">p62-&gt;p68</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 852.9839,-881.8189 c 6.7097,5.2791 13.4507,11.4738 18.6534,18.2189 5.3592,6.9483 9.6883,15.401 13.0423,23.4107"
+       id="path1161" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="881.443,-838.8542 887.9791,-841.3602 888.291,-830.77 "
+       id="polygon1163" />
+    <text
+       text-anchor="middle"
+       x="981.63733"
+       y="-852.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1165">Reads_bed_format_for_peak_calling</text>
+  </g>
+  <g
+     id="node71"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1168">p64</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="626.63733"
+       cy="-812.59998"
+       rx="102.0819"
+       ry="18"
+       id="ellipse1170" />
+    <text
+       text-anchor="middle"
+       x="626.63733"
+       y="-808.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1172">ATAC__saturation_curve</text>
+  </g>
+  <g
+     id="edge71"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1175">p62-&gt;p64</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 714.5628,-886.6176 c -30.5323,5.5257 -58.4233,13.0525 -69.9255,23.0176 -6.8349,5.9215 -11.0747,14.6061 -13.7046,23.1365"
+       id="path1177" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="627.5199,-841.2421 634.3166,-839.5674 628.5258,-830.6951 "
+       id="polygon1179" />
+    <text
+       text-anchor="middle"
+       x="756.13733"
+       y="-852.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1181">Reads_bed_format_for_saturation_curve</text>
+  </g>
+  <g
+     id="node92"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1184">p88</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="1545.6373"
+       cy="-725.59998"
+       rx="139.9756"
+       ry="18"
+       id="ellipse1186" />
+    <text
+       text-anchor="middle"
+       x="1545.6373"
+       y="-721.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1188">ATAC__statistics_on_aligned_reads</text>
+  </g>
+  <g
+     id="edge100"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1191">p87-&gt;p88</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1545.6373,-808.8617 c 0,9.4167 0,34.8087 0,55.097"
+       id="path1193" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1542.1374,-753.7322 1549.1374,-753.7321 1545.6373,-743.7322 "
+       id="polygon1195" />
+    <text
+       text-anchor="middle"
+       x="1580.1373"
+       y="-765.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1197">Stats_results</text>
+  </g>
+  <g
+     id="node75"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1200">p69</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="893.63733"
+       cy="-725.59998"
+       rx="113.18"
+       ry="18"
+       id="ellipse1202" />
+    <text
+       text-anchor="middle"
+       x="893.63733"
+       y="-721.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1204">ATAC__splitting_sub_peaks</text>
+  </g>
+  <g
+     id="edge76"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1207">p68-&gt;p69</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 893.6373,-794.5735 c 0,11.7817 0,27.4128 0,40.8154"
+       id="path1209" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="890.1374,-753.6034 897.1374,-753.6033 893.6373,-743.6034 "
+       id="polygon1211" />
+    <text
+       text-anchor="middle"
+       x="974.13733"
+       y="-765.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1213">Peaks_for_sub_peaks_calling</text>
+  </g>
+  <g
+     id="node73"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1216">p65</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="658.63733"
+       cy="-682.09998"
+       id="ellipse1218"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="623.13733"
+       y="-689.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1220">groupTuple</text>
+  </g>
+  <g
+     id="edge73"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1223">p64-&gt;p65</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 631.0867,-794.4545 c 6.4931,26.4797 18.4205,75.121 24.2152,98.7526"
+       id="path1225" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="651.931,-694.7523 658.7296,-696.4194 657.7119,-685.8736 "
+       id="polygon1227" />
+    <text
+       text-anchor="middle"
+       x="760.63733"
+       y="-765.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1229">ATAC_Saturation_Curve_for_merging_pdfs</text>
+  </g>
+  <g
+     id="node72"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1232">p63</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="576.63733"
+       cy="-899.59998"
+       id="ellipse1234"
+       r="3.5999999" />
+  </g>
+  <g
+     id="edge72"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1237">p63-&gt;p64</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 575.6527,-895.8695 c -2.1122,8.8163 -6.2505,31.3889 1.9846,47.2695 2.2793,4.3956 5.3685,8.389 8.8941,11.9801"
+       id="path1239" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="584.4433,-833.7952 589.0689,-839.0491 594.2617,-829.814 "
+       id="polygon1241" />
+    <text
+       text-anchor="middle"
+       x="601.63733"
+       y="-852.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1243">out_path</text>
+  </g>
+  <g
+     id="edge74"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1246">p65-&gt;p66</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 660.7369,-678.9377 c 7.1191,11.0381 29.9004,49.0758 29.9004,83.8377 0,0 0,0 0,493 0,22.2651 -74.2122,36.8043 -105.4253,41.9348"
+       id="path1248" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="584.6701,-63.6231 585.7492,-56.7068 575.3292,-58.6234 "
+       id="polygon1250" />
+  </g>
+  <g
+     id="node76"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1253">p70</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="893.63733"
+       cy="-638.59998"
+       rx="150.2735"
+       ry="18"
+       id="ellipse1255" />
+    <text
+       text-anchor="middle"
+       x="893.63733"
+       y="-634.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1257">ATAC__removing_blacklisted_regions</text>
+  </g>
+  <g
+     id="edge77"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1260">p69-&gt;p70</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 893.6373,-707.5735 c 0,11.7817 0,27.4128 0,40.8154"
+       id="path1262" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="890.1374,-666.6034 897.1374,-666.6033 893.6373,-656.6034 "
+       id="polygon1264" />
+    <text
+       text-anchor="middle"
+       x="973.13733"
+       y="-678.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1266">Peaks_for_blacklist_removal</text>
+  </g>
+  <g
+     id="node77"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1269">p71</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="752.63733"
+       cy="-551.59998"
+       id="ellipse1271"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="730.63733"
+       y="-558.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1273">branch</text>
+  </g>
+  <g
+     id="edge78"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1276">p70-&gt;p71</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 832.5621,-622.1383 c -13.4535,5.1005 -27.18,11.543 -38.9248,19.5383 -14.9554,10.1808 -27.17,27.4308 -34.2665,39.0153"
+       id="path1278" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="756.3282,-565.3147 762.3909,-561.8155 754.3608,-554.9041 "
+       id="polygon1280" />
+    <text
+       text-anchor="middle"
+       x="847.63733"
+       y="-591.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1282">Peaks_wo_blacklist</text>
+  </g>
+  <g
+     id="node78"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1285">p97</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="918.63733"
+       cy="-551.59998"
+       rx="144.8743"
+       ry="18"
+       id="ellipse1287" />
+    <text
+       text-anchor="middle"
+       x="918.63733"
+       y="-547.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1289">ATAC__annotating_individual_peaks</text>
+  </g>
+  <g
+     id="edge79"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1292">p70-&gt;p97</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 898.8173,-620.5735 c 3.4191,11.8984 7.9663,27.7227 11.8428,41.2129"
+       id="path1294" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="907.3381,-578.2478 914.0659,-580.1811 913.4639,-569.6034 "
+       id="polygon1296" />
+    <text
+       text-anchor="middle"
+       x="1001.1373"
+       y="-591.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1298">Raw_peaks_for_annotations_in_R</text>
+  </g>
+  <g
+     id="node79"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1301">p76</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="787.63733"
+       cy="-160.10001"
+       id="ellipse1303"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="766.13733"
+       y="-167.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1305">concat</text>
+  </g>
+  <g
+     id="edge80"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1308">p71-&gt;p76</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 751.3427,-548.0085 c -4.1272,11.7831 -16.7054,50.401 -16.7054,83.4085 0,0 0,0 0,232 0,27.8819 25.8623,52.1879 41.4548,64.3083"
+       id="path1310" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="774.3393,-165.238 778.4651,-170.8929 784.4806,-162.1714 "
+       id="polygon1312" />
+  </g>
+  <g
+     id="node80"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1315">p72</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="781.63733"
+       cy="-464.60001"
+       id="ellipse1317"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="759.63733"
+       y="-471.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1319">branch</text>
+  </g>
+  <g
+     id="edge81"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1322">p71-&gt;p72</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 753.8833,-547.8617 c 3.9876,11.9628 16.5691,49.7071 23.3391,70.0172"
+       id="path1324" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="773.9453,-476.6075 780.5861,-478.8212 780.4281,-468.2275 "
+       id="polygon1326" />
+  </g>
+  <g
+     id="node99"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1329">p98</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="1087.6373"
+       cy="-464.60001"
+       id="ellipse1331"
+       r="1.8" />
+  </g>
+  <g
+     id="edge109"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1334">p97-&gt;p98</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1005.0877,-537.1499 c 26.138,5.7928 50.5673,13.1103 60.5496,21.5499 11.7704,9.9515 17.4191,27.3588 20.002,39.0315"
+       id="path1336" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1082.2267,-475.7666 1089.1196,-476.9863 1087.4155,-466.5294 "
+       id="polygon1338" />
+    <text
+       text-anchor="middle"
+       x="1183.1373"
+       y="-504.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1340">Annotated_peaks_for_individual_plots</text>
+  </g>
+  <g
+     id="node100"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1343">p99</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="841.63733"
+       cy="-464.60001"
+       id="ellipse1345"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="825.63733"
+       y="-471.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1347">map</text>
+  </g>
+  <g
+     id="edge110"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1350">p97-&gt;p99</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 863.8337,-534.9162 c -8.3781,4.9125 -15.9641,11.2247 -21.1964,19.3162 -7.1276,11.0223 -6.3369,26.3773 -4.4078,37.3531"
+       id="path1352" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="834.8901,-477.149 841.7142,-478.7085 840.53,-468.1801 "
+       id="polygon1354" />
+    <text
+       text-anchor="middle"
+       x="954.13733"
+       y="-504.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1356">Annotated_peaks_for_collecting_as_lists</text>
+  </g>
+  <g
+     id="node84"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1359">p77</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="787.63733"
+       cy="-102.1"
+       id="ellipse1361"
+       r="1.8" />
+  </g>
+  <g
+     id="edge87"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1364">p76-&gt;p77</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 787.6373,-156.2945 c 0,8.3923 0,28.7928 0,42.0314"
+       id="path1366" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="784.1374,-114.1218 791.1374,-114.1217 787.6373,-104.1218 "
+       id="polygon1368" />
+    <text
+       text-anchor="middle"
+       x="899.13733"
+       y="-127.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1370">Peaks_for_removing_specific_regions_1</text>
+  </g>
+  <g
+     id="node81"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1373">p73</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="781.63733"
+       cy="-377.60001"
+       id="ellipse1375"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="754.13733"
+       y="-384.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1377">combine</text>
+  </g>
+  <g
+     id="edge82"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1380">p72-&gt;p73</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 779.1736,-462.0901 c -4.7329,10.4777 -5.5463,51.1481 -2.4402,72.0034"
+       id="path1382" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="773.3487,-389.1921 780.154,-390.8318 779.0938,-380.2901 "
+       id="polygon1384" />
+  </g>
+  <g
+     id="edge83"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1387">p72-&gt;p73</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 784.1009,-462.0901 c 4.733,10.4777 5.5463,51.1481 2.4402,72.0034"
+       id="path1389" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="783.1205,-390.8318 789.9258,-389.1921 784.1807,-380.2901 "
+       id="polygon1391" />
+  </g>
+  <g
+     id="node82"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1394">p74</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="813.63733"
+       cy="-305.10001"
+       id="ellipse1396"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="797.63733"
+       y="-312.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1398">map</text>
+  </g>
+  <g
+     id="edge84"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1401">p73-&gt;p74</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 783.1807,-374.1032 c 4.4227,10.0201 17.3054,39.2076 24.824,56.242"
+       id="path1403" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="804.9431,-316.1298 811.347,-318.9564 812.1831,-308.3946 "
+       id="polygon1405" />
+  </g>
+  <g
+     id="node83"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1408">p75</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="915.63733"
+       cy="-232.60001"
+       rx="153.2729"
+       ry="18"
+       id="ellipse1410" />
+    <text
+       text-anchor="middle"
+       x="915.63733"
+       y="-228.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1412">ATAC__removing_input_control_peaks</text>
+  </g>
+  <g
+     id="edge85"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1415">p74-&gt;p75</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 816.5799,-303.0084 c 9.6257,6.8418 40.9859,29.1321 65.8727,46.8213"
+       id="path1417" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="880.4251,-253.3342 884.4805,-259.0398 890.6036,-250.3935 "
+       id="polygon1419" />
+    <text
+       text-anchor="middle"
+       x="947.63733"
+       y="-272.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1421">Peaks_treatment_with_control</text>
+  </g>
+  <g
+     id="edge86"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1424">p75-&gt;p76</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 884.3249,-214.8645 c -27.2226,15.419 -65.2307,36.9471 -84.4792,47.8496"
+       id="path1426" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="797.8799,-169.924 801.3298,-163.8331 790.9036,-161.9501 "
+       id="polygon1428" />
+    <text
+       text-anchor="middle"
+       x="956.13733"
+       y="-185.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1430">Peaks_for_removing_specific_regions</text>
+  </g>
+  <g
+     id="node89"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1433">p83</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="2117.6372"
+       cy="-1160.6"
+       id="ellipse1435"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="2103.1372"
+       y="-1167.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1437">join</text>
+  </g>
+  <g
+     id="edge93"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1440">p80-&gt;p83</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1831.3183,-1230.1258 c 27.0741,10.8315 63.3383,24.3759 96.319,33.5258 64.8285,17.9855 144.5848,29.8723 176.1758,34.1879"
+       id="path1442" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2103.5888,-1158.9112 2104.511,-1165.8502 2113.9628,-1161.0634 "
+       id="polygon1444" />
+    <text
+       text-anchor="middle"
+       x="2020.1373"
+       y="-1200.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1446">Library_complexity_for_statistics</text>
+  </g>
+  <g
+     id="edge92"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1449">p79-&gt;p83</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2123.4402,-1229.5604 c -1.9341,5.6581 -3.7735,11.9874 -4.8029,17.9604 -2.1388,12.409 -2.2102,26.7666 -1.851,37.0802"
+       id="path1451" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2113.3011,-1174.1476 2120.2911,-1174.52 2117.328,-1164.3479 "
+       id="polygon1453" />
+    <text
+       text-anchor="middle"
+       x="2213.6372"
+       y="-1200.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1455">Features_enrichment_for_statistics</text>
+  </g>
+  <g
+     id="edge98"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1458">p85-&gt;p86</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2201.1019,-986.0891 c -44.7271,6.4639 -500.233,72.2928 -584.9442,84.5351"
+       id="path1460" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1615.5455,-905.0019 1616.5468,-898.0739 1606.149,-900.1075 "
+       id="polygon1462" />
+  </g>
+  <g
+     id="edge99"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1465">p86-&gt;p87</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1600.4724,-896.2957 c -7.7224,11.7868 -34.1552,52.1315 -47.2952,72.1873"
+       id="path1467" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1550.1191,-825.8272 1555.9743,-821.991 1547.5664,-815.5445 "
+       id="polygon1469" />
+  </g>
+  <g
+     id="node91"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1472">p84</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="2204.6372"
+       cy="-1073.6"
+       id="ellipse1474"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="2190.1372"
+       y="-1080.9"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1476">join</text>
+  </g>
+  <g
+     id="edge96"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1479">p83-&gt;p84</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2120.1472,-1158.0901 c 10.9204,10.9204 54.6389,54.6389 74.5371,74.5371"
+       id="path1481" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2192.4011,-1080.8863 2197.3509,-1085.8361 2201.9471,-1076.2901 "
+       id="polygon1483" />
+  </g>
+  <g
+     id="edge95"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1486">p82-&gt;p84</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2511.1106,-1283.3806 c -1.4571,37.2981 -6.7732,120.5476 -25.4733,140.7806 -37.2471,40.3002 -215.5929,62.0702 -267.0646,67.5853"
+       id="path1488" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2217.9705,-1078.4712 2218.6903,-1071.5083 2208.3834,-1073.9614 "
+       id="polygon1490" />
+    <text
+       text-anchor="middle"
+       x="2601.1372"
+       y="-1200.4"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1492">Subsample_alignment_for_statistic</text>
+  </g>
+  <g
+     id="edge97"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1495">p84-&gt;p85</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2204.6373,-1069.8617 c 0,11.851 0,49.0039 0,69.4433"
+       id="path1497" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="2201.1374,-1000.2276 2208.1374,-1000.2275 2204.6373,-990.2275 "
+       id="polygon1499" />
+  </g>
+  <g
+     id="node93"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1502">p89</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="1545.6373"
+       cy="-638.59998"
+       id="ellipse1504"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="1523.6373"
+       y="-645.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1506">collect</text>
+  </g>
+  <g
+     id="edge101"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1509">p88-&gt;p89</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1545.6373,-707.5735 c 0,16.4867 0,40.511 0,55.4187"
+       id="path1511" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1542.1374,-652.1421 1549.1374,-652.142 1545.6373,-642.142 "
+       id="polygon1513" />
+    <text
+       text-anchor="middle"
+       x="1650.1373"
+       y="-678.40002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1515">Stats_on_aligned_reads_for_gathering</text>
+  </g>
+  <g
+     id="node94"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1518">p90</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="1545.6373"
+       cy="-551.59998"
+       rx="177.3685"
+       ry="18"
+       id="ellipse1520" />
+    <text
+       text-anchor="middle"
+       x="1545.6373"
+       y="-547.90002"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1522">ATAC__gathering_statistics_on_aligned_reads</text>
+  </g>
+  <g
+     id="edge102"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1525">p89-&gt;p90</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1545.6373,-634.8617 c 0,9.4167 0,34.8087 0,55.097"
+       id="path1527" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1542.1374,-579.7322 1549.1374,-579.7321 1545.6373,-569.7322 "
+       id="polygon1529" />
+  </g>
+  <g
+     id="node95"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1532">p91</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="1545.6373"
+       cy="-464.60001"
+       rx="153.2729"
+       ry="18"
+       id="ellipse1534" />
+    <text
+       text-anchor="middle"
+       x="1545.6373"
+       y="-460.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1536">ATAC__splitting_statistics_for_multiqc</text>
+  </g>
+  <g
+     id="edge103"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1539">p90-&gt;p91</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1545.6373,-533.5735 c 0,11.7817 0,27.4128 0,40.8154"
+       id="path1541" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1542.1374,-492.6034 1549.1374,-492.6033 1545.6373,-482.6034 "
+       id="polygon1543" />
+    <text
+       text-anchor="middle"
+       x="1608.6373"
+       y="-504.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1545">Bam_stat_for_splitting</text>
+  </g>
+  <g
+     id="node96"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1548">p96</title>
+    <ellipse
+       fill="none"
+       stroke="#000000"
+       cx="1545.6373"
+       cy="-377.60001"
+       rx="74.987503"
+       ry="18"
+       id="ellipse1550" />
+    <text
+       text-anchor="middle"
+       x="1545.6373"
+       y="-373.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1552">ATAC__multiQC</text>
+  </g>
+  <g
+     id="edge104"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1555">p91-&gt;p96</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1545.6373,-446.5735 c 0,11.7817 0,27.4128 0,40.8154"
+       id="path1557" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1542.1374,-405.6034 1549.1374,-405.6033 1545.6373,-395.6034 "
+       id="polygon1559" />
+    <text
+       text-anchor="middle"
+       x="1607.6373"
+       y="-417.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1561">Bam_stat_for_multiqc</text>
+  </g>
+  <g
+     id="edge106"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1564">p93-&gt;p96</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 1333.139,-1789.7666 c -3.6116,8.3497 -12.5017,30.9093 -12.5017,50.6666 0,0 0,0 0,1274.5 0,33.761 89.24,59.5042 155.317,73.9381"
+       id="path1566" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1475.4213,-387.1968 1476.8848,-394.0422 1485.9321,-388.5289 "
+       id="polygon1568" />
+  </g>
+  <g
+     id="edge108"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1571">p95-&gt;p96</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 2708.5229,-1201.762 c -14.9783,11.3608 -78.8856,61.208 -78.8856,84.662 0,0 0,0 0,652.5 0,50.0462 -743.8222,76.8776 -999.1592,84.6139"
+       id="path1573" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="1630.0352,-383.4745 1630.2457,-376.4777 1620.145,-379.6754 "
+       id="polygon1575" />
+  </g>
+  <g
+     id="node101"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1578">p100</title>
+    <circle
+       fill="none"
+       stroke="#000000"
+       cx="841.63733"
+       cy="-377.60001"
+       id="ellipse1580"
+       r="3.5" />
+    <text
+       text-anchor="middle"
+       x="819.63733"
+       y="-384.89999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1582">collect</text>
+  </g>
+  <g
+     id="edge111"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1585">p99-&gt;p100</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 841.6373,-460.8617 c 0,11.851 0,49.0039 0,69.4433"
+       id="path1587" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="838.1374,-391.2276 845.1374,-391.2275 841.6373,-381.2275 "
+       id="polygon1589" />
+  </g>
+  <g
+     id="node102"
+     class="node"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1592">p101</title>
+    <circle
+       fill="#000000"
+       stroke="#000000"
+       cx="841.63733"
+       cy="-305.10001"
+       id="ellipse1594"
+       r="1.8" />
+  </g>
+  <g
+     id="edge112"
+     class="edge"
+     transform="translate(4,2313.8)">
+    <title
+       id="title1597">p100-&gt;p101</title>
+    <path
+       fill="none"
+       stroke="#000000"
+       d="m 841.6373,-373.7021 c 0,10.4781 0,39.5878 0,56.3285"
+       id="path1599" />
+    <polygon
+       fill="#000000"
+       stroke="#000000"
+       points="838.1374,-316.9012 845.1374,-316.9011 841.6373,-306.9012 "
+       id="polygon1601" />
+    <text
+       text-anchor="middle"
+       x="956.63733"
+       y="-330.39999"
+       font-family="Times, serif"
+       font-size="14px"
+       fill="#000000"
+       id="text1603">Annotated_peaks_for_collecting_as_lists1</text>
+  </g>
+</svg>

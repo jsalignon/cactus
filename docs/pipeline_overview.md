@@ -21,3 +21,4 @@ For more details see the publication (manuscript under preparation).
 
 
 [Cactus' Directed Acyclic Graph](/docs/images/dag.html)
+[Cactus' Directed Acyclic Graph svg](/docs/images/dag.svg)
