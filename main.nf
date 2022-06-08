@@ -803,7 +803,7 @@ process ATAC__extend_bed_before_peak_calling {
 process ATAC__saturation_curve {
   tag "${id}"
 
-  // container = params.macs2
+  container = params.macs2
 
   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__saturation_curve", mode: "${pub_mode}"
 
@@ -896,6 +896,7 @@ process ATAC__splitting_sub_peaks {
   tag "${id}"
 
   container = params.bioperl
+  // container = params.samtools_bedtools_perl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", mode: "${pub_mode}", enabled: save_all_bed
 
