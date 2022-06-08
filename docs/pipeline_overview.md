@@ -19,3 +19,5 @@ Split and filtered DA results are then used as input for various enrichment anal
 
 For more details see the publication (manuscript under preparation).
 
+
+[Cactus' Directed Acyclic Graph](/docs/images/dag.html)
