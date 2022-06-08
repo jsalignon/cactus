@@ -1,7 +1,20 @@
 
-Usage
+# Menu
+* [Introduction](README.md)
+* [Pipeline overview](docs/pipeline_overview.md)
+* [Usage](docs/usage.md)
+* [Output](docs/output.md)
 
-Install
+
+# Usage Menu
+
+* [Install](#Install)
+* [Input](#Input)
+* [Run](#Run)
+* [Parameters](#Parameters)
+* [Reproducibility](#Reproducibility)
+
+# Install
 To install Cactus, 
 nextflow run salignon/cactus …
 
@@ -12,7 +25,7 @@ And one can specify the version of the pipeline using this command:
 … 
 In addition to that, one should also download the R containers using this command: …
 
-Inputs
+# Input
 
 Inputs of the program are raw ATAC-Seq or mRNA-Seq fastq.gz files. If there are multiple files for the same conditions, the read do not necessarily need to be merged as this can be done within cactus. 
 The configuration files are expected by Cactus are: atac_seq.config, mRNA_Seq.config, comparisons.config, regions_to_remove.config, grouped_conditions_for_plots.config, base.config. All are tab separated files. Below are instructions and examples on how to write these files [note: add an example per type of file]:
@@ -23,7 +36,7 @@ The configuration files are expected by Cactus are: atac_seq.config, mRNA_Seq.co
 -	grouped_conditions_for_plots.config: This file allows to define groups of comparisons to plot together on the heatmaps. The format is one line per group with the group ID as first entry and the comparisons as the remaining entries. The comparisons are named this way: comparison1_vs_comparison2.
 -	base.config (optional): this file allows to overwrite Cactus default settings with custom settings. All parameters from the run.config file can be set changed here to determine how a given experiment is analyzed. See the parameters section below for more details.
 
-Run
+# Run
 
 Here is the command to run the pipeline:
 nextflow run salignon/cactus 
@@ -36,13 +49,13 @@ It is recommended to limit the Nextflow Java virtual machines memory. We recomme
 NXF_OPTS='-Xms1g -Xmx4g'
 
 
-Parameters
+# Parameters
 Global parameters can be changed in the nextflow.config file. This include output folder names, resources (memory and CPU usage), type of machine to run the script (local or cloud). This is up to the user to set up the optimal nextflow environment according to their analysis platform. Help can be found here for that: https://www.nextflow.io/docs/latest/executor.html.
 Note: by default, the analysis is cached and will resume were it was before stopping. This can be disabled by setting the parameter “resume” to “false”. 
 Analysis parameters can be changed through the optional base.config file (see the Inputs section). 
 Here are the parameters that can be changed and the values they can take: TO DO
 
-Reproducibility
+# Reproducibility
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since [text stolen from Maxime/Sarek]. On can specify the version of the pipeline using the –version argument this way:
 
 nextflow run salignon/cactus -v XXX

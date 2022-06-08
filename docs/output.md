@@ -1,5 +1,12 @@
 
-Outputs
+# Menu
+* [Introduction](README.md)
+* [Pipeline overview](docs/pipeline_overview.md)
+* [Usage](docs/usage.md)
+* [Output](docs/output.md)
+
+
+# Output
 
 [Note: There should be one example Figure for each output]
 There are three main types of outputs: processed data, figures and tables. Both figures and tables are available either merged (for easier scrolling) and separated (for lower memory usage). Tables can be either csv files or formatted Excel files.
