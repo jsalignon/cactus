@@ -1,5 +1,5 @@
 
-# Menu
+# General Menu
 * [Introduction](/README.md)
 * [Pipeline overview](/docs/pipeline_overview.md)
 * [Usage](/docs/usage.md)
