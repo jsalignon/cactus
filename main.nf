@@ -1451,864 +1451,872 @@ Annotated_peaks_for_collecting_as_lists
   .set { Annotated_peaks_for_collecting_as_lists1 }
 
 
-// process ATAC__plotting_individual_peak_files {
-//   tag "${id}"
-// 
-//   container = params.bioconductor
-// 
-//   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
-//            if (it.indexOf("_coverage.pdf") > 0)        "ATAC__peaks__coverage/${it}"
-//       else if (it.indexOf("_average_profile.pdf") > 0) "ATAC__peaks__average_profile/${it}"
-//   }
-// 
-//   when: do_atac
-// 
-//   input:
-//     val out_path from Channel.value('1_Preprocessing') 
-//     set id, file(annotated_peaks_objects_rds) from Annotated_peaks_for_individual_plots
-// 
-//   output:
-//     set val("ATAC__peaks__coverage"), out_path, file("*_coverage.pdf") into ATAC_peaks_coverage_for_merging_pdfs
-//     set val("ATAC__peaks__average_profile"), out_path, file("*_average_profile.pdf") into ATAC_peaks_average_profile_for_merging_pdfs
-// 
-//   shell:
-//   '''
-// 
-//       #!/usr/bin/env Rscript
-//       library(ChIPseeker)
-//       library(ggplot2)
-// 
-//       id = '!{id}'
-//       upstream = !{params.promoter_up_macs2_peaks}
-//       downstream = !{params.promoter_down_macs2_peaks}
-//       lres = readRDS('!{annotated_peaks_objects_rds}')
-// 
-//       pdf(paste0(id, '__coverage.pdf'))
-//         covplot(lres$peaks, weightCol="V5") + ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
-//       dev.off()
-// 
-//       pdf(paste0(id, '__average_profile.pdf'))
-//         plotAvgProf(lres$tag_matrix, xlim=c(-upstream, downstream), xlab="Genomic Region (5'->3')", ylab = "Read Count Frequency") + ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
-//       dev.off()
-// 
-//   '''
-// }
-// 
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_peaks_coverage_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_peaks_average_profile_for_merging_pdfs.groupTuple(by: [0, 1]))
-// 
-// 
-// 
-// 
-// process ATAC__plotting_grouped_peak_files {
-// 
-//   container = params.bioconductor
-// 
-//   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__grouped_plots", mode: "${pub_mode}"
-//   publishDir path: "${out_dir}/Figures_Merged/${out_path}", mode: "${pub_mode}"
-// 
-//   when: do_atac
-// 
-//   input:
-//     val out_path from Channel.value('1_Preprocessing') 
-//     file ("*") from Annotated_peaks_for_collecting_as_lists1
-// 
-//   output:
-//     file("*.pdf")
-// 
-//   shell:
-//   '''
-//       #!/usr/bin/env Rscript
-// 
-//       upstream = !{params.promoter_up_macs2_peaks}
-//       downstream = !{params.promoter_down_macs2_peaks}
-// 
-//       library(ChIPseeker)
-//       library(clusterProfiler)
-//       library(ggplot2)
-//       library(purrr)
-// 
-//       rds_files = list.files(pattern = '*.rds')
-//       lres = lapply(rds_files, readRDS)
-// 
-//       names0 = map_chr(lres, 'id')
-//       tag_matrix_list = map(lres, 'tag_matrix') %>% setNames(., names0)
-//       annotated_peaks_list = map(lres, 'annotated_peaks') %>% setNames(., names0)
-// 
-//       size_facet = ifelse(length(tag_matrix_list) > 12, 2.8, 5.5)
-// 
-//       p1 = plotAvgProf(tag_matrix_list, c(-upstream, downstream), facet='row')
-//       p1 = p1 + theme(axis.text.y = element_text(size = 3.5), strip.text.y = element_text(size = size_facet))
-// 
-//       pdf('ATAC__peaks__average_profile.pdf', font = 'mono')
-//         print(p1)
-//       dev.off()
-// 
-//       pdf('ATAC__peaks__annotation_barplot.pdf')
-//         plotAnnoBar(annotated_peaks_list)
-//       dev.off()
-// 
-//       pdf('ATAC__peaks__distance_to_TSS.pdf')
-//         plotDistToTSS(annotated_peaks_list)
-//       dev.off()
-// 
-// 
-//   '''
-// }
-// 
-// 
-// 
-// // //////////////////////////////////////////////////////////////////////////////
-// // //// DIFFENRENTIAL BINDING
-// // 
-// comparisons_files = file("design/comparisons.tsv")
-// Channel
-//   .from(comparisons_files.readLines())
-//   .map {
-//           m = it.split()
-//           condition1 = m[0]
-//           condition2 = m[1]
-//           [ condition1, condition2 ]
-//        }
-//   .dump(tag:'comp_file') {"comparison file: ${it}"}
-//   .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
-// 
-// regions_to_remove = file("design/regions_to_remove.tsv")
-// Channel
-//   .from(regions_to_remove.readLines())
-//   .map { m = it.split(); [ m[0], m[1] ] }
-//   .dump(tag:'regions_to_remove') {"regions to remove: ${it}"}
-//   .set{regions_to_remove_for_merging}
-// 
-// Reads_for_diffbind
-//   .tap{ Reads_input_control }
-//   .join( Peaks_for_removing_specific_regions_1, remainder: true )
-//   .tap { channel_test }
-//   .map { [ it[0].split("_")[0], it[0..-1]] }
-//   .groupTuple()
-//   .join(regions_to_remove_for_merging, remainder: true)
-//   .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
-//   .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
-// 
-// comparisons_files_for_merging
-//   .combine(reads_and_peaks_1)
-//   .combine(reads_and_peaks_2)
-//   .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
-//   .map { [ it[0] + '_vs_' + it[1], it[4,7].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
-//   // .map { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> [ id_comp_1 + '_vs_' + id_comp_2, [reads_and_peaks_1,reads_and_peaks_2].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] } // => not sure how to make this work
-//   // format: id_comp, regions_to_remove_merged, bed_files, bam_files 
-//   .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
-//   .tap { Reads_for_diffbind_1 }
-//   .map { it[0,1,2] }
-//   .set { Peaks_for_removing_specific_regions_2 }
-// 
-// 
-// process ATAC__removing_specific_regions {
-//   tag "${COMP}"
-// 
-//   container = params.samtools_bedtools_perl
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
-// 
-//   when: do_atac
-// 
-//   input:
-//       set COMP, regions_to_remove, file(bed_files) from Peaks_for_removing_specific_regions_2
-// 
-//   output:
-//       set COMP, file("*.bed") into Peaks_for_diffbind
-// 
-//   shell:
-//   '''
-// 
-//       RTR="!{regions_to_remove}"
-//       FOO1=`echo $RTR | sed 's/;/__/g' | sed 's/__/~/g' | sed 's/null//g'`
-//       IFS='~' read -r -a FOO2 <<< "$FOO1"
-// 
-//       for ((i=0; i<${#FOO2[@]}; i++));
-//       do
-//           FOO2[$i]=`echo "${FOO2[$i]}" | sed -r 's/.*chr//g' | sed -r 's/[:-]/\t/g'`
-//       done
-// 
-//       printf "%s\n" "${FOO2[@]}" > regions_to_remove.txt
-// 
-//       for FILE in !{bed_files}
-//       do
-//         CUR_NAME=`basename -s ".bed" $FILE`
-//         intersectBed -v -a $FILE -b regions_to_remove.txt > "${CUR_NAME}_filtered.bed"
-//       done
-// 
-//   '''
-// 
-// }
-// 
-// // note: the reason why this process is here and not upstread is because we want to remove in all bed files the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider all peaks for his analysis, so if we remove one such peak in just one of the two samples to compare, then it will likely be found as differential bound during the DBA 
-// 
-// 
-// Reads_input_control
-//   .filter{ id, bam_files -> id == 'input'}
-//   .set{ Reads_input_control_1 }
-// 
-// Reads_for_diffbind_1
-//   .map { it[0,3] }
-//   .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
-//   .join(Peaks_for_diffbind)
-//   .branch {
-//     with_input_control: params.use_input_control
-//     without_input_control: true
-//   }
-//   .set { Reads_and_peaks_for_diffbind_1 }
-// 
-// Reads_and_peaks_for_diffbind_1.with_input_control
-//   .combine(Reads_input_control_1)
-//   .map{ comp_id, bam_files, bed_files, input_id, imput_bam -> [ comp_id, bed_files, [bam_files, imput_bam].flatten() ] }
-//   // .map{ it -> [ it[0], it[1], [it[2,4].flatten()]] }
-//   .set{ Reads_and_peaks_with_input_control }
-// 
-// Reads_and_peaks_for_diffbind_1.without_input_control
-//   .concat(Reads_and_peaks_with_input_control)
-//   .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
-//   .set{ Reads_and_peaks_for_diffbind_2 }
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// // This process generates the set of all peaks found in all replicates, and the set of differentially abundant/accessible peaks (can also be called differentially bound regions)
-// 
-// process ATAC__differential_abundance_analysis {
-//   tag "${COMP}"
-// 
-//   container = params.differential_abundance
-// 
-//   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
-//      if (it.indexOf("__all_peaks.bed") > 0) "ATAC__all_peaks__bed/${it}"
-//      else if (it.indexOf("__diffbind_peaks_dbo.rds") > 0) "ATAC__all_peaks__DiffBind/${it}"
-//      else if (it.indexOf("__diffbind_peaks_gr.rds") > 0) "ATAC__all_peaks__gRange/${it}"
-//   }
-// 
-//   when: do_atac
-// 
-//   input:
-//       set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
-// 
-//   output:
-//       set COMP, file('*__diffbind_peaks_dbo.rds') into Diffbind_object_for_plotting
-//       set COMP, file('*__diffbind_peaks_gr.rds'), file('*__diffbind_peaks_dbo.rds') into All_peaks_for_peak_annotation
-//       set COMP, file('*__all_peaks.bed') into All_detected_ATAC_peaks_for_background
-// 
-//   shell:
-//   '''
-// 
-//         #!/usr/bin/env Rscript
-// 
-// 
-//         ##### loading data and libraries
-// 
-//         library(DiffBind)
-//         library(magrittr)
-// 
-//         COMP = '!{COMP}'
-//         use_input_control = '!{params.use_input_control}'
-//         source('!{projectDir}/bin/export_df_to_bed.R')
-// 
-//         conditions = strsplit(COMP, '_vs_')[[1]]
-//         cond1 = conditions[1]
-//         cond2 = conditions[2]
-// 
-// 
-//         ##### Preparing the metadata table
-//         use_input_control %<>% toupper %>% as.logical
-//         cur_files = grep('diffbind_peaks', list.files(pattern = '*.bam$|*filtered.bed$'), value = T, invert = T)
-//         df = data.frame(path = cur_files, stringsAsFactors=F)
-//         cursplit = sapply(cur_files, strsplit, '_')
-//         df$condition = sapply(cursplit, '[[', 1)
-//         df$replicate = sapply(cursplit, '[[', 2)
-//         df$id = paste0(df$condition, '_', df$replicate)
-//         df$id[df$condition == 'input'] = 'input'
-//         df$type = sapply(df$path, function(c1) ifelse(length(grep('reads', c1)) == 1, 'reads', ifelse(length(grep('peaks', c1)) == 1, 'peaks', '')))
-// 
-//         names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 'ControlID', 'bamControl', 'Peaks','PeakCaller')
-//         all_id = unique(df$id) %>% .[. != 'input']
-//         df1 = data.frame(matrix(nrow = length(all_id), ncol = length(names_df1)), stringsAsFactors=F)
-//         names(df1) = names_df1
-// 
-//         for(c1 in 1:length(all_id)){
-//           cur_id = all_id[c1]
-//           sel_reads = which(df$id == cur_id & df$type == 'reads')
-//           sel_peaks = which(df$id == cur_id & df$type == 'peaks')
-// 
-//           df1$SampleID[c1] = cur_id
-//           df1$Condition[c1] = df$condition[sel_reads]
-//           df1$Replicate[c1] = df$replicate[sel_reads]
-//           df1$bamReads[c1] = df$path[sel_reads]
-//           df1$Peaks[c1] = df$path[sel_peaks]
-//           df1$PeakCaller[c1] = 'bed'
-// 
-//           if(use_input_control){
-//             sel_input_control_reads = which(df$condition == 'input' & df$type == 'reads')
-//             df1$ControlID[c1] = df$id[sel_input_control_reads]
-//             df1$bamControl[c1] = df$path[sel_input_control_reads]
-//           } else {
-//             df1$ControlID <- NULL
-//             df1$bamControl <- NULL
-//           }
-//         }
-// 
-// 
-//         ##### Running DiffBind
-// 
-//         dbo <- dba(sampleSheet = df1, minOverlap = 0)
-//         dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM)
-//         dbo <- dba.contrast(dbo, dbo$masks[[cond1]], dbo$masks[[cond2]], cond1, cond2, minMembers = 2)
-//         dbo$config$AnalysisMethod = DBA_EDGER  # instead of DBA_DESEQ2
-//         dbo <- dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE, bReduceObjects = FALSE)
-// 
-//         saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
-// 
-// 
-//         ##### Exporting all peaks as a data frame
-// 
-//         # extracting all peaks (note: th is the fdr threshold, so with th = 1 we keep all peaks)
-//         all_peaks_gr = suppressWarnings(dba.report(dbo, th = 1))
-// 
-//         # recomputing the FDR to have more precise values (DiffBind round them at 3 digits)
-//         all_peaks_gr$FDR <- NULL
-//         all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, method = 'BH')
-// 
-//         # adding the raw reads counts of each replicate
-//         dbo1 <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_READS)
-//         cp_raw = dba.peakset(dbo1, bRetrieve = TRUE, score = DBA_SCORE_READS)
-//         mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
-//         m <- findOverlaps(all_peaks_gr, cp_raw)
-//         names_subject = names(mcols(cp_raw))
-//         mcols(all_peaks_gr)[queryHits(m), names_subject] = mcols(cp_raw)[subjectHits(m), names_subject]
-//         saveRDS(all_peaks_gr, paste0(COMP, '__diffbind_peaks_gr.rds'))
-// 
-// 
-//         ##### Exporting all peaks as a bed file
-// 
-//         all_peaks_df = as.data.frame(all_peaks_gr)
-//         all_peaks_df %<>% dplyr::mutate(name = rownames(.), score = round(-log10(p.value), 2))
-//         all_peaks_df %<>% dplyr::rename(chr = seqnames)
-//         all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
-//         export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
-// 
-// 
-//     '''
-// }
-// 
-// // rtracklayer::export(promoters, 'promoters.bed')
-// 
-// // note: diffbind_peaks: means the peaks from diffbind, not that these peaks are diffbound (differentially bound). This set is in fact all the peaks that diffbind found in all replicates. The corresponding bed file will be used as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
-// 
-// 
-// process ATAC__annotating_all_peaks {
-//   tag "${COMP}"
-// 
-//   container = params.bioconductor
-// 
-//   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
-//      if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
-//      else if (it.indexOf("_cs.rds") > 0) "ATAC__all_peaks__ChIPseeker/${it}"
-//   }
-// 
-//   when: do_atac
-// 
-//   input:
-//     set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) from All_peaks_for_peak_annotation
-// 
-//   output:
-//     file('*.rds')
-//     set COMP, file("*_df.rds") into Annotated_peaks_for_saving_tables, Annotated_peaks_for_plotting
-//     set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) into Diffbind_object_and_peaks_anno_for_plotting
-// 
-//   when: params.do_diffbind_peak_annotation
-// 
-//   shell:
-//   '''
-//       #!/usr/bin/env Rscript
-// 
-// 
-//       ##### loading data and libraries
-// 
-//       library(GenomicFeatures)
-//       library(ChIPseeker)
-//       library(magrittr)
-// 
-//       COMP = '!{COMP}'
-//       tx_db <- loadDb('!{params.txdb}')
-//       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-//       upstream = !{params.promoter_up_diffbind_peaks}
-//       downstream = !{params.promoter_down_diffbind_peaks}
-//       diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
-// 
-// 
-//       ##### annotating all peaks
-// 
-//       # annotating peaks
-//       anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
-// 
-//       # creating data frame
-//       anno_peak_gr = anno_peak_cs@anno
-//       df = as.data.frame(anno_peak_gr)
-//       anno_peak_df = cbind(peak_id = rownames(df), df, anno_peak_cs@detailGenomicAnnotation)
-//       anno_peak_df$peak_id %<>% as.character %>% as.integer
-// 
-// 
-//       ##### saving all peaks
-// 
-//       name0 = paste0(COMP, '__diffb_anno_peaks')
-//       saveRDS(anno_peak_df, paste0(name0, '_df.rds'))
-//       saveRDS(anno_peak_cs, paste0(name0, '_cs.rds'))
-// 
-//   '''
-// }
-// 
-// // cs: for ChIPseeker
-// // rtracklayer::export(anno_peak_df, paste0(name0, '.bed'))
-// // these are peaks of differential chromatin accessibility called by DiffBind
-// 
-// // note that in df_annotated_peaks: the geneStart and geneEnd field reflect actually the transcript start and transcript end. This is if the level = 'transcript' option is used. If the option level = 'gene' is used then the coordinates correspond to gene. (same goes for distanceToTSS, genLength...)
-// 
-// 
-// 
+process ATAC__plotting_individual_peak_files {
+  tag "${id}"
+
+  container = params.bioconductor
+
+  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
+           if (it.indexOf("_coverage.pdf") > 0)        "ATAC__peaks__coverage/${it}"
+      else if (it.indexOf("_average_profile.pdf") > 0) "ATAC__peaks__average_profile/${it}"
+  }
+
+  when: do_atac
+
+  input:
+    val out_path from Channel.value('1_Preprocessing') 
+    set id, file(annotated_peaks_objects_rds) from Annotated_peaks_for_individual_plots
+
+  output:
+    set val("ATAC__peaks__coverage"), out_path, file("*_coverage.pdf") into ATAC_peaks_coverage_for_merging_pdfs
+    set val("ATAC__peaks__average_profile"), out_path, file("*_average_profile.pdf") into ATAC_peaks_average_profile_for_merging_pdfs
+
+  shell:
+  '''
+
+      #!/usr/bin/env Rscript
+      library(ChIPseeker)
+      library(ggplot2)
+
+      id = '!{id}'
+      upstream = !{params.promoter_up_macs2_peaks}
+      downstream = !{params.promoter_down_macs2_peaks}
+      lres = readRDS('!{annotated_peaks_objects_rds}')
+
+      pdf(paste0(id, '__coverage.pdf'))
+        covplot(lres$peaks, weightCol="V5") + ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
+      dev.off()
+
+      pdf(paste0(id, '__average_profile.pdf'))
+        plotAvgProf(lres$tag_matrix, xlim=c(-upstream, downstream), xlab="Genomic Region (5'->3')", ylab = "Read Count Frequency") + ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
+      dev.off()
+
+  '''
+}
+
+Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_peaks_coverage_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_peaks_average_profile_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+
+
+
+process ATAC__plotting_grouped_peak_files {
+
+  container = params.bioconductor
+
+  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__grouped_plots", mode: "${pub_mode}"
+  publishDir path: "${out_dir}/Figures_Merged/${out_path}", mode: "${pub_mode}"
+
+  when: do_atac
+
+  input:
+    val out_path from Channel.value('1_Preprocessing') 
+    file ("*") from Annotated_peaks_for_collecting_as_lists1
+
+  output:
+    file("*.pdf")
+
+  shell:
+  '''
+      #!/usr/bin/env Rscript
+
+      upstream = !{params.promoter_up_macs2_peaks}
+      downstream = !{params.promoter_down_macs2_peaks}
+
+      library(ChIPseeker)
+      library(clusterProfiler)
+      library(ggplot2)
+      library(purrr)
+
+      rds_files = list.files(pattern = '*.rds')
+      lres = lapply(rds_files, readRDS)
+
+      names0 = map_chr(lres, 'id')
+      tag_matrix_list = map(lres, 'tag_matrix') %>% setNames(., names0)
+      annotated_peaks_list = map(lres, 'annotated_peaks') %>% setNames(., names0)
+
+      size_facet = ifelse(length(tag_matrix_list) > 12, 2.8, 5.5)
+
+      p1 = plotAvgProf(tag_matrix_list, c(-upstream, downstream), facet='row')
+      p1 = p1 + theme(axis.text.y = element_text(size = 3.5), strip.text.y = element_text(size = size_facet))
+
+      pdf('ATAC__peaks__average_profile.pdf', font = 'mono')
+        print(p1)
+      dev.off()
+
+      pdf('ATAC__peaks__annotation_barplot.pdf')
+        plotAnnoBar(annotated_peaks_list)
+      dev.off()
+
+      pdf('ATAC__peaks__distance_to_TSS.pdf')
+        plotDistToTSS(annotated_peaks_list)
+      dev.off()
+
+
+  '''
+}
+
+
+
 // //////////////////////////////////////////////////////////////////////////////
-// //// MRNA SEQ
-// 
-// process mRNA__fastqc {
-//   tag "${id}"
-// 
-//   container = params.fastqc
-// 
-//   publishDir path: "${out_dir}/Processed_Data/1_Preprocessing/mRNA__fastqc", mode: "${pub_mode}"
-// 
-//   when: do_mRNA
-// 
-//   input:
-//     set id, file(reads) from MRNA_reads_for_fastqc
-// 
-//   output:
-//     file("*.{zip, html}") into FastQC_reports_for_multiQC
-// 
-//   script:
-//   """
-// 
-//   fastqc -t 2 ${reads}
-// 
-//   """
-// 
-// }
-// 
-// 
-// process mRNA__MultiQC {
-// 
-//   container = params.multiqc
-// 
-//   publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
-//     if (it.indexOf(".html") > 0) "Figures_Individual/1_Preprocessing/${it}"
-//     else "Processed_Data/1_Preprocessing/mRNA__multiQC/${it}"
-//   }
-//   publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
-//     if (it.indexOf(".html") > 0) "Figures_Merged/1_Preprocessing/${it}"
-//   }
-// 
-//   when: do_mRNA
-// 
-//   input:
-//     // val out_path from Channel.value('1_Preprocessing/mRNA') 
-//     file ('fastqc/*') from FastQC_reports_for_multiQC.flatten().toList()
-// 
-//   output:
-//     set "mRNA__multiQC.html", "*multiqc_data" optional true
-// 
-//   script:
-//   """
-// 
-//     multiqc -f .
-//     mv multiqc_report.html mRNA__multiQC.html
-// 
-//   """
-// }
-// 
-// MRNA_reads_for_kallisto
-//   .map{ it.flatten() }
-//   .map{ [it[0], it[1..-1] ] }
-//   .dump(tag:'atac_kallisto') {"ATAC peaks for kallisto: ${it}"}
-//   .set { MRNA_reads_for_kallisto2 }
-// 
-// 
-// 
-// process mRNA__mapping_with_kallisto {
-//     tag "${id}"
-// 
-//     container = params.kallisto
-// 
-//     publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", mode: "${pub_mode}"
-// 
-//     when: do_mRNA
-// 
-//     input:
-//     set id, file(reads) from MRNA_reads_for_kallisto2
-// 
-//     output:
-//     set id, file("kallisto_${id}") into Kallisto_out_for_sleuth
-// 
-//     script:
-// 
-//         def single = reads instanceof Path
-//         if( single ) {
-//             """
-//               mkdir kallisto_${id}
-//               kallisto quant --single -l ${params.fragment_len} -s ${params.fragment_sd} -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads} -o kallisto_${id} ${reads}
-//             """
-//         }
-//         else {
-//             """
-//               mkdir kallisto_${id}
-//               kallisto quant -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads} -o kallisto_${id} ${reads}
-//             """
-//         }
-// }
-// 
-// // note: I adapted a basic mRNA-Seq pipeline from https:////github.com/cbcrg/kallisto-nf
-// 
-// 
-// 
-// // making the groups for differential gene expression
-// 
-// Kallisto_out_for_sleuth
-//   .map{ [ it[0].split('_')[0], it[1] ] }
-//   .groupTuple()
-//   .into{ Kallisto_out_for_sleuth1; Kallisto_out_for_sleuth2 }
-// 
-// Kallisto_out_for_sleuth1
-//   .combine(Kallisto_out_for_sleuth2)
-//   .map { it[0,2,1,3]}
-//   .join(comparisons_files_for_mRNA_Seq, by: [0,1])
-//   .map{
-//     def list = []
-//     list.add( it[0,1].join('_vs_') )
-//     list.addAll( it[0..3] )
-//     return(list)
-//     }
-//   .set { Kallisto_out_for_sleuth3 }
-// 
-// 
-// // estimate differential gene expression
-// 
-// process mRNA__differential_abundance_analysis {
-//     tag "${COMP}"
-// 
-//     container = params.differential_abundance
-// 
-//     publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
-//          if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) "mRNA__all_genes__rsleuth/${it}"
-//          else if (it.indexOf("__mRNA_DEG_df.rds") > 0) "mRNA__all_genes__dataframe/${it}"
-//       else if (it.indexOf("__all_genes_prom.bed") > 0) "mRNA__all_genes__bed_promoters/${it}"
-//     }
-// 
-//     when: do_mRNA
-// 
-//     input:
-//       set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) from Kallisto_out_for_sleuth3
-// 
-//     output:
-//       set COMP, file('*__mRNA_DEG_rsleuth.rds') into Rsleuth_object_for_plotting
-//       set COMP, file('*__mRNA_DEG_df.rds') into MRNA_diffab_genes_for_saving_tables
-//       set COMP, file('*__all_genes_prom.bed') into All_detected_genes_promoters_for_background
-// 
-//     shell:
-//     '''
-//       #!/usr/bin/env Rscript
-// 
-//       library(sleuth)
-//       library(ggplot2)
-//       library(magrittr)
-// 
-//       df_genes_transcripts = readRDS('!{params.df_genes_transcripts}')
-//       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-// 
-//       COMP = '!{COMP}'
-//       cond1 = '!{cond1}'
-//       cond2 = '!{cond2}'
-// 
-//       promoters_df = readRDS('!{params.promoters_df}')
-//       source('!{projectDir}/bin/export_df_to_bed.R')
-//       source('!{projectDir}/bin/get_prom_bed_df_table.R')
-// 
-// 
-//       s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), stringsAsFactors = F)
-//       s2c$sample = sapply(s2c$path, function(x) strsplit(x, 'kallisto_')[[1]][2])
-//       s2c$condition = sapply(s2c$path, function(x) strsplit(x, '_')[[1]][2])
-//       levels(s2c$condition) = c(cond1, cond2)
-// 
-//   		test_cond = paste0('condition', cond2)
-//   		cond <- factor(s2c$condition)
-//   		cond <- relevel(cond, ref = cond2)
-//   		md <- model.matrix(~cond, s2c)
-//   		colnames(md)[2] <- test_cond
-// 
-//       t2g <- dplyr::rename(df_genes_transcripts, target_id = TXNAME, gene_id = GENEID)
-// 
-//       # Load the kallisto data, normalize counts and filter genes
-// 		  sleo <- sleuth_prep(sample_to_covariates = s2c, full_model = md, target_mapping = t2g, aggregation_column = 'gene_id', transform_fun_counts = function(x) log2(x + 0.5), gene_mode = T)
-// 
-//       # Estimate parameters for the sleuth response error measurement (full) model
-//       sleo <- sleuth_fit(sleo)
-// 
-//       # Performing test and saving the sleuth object
-//       sleo <- sleuth_wt(sleo, test_cond)
-//       saveRDS(sleo, file = paste0(COMP, '__mRNA_DEG_rsleuth.rds'))
-// 
-//       # saving as dataframe and recomputing the FDR
-//       res <- sleuth_results(sleo, test_cond, test_type = 'wt', pval_aggregate  = F)
-//       res %<>% .[!is.na(.$b), ]
-//       res$padj = p.adjust(res$pval, method = 'BH')
-//       res$qval <- NULL
-//       res %<>% dplyr::rename(gene_name = target_id)
-//       res1 = dplyr::inner_join(df_genes_metadata, res, by = 'gene_name')
-//       saveRDS(res1, file = paste0(COMP, '__mRNA_DEG_df.rds'))
-// 
-//       # exporting promoters of all detected genes
-//       promoters_df1 = promoters_df
-//       promoters_df1 %<>% .[.$gene_id %in% res1$gene_id, ]
-//       prom_bed_df = get_prom_bed_df_table(promoters_df1, res1)
-//       export_df_to_bed(prom_bed_df, paste0(COMP, '__all_genes_prom.bed'))
-// 
-// 
-//     '''
-// }
-// 
-// // with rsleuth v0.30
-// // length(which(is.na(res$b))) # 17437
-// 
-// // with rsleuth v0.29
-// // dim(res) # 2754   11 => NA values are automatically filtered out
-// // dim(df_genes_metadata) # 20191     8
-// // 20191 - 2754 # 17437
-// 
-// // sleuth_prep message
-// // 3252 targets passed the filter
-// // 2754 genes passed the filter
-// 
-// // the filtering function is the following:
-// // https://www.rdocumentation.org/packages/sleuth/versions/0.29.0/topics/basic_filter
-// // basic_filter(row, min_reads = 5, min_prop = 0.47)
-// // row        this is a vector of numerics that will be passedin
-// // min_reads  the minimum mean number of reads
-// // min_prop   the minimum proportion of reads to pass this filter
-// 
-// // note: we compute the FDR for both ATAC and mRNA seq to be sure to have consistent values generated by the same FDR method
-// 
-// 
-// 
-// //////////////////////////////////////////////////////////////////////////////
-// //// PLOTTING DA RESULTS (VOLCANO, PCA)
-// 
-// 
-// process plotting_differential_gene_expression_results {
-//     tag "${COMP}"
-// 
-//     publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: { 
-//           if (it.indexOf("__mRNA_volcano.pdf") > 0) "mRNA__volcano/${it}"
-//           else if (it.indexOf("__mRNA_PCA_1_2.pdf") > 0) "mRNA__PCA_1_2/${it}"
-//           else if (it.indexOf("__mRNA_PCA_3_4.pdf") > 0) "mRNA__PCA_3_4/${it}"
-//           else if (it.indexOf("__mRNA_other_plots.pdf") > 0) "mRNA__other_plots/${it}"
-//     }
-// 
-// 
-//     container = params.differential_abundance
-// 
-//     input:
-//       val out_path from Channel.value('2_Differential_Abundance')
-//       set COMP, file(mRNA_DEG_rsleuth_rds) from Rsleuth_object_for_plotting
-// 
-//     output:
-//       set val("mRNA__volcano"), out_path, file('*__mRNA_volcano.pdf') into MRNA_Volcano_for_merging_pdfs
-//       set val("mRNA__PCA_1_2"), out_path, file('*__mRNA_PCA_1_2.pdf') into MRNA_PCA_1_2_for_merging_pdfs
-//       set val("mRNA__PCA_3_4"), out_path, file('*__mRNA_PCA_3_4.pdf') into MRNA_PCA_3_4_for_merging_pdfs
-//       set val("mRNA__other_plots"), out_path, file('*__mRNA_other_plots.pdf') into MRNA_Other_plot_for_merging_pdfs
-// 
-//     shell:
-//     '''
-//       #!/usr/bin/env Rscript
-// 
-// 
-//       ##### Loading libraries and data
-// 
-//       library(sleuth)
-//       library(ggplot2)
-//       library(magrittr)
-//       library(grid)
-// 
-//       source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
-// 
-//       sleo = readRDS('!{mRNA_DEG_rsleuth_rds}')
-// 
-//       COMP = '!{COMP}'
-//       conditions = strsplit(COMP, '_vs_')[[1]]
-//       cond1 = conditions[1]
-//       cond2 = conditions[2]
-//       test_cond = paste0('condition', cond2)
-// 
-//       FDR_threshold = !{params.fdr_threshold_sleuth_plots}
-// 
-// 
-// 
-//       ##### volcano plots
-// 
-//       res_volcano <- sleuth_results(sleo, test_cond)
-//       res_volcano %<>% dplyr::rename(gene_name = target_id, L2FC = b)
-//       res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
-// 
-//       pdf(paste0(COMP, '__mRNA_volcano.pdf'))
-//         plot_volcano_custom(res_volcano, sig_level = FDR_threshold, label_column = 'gene_name', title = paste(COMP, 'mRNA'))
-//       dev.off()
-// 
-// 
-//       ##### PCA plots
-// 
-//       # the pca is computed using the default parameters in the sleuth functions sleuth::plot_pca
-//       mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 'scaled_reads_per_base')
-//       prcomp1 <- prcomp(mat)
-// 
-//       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
-//       lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'mRNA'))
-// 
-//       pdf(paste0(COMP, '__mRNA_PCA_1_2.pdf'))
-//         make_4_plots(lp_1_2)
-//       dev.off()
-// 
-//       pdf(paste0(COMP, '__mRNA_PCA_3_4.pdf'))
-//         make_4_plots(lp_3_4)
-//       dev.off()
-// 
-// 
-//       ##### other plots
-// 
-//       pdf(paste0(COMP, '__mRNA_other_plots.pdf'))
-//         plot_ma(sleo, test = test_cond, sig_level = FDR_threshold) + ggtitle(paste('MA:', COMP))
-//         plot_group_density(sleo, use_filtered = TRUE, units = "scaled_reads_per_base", trans = "log", grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
-//         # plot_scatter(sleo) + ggtitle(paste('Scatter:', COMP))
-//         # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', COMP))
-//       dev.off()
-// 
-// 
-//     '''
-// }
-// 
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
-// 
-// 
-// 
-// 
-// process plotting_differential_accessibility_results {
-//   tag "${COMP}"
-// 
-//   container = params.bioconductor
-// 
-//   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
-//          if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
-//          else if (it.indexOf("_PCA_1_2.pdf") > 0) "ATAC__PCA_1_2/${it}"
-//          else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
-//          else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
-//   }
-// 
-//   input:
-//     val out_path from Channel.value('2_Differential_Abundance')
-//     set COMP, file(annotated_peaks), file(diffbind_object_rds) from Diffbind_object_and_peaks_anno_for_plotting
-// 
-//   output:
-//     set val("ATAC__volcano"), out_path, file('*__ATAC_volcano.pdf') into ATAC_Volcano_for_merging_pdfs
-//     set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') into ATAC_PCA_1_2_for_merging_pdfs
-//     set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') into ATAC_PCA_3_4_for_merging_pdfs
-//     set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') into ATAC_Other_plot_for_merging_pdfs
-// 
-//   shell:
-//   '''
-// 
-//       #!/usr/bin/env Rscript
-// 
-// 
-//       ##### loading data and libraries
-// 
-//       library(ggplot2)
-//       library(magrittr)
-//       library(grid)
-//       library(DiffBind)
-// 
-//       source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
-// 
-//       COMP = '!{COMP}'
-// 
-//       dbo = readRDS('!{diffbind_object_rds}')
-//       FDR_threshold = !{params.fdr_threshold_diffbind_plots}
-//       dbo$config$th = FDR_threshold
-// 
-//       df_annotated_peaks = readRDS('!{annotated_peaks}')
-// 
-// 
-// 
-//       ##### volcano plots
-// 
-//       res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_name = geneId)
-// 
-//       pdf(paste0(COMP, '__ATAC_volcano.pdf'))
-//         plot_volcano_custom(res, sig_level = FDR_threshold, label_column = 'gene_name', title = paste(COMP, 'ATAC'))
-//       dev.off()
-// 
-// 
-//       ##### PCA plots
-// 
-//       # the pca is computed using the default parameters in the Diffbind functions Diffbind::dba.plotPCA and DiffBind:::pv.plotPCA
-//       prcomp1 <- DiffBind:::pv.pcmask(dbo, nrow(dbo$binding), cor = F, bLog = T)$pc
-//       rownames(prcomp1$x) = res %>% dplyr::arrange(peak_id) %>% .$gene_name
-// 
-//       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
-//       lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
-// 
-//       pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
-//         make_4_plots(lp_1_2)
-//       dev.off()
-// 
-//       pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
-//         make_4_plots(lp_3_4)
-//       dev.off()
-// 
-// 
-//       ##### other plots
-// 
-//       pdf(paste0(COMP, '__ATAC_other_plots.pdf'))
-//           dba.plotMA(dbo, bNormalized = T)
-//           # dba.plotPCA(dbo)
-//           dba.plotHeatmap(dbo, main = 'all reads')
-//           # dba.plotBox(dbo, main = 'all reads')
-//           # dba.plotMA(dbo, bNormalized = F)
-//           first_2_replicates = sort(c(which(dbo$masks$Replicate.1), which(dbo$masks$Replicate.2)))
-//           dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
-//           # olap_rate <- dba.overlap(dbo,mode=DBA_OLAP_RATE)
-//           # plot(olap_rate,type='b',ylab='# peaks', xlab='Overlap at least this many peaksets', main = 'all reads')
-//           # dba.plotVolcano(dbo)
-//       dev.off()
-// 
-// 
-// 
-//   '''
-// 
-// }
-// 
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
-// 
-// 
+// //// DIFFENRENTIAL BINDING
+// 
+comparisons_files = file("design/comparisons.tsv")
+Channel
+  .from(comparisons_files.readLines())
+  .map {
+          m = it.split()
+          condition1 = m[0]
+          condition2 = m[1]
+          [ condition1, condition2 ]
+       }
+  .dump(tag:'comp_file') {"comparison file: ${it}"}
+  .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
+
+regions_to_remove = file("design/regions_to_remove.tsv")
+Channel
+  .from(regions_to_remove.readLines())
+  .map { m = it.split(); [ m[0], m[1] ] }
+  .dump(tag:'regions_to_remove') {"regions to remove: ${it}"}
+  .set{regions_to_remove_for_merging}
+
+Reads_for_diffbind
+  .tap{ Reads_input_control }
+  .join( Peaks_for_removing_specific_regions_1, remainder: true )
+  .tap { channel_test }
+  .map { [ it[0].split("_")[0], it[0..-1]] }
+  .groupTuple()
+  .join(regions_to_remove_for_merging, remainder: true)
+  .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
+  .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
+
+comparisons_files_for_merging
+  .combine(reads_and_peaks_1)
+  .combine(reads_and_peaks_2)
+  .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
+  .map { [ it[0] + '_vs_' + it[1], it[4,7].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
+  // .map { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> [ id_comp_1 + '_vs_' + id_comp_2, [reads_and_peaks_1,reads_and_peaks_2].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] } // => not sure how to make this work
+  // format: id_comp, regions_to_remove_merged, bed_files, bam_files 
+  .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
+  .tap { Reads_for_diffbind_1 }
+  .map { it[0,1,2] }
+  .set { Peaks_for_removing_specific_regions_2 }
+
+
+process ATAC__removing_specific_regions {
+  tag "${COMP}"
+
+  // container = params.samtools_bedtools_perl
+
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
+
+  when: do_atac
+
+  input:
+      set COMP, regions_to_remove, file(bed_files) from Peaks_for_removing_specific_regions_2
+
+  output:
+      set COMP, file("*.bed") into Peaks_for_diffbind
+
+  shell:
+  '''
+
+      RTR="!{regions_to_remove}"
+      FOO1=`echo $RTR | sed 's/;/__/g' | sed 's/__/~/g' | sed 's/null//g'`
+      IFS='~' read -r -a FOO2 <<< "$FOO1"
+
+      for ((i=0; i<${#FOO2[@]}; i++));
+      do
+          FOO2[$i]=`echo "${FOO2[$i]}" | sed -r 's/.*chr//g' | sed -r 's/[:-]/\t/g'`
+      done
+
+      printf "%s\n" "${FOO2[@]}" > regions_to_remove.txt
+
+      for FILE in !{bed_files}
+      do
+        CUR_NAME=`basename -s ".bed" $FILE`
+        intersectBed -v -a $FILE -b regions_to_remove.txt > "${CUR_NAME}_filtered.bed"
+      done
+
+  '''
+
+}
+
+// note: the reason why this process is here and not upstread is because we want to remove in all bed files the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider all peaks for his analysis, so if we remove one such peak in just one of the two samples to compare, then it will likely be found as differential bound during the DBA 
+
+
+Reads_input_control
+  .filter{ id, bam_files -> id == 'input'}
+  .set{ Reads_input_control_1 }
+
+Reads_for_diffbind_1
+  .map { it[0,3] }
+  .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
+  .join(Peaks_for_diffbind)
+  .branch {
+    with_input_control: params.use_input_control
+    without_input_control: true
+  }
+  .set { Reads_and_peaks_for_diffbind_1 }
+
+Reads_and_peaks_for_diffbind_1.with_input_control
+  .combine(Reads_input_control_1)
+  .map{ comp_id, bam_files, bed_files, input_id, imput_bam -> [ comp_id, bed_files, [bam_files, imput_bam].flatten() ] }
+  // .map{ it -> [ it[0], it[1], [it[2,4].flatten()]] }
+  .set{ Reads_and_peaks_with_input_control }
+
+Reads_and_peaks_for_diffbind_1.without_input_control
+  .concat(Reads_and_peaks_with_input_control)
+  .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
+  .set{ Reads_and_peaks_for_diffbind_2 }
+
+
+
+
+
+
+
+// This process generates the set of all peaks found in all replicates, and the set of differentially abundant/accessible peaks (can also be called differentially bound regions)
+
+process ATAC__differential_abundance_analysis {
+  tag "${COMP}"
+
+  // container = params.differential_abundance
+  // Error in loadNamespace(x) : there is no package called ‘edgeR’
+
+  publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
+     if (it.indexOf("__all_peaks.bed") > 0) "ATAC__all_peaks__bed/${it}"
+     else if (it.indexOf("__diffbind_peaks_dbo.rds") > 0) "ATAC__all_peaks__DiffBind/${it}"
+     else if (it.indexOf("__diffbind_peaks_gr.rds") > 0) "ATAC__all_peaks__gRange/${it}"
+  }
+
+  when: do_atac
+
+  input:
+      set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
+
+  output:
+      set COMP, file('*__diffbind_peaks_dbo.rds') into Diffbind_object_for_plotting
+      set COMP, file('*__diffbind_peaks_gr.rds'), file('*__diffbind_peaks_dbo.rds') into All_peaks_for_peak_annotation
+      set COMP, file('*__all_peaks.bed') into All_detected_ATAC_peaks_for_background
+
+  shell:
+  '''
+
+        #!/usr/bin/env Rscript
+
+
+        ##### loading data and libraries
+
+        library(DiffBind)
+        library(magrittr)
+
+        COMP = '!{COMP}'
+        use_input_control = '!{params.use_input_control}'
+        source('!{projectDir}/bin/export_df_to_bed.R')
+
+        conditions = strsplit(COMP, '_vs_')[[1]]
+        cond1 = conditions[1]
+        cond2 = conditions[2]
+
+
+        ##### Preparing the metadata table
+        use_input_control %<>% toupper %>% as.logical
+        cur_files = grep('diffbind_peaks', list.files(pattern = '*.bam$|*filtered.bed$'), value = T, invert = T)
+        df = data.frame(path = cur_files, stringsAsFactors=F)
+        cursplit = sapply(cur_files, strsplit, '_')
+        df$condition = sapply(cursplit, '[[', 1)
+        df$replicate = sapply(cursplit, '[[', 2)
+        df$id = paste0(df$condition, '_', df$replicate)
+        df$id[df$condition == 'input'] = 'input'
+        df$type = sapply(df$path, function(c1) ifelse(length(grep('reads', c1)) == 1, 'reads', ifelse(length(grep('peaks', c1)) == 1, 'peaks', '')))
+
+        names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 'ControlID', 'bamControl', 'Peaks','PeakCaller')
+        all_id = unique(df$id) %>% .[. != 'input']
+        df1 = data.frame(matrix(nrow = length(all_id), ncol = length(names_df1)), stringsAsFactors=F)
+        names(df1) = names_df1
+
+        for(c1 in 1:length(all_id)){
+          cur_id = all_id[c1]
+          sel_reads = which(df$id == cur_id & df$type == 'reads')
+          sel_peaks = which(df$id == cur_id & df$type == 'peaks')
+
+          df1$SampleID[c1] = cur_id
+          df1$Condition[c1] = df$condition[sel_reads]
+          df1$Replicate[c1] = df$replicate[sel_reads]
+          df1$bamReads[c1] = df$path[sel_reads]
+          df1$Peaks[c1] = df$path[sel_peaks]
+          df1$PeakCaller[c1] = 'bed'
+
+          if(use_input_control){
+            sel_input_control_reads = which(df$condition == 'input' & df$type == 'reads')
+            df1$ControlID[c1] = df$id[sel_input_control_reads]
+            df1$bamControl[c1] = df$path[sel_input_control_reads]
+          } else {
+            df1$ControlID <- NULL
+            df1$bamControl <- NULL
+          }
+        }
+
+
+        ##### Running DiffBind
+
+        dbo <- dba(sampleSheet = df1, minOverlap = 0)
+        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM)
+        # dbo <- dba.contrast(dbo, dbo$masks[[cond1]], dbo$masks[[cond2]], cond1, cond2, minMembers = 2)
+        dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
+        dbo$config$AnalysisMethod = DBA_EDGER  # instead of DBA_DESEQ2
+        # dbo <- dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE, bReduceObjects = FALSE)
+        dbo <- dba.analyze(dbo, bGreylist = TRUE, bReduceObjects = FALSE)
+
+        saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
+
+
+        ##### Exporting all peaks as a data frame
+
+        # extracting all peaks (note: th is the fdr threshold, so with th = 1 we keep all peaks)
+        all_peaks_gr = suppressWarnings(dba.report(dbo, th = 1))
+
+        # recomputing the FDR to have more precise values (DiffBind round them at 3 digits)
+        all_peaks_gr$FDR <- NULL
+        all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, method = 'BH')
+
+        # adding the raw reads counts of each replicate
+        dbo1 <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_READS)
+        cp_raw = dba.peakset(dbo1, bRetrieve = TRUE, score = DBA_SCORE_READS)
+        mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
+        m <- findOverlaps(all_peaks_gr, cp_raw)
+        names_subject = names(mcols(cp_raw))
+        mcols(all_peaks_gr)[queryHits(m), names_subject] = mcols(cp_raw)[subjectHits(m), names_subject]
+        saveRDS(all_peaks_gr, paste0(COMP, '__diffbind_peaks_gr.rds'))
+
+
+        ##### Exporting all peaks as a bed file
+
+        all_peaks_df = as.data.frame(all_peaks_gr)
+        all_peaks_df %<>% dplyr::mutate(name = rownames(.), score = round(-log10(p.value), 2))
+        all_peaks_df %<>% dplyr::rename(chr = seqnames)
+        all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
+        export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
+
+
+    '''
+}
+
+// the diffbind package changed a lot since the version I was using. The contrast command should be changed, and the dba.analyze command too. I will need to read in more details the method
+// dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
+// Error in dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE,  :
+//   unused arguments (bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE)
+
+// rtracklayer::export(promoters, 'promoters.bed')
+
+// note: diffbind_peaks: means the peaks from diffbind, not that these peaks are diffbound (differentially bound). This set is in fact all the peaks that diffbind found in all replicates. The corresponding bed file will be used as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
+
+
+process ATAC__annotating_all_peaks {
+  tag "${COMP}"
+
+  container = params.bioconductor
+
+  publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
+     if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
+     else if (it.indexOf("_cs.rds") > 0) "ATAC__all_peaks__ChIPseeker/${it}"
+  }
+
+  when: do_atac
+
+  input:
+    set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) from All_peaks_for_peak_annotation
+
+  output:
+    file('*.rds')
+    set COMP, file("*_df.rds") into Annotated_peaks_for_saving_tables, Annotated_peaks_for_plotting
+    set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) into Diffbind_object_and_peaks_anno_for_plotting
+
+  when: params.do_diffbind_peak_annotation
+
+  shell:
+  '''
+      #!/usr/bin/env Rscript
+
+
+      ##### loading data and libraries
+
+      library(GenomicFeatures)
+      library(ChIPseeker)
+      library(magrittr)
+
+      COMP = '!{COMP}'
+      tx_db <- loadDb('!{params.txdb}')
+      df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+      upstream = !{params.promoter_up_diffbind_peaks}
+      downstream = !{params.promoter_down_diffbind_peaks}
+      diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
+
+
+      ##### annotating all peaks
+
+      # annotating peaks
+      anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
+
+      # creating data frame
+      anno_peak_gr = anno_peak_cs@anno
+      df = as.data.frame(anno_peak_gr)
+      anno_peak_df = cbind(peak_id = rownames(df), df, anno_peak_cs@detailGenomicAnnotation)
+      anno_peak_df$peak_id %<>% as.character %>% as.integer
+
+
+      ##### saving all peaks
+
+      name0 = paste0(COMP, '__diffb_anno_peaks')
+      saveRDS(anno_peak_df, paste0(name0, '_df.rds'))
+      saveRDS(anno_peak_cs, paste0(name0, '_cs.rds'))
+
+  '''
+}
+
+// cs: for ChIPseeker
+// rtracklayer::export(anno_peak_df, paste0(name0, '.bed'))
+// these are peaks of differential chromatin accessibility called by DiffBind
+
+// note that in df_annotated_peaks: the geneStart and geneEnd field reflect actually the transcript start and transcript end. This is if the level = 'transcript' option is used. If the option level = 'gene' is used then the coordinates correspond to gene. (same goes for distanceToTSS, genLength...)
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//// MRNA SEQ
+
+process mRNA__fastqc {
+  tag "${id}"
+
+  container = params.fastqc
+
+  publishDir path: "${out_dir}/Processed_Data/1_Preprocessing/mRNA__fastqc", mode: "${pub_mode}"
+
+  when: do_mRNA
+
+  input:
+    set id, file(reads) from MRNA_reads_for_fastqc
+
+  output:
+    file("*.{zip, html}") into FastQC_reports_for_multiQC
+
+  script:
+  """
+
+  fastqc -t 2 ${reads}
+
+  """
+
+}
+
+
+process mRNA__MultiQC {
+
+  container = params.multiqc
+
+  publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
+    if (it.indexOf(".html") > 0) "Figures_Individual/1_Preprocessing/${it}"
+    else "Processed_Data/1_Preprocessing/mRNA__multiQC/${it}"
+  }
+  publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
+    if (it.indexOf(".html") > 0) "Figures_Merged/1_Preprocessing/${it}"
+  }
+
+  when: do_mRNA
+
+  input:
+    // val out_path from Channel.value('1_Preprocessing/mRNA') 
+    file ('fastqc/*') from FastQC_reports_for_multiQC.flatten().toList()
+
+  output:
+    set "mRNA__multiQC.html", "*multiqc_data" optional true
+
+  script:
+  """
+
+    multiqc -f .
+    mv multiqc_report.html mRNA__multiQC.html
+
+  """
+}
+
+MRNA_reads_for_kallisto
+  .map{ it.flatten() }
+  .map{ [it[0], it[1..-1] ] }
+  .dump(tag:'atac_kallisto') {"ATAC peaks for kallisto: ${it}"}
+  .set { MRNA_reads_for_kallisto2 }
+
+
+
+process mRNA__mapping_with_kallisto {
+    tag "${id}"
+
+    container = params.kallisto
+
+    publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", mode: "${pub_mode}"
+
+    when: do_mRNA
+
+    input:
+    set id, file(reads) from MRNA_reads_for_kallisto2
+
+    output:
+    set id, file("kallisto_${id}") into Kallisto_out_for_sleuth
+
+    script:
+
+        def single = reads instanceof Path
+        if( single ) {
+            """
+              mkdir kallisto_${id}
+              kallisto quant --single -l ${params.fragment_len} -s ${params.fragment_sd} -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads} -o kallisto_${id} ${reads}
+            """
+        }
+        else {
+            """
+              mkdir kallisto_${id}
+              kallisto quant -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads} -o kallisto_${id} ${reads}
+            """
+        }
+}
+
+// note: I adapted a basic mRNA-Seq pipeline from https:////github.com/cbcrg/kallisto-nf
+
+
+
+// making the groups for differential gene expression
+
+Kallisto_out_for_sleuth
+  .map{ [ it[0].split('_')[0], it[1] ] }
+  .groupTuple()
+  .into{ Kallisto_out_for_sleuth1; Kallisto_out_for_sleuth2 }
+
+Kallisto_out_for_sleuth1
+  .combine(Kallisto_out_for_sleuth2)
+  .map { it[0,2,1,3]}
+  .join(comparisons_files_for_mRNA_Seq, by: [0,1])
+  .map{
+    def list = []
+    list.add( it[0,1].join('_vs_') )
+    list.addAll( it[0..3] )
+    return(list)
+    }
+  .set { Kallisto_out_for_sleuth3 }
+
+
+// estimate differential gene expression
+
+process mRNA__differential_abundance_analysis {
+    tag "${COMP}"
+
+    // container = params.differential_abundance
+
+    publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
+         if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) "mRNA__all_genes__rsleuth/${it}"
+         else if (it.indexOf("__mRNA_DEG_df.rds") > 0) "mRNA__all_genes__dataframe/${it}"
+      else if (it.indexOf("__all_genes_prom.bed") > 0) "mRNA__all_genes__bed_promoters/${it}"
+    }
+
+    when: do_mRNA
+
+    input:
+      set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) from Kallisto_out_for_sleuth3
+
+    output:
+      set COMP, file('*__mRNA_DEG_rsleuth.rds') into Rsleuth_object_for_plotting
+      set COMP, file('*__mRNA_DEG_df.rds') into MRNA_diffab_genes_for_saving_tables
+      set COMP, file('*__all_genes_prom.bed') into All_detected_genes_promoters_for_background
+
+    shell:
+    '''
+      #!/usr/bin/env Rscript
+
+      library(sleuth)
+      library(ggplot2)
+      library(magrittr)
+
+      df_genes_transcripts = readRDS('!{params.df_genes_transcripts}')
+      df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+
+      COMP = '!{COMP}'
+      cond1 = '!{cond1}'
+      cond2 = '!{cond2}'
+
+      promoters_df = readRDS('!{params.promoters_df}')
+      source('!{projectDir}/bin/export_df_to_bed.R')
+      source('!{projectDir}/bin/get_prom_bed_df_table.R')
+
+
+      s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), stringsAsFactors = F)
+      s2c$sample = sapply(s2c$path, function(x) strsplit(x, 'kallisto_')[[1]][2])
+      s2c$condition = sapply(s2c$path, function(x) strsplit(x, '_')[[1]][2])
+      levels(s2c$condition) = c(cond1, cond2)
+
+  		test_cond = paste0('condition', cond2)
+  		cond <- factor(s2c$condition)
+  		cond <- relevel(cond, ref = cond2)
+  		md <- model.matrix(~cond, s2c)
+  		colnames(md)[2] <- test_cond
+
+      t2g <- dplyr::rename(df_genes_transcripts, target_id = TXNAME, gene_id = GENEID)
+
+      # Load the kallisto data, normalize counts and filter genes
+		  sleo <- sleuth_prep(sample_to_covariates = s2c, full_model = md, target_mapping = t2g, aggregation_column = 'gene_id', transform_fun_counts = function(x) log2(x + 0.5), gene_mode = T)
+
+      # Estimate parameters for the sleuth response error measurement (full) model
+      sleo <- sleuth_fit(sleo)
+
+      # Performing test and saving the sleuth object
+      sleo <- sleuth_wt(sleo, test_cond)
+      saveRDS(sleo, file = paste0(COMP, '__mRNA_DEG_rsleuth.rds'))
+
+      # saving as dataframe and recomputing the FDR
+      res <- sleuth_results(sleo, test_cond, test_type = 'wt', pval_aggregate  = F)
+      res %<>% .[!is.na(.$b), ]
+      res$padj = p.adjust(res$pval, method = 'BH')
+      res$qval <- NULL
+      res %<>% dplyr::rename(gene_name = target_id)
+      res1 = dplyr::inner_join(df_genes_metadata, res, by = 'gene_name')
+      saveRDS(res1, file = paste0(COMP, '__mRNA_DEG_df.rds'))
+
+      # exporting promoters of all detected genes
+      promoters_df1 = promoters_df
+      promoters_df1 %<>% .[.$gene_id %in% res1$gene_id, ]
+      prom_bed_df = get_prom_bed_df_table(promoters_df1, res1)
+      export_df_to_bed(prom_bed_df, paste0(COMP, '__all_genes_prom.bed'))
+
+
+    '''
+}
+
+// with rsleuth v0.30
+// length(which(is.na(res$b))) # 17437
+
+// with rsleuth v0.29
+// dim(res) # 2754   11 => NA values are automatically filtered out
+// dim(df_genes_metadata) # 20191     8
+// 20191 - 2754 # 17437
+
+// sleuth_prep message
+// 3252 targets passed the filter
+// 2754 genes passed the filter
+
+// the filtering function is the following:
+// https://www.rdocumentation.org/packages/sleuth/versions/0.29.0/topics/basic_filter
+// basic_filter(row, min_reads = 5, min_prop = 0.47)
+// row        this is a vector of numerics that will be passedin
+// min_reads  the minimum mean number of reads
+// min_prop   the minimum proportion of reads to pass this filter
+
+// note: we compute the FDR for both ATAC and mRNA seq to be sure to have consistent values generated by the same FDR method
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//// PLOTTING DA RESULTS (VOLCANO, PCA)
+
+
+process plotting_differential_gene_expression_results {
+    tag "${COMP}"
+
+    publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: { 
+          if (it.indexOf("__mRNA_volcano.pdf") > 0) "mRNA__volcano/${it}"
+          else if (it.indexOf("__mRNA_PCA_1_2.pdf") > 0) "mRNA__PCA_1_2/${it}"
+          else if (it.indexOf("__mRNA_PCA_3_4.pdf") > 0) "mRNA__PCA_3_4/${it}"
+          else if (it.indexOf("__mRNA_other_plots.pdf") > 0) "mRNA__other_plots/${it}"
+    }
+
+
+    // container = params.differential_abundance
+
+    input:
+      val out_path from Channel.value('2_Differential_Abundance')
+      set COMP, file(mRNA_DEG_rsleuth_rds) from Rsleuth_object_for_plotting
+
+    output:
+      set val("mRNA__volcano"), out_path, file('*__mRNA_volcano.pdf') into MRNA_Volcano_for_merging_pdfs
+      set val("mRNA__PCA_1_2"), out_path, file('*__mRNA_PCA_1_2.pdf') into MRNA_PCA_1_2_for_merging_pdfs
+      set val("mRNA__PCA_3_4"), out_path, file('*__mRNA_PCA_3_4.pdf') into MRNA_PCA_3_4_for_merging_pdfs
+      set val("mRNA__other_plots"), out_path, file('*__mRNA_other_plots.pdf') into MRNA_Other_plot_for_merging_pdfs
+
+    shell:
+    '''
+      #!/usr/bin/env Rscript
+
+
+      ##### Loading libraries and data
+
+      library(sleuth)
+      library(ggplot2)
+      library(magrittr)
+      library(grid)
+
+      source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
+
+      sleo = readRDS('!{mRNA_DEG_rsleuth_rds}')
+
+      COMP = '!{COMP}'
+      conditions = strsplit(COMP, '_vs_')[[1]]
+      cond1 = conditions[1]
+      cond2 = conditions[2]
+      test_cond = paste0('condition', cond2)
+
+      FDR_threshold = !{params.fdr_threshold_sleuth_plots}
+
+
+
+      ##### volcano plots
+
+      res_volcano <- sleuth_results(sleo, test_cond)
+      res_volcano %<>% dplyr::rename(gene_name = target_id, L2FC = b)
+      res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
+
+      pdf(paste0(COMP, '__mRNA_volcano.pdf'))
+        plot_volcano_custom(res_volcano, sig_level = FDR_threshold, label_column = 'gene_name', title = paste(COMP, 'mRNA'))
+      dev.off()
+
+
+      ##### PCA plots
+
+      # the pca is computed using the default parameters in the sleuth functions sleuth::plot_pca
+      mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 'scaled_reads_per_base')
+      prcomp1 <- prcomp(mat)
+
+      lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
+      lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'mRNA'))
+
+      pdf(paste0(COMP, '__mRNA_PCA_1_2.pdf'))
+        make_4_plots(lp_1_2)
+      dev.off()
+
+      pdf(paste0(COMP, '__mRNA_PCA_3_4.pdf'))
+        make_4_plots(lp_3_4)
+      dev.off()
+
+
+      ##### other plots
+
+      pdf(paste0(COMP, '__mRNA_other_plots.pdf'))
+        plot_ma(sleo, test = test_cond, sig_level = FDR_threshold) + ggtitle(paste('MA:', COMP))
+        plot_group_density(sleo, use_filtered = TRUE, units = "scaled_reads_per_base", trans = "log", grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
+        # plot_scatter(sleo) + ggtitle(paste('Scatter:', COMP))
+        # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', COMP))
+      dev.off()
+
+
+    '''
+}
+
+Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+
+
+
+process plotting_differential_accessibility_results {
+  tag "${COMP}"
+
+  container = params.differential_abundance
+
+  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
+         if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
+         else if (it.indexOf("_PCA_1_2.pdf") > 0) "ATAC__PCA_1_2/${it}"
+         else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
+         else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
+  }
+
+  input:
+    val out_path from Channel.value('2_Differential_Abundance')
+    set COMP, file(annotated_peaks), file(diffbind_object_rds) from Diffbind_object_and_peaks_anno_for_plotting
+
+  output:
+    set val("ATAC__volcano"), out_path, file('*__ATAC_volcano.pdf') into ATAC_Volcano_for_merging_pdfs
+    set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') into ATAC_PCA_1_2_for_merging_pdfs
+    set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') into ATAC_PCA_3_4_for_merging_pdfs
+    set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') into ATAC_Other_plot_for_merging_pdfs
+
+  shell:
+  '''
+
+      #!/usr/bin/env Rscript
+
+
+      ##### loading data and libraries
+
+      library(ggplot2)
+      library(magrittr)
+      library(grid)
+      library(DiffBind)
+
+      source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
+
+      COMP = '!{COMP}'
+
+      dbo = readRDS('!{diffbind_object_rds}')
+      FDR_threshold = !{params.fdr_threshold_diffbind_plots}
+      dbo$config$th = FDR_threshold
+
+      df_annotated_peaks = readRDS('!{annotated_peaks}')
+
+
+
+      ##### volcano plots
+
+      res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_name = geneId)
+
+      pdf(paste0(COMP, '__ATAC_volcano.pdf'))
+        plot_volcano_custom(res, sig_level = FDR_threshold, label_column = 'gene_name', title = paste(COMP, 'ATAC'))
+      dev.off()
+
+
+      ##### PCA plots
+
+      # the pca is computed using the default parameters in the Diffbind functions Diffbind::dba.plotPCA and DiffBind:::pv.plotPCA
+      prcomp1 <- DiffBind:::pv.pcmask(dbo, nrow(dbo$binding), cor = F, bLog = T)$pc
+      rownames(prcomp1$x) = res %>% dplyr::arrange(peak_id) %>% .$gene_name
+
+      lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
+      lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
+
+      pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
+        make_4_plots(lp_1_2)
+      dev.off()
+
+      pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
+        make_4_plots(lp_3_4)
+      dev.off()
+
+
+      ##### other plots
+
+      pdf(paste0(COMP, '__ATAC_other_plots.pdf'))
+          dba.plotMA(dbo, bNormalized = T)
+          # dba.plotPCA(dbo)
+          dba.plotHeatmap(dbo, main = 'all reads')
+          # dba.plotBox(dbo, main = 'all reads')
+          # dba.plotMA(dbo, bNormalized = F)
+          first_2_replicates = sort(c(which(dbo$masks$Replicate.1), which(dbo$masks$Replicate.2)))
+          dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
+          # olap_rate <- dba.overlap(dbo,mode=DBA_OLAP_RATE)
+          # plot(olap_rate,type='b',ylab='# peaks', xlab='Overlap at least this many peaksets', main = 'all reads')
+          # dba.plotVolcano(dbo)
+      dev.off()
+
+
+
+  '''
+
+}
+
+Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+
 // 
 // //////////////////////////////////////////////////////////////////////////////
 // //// SAVING AND SPLITTING DIFFERENTIAL ABUNDANCE RESULTS
