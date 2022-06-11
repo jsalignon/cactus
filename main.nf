@@ -753,7 +753,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Reads_InsertSize_for_merging_
 process ATAC__bamToBed_and_atacShift {
   tag "${id}"
 
-  container = params.samtools_bedtools_perl_perl
+  container = params.samtools_bedtools_perl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", mode: "${pub_mode}", enabled: save_all_bam, saveAs: { if (it.indexOf(".bam") > 0) "$it" }
 
@@ -895,8 +895,8 @@ process ATAC__calling_peaks {
 process ATAC__splitting_sub_peaks {
   tag "${id}"
 
-  container = params.bioperl
-  // container = params.samtools_bedtools_perl_perl
+  // container = params.bioperl
+  container = params.samtools_bedtools_perl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", mode: "${pub_mode}", enabled: save_all_bed
 
