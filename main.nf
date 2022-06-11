@@ -330,7 +330,7 @@ ATAC_reads_for_trimming
 process ATAC__trimming_adaptors {
   tag "${id}"
 
-  container = params.pigz_skewer
+  container = params.skewer_pigz
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", enabled: save_last_fastq
 
@@ -753,7 +753,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Reads_InsertSize_for_merging_
 process ATAC__bamToBed_and_atacShift {
   tag "${id}"
 
-  container = params.samtools_bedtools_perl_bowtie2
+  container = params.samtools_bedtools_perl_perl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", mode: "${pub_mode}", enabled: save_all_bam, saveAs: { if (it.indexOf(".bam") > 0) "$it" }
 
@@ -778,7 +778,7 @@ process ATAC__bamToBed_and_atacShift {
 process ATAC__extend_bed_before_peak_calling {
   tag "${id}"
 
-  container = params.samtools_bedtools
+  container = params.samtools_bedtools_perl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift_extendedBed", mode: "${pub_mode}", enabled: save_last_bam
 
@@ -896,7 +896,7 @@ process ATAC__splitting_sub_peaks {
   tag "${id}"
 
   container = params.bioperl
-  // container = params.samtools_bedtools_perl
+  // container = params.samtools_bedtools_perl_perl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -920,7 +920,7 @@ process ATAC__splitting_sub_peaks {
 process ATAC__removing_blacklisted_regions {
   tag "${id}"
 
-  container = params.samtools_bedtools
+  container = params.samtools_bedtools_perl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -981,7 +981,7 @@ Peaks_wo_blacklist_2.peaks_treatment
 process ATAC__removing_input_control_peaks {
   tag "${id}"
 
-  container = params.samtools_bedtools
+  container = params.samtools_bedtools_perl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_control", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -1016,7 +1016,7 @@ Peaks_for_removing_specific_regions_1 = Peaks_wo_blacklist_1.wo_input_control.co
 process ATAC__sampling_aligned_reads_for_statistics {
   tag "${id}"
 
-  container = params.samtools_bedtools
+  container = params.samtools_bedtools_perl
 
   when: do_atac
 
@@ -1058,7 +1058,7 @@ process ATAC__sampling_aligned_reads_for_statistics {
 process ATAC__reads_stat_1_features_enrichment {
   tag "${id}"
 
-  container = params.samtools_bedtools
+  container = params.samtools_bedtools_perl
 
   // publishDir path: "${out_processed}/1_Preprocessing/ATAC/1_reads/5_metrics/1_features_enrichment", mode: "${pub_mode}"
 
@@ -1214,7 +1214,7 @@ Stats_results = Features_enrichment_for_statistics
 process ATAC__statistics_on_aligned_reads {
   tag "${id}"
 
-  container = params.samtools_bedtools
+  container = params.samtools_bedtools_perl
 
   // publishDir path: "${out_processed}/1_Preprocessing/ATAC/1_reads/5_metrics/4_intermediate_files", mode: "${pub_mode}"
 
@@ -1269,7 +1269,7 @@ process ATAC__statistics_on_aligned_reads {
 
 process ATAC__gathering_statistics_on_aligned_reads {
 
-  container = params.samtools_bedtools
+  container = params.samtools_bedtools_perl
 
   publishDir path: "${out_dir}/Tables_Merged/1_Preprocessing", mode: "${pub_mode}"
   publishDir path: "${out_dir}/Tables_Individual/1_Preprocessing", mode: "${pub_mode}"
@@ -1296,7 +1296,7 @@ process ATAC__gathering_statistics_on_aligned_reads {
 
 process ATAC__splitting_statistics_for_multiqc {
 
-  container = params.multiple_R_packages
+  container = params.r_basic
 
   when: do_atac
 
@@ -1385,7 +1385,7 @@ process ATAC__annotating_individual_peaks {
 
   tag "${id}"
 
-  container = params.multiple_R_packages
+  container = params.bioconductor
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -1454,7 +1454,7 @@ Annotated_peaks_for_collecting_as_lists
 // process ATAC__plotting_individual_peak_files {
 //   tag "${id}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.bioconductor
 // 
 //   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
 //            if (it.indexOf("_coverage.pdf") > 0)        "ATAC__peaks__coverage/${it}"
@@ -1502,7 +1502,7 @@ Annotated_peaks_for_collecting_as_lists
 // 
 // process ATAC__plotting_grouped_peak_files {
 // 
-//   container = params.multiple_R_packages
+//   container = params.bioconductor
 // 
 //   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__grouped_plots", mode: "${pub_mode}"
 //   publishDir path: "${out_dir}/Figures_Merged/${out_path}", mode: "${pub_mode}"
@@ -1606,7 +1606,7 @@ Annotated_peaks_for_collecting_as_lists
 // process ATAC__removing_specific_regions {
 //   tag "${COMP}"
 // 
-//   container = params.samtools_bedtools
+//   container = params.samtools_bedtools_perl
 // 
 //   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
 // 
@@ -1681,7 +1681,7 @@ Annotated_peaks_for_collecting_as_lists
 // process ATAC__differential_abundance_analysis {
 //   tag "${COMP}"
 // 
-//   container = params.diffbind
+//   container = params.differential_abundance
 // 
 //   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
 //      if (it.indexOf("__all_peaks.bed") > 0) "ATAC__all_peaks__bed/${it}"
@@ -1808,7 +1808,7 @@ Annotated_peaks_for_collecting_as_lists
 // process ATAC__annotating_all_peaks {
 //   tag "${COMP}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.bioconductor
 // 
 //   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
 //      if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
@@ -2002,7 +2002,7 @@ Annotated_peaks_for_collecting_as_lists
 // process mRNA__differential_abundance_analysis {
 //     tag "${COMP}"
 // 
-//     container = params.rsleuth
+//     container = params.differential_abundance
 // 
 //     publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
 //          if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) "mRNA__all_genes__rsleuth/${it}"
@@ -2120,7 +2120,7 @@ Annotated_peaks_for_collecting_as_lists
 //     }
 // 
 // 
-//     container = params.rsleuth
+//     container = params.differential_abundance
 // 
 //     input:
 //       val out_path from Channel.value('2_Differential_Abundance')
@@ -2211,7 +2211,7 @@ Annotated_peaks_for_collecting_as_lists
 // process plotting_differential_accessibility_results {
 //   tag "${COMP}"
 // 
-//   container = params.diffbind
+//   container = params.bioconductor
 // 
 //   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
 //          if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
@@ -2317,7 +2317,7 @@ Annotated_peaks_for_collecting_as_lists
 // process mRNA__saving_detailed_results_tables {
 //     tag "${COMP}"
 // 
-//     container = params.multiple_R_packages
+//     container = params.r_basic
 // 
 //     publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", mode: pub_mode, enabled: params.save_tables_as_csv
 // 
@@ -2379,7 +2379,7 @@ Annotated_peaks_for_collecting_as_lists
 // process ATAC__saving_detailed_results_tables {
 //   tag "${COMP}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.r_basic
 // 
 //   // publishDir path: "${out_tab_indiv}/2_Differential_Abundance/ATAC", mode: pub_mode, enabled: params.save_tables_as_csv
 // 
@@ -2506,7 +2506,7 @@ Annotated_peaks_for_collecting_as_lists
 // process splitting_differential_abundance_results_in_subsets {
 //   tag "${COMP}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.r_basic
 // 
 //   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
 //     if (it.indexOf("__genes.rds") > 0) "DA_split__genes_rds/${it}"
@@ -2926,7 +2926,7 @@ Annotated_peaks_for_collecting_as_lists
 // process compute_functional_annotations_overlap {
 //   tag "${key}"
 // 
-//   container = params.clusterprofiler
+//   container = params.bioconductor
 // 
 //   // publishDir path: "${out_processed}/3_Enrichment/a_gene_set_enrichment", mode: "${pub_mode}"
 // 
@@ -3019,7 +3019,7 @@ Annotated_peaks_for_collecting_as_lists
 // process compute_genes_self_overlap {
 //   tag "${key}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.r_basic
 // 
 //   input:
 //     set key, data_type, file(lgenes), file('all_gene_sets/*') from DA_genes_for_self_overlap1
@@ -3091,7 +3091,7 @@ Annotated_peaks_for_collecting_as_lists
 // process compute_peaks_self_overlap {
 //   tag "${key}"
 // 
-//   container = params.samtools_bedtools
+//   container = params.samtools_bedtools_perl
 // 
 //   input:
 //     set key, data_type, file(DA_regions), file(all_regions), file("BED_FILES/*") from DA_regions_with_bg_and_bed_for_overlap
@@ -3196,7 +3196,7 @@ Annotated_peaks_for_collecting_as_lists
 // process reformat_motifs_results {
 //   tag "${key}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.r_basic
 // 
 //   // publishDir path: "${out_processed}/3_Enrichment/${data_type}/2_dataframe/${key}", mode: "${pub_mode}"
 // 
@@ -3264,7 +3264,7 @@ Annotated_peaks_for_collecting_as_lists
 // process compute_enrichment_pvalue {
 //   tag "${key}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.r_basic
 // 
 //   input:
 //     set key, data_type, file(df_count_csv) from Counts_tables_Channel
@@ -3400,7 +3400,7 @@ Annotated_peaks_for_collecting_as_lists
 // process plot_enrichment_barplot {
 //   tag "${key}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.figures
 // 
 //   publishDir path: "${out_fig_indiv}/3_Enrichment/Barplots__${data_type}", mode: "${pub_mode}"
 // 
@@ -3490,7 +3490,7 @@ Annotated_peaks_for_collecting_as_lists
 // process plot_enrichment_heatmap {
 //   tag "${key}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.figures
 // 
 //   publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", mode: "${pub_mode}"
 // 
@@ -3651,7 +3651,7 @@ Annotated_peaks_for_collecting_as_lists
 // process formatting_individual_tables {
 //   tag "${out_folder}__${data_type}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.r_basic
 // 
 //   // publishDir path: "${out_tab_indiv}/3_Enrichment/${data_type}", mode: "${pub_mode}", pattern = '*.csv', enabled: params.save_tables_as_csv
 //   publishDir path: "${out_dir}/Tables_Individual/${out_folder}/${data_type}", mode: "${pub_mode}", enabled: params.save_tables_as_csv
@@ -3721,7 +3721,7 @@ Annotated_peaks_for_collecting_as_lists
 // process formatting_merged_tables {
 //   tag "${out_folder}__${data_type}"
 // 
-//   container = params.multiple_R_packages
+//   container = params.r_basic
 // 
 //   publishDir path: "${out_dir}/Tables_Merged/${out_folder}", mode: "${pub_mode}", enabled: params.save_tables_as_csv
 // 
@@ -3768,7 +3768,7 @@ Annotated_peaks_for_collecting_as_lists
 //   // container = 'docker://quay.io/biocontainers/r-openxlsx:4.0.17--r3.3.2_0'
 //   // container = 'gibonet/r-cubiesterni-xml:locale'
 // 
-//   container = params.r_openxlsx
+//   container = params.differential_abundance
 // 
 //   publishDir path: "${out_dir}/${out_path}", mode: "${pub_mode}", enabled: params.save_tables_as_excel
 // 
