@@ -51,7 +51,8 @@ select_y_axis_terms_grouped_plot <- function(mat, nshared = 6, nunique = 20, nto
 
       # keeping only the top n yaxis_terms for yaxis_terms with similar names
       rn = rownames(mat)
-      yaxis_terms_names = purrr::map_chr(strsplit(rn, '_'), 1)
+      purrr__map_chr <- function(x, c1) lapply(x, function(y) y[c1]) %>% as.character
+      yaxis_terms_names = purrr__map_chr(strsplit(rn, '_'), 1)
       duplicated_yaxis_terms = names(which(table(yaxis_terms_names) > 1))
       worst_dupli = c()
       for(yaxis_terms in duplicated_yaxis_terms){
@@ -136,8 +137,8 @@ add_matrix_indexes_to_df <- function(cur_mat, cur_df, rows, cols, data_type, sig
   df2$colInd = rep(1:cols, each = rows)
   
   # adding these new columns to the df
-  df3 = dplyr::inner_join(cur_df, df2, by = c('yaxis_terms', 'comp_FC'))
-
+  df3 = merge(cur_df, df2, by =  c('yaxis_terms', 'comp_FC'))
+  
   return(df3)
 }
 
