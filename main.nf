@@ -269,7 +269,7 @@ Channel
   .map{ it.split() }
   .map{ [ it[0], it[1..-1] ] }
   .transpose()
-  .map{ [ it[0], it[1], it[1].replace("R1", "R2") ] }
+  .map{ [ it[0], file(it[1]), file(it[1].replace("R1", "R2")) ] }
   .tap{ ATAC_reads_for_fastqc }
   .map{ [ it[0], [ it[1], it[2] ] ] }
   .transpose()
