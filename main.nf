@@ -1065,7 +1065,7 @@ process ATAC__reads_stat_1_features_enrichment {
   """
     getTotalReadsMappedToBedFile () { bedtools coverage -a \$1 -b \$2 | cut -f 4 | awk '{ sum+=\$1} END {print sum}' ;}
 
-    BED_PATH="${cactusdir}/tools/cel_genome/annotations/refGene_UCSC"
+    BED_PATH="${params.refgene_ucsc_dir}"
     PROMOTER=`getTotalReadsMappedToBedFile \$BED_PATH/promoters.bed ${bam}`
     EXONS=`getTotalReadsMappedToBedFile \$BED_PATH/exons.bed ${bam}`
     INTRONS=`getTotalReadsMappedToBedFile \$BED_PATH/introns.bed ${bam}`

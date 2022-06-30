@@ -6,3 +6,4 @@ results/
 bin/
 containers_old_scripts/
 debug.plain
+tmp/
