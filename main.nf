@@ -229,7 +229,6 @@ Merging_pdf_Channel = Channel.empty()
 //////////////////////////////////////////////////////////////////////////////
 //// creating mRNA-Seq channel
 
-def customPath1(foo) { file("data/mRNA/${foo}") }
 
 static def returnR2ifExists(r2files) {
   boolean exists = r2files[1].exists();
@@ -240,15 +239,14 @@ static def returnR2ifExists(r2files) {
 MRNA_reads_for_merging = Channel.create()
 MRNA_reads_for_kallisto = Channel.create()
 
-fastq_files = file("design/mRNA_fastq.tsv")
+fastq_files = file("design/mrna_fastq.tsv")
 Channel
   .from(fastq_files.readLines())
   .map{ it.split() }
-  .dump(tag:'mRNA_fastq')
   .map{ [ it[0], it[1..-1] ] }
   .transpose()
-  .map{ [ it[0], it[1], it[1].replace("R1", "R2") ] }
-  .map{ [ it[0], customPath1(it[1]), customPath1(it[2]) ] }
+  .map{ [ it[0], file(it[1]), file(it[1].replace("R1", "R2") ) ] }
+  .dump(tag:'mrna_fastq')
   .map{ [ it[0], returnR2ifExists(it[1, 2]) ] }
   .into{ MRNA_reads_for_fastqc ; MRNA_reads_for_kallisto }
 
@@ -260,7 +258,6 @@ Channel
 //////////////////////////////////////////////////////////////////////////////
 //// READS PROCESSING
 
-def customPath(foo) { file("data/ATAC/${foo}") }
 
 
 ATAC_reads_for_merging = Channel.create()
@@ -273,7 +270,6 @@ Channel
   .map{ [ it[0], it[1..-1] ] }
   .transpose()
   .map{ [ it[0], it[1], it[1].replace("R1", "R2") ] }
-  .map{ [ it[0], customPath(it[1]), customPath(it[2]) ] }
   .tap{ ATAC_reads_for_fastqc }
   .map{ [ it[0], [ it[1], it[2] ] ] }
   .transpose()
@@ -2884,7 +2880,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(Venn_up_and_down_for_merging_pdfs.
 
 // importing groups of comparisons to plot together on the overlap matrix and the heatmaps
 
-comparisons_grouped = file("design/comparisons_grouped_for_plotting.tsv")
+comparisons_grouped = file("design/groups.tsv")
 Channel
   .from( comparisons_grouped.readLines() )
   .map { it.split() }
