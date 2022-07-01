@@ -1615,30 +1615,32 @@ process ATAC__removing_specific_regions {
   output:
       set COMP, file("*.bed") into Peaks_for_diffbind
 
+
   shell:
   '''
       
       COMP="!{COMP}"
       RTR="!{regions_to_remove_file}"
       BED_FILES="!{bed_files}"
-
-      COMP1="${COMP/_vs_*/}"
-      COMP2="${COMP/*_vs_/}"
       
-      echo $COMP1 | grep -f - $RTR > rtr_filtered.txt
-      echo $COMP2 | grep -f - $RTR >> rtr_filtered.txt
+      COMP1="${COMP/_vs_/|}"
+      echo $COMP1 | grep -E -f - $RTR > rtr_filtered.txt
       
-      cat rtr_filtered.txt | sed 's/,//g' | sed 's/.*->//g' | sed 's/[:-]/ /g' | sed 's/chr//g' | awk -v OFS="\t" '$1=$1' > rtr_filtered_formatted.txt 
+      cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
       
       for FILE in ${BED_FILES}
       do
         CUR_NAME=`basename -s ".bed" $FILE`
         intersectBed -v -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_filtered.bed"
       done
-
+      
   '''
 
 }
+
+// cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
+// echo $COMP2 | grep -f - $RTR >> rtr_filtered.txt
+
 
 // note: the reason why this process is here and not upstread is because we want to remove in all bed files the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider all peaks for his analysis, so if we remove one such peak in just one of the two samples to compare, then it will likely be found as differential bound during the DBA 
 
