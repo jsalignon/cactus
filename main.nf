@@ -232,7 +232,8 @@ Merging_pdf_Channel = Channel.empty()
 
 static def returnR2ifExists(r2files) {
   boolean exists = r2files[1].exists();
-  if (exists) { return(r2files)
+  boolean diff   = r2files[0] != r2files[1];
+  if (exists & diff) { return(r2files)
   } else { return(r2files[0]) }
 }
 
@@ -245,9 +246,9 @@ Channel
   .map{ it.split() }
   .map{ [ it[0], it[1..-1] ] }
   .transpose()
-  .map{ [ it[0], file(it[1]), file(it[1].replace("R1", "R2") ) ] }
-  .dump(tag:'mrna_fastq')
+  .map{ [ it[0], file(it[1]), file(it[1].replace("_R1", "_R2") ) ] }
   .map{ [ it[0], returnR2ifExists(it[1, 2]) ] }
+  .dump(tag:'mrna_fastq')
   .into{ MRNA_reads_for_fastqc ; MRNA_reads_for_kallisto }
 
 
@@ -269,7 +270,7 @@ Channel
   .map{ it.split() }
   .map{ [ it[0], it[1..-1] ] }
   .transpose()
-  .map{ [ it[0], file(it[1]), file(it[1].replace("R1", "R2")) ] }
+  .map{ [ it[0], file(it[1]), file(it[1].replace("_R1", "_R2")) ] }
   .tap{ ATAC_reads_for_fastqc }
   .map{ [ it[0], [ it[1], it[2] ] ] }
   .transpose()
