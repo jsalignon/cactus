@@ -1584,6 +1584,8 @@ Reads_for_diffbind
   .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
   .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
 
+regions_to_remove = Channel.fromPath( 'design/regions_to_remove.tsv' )
+
 comparisons_files_for_merging
   .combine(reads_and_peaks_1)
   .combine(reads_and_peaks_2)
@@ -1591,13 +1593,13 @@ comparisons_files_for_merging
   .map { [ it[0] + '_vs_' + it[1], it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
   // .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
   // .map { [ it[0] + '_vs_' + it[1], it[4,7].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
-  .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
   .tap { Reads_for_diffbind_1 }
   .map { it[0,1] }
+  .combine(regions_to_remove)
+  .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
   .set { Peaks_for_removing_specific_regions_2 }
 
 
-regions_to_remove = Channel.fromPath( 'design/regions_to_remove.tsv' )
 
 process ATAC__removing_specific_regions {
   tag "${COMP}"
@@ -1609,8 +1611,8 @@ process ATAC__removing_specific_regions {
   when: do_atac
 
   input:
-      set COMP, file(bed_files) from Peaks_for_removing_specific_regions_2
-      path regions_to_remove_file from regions_to_remove
+      set COMP, file(bed_files), regions_to_remove from Peaks_for_removing_specific_regions_2
+      // path regions_to_remove_file from regions_to_remove
       
   output:
       set COMP, file("*.bed") into Peaks_for_diffbind
@@ -1620,7 +1622,7 @@ process ATAC__removing_specific_regions {
   '''
       
       COMP="!{COMP}"
-      RTR="!{regions_to_remove_file}"
+      RTR="!{regions_to_remove}"
       BED_FILES="!{bed_files}"
       
       COMP1="${COMP/_vs_/|}"
@@ -1651,8 +1653,8 @@ Reads_input_control
 
 Reads_for_diffbind_1
   .map { it[0,2] }
-  .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
   .join(Peaks_for_diffbind)
+  .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
   .branch {
     with_input_control: params.use_input_control
     without_input_control: true
@@ -1995,6 +1997,7 @@ Kallisto_out_for_sleuth
 Kallisto_out_for_sleuth1
   .combine(Kallisto_out_for_sleuth2)
   .map { it[0,2,1,3]}
+  .dump(tag:'kalisto_sleuth') {"${it}"}
   .join(comparisons_files_for_mRNA_Seq, by: [0,1])
   .map{
     def list = []
@@ -2498,6 +2501,7 @@ if(params.experiment_types == 'both'){
   // // format: COMP, res_detailed_atac, res_detailed_mRNA
   .groupTuple()
   // format: COMP, [ res_detailed_atac, res_detailed_mRNA ]
+  .dump(tag: 'both_data')
   .set{ Diff_abundance_res_tables_for_splitting_in_subsets }
 }
 
@@ -3101,7 +3105,7 @@ process compute_peaks_self_overlap {
   output:
     set key, data_type, file("*__counts.csv") into Peaks_self_overlap_for_computing_pvalue
 
-  when: params.do_chip_enrichment
+  // when: params.do_chip_enrichment
 
   shell:
   '''
@@ -3208,7 +3212,7 @@ process reformat_motifs_results {
   output:
     set key, data_type, file("*__counts.csv") into Motifs_counts_for_computing_pvalue
 
-  when: params.do_chip_enrichment
+  // when: params.do_chip_enrichment
 
   shell:
   '''
@@ -3228,6 +3232,8 @@ process reformat_motifs_results {
       df$tot_da  = total[1]
       df$tot_nda = total[2]
       df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, consensus)
+      wrong_entries = which(df$ov_nda > df$tot_nda)
+      if(length(wrong_entries) > 0) { df$ov_nda[wrong_entries] = df$tot_nda[wrong_entries] }
 
       write.csv(df, paste0(key, '__motifs__counts.csv'), row.names = F)
 
@@ -3236,6 +3242,9 @@ process reformat_motifs_results {
 
 Counts_tables_Channel = Counts_tables_Channel.mix(Motifs_counts_for_computing_pvalue)
 
+// Counts_tables_Channel = Counts_tables_Channel.view()
+
+// note : the "wrong_entries" command is used because ov_nda is sometimes slightly higher (by a decimal) than tot_nda; i.e.: tot_nda = 4374 and ov_nda = 4374.6. This makes the Fischer test crash later on. This change is minimal so we just fix it like that.
 
 // This one liner works and is cleaner but it fails in nextflow due to the double escape string
 // total = as.integer(stringr::str_extract_all(paste0(names(df), collapse = ' '),"\\(?[0-9]+\\)?")[[1]])
@@ -3277,7 +3286,7 @@ process compute_enrichment_pvalue {
 
     // publishDir path: "${out_tab_indiv}/3_Enrichment/${data_type}", mode: "${pub_mode}", pattern = '*.csv', enabled: params.save_tables_as_csv
 
-  when: params.do_chip_enrichment
+  // when: params.do_chip_enrichment
 
   shell:
   '''
@@ -3672,7 +3681,7 @@ process formatting_individual_tables {
     set data_type, out_folder, file('*.csv') into Formatted_tables_for_merging optional true
     set val("Tables_Individual/${out_folder}/${data_type}"), file('*.csv') into Formatted_tables_for_Excel optional true
 
-  when: params.do_chip_enrichment
+  // when: params.do_chip_enrichment
 
   shell:
   '''
@@ -3920,8 +3929,7 @@ process merge_pdfs {
 
 Merging_pdf_Channel.close()
 Formatting_tables_Channel.close()
-Counts_tables_Channel.close()
-Formatting_tables_Channel.close()
+// Counts_tables_Channel.close()
 
 
 
