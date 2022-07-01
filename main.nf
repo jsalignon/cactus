@@ -576,9 +576,9 @@ process ATAC__creation_of_raw_bigwig_tracks {
   container = params.deeptools
 
   publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
-    if (it.indexOf(".pdf") > 0) "Figures_Individual/ATAC__reads__coverage${it}"
-    else if (it.indexOf("_raw.bw") > 0) "Processed_Data/ATAC__reads__bigwig_raw/${it}"
-    else if (it.indexOf("_RPGC_norm.bw") > 0) "Processed_Data/ATAC__reads__bigwig_norm/${it}"
+    if (it.indexOf(".pdf") > 0) "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
+    else if (it.indexOf("_raw.bw") > 0) "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
+    else if (it.indexOf("_RPGC_norm.bw") > 0) "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_norm/${it}"
   }
 
   when: do_atac & params.do_bigwig
@@ -3375,24 +3375,25 @@ Formatting_tables_Channel = Formatting_tables_Channel.mix(Enrichment_for_formatt
 Enrichment_for_plot
   // format: rds_file (key__enrich.rds)
   .flatten()
-  .dump(tag:'enrichment')
   // we need to flatten since the genes_sets
   .map{ [ it.name.replaceFirst(~/__enrich.rds/, ''), it ] }
   // format: key (ET__PF__FC__FDR__COMP__DT), rds_file
   .tap{ Enrich_results_for_barplot }
   .combine(comparisons_grouped_for_heatmap)
   // format: key, rds_file, GRP, comp_order
+  .dump(tag:'enrichment')
   .map{ [ it[0].split('__')[4], it ].flatten() }
   // format: COMP, key, rds_file, GRP, comp_order
   .filter{ it[0] in it[4].split('\\|') }
   // keeping only COMP that are in the group
   .map{ [ it[1].split('__'), it[2..4] ].flatten() }
   // format: ET, PF, FC, FDR, COMP, DT, rds_file, GRP, comp_order
-  .map{ [ it[0, 1, 3, 7, 5].join('__'), it[5, 8, 6] ].flatten() }
-  // format: key (ET__PF__FDR__GRP__DT), DT, comp_order, rds_file
-  .groupTuple(by: [0, 1, 2])
-  // format: key, DT, comp_order, rds_files
-  .filter{ it[3].size() > 1 }
+  .map{ [ it[0, 1, 3, 7, 5].join('__'), it[5, 8, 3, 6] ].flatten() }
+  // format: key (ET__PF__FDR__GRP__DT), DT, comp_order, FDR, rds_file
+  .groupTuple(by: [0, 1, 2, 3])
+  // format: key, DT, comp_order, FDR, rds_files
+  .filter{ it[4].size() > 1 }
+  // .map{ it[0, 1, 2, 4] }
   .dump(tag:'heatmap')
   .set{ Enrich_results_for_heatmap }
 
@@ -3506,7 +3507,7 @@ process plot_enrichment_heatmap {
   publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", mode: "${pub_mode}"
 
   input:
-    set key, data_type, comp_order, file('*') from Enrich_results_for_heatmap
+    set key, data_type, comp_order, fdr, file('*') from Enrich_results_for_heatmap
 
   output:
     // set val("3" + data_type "_heatmaps_genes_sets"), val("Figures_Merged/3_Enrichment"), file("*.pdf") optional true into Heatmap_for_merging_pdfs
@@ -3544,6 +3545,11 @@ process plot_enrichment_heatmap {
     rds_files = list.files(pattern = '*.rds')
     ldf = lapply(rds_files, readRDS)
     df = do.call(rbind, ldf)
+
+    key1 = paste(df[1, c('ET', 'PF', 'FDR')], collapse = '__')
+    df$tgt_key = sapply(strsplit(df$tgt, '__'), function(x) paste(x[c(1,2,4)], collapse = '__'))
+    df %<>% .[.$tgt_key %in% key1, ]
+    df$tgt_key <- NULL
 
     ## quitting if there are no significant results to show
     if(all(df$padj > threshold_plot_adj_pval)) quit(save = 'no')
@@ -3927,8 +3933,8 @@ process merge_pdfs {
 ////////////////////////////////////////////////////////////////////////////
 // THE END MY FRIEND
 
-Merging_pdf_Channel.close()
-Formatting_tables_Channel.close()
+// Merging_pdf_Channel.close()
+// Formatting_tables_Channel.close()
 // Counts_tables_Channel.close()
 
 
