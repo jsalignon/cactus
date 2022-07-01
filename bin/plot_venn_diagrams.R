@@ -45,7 +45,7 @@ plot_venn_diagrams <- function(lgenes, prefix){
     vjust = 0
   }
   
-  y0 = unit(0.5, 'npc') + 0.7 * gh
+  y0 = unit(0.5, 'npc') + 0.7 * gh[1]
   title <- textGrob(prefix, y = y0, vjust = vjust, gp = gpar(fontsize = 10, fontfamily = 'sans'))
   
   pdf(filename)
@@ -55,6 +55,10 @@ plot_venn_diagrams <- function(lgenes, prefix){
   dev.off()
 
 }
+
+# y0 = unit(0.5, 'npc') 
+# title <- textGrob(prefix, y = y0, gp = gpar(fontsize = 10, fontfamily = 'sans'))
+
 
 ## this would be the solution to solve the title problem. However, gridExtra and ggplot2 are not available in this container...
 # pdf(filename)
