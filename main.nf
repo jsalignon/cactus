@@ -1565,12 +1565,13 @@ Channel
   .dump(tag:'comp_file') {"comparison file: ${it}"}
   .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
 
-regions_to_remove = file("design/regions_to_remove.tsv")
-Channel
-  .from(regions_to_remove.readLines())
-  .map { m = it.split(); [ m[0], m[1] ] }
-  .dump(tag:'regions_to_remove') {"regions to remove: ${it}"}
-  .set{regions_to_remove_for_merging}
+// regions_to_remove = file("design/regions_to_remove.tsv")
+// Channel
+//   .from(regions_to_remove)
+//   // .from(regions_to_remove.readLines())
+//   // .map { m = it.split(); [ m[0], m[1] ] }
+//   .dump(tag:'regions_to_remove') {"regions to remove: ${it}"}
+//   .set{regions_to_remove_for_merging}
 
 Reads_for_diffbind
   .tap{ Reads_input_control }
@@ -1578,22 +1579,25 @@ Reads_for_diffbind
   .tap { channel_test }
   .map { [ it[0].split("_")[0], it[0..-1]] }
   .groupTuple()
-  .join(regions_to_remove_for_merging, remainder: true)
+  // .join(regions_to_remove_for_merging, remainder: true)
+  // .combine(regions_to_remove_for_merging)
   .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
   .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
 
 comparisons_files_for_merging
   .combine(reads_and_peaks_1)
   .combine(reads_and_peaks_2)
-  .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
-  .map { [ it[0] + '_vs_' + it[1], it[4,7].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
-  // .map { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> [ id_comp_1 + '_vs_' + id_comp_2, [reads_and_peaks_1,reads_and_peaks_2].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] } // => not sure how to make this work
-  // format: id_comp, regions_to_remove_merged, bed_files, bam_files 
+  .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, id_2, reads_and_peaks_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
+  .map { [ it[0] + '_vs_' + it[1], it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
+  // .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, regions_to_remove_1, id_2, reads_and_peaks_2, regions_to_remove_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
+  // .map { [ it[0] + '_vs_' + it[1], it[4,7].join('__'), it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
   .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
   .tap { Reads_for_diffbind_1 }
-  .map { it[0,1,2] }
+  .map { it[0,1] }
   .set { Peaks_for_removing_specific_regions_2 }
 
+
+regions_to_remove = Channel.fromPath( 'design/regions_to_remove.tsv' )
 
 process ATAC__removing_specific_regions {
   tag "${COMP}"
@@ -1605,29 +1609,31 @@ process ATAC__removing_specific_regions {
   when: do_atac
 
   input:
-      set COMP, regions_to_remove, file(bed_files) from Peaks_for_removing_specific_regions_2
-
+      set COMP, file(bed_files) from Peaks_for_removing_specific_regions_2
+      path regions_to_remove_file from regions_to_remove
+      
   output:
       set COMP, file("*.bed") into Peaks_for_diffbind
 
   shell:
   '''
+      
+      COMP="!{COMP}"
+      RTR="!{regions_to_remove_file}"
+      BED_FILES="!{bed_files}"
 
-      RTR="!{regions_to_remove}"
-      FOO1=`echo $RTR | sed 's/;/__/g' | sed 's/__/~/g' | sed 's/null//g'`
-      IFS='~' read -r -a FOO2 <<< "$FOO1"
-
-      for ((i=0; i<${#FOO2[@]}; i++));
-      do
-          FOO2[$i]=`echo "${FOO2[$i]}" | sed -r 's/.*chr//g' | sed -r 's/[:-]/\t/g'`
-      done
-
-      printf "%s\n" "${FOO2[@]}" > regions_to_remove.txt
-
-      for FILE in !{bed_files}
+      COMP1="${COMP/_vs_*/}"
+      COMP2="${COMP/*_vs_/}"
+      
+      echo $COMP1 | grep -f - $RTR > rtr_filtered.txt
+      echo $COMP2 | grep -f - $RTR >> rtr_filtered.txt
+      
+      cat rtr_filtered.txt | sed 's/,//g' | sed 's/.*->//g' | sed 's/[:-]/ /g' | sed 's/chr//g' | awk -v OFS="\t" '$1=$1' > rtr_filtered_formatted.txt 
+      
+      for FILE in ${BED_FILES}
       do
         CUR_NAME=`basename -s ".bed" $FILE`
-        intersectBed -v -a $FILE -b regions_to_remove.txt > "${CUR_NAME}_filtered.bed"
+        intersectBed -v -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_filtered.bed"
       done
 
   '''
@@ -1642,7 +1648,7 @@ Reads_input_control
   .set{ Reads_input_control_1 }
 
 Reads_for_diffbind_1
-  .map { it[0,3] }
+  .map { it[0,2] }
   .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
   .join(Peaks_for_diffbind)
   .branch {
