@@ -1249,8 +1249,8 @@ process ATAC__statistics_on_aligned_reads {
     PERCENT_DUPLI=`awk -v x=\$PERCENT_DUPLI 'BEGIN {printf "%.2f\\n", 100 * x }' }`
 
     # percentage of alignment
-    PERCENT_ALIGN_CEL=`sed '5q;d' ${cel_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
-    PERCENT_ALIGN_OP50=`sed '5q;d' ${op50_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
+    PERCENT_ALIGN_CEL=`sed '7q;d' ${cel_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
+    PERCENT_ALIGN_OP50=`sed '7q;d' ${op50_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
 
     # gathering the results
     echo "${id},\$PERCENT_MITO,\$PERCENT_TSS,\$PERCENT_ALIGN_CEL,\$PERCENT_ALIGN_OP50,\$PERCENT_DUPLI,\$LIBRARY_SIZE,\$RAW_PAIRS,\$ALIGNED_PAIRS,\$FINAL_PAIRS" > ${id}_bam_stats.txt
