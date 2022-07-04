@@ -32,7 +32,7 @@ gsm_to_srr (){
 cd $samples_ids_dir
 gsm_to_srr worm
 gsm_to_srr human
-gsm_to_srr mice
+gsm_to_srr mouse
 gsm_to_srr fly
 
 
@@ -233,10 +233,10 @@ EOL
 
 
 ##############################################
-### Mice (GSE181797)
+### mouse (GSE181797)
 ##############################################
 
-specie="mice"
+specie="mouse"
 prepro_dir="preprocessing/${specie}"
 
 mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
