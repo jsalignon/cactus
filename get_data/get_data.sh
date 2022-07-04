@@ -65,7 +65,8 @@ purrr::iwalk(v_specie_code, function(code, specie){
 
 
 cd $data_dir 
-mkdir -p preprocessing/blacklisted_regions
+prepro_dir="preprocessing/blacklisted_regions"
+mkdir -p $prepro_dir
 
 singularity pull cvbio:3.0.0--hdfd78af_1 
 
@@ -82,8 +83,9 @@ get_blacklisted_ensembl_file (){
   wget -O blacklist_ncbi.bed.gz $BLACKLIST_PATH/$BLACKLIST_FILE
   gunzip blacklist_ncbi.bed.gz
   wget -O NCBI_to_Ensembl.txt $MAPPING_PATH/$MAPPING_FILE
-  singularity run $singularity_dir/cvbio:3.0.0--hdfd78af_1.img UpdateContigNames -i ce11_blacklist_v2.bed -o blacklist_ncbi.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
-  
+  singularity run $singularity_dir/cvbio:3.0.0--hdfd78af_1 cvbio UpdateContigNames -i blacklist_ncbi.bed -o blacklist_ensembl.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
+  mv blacklist_ncbi.bed > $prepro_dir/${SPECIE_CODE}_blacklist_ncbi.bed
+  mv NCBI_to_Ensembl.bed > $prepro_dir/${SPECIE_CODE}_NCBI_to_Ensembl.bed
 }
 
 
