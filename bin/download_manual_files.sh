@@ -67,6 +67,13 @@ get_fasta_and_gff 100 dna_sm mus_musculus GRCm38 primary_assembly
 get_fasta_and_gff 100 dna_sm homo_sapiens GRCh38 primary_assembly
 
 
+## in R
+cd ~/workspace/cactus/data
+R
+cur_seq_info = rtracklayer::SeqinfoForUCSCGenome('ce11')
+cur_seq_info@seqnames %<>% gsub('chr', '', .)
+saveRDS(cur_seq_info, '~/workspace/cactus/data/worm/genome/sequence/cur_seqinfo.rds')
+
 
 ##################################################################
 ## Blacklisted regions

@@ -1716,6 +1716,7 @@ process ATAC__differential_abundance_analysis {
         COMP = '!{COMP}'
         use_input_control = '!{params.use_input_control}'
         source('!{projectDir}/bin/export_df_to_bed.R')
+        cur_seqinfo = readRDS('!{params.cur_seqinfo}')
 
         conditions = strsplit(COMP, '_vs_')[[1]]
         cond1 = conditions[1]
@@ -1764,12 +1765,13 @@ process ATAC__differential_abundance_analysis {
         ##### Running DiffBind
 
         dbo <- dba(sampleSheet = df1, minOverlap = 0)
-        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM)
-        # dbo <- dba.contrast(dbo, dbo$masks[[cond1]], dbo$masks[[cond2]], cond1, cond2, minMembers = 2)
+        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
+        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F)
+        dbo$config$edgeR$bTagwise = T
+        dbo$config$AnalysisMethod = DBA_EDGER 
+        dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
         dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
-        dbo$config$AnalysisMethod = DBA_EDGER  # instead of DBA_DESEQ2
-        # dbo <- dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE, bReduceObjects = FALSE)
-        dbo <- dba.analyze(dbo, bGreylist = TRUE, bReduceObjects = FALSE)
+        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
 
         saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
 
@@ -1784,8 +1786,7 @@ process ATAC__differential_abundance_analysis {
         all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, method = 'BH')
 
         # adding the raw reads counts of each replicate
-        dbo1 <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, bScaleControl = TRUE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_READS)
-        cp_raw = dba.peakset(dbo1, bRetrieve = TRUE, score = DBA_SCORE_READS)
+        cp_raw = dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_READS)
         mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
         m <- findOverlaps(all_peaks_gr, cp_raw)
         names_subject = names(mcols(cp_raw))
@@ -1805,10 +1806,152 @@ process ATAC__differential_abundance_analysis {
     '''
 }
 
+// here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
+
+
+// # cur_greylist <- dba.blacklist(dbo, Retrieve=DBA_GREYLIST)
+
+
+// ?dba.count
+// bSubControl: logical indicating whether Control read counts are
+//           subtracted for each site in each sample. If there are more
+//           overlapping control reads than ChIP reads, the count will be
+//           set to the ‘minCount’ value specified when ‘dba.count’ was
+//           called, or zero if no value is specified.
+// 
+//           If ‘bSubControl’ is not explicitly specified, it will be set
+//           to ‘TRUE’ unless a greylist has been applied (see
+//           ‘dba.blacklist’).
+
+
+
+// adding bUseSummarizeOverlaps = F to the dba.count call. This way we count as before, with 1 bp fragment length as it should be.
+// https://rdrr.io/bioc/DiffBind/man/dba.count.html
+
+// => removing the creation of a dbo1 object; the score DBA_SCORE_READS is obtained with the subsequent call to dba.peakset
+// >         dbo1 <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_READS)
+// Warning message:
+// In dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1,  :
+//   No action taken, returning passed object...
+
+
+// TO DO: make the blacklist/greylist removal work
+// https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html
+// https://bioconductor.org/packages/release/data/annotation/html/BSgenome.Celegans.UCSC.ce11.html
+
+// this fails
+// https://support.bioconductor.org/p/p133830/
+// dbo <- dba.blacklist(dbo, blacklist = F, greylist = seqinfo(BSgenome.Celegans.UCSC.ce11))
+
+
+// > seqinfo(BSgenome.Celegans.UCSC.ce11)
+// Seqinfo object with 7 sequences (1 circular) from ce11 genome:
+//   seqnames seqlengths isCircular genome
+//   chrI       15072434      FALSE   ce11
+//   chrII      15279421      FALSE   ce11
+//   chrIII     13783801      FALSE   ce11
+//   chrIV      17493829      FALSE   ce11
+//   chrV       20924180      FALSE   ce11
+//   chrX       17718942      FALSE   ce11
+//   chrM          13794       TRUE   ce11
+
+// cat ~/workspace/cactus/data/worm/genome/sequence/chromosome_size.txt
+// I       15072434
+// II      15279421
+// III     13783801
+// IV      17493829
+// V       20924180
+// X       17718942
+
+// => this is why the command fails
+
+
+// # note: I also disable bScaleControl since it is used only to normalize controls reads prior to the substraction with bSubControl. But since we don't do that anymore and use greylist it doesn't matter so we can remove this parameter
+// https://support.bioconductor.org/p/69924/
+
+// # About normalization
+// DiﬀBind relies on three underlying core methods for normalization. These include the "na-
+// tive" normalization methods supplied with DESeq2 and edgeR , as well as a simple library-
+// based method. The normalization method is speciﬁed with the normalize parameter to
+// dba.normalize
+// The native DESeq2 normalization method is based on calculating the geometric mean for
+// each gene across samples[6], and is referred to "RLE" or DBA_NORM_RLE in DiﬀBind .
+// The native edgeR normalization method is based on the trimmed mean of M-values approach[7],
+// and is referred to as "TMM" or DBA_NORM_TMM in DiﬀBind .
+// A third method is also provided that avoids making any assumptions regarding the distribution
+// of reads between binding sites in diﬀerent samples that may be speciﬁc to RNA-seq analysis
+// and inappropriate for ChIP-seq analysis. This method ( "lib" or DBA_NORM_LIB ) is based on
+// the diﬀerent library sizes for each sample, computing normalization factors to weight each
+// sample so as to appear to have the same library size. For DESeq2 , this is accomplished
+// by dividing the number of reads in each library by the mean library size. For edgeR , the
+// normalization factors are all set to 1.0 , indicating that only library-size normalization should
+// occur.
+// Note that any of these normalization methods can be used with either the DESeq2 or
+// edgeR analysis methods, as DiﬀBind converts normalization factors to work appropriately
+// in either DESeq2 or edgeR .
+
+// DBA_NORM_NATIVE: equal DBA_NORM_TMM for edgeR and DBA_NORM_RLE for DESeq2
+
+
+// => it is in fact recommended to use greylist regions instead of substracting controls! We update the code accordingly
+// https://support.bioconductor.org/p/97717/
+// https://github.com/crazyhottommy/ChIP-seq-analysis/blob/master/part3_Differential_binding_by_DESeq2.md
+// https://support.bioconductor.org/p/72098/#72173
+
+// From the Diffbind manual it also says:
+// Another way of thinking about greylists is that they are one way of using the information in
+// the control tracks to improve the reliability of the analysis. Prior to version 3.0, the default
+// in DiﬀBind has been to simply subtract control reads from ChIP reads in order to dampen
+// the magnitude of enrichment in anomalous regions. Greylists represent a more principled way
+// of accomplishing this. If a greylist has been applied, the current default in DiﬀBind is to not
+// subtract control reads.
+
+
+// we should keep the bFullLibrarySize parameter to TRUE
+// The issue is how the data are normalized. Setting bFullLibrarySize=FALSE uses a standard RNA-seq normalization method (based on the number of reads in consensus peaks), which assumes that most of the "genes" don't change expression, and those that do are divided roughly evenly in both directions. Using the default bFullLibrarySize=TRUE avoids these assumptions and does a very simple normalization based on the total number of reads for each library.
+
+// THe bTagwise argument should not be needed but we keep it just in case and to be clearer
+// Next edgeR::estimateGLMTrendedDisp is called with the DGEList and a design matrix derived
+// from the design formula. By default, edgeR::estimateGLMTagwiseDisp is called next; this
+// can be bypassed by setting DBA$config$edgeR$bTagwise=FALSE . 15
+
 // the diffbind package changed a lot since the version I was using. The contrast command should be changed, and the dba.analyze command too. I will need to read in more details the method
 // dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
 // Error in dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE,  :
 //   unused arguments (bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE)
+
+
+// here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
+  // Changes in version 3.0     
+
+  // - Moved edgeR bTagwise parameter to $config option
+  // - Remove normalization options bSubControl, bFullLibrarySize, filter, and filterFun from dba.analyze(), now set in dba.normalize().
+  // - dba.normalize(): is a new function; - bSubControl default depend on presence of Greylist
+  // - Default for bUseSummarizeOverlaps in dba.count is now TRUE
+  // 
+  // 	The previous methods for modelling are maintained for backward
+  // 	compatibility, however they are not the default.  To repeat
+  // 	earlier analyses, dba.contrast() must be called explicitly with
+  // 	design=FALSE. See ?DiffBind3 for more information.
+  // 
+  //   The default mode for dba.count() is now to center around
+  //   summits (resulting in 401bp intervals).  To to avoid
+  //   recentering around summits as was the previous default, set
+  //   summits=FALSE (or to a more appropriate value).
+  // 
+  //   Normalization options have been moved from dba.analyze() to the
+  //   new interface function dba.normalize(). Any non-default
+  //   normalization options must be specified using dba.normalize().
+  	
+// from the manuel:
+//   2. bFullLibrarySize: This is now part of the library parameter for dba.normalize . li
+// brary=DBA_LIBSIZE_FULL is equivalent to bFullLibrarySize=TRUE , and library=DBA_LIBSIZE_PEAKREADS
+// is equivalent to bFullLibrarySize=FALSE .
+
+// from the R help:
+// DBA_LIBSIZE_FULL: Full library size (all reads in library)
+// DBA_LIBSIZE_PEAKREADS: Library size is Reads in Peaks
+
 
 // rtracklayer::export(promoters, 'promoters.bed')
 
