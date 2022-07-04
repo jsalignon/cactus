@@ -1,5 +1,15 @@
 
 
+cactus_dir=~/workspace/cactus
+singularity_dir=~/workspace/singularity_containers
+
+get_test_datasets_dir=$cactus_dir/software/get_test_datasets
+samples_ids_dir=$get_test_datasets_dir/samples_ids
+test_datasets_dir=$cactus_dir/test_datasets
+
+export NXF_SINGULARITY_CACHEDIR=${singularity_dir}
+
+
 ##############################################
 ### Converting GSM ids to SRR ids
 ##############################################
@@ -9,18 +19,17 @@
 # however this works only with SRA ids not GEO ids (because there is only a function to convert SRA its to ENA ids not from GEO ids in fetchngs) therefore we need to convert our GEO ids.
 # this conversion was done using the entrez-direct API via a BioContainer
 
-singularity_dir="/home/jersal/workspace/singularity_containers"
 
 cd $singularity_dir
 singularity pull https://depot.galaxyproject.org/singularity/entrez-direct:16.2--he881be0_1
 
 gsm_to_srr (){
   specie=$1
-  my_gsm_ids="$(cat samples_ids/gsm_accession/gsm_$specie.txt | awk '{print}' ORS=' OR ' RS='\r\n' )"
-  singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 esearch -db sra -query "$my_gsm_ids" | singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 efetch -format runinfo | cut -d ',' -f 1 - | grep -v 'Run' - > "samples_ids/srr_accession/srr_$specie.txt"
+  my_gsm_ids="$(cat gsm_accession/gsm_$specie.txt | awk '{print}' ORS=' OR ' RS='\r\n' )"
+  singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 esearch -db sra -query "$my_gsm_ids" | singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 efetch -format runinfo | cut -d ',' -f 1 - | grep -v 'Run' - > "srr_accession/srr_$specie.txt"
 }
 
-cd /home/jersal/workspace/cactus_test_datasets
+cd $samples_ids_dir
 gsm_to_srr worm
 gsm_to_srr human
 gsm_to_srr mice
@@ -47,16 +56,44 @@ make_fastq_info_file (){
 
 
 
+
+## making the run configuration file
+
+cd $test_datasets_dir
+
+cat > run_custom.config << EOL
+
+params {
+
+	use_input_control = true
+  
+  save_bed_type = 'all'
+
+	fdr_for_splitting_subsets = [ 0.2, 1.3 ] // setting -log10 FDR thresholds 
+
+}
+
+EOL
+
+
+
+
+cd $test_datasets_dir
+
+
 ##############################################
 ### Human (GSE98758)
 ##############################################
 
 specie="human"
 prepro_dir="preprocessing/${specie}"
-specie_dir="specie/${specie}"
+
+mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
+cp run_custom.config $specie/conf
+
 
 # downloading our fastq samples of interest and subsampling them
-nextflow run nf-core/fetchngs --input "samples_ids/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 --force_sratools_download 
+nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 --force_sratools_download 
 
 # creating the sample_info file
 make_samples_info_file ${prepro_dir}
@@ -69,11 +106,11 @@ rename -v 's/_1.fastq.gz/_R1.fastq.gz/' ${prepro_dir}/fastq/*
 rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 
 # subsampling reads
-nextflow subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
 
 # moving data to appropriate folders
-mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie_dir}/data/atac/
-mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie_dir}/data/mrna/
+mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
+mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
 
 # adding the sample_id column (to edit manually)
 awk 'BEGIN {OFS = "\t"} { \
@@ -94,35 +131,30 @@ make_fastq_info_file ${prepro_dir}
 cat ${prepro_dir}/samplesheet/fastq_info.tsv
 
 # making the fastq design files
-grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie_dir}/design/atac_fastq.tsv
-grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie_dir}/design/mrna_fastq.tsv
-truncate -s -1 ${specie_dir}/design/atac_fastq.tsv
-truncate -s -1 ${specie_dir}/design/mrna_fastq.tsv
-cat ${specie_dir}/design/atac_fastq.tsv
-cat ${specie_dir}/design/mrna_fastq.tsv
+grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/atac_fastq.tsv
+grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/mrna_fastq.tsv
+cat ${specie}/design/atac_fastq.tsv
+cat ${specie}/design/mrna_fastq.tsv
 
 # making the comparison design file
-cat > ${specie_dir}/design/comparisons.tsv <<EOL
+cat > ${specie}/design/comparisons.tsv <<EOL
 ssrp1 ctl
 supt16h ctl
 ssrp1 supt16h
 EOL
-truncate -s -1 ${specie_dir}/design/comparisons.tsv
 
 # making the groups design file
-cat > ${specie_dir}/design/groups.tsv << EOL
+cat > ${specie}/design/groups.tsv << EOL
 all ssrp1_vs_ctl supt16h_vs_ctl ssrp1_vs_supt16h
 ctl ssrp1_vs_ctl supt16h_vs_ctl
 supt16h supt16h_vs_ctl ssrp1_vs_supt16h
 EOL
-truncate -s -1 ${specie_dir}/design/groups.tsv
 
 # regions to remove
-cat > ${specie_dir}/design/regions_to_remove.tsv << EOL
+cat > ${specie}/design/regions_to_remove.tsv << EOL
 ssrp1 ssrp1->chr11:57,325,986-57,335,892
 supt16h supt16h->chr14:21,351,476-21,384,019
 EOL
-truncate -s -1 ${specie_dir}/design/regions_to_remove.tsv
 
 
 ##############################################
@@ -131,12 +163,15 @@ truncate -s -1 ${specie_dir}/design/regions_to_remove.tsv
 
 specie="worm"
 prepro_dir="preprocessing/${specie}"
-specie_dir="specie/${specie}"
+
+mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
+cp run_custom.config $specie/conf
+
 
 # downloading our fastq samples of interest and subsampling them
 # nextflow run nf-core/fetchngs --input samples_id/sra_accession/sra_acc_worm.txt --outdir preprocessing/worm -profile singularity -r 1.6 -resume
 # nextflow run nf-core/fetchngs --input samples_ids/gsm_accession/gsm_worm.txt --outdir preprocessing/worm -profile singularity -r 1.6  --force_sratools_download 
-nextflow run nf-core/fetchngs --input "samples_ids/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
+nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
 
 # creating a simple reference file
 make_samples_info_file ${prepro_dir}
@@ -150,11 +185,11 @@ rename -v 's/_1.fastq.gz/_R1.fastq.gz/' ${prepro_dir}/fastq/*
 rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 
 # subsampling reads
-nextflow subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
 
 # moving data to appropriate folders
-mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie_dir}/data/atac/
-mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie_dir}/data/mrna/
+mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
+mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
 
 # adding the sample_id column (to edit manually)
 awk 'BEGIN {OFS = "\t"} { \
@@ -170,28 +205,28 @@ make_fastq_info_file ${prepro_dir}
 cat ${prepro_dir}/samplesheet/fastq_info.tsv
 
 # making the fastq design files
-grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie_dir}/design/atac_fastq.tsv
-grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie_dir}/design/mrna_fastq.tsv
+grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/atac_fastq.tsv
+grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/mrna_fastq.tsv
 
-cp ${specie_dir}/design/atac_fastq.tsv ${specie_dir}/design/atac_fastq__with_input.tsv
-grep -v input ${specie_dir}/design/atac_fastq__with_input.tsv > ${specie_dir}/design/atac_fastq__without_input.tsv
+cp ${specie}/design/atac_fastq.tsv ${specie}/design/atac_fastq__with_input.tsv
+grep -v input ${specie}/design/atac_fastq__with_input.tsv > ${specie}/design/atac_fastq__without_input.tsv
 
 # making the comparison design file
-cat > ${specie_dir}/design/comparisons.tsv <<EOL
+cat > ${specie}/design/comparisons.tsv <<EOL
 hmg4 ctl
 spt16 ctl
 hmg4 spt16
 EOL
 
 # making the groups design file
-cat > ${specie_dir}/design/groups.tsv << EOL
+cat > ${specie}/design/groups.tsv << EOL
 all hmg4_vs_ctl spt16_vs_ctl hmg4_vs_spt16
 ctl hmg4_vs_ctl spt16_vs_ctl
 spt16 spt16_vs_ctl hmg4_vs_spt16
 EOL
 
 # regions to remove
-cat > ${specie_dir}/design/regions_to_remove.tsv << EOL
+cat > ${specie}/design/regions_to_remove.tsv << EOL
 hmg4 Hmg4->chrIII:7,379,143-7,381,596
 spt16 Spt16->chrI:10,789,130-10,793,152
 EOL
@@ -203,10 +238,13 @@ EOL
 
 specie="mice"
 prepro_dir="preprocessing/${specie}"
-specie_dir="specie/${specie}"
+
+mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
+cp run_custom.config $specie/conf
+
 
 # downloading our fastq samples of interest and subsampling them
-nextflow run nf-core/fetchngs --input "samples_ids/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
+nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
 
 # creating a simple reference file
 make_samples_info_file ${prepro_dir}
@@ -221,11 +259,11 @@ rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 ls ${prepro_dir}/fastq
 
 # subsampling reads
-nextflow subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
 
 # moving data to appropriate folders
-mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie_dir}/data/atac/
-mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie_dir}/data/mrna/
+mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
+mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
 
 # adding the sample_id column (to edit manually)
 awk 'BEGIN {OFS = "\t"} { \
@@ -242,30 +280,26 @@ make_fastq_info_file ${prepro_dir}
 cat ${prepro_dir}/samplesheet/fastq_info.tsv
 
 # making the fastq design files
-grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie_dir}/design/atac_fastq.tsv
-grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie_dir}/design/mrna_fastq.tsv
-truncate -s -1 ${specie_dir}/design/atac_fastq.tsv
-truncate -s -1 ${specie_dir}/design/mrna_fastq.tsv
+grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/atac_fastq.tsv
+grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/mrna_fastq.tsv
 
 # making the comparison design file
-cat > ${specie_dir}/design/comparisons.tsv <<EOL
+cat > ${specie}/design/comparisons.tsv <<EOL
 yng_kid old_kid
 yng_liv old_liv
 yng_kid yng_liv
 old_kid old_liv
 EOL
-truncate -s -1 ${specie_dir}/design/comparisons.tsv
 
 # making the groups design file
-cat > ${specie_dir}/design/groups.tsv << EOL
+cat > ${specie}/design/groups.tsv << EOL
 all yng_kid_vs_old_kid yng_liv_vs_old_liv yng_kid_vs_yng_liv old_kid_vs_old_liv
 age yng_kid_vs_old_kid yng_liv_vs_old_liv 
 tissue yng_kid_vs_yng_liv old_kid_vs_old_liv
 EOL
-truncate -s -1 ${specie_dir}/design/groups.tsv
 
 # regions to remove
-touch ${specie_dir}/design/regions_to_remove.tsv
+touch ${specie}/design/regions_to_remove.tsv
 
 
 ##############################################
@@ -274,10 +308,12 @@ touch ${specie_dir}/design/regions_to_remove.tsv
 
 specie="fly"
 prepro_dir="preprocessing/${specie}"
-specie_dir="specie/${specie}"
+
+mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
+cp run_custom.config $specie/conf
 
 # downloading our fastq samples of interest and subsampling them
-nextflow run nf-core/fetchngs --input "samples_ids/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
+nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
 
 # creating a simple reference file
 make_samples_info_file ${prepro_dir}
@@ -292,11 +328,11 @@ rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 ls ${prepro_dir}/fastq
 
 # subsampling reads
-nextflow subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
 
 # moving data to appropriate folders
-mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie_dir}/data/atac/
-mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie_dir}/data/mrna/
+mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
+mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
 
 # adding the sample_id column (to edit manually)
 awk 'BEGIN {OFS = "\t"} { \
@@ -313,13 +349,11 @@ make_fastq_info_file ${prepro_dir}
 cat ${prepro_dir}/samplesheet/fastq_info.tsv
 
 # making the fastq design files
-grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie_dir}/design/atac_fastq.tsv
-grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie_dir}/design/mrna_fastq.tsv
-truncate -s -1 ${specie_dir}/design/atac_fastq.tsv
-truncate -s -1 ${specie_dir}/design/mrna_fastq.tsv
+grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/atac_fastq.tsv
+grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/mrna_fastq.tsv
 
 # making the comparison design file
-cat > ${specie_dir}/design/comparisons.tsv <<EOL
+cat > ${specie}/design/comparisons.tsv <<EOL
 gaf ctl
 b170 ctl
 n301 ctl
@@ -327,32 +361,22 @@ n301b170 ctl
 b170 n301b170
 n301 n301b170
 EOL
-truncate -s -1 ${specie_dir}/design/comparisons.tsv
 
 # making the groups design file
-cat > ${specie_dir}/design/groups.tsv << EOL
+cat > ${specie}/design/groups.tsv << EOL
 all gaf_vs_ctl b170_vs_ctl n301_vs_ctl n301b170_vs_ctl b170_vs_n301b170 n301_vs_n301b170
 ctl gaf_vs_ctl b170_vs_ctl n301_vs_ctl n301b170_vs_ctl
 n301b170 n301b170_vs_ctl b170_vs_n301b170 n301_vs_n301b170
 EOL
-truncate -s -1 ${specie_dir}/design/groups.tsv
 
 # regions to remove
-cat > ${specie_dir}/design/regions_to_remove.tsv << EOL
+cat > ${specie}/design/regions_to_remove.tsv << EOL
 gaf gaf->3L:14,747,929-14,761,049
 b170 bap170->2R:6,636,512-6,642,358
 n301 nurf301->3L:233,926-246,912
 n301b170 bap170->2R:6,636,512-6,642,358
 n301b170 nurf301->3L:233,926-246,912
 EOL
-truncate -s -1 ${specie_dir}/design/regions_to_remove.tsv
-
-
-##############################################
-### Copying the datasets to another folder to test them 
-##############################################
-
-cp -r specie/* ../test_test_datasets/
 
 
 
