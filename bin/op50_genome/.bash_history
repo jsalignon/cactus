@@ -1,3 +1,0 @@
-ls
-reformat.sh 
-exit
