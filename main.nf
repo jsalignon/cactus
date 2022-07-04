@@ -3821,9 +3821,11 @@ process save_excel_tables {
       if('pt_da' %in% nms){
         class(df$pt_da) = 'percentage'
         class(df$pt_nda) = 'percentage'
-        L2OR_NA_up   = which(df$L2OR == 'Inf')
-        L2OR_NA_down = which(df$L2OR == '-Inf')
-        df$L2OR[abs(df$L2OR) == 'Inf'] = NA
+        L2OR_Inf_up   = which(df$L2OR == 'Inf')
+        L2OR_Inf_down = which(df$L2OR == '-Inf')
+        L2OR_not_Inf  = which(abs(df$L2OR) != 'Inf')
+        df$L2OR[L2OR_Inf_up]   = 1e99
+        df$L2OR[L2OR_Inf_down] = -1e99
       }
 
       names_colors  = c( 'filter',  'target',    'fold',  'pvalue',   'da',      'nda',    'other',    'gene', 'coordinate')
@@ -3885,9 +3887,12 @@ process save_excel_tables {
             conditionalFormatting(wb, sheet, cols = col, rows = rows[-1], type = 'colourScale', style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), rule = c(min(vec), 0, max(vec)))
           }
           if(col_nm == 'L2OR') {
-            if(!all(is.na(vec))) conditionalFormatting(wb, sheet, cols = col, rows = rows[-1], type = 'colourScale', style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), rule = c(min(vec, na.rm = T), 0, max(vec, na.rm = T)))
-            if(length(L2OR_NA_up) > 0) addStyle(wb, sheet, createStyle(fgFill = c(lightblue = '#ff7c80')), rows = L2OR_NA_up + 1, col)
-            if(length(L2OR_NA_down) > 0) addStyle(wb, sheet, createStyle(fgFill = c(lightred = '#6699ff')), rows = L2OR_NA_down + 1, col)
+            if(length(L2OR_not_Inf) > 0) {
+              vec1 = vec[L2OR_not_Inf] %>% .[!is.na(.)]
+              conditionalFormatting(wb, sheet, cols = col, rows = L2OR_not_Inf + 1, type = 'colourScale', style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), rule = c(min(vec1), 0, max(vec1)))
+            }
+            if(length(L2OR_Inf_up) > 0) addStyle(wb, sheet, createStyle(fgFill = c(lightblue = '#ff7c80'), halign = 'center', valign = 'center'), rows = L2OR_Inf_up + 1, col)
+            if(length(L2OR_Inf_down) > 0) addStyle(wb, sheet, createStyle(fgFill = c(lightred = '#6699ff'), halign = 'center', valign = 'center'), rows = L2OR_Inf_down + 1, col)
           }
         }
       }
