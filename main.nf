@@ -2365,7 +2365,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_Other_plot_for_merging_pdfs.g
 process plotting_differential_accessibility_results {
   tag "${COMP}"
 
-  container = params.differential_abundance
+  // container = params.differential_abundance
 
   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
          if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
@@ -2420,31 +2420,30 @@ process plotting_differential_accessibility_results {
 
       ##### PCA plots
 
-      # # the pca is computed using the default parameters in the Diffbind functions Diffbind::dba.plotPCA and DiffBind:::pv.plotPCA
-      # prcomp1 <- DiffBind:::pv.pcmask(dbo, nrow(dbo$binding), cor = F, bLog = T)$pc
-      # rownames(prcomp1$x) = res %>% dplyr::arrange(peak_id) %>% .$gene_name
+      source('/home/jersal/workspace/cactus/software/bin/functions_plot_volcano_PCA.R')
+      prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), cor = F, bLog = T)$pc
+      rownames(prcomp1$x) = res %>% dplyr::arrange(peak_id) %>% .$gene_name
+      
+      lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
+      lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
 
-      # lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
-      # lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
+      pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
+        make_4_plots(lp_1_2)
+      dev.off()
 
-      # pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
-      #   make_4_plots(lp_1_2)
-      # dev.off()
-
-      # pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
-      #   make_4_plots(lp_3_4)
-      # dev.off()
+      pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
+        make_4_plots(lp_3_4)
+      dev.off()
 
 
       ##### other plots
 
       pdf(paste0(COMP, '__ATAC_other_plots.pdf'))
-          # dba.plotMA(dbo, bNormalized = T)
+          dba.plotMA(dbo, bNormalized = T)
           dba.plotHeatmap(dbo, main = 'all reads')
           first_2_replicates = sort(c(which(dbo$masks$Replicate.1), which(dbo$masks$Replicate.2)))
           dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
       dev.off()
-
 
 
   '''

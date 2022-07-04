@@ -96,3 +96,51 @@ make_4_plots <- function(lp){
 
 
 
+
+
+
+DiffBind__pv_pcmask__custom <- 
+function (pv, numSites, mask, sites, removeComps, cor = FALSE,
+    bLog = TRUE)
+{
+    if (missing(numSites))
+        numSites <- nrow(pv$binding)
+    if (is.null(numSites))
+        numSites <- nrow(pv$binding)
+    numSites <- min(numSites, nrow(pv$binding))
+    if (missing(sites))
+        sites <- 1:numSites
+    if (is.null(sites))
+        sites <- 1:numSites
+    if (missing(mask))
+        mask <- rep(TRUE, ncol(pv$class))
+    for (i in which(mask)) {
+        if (nrow(pv$peaks[[i]]) == 0) {
+            mask[i] <- FALSE
+        }
+    }
+    if (sum(mask) < 2) {
+        stop("Need at least two samples for PCA.", call. = FALSE)
+    }
+    res <- NULL
+    res$class <- pv$class
+    pv$values <- pv$binding[sites, c(FALSE, FALSE, FALSE, mask)]
+    active <- apply(pv$values, 1, function(x) DiffBind:::pv.activefun(x))
+    numSites <- min(numSites, sum(active))
+    pv$values <- pv$values[active, ][1:numSites, ]
+    if (!missing(removeComps)) {
+        pv$values <- DiffBind:::pv.removeComp(pv$values, numRemove = removeComps)
+    }
+    if (bLog) {
+        if (max(pv$values) > 1) {
+            pv$values[pv$values <= 1] <- 1
+            pv$values <- log2(pv$values)
+        }
+    }
+    if (nrow(pv$values) >= sum(mask)) {
+        res$pc <- prcomp((pv$values))
+    }
+    res$mask <- mask
+    return(res)
+}
+
