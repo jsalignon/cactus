@@ -3706,18 +3706,20 @@ process formatting_individual_tables {
         fdr_filter_tables_names = read_from_nextflow('!{params.fdr_filter_tables_names}')
 
 
-        # reading and formatting table
+        # reading
         df = readRDS(rds_file)
-        df %<>% get_formatted_table
 
-        # filtering table
+        # filtering
         data_type1 = data_type
         if(grepl('func_anno', data_type)) data_type1 = 'func_anno'
         names(fdr_filter_tables) = fdr_filter_tables_names
         FDR_filter = fdr_filter_tables[data_type1]
         df = subset(df, padj <= FDR_filter)
 
-        # saving table
+        # formating
+        df %<>% get_formatted_table
+        
+        # saving
         if(nrow(df) > 0) {
           output_file_name = paste0(gsub('.rds', '', rds_file), '.csv')
           write.csv(df, output_file_name, row.names = F)
