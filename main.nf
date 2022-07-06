@@ -1604,7 +1604,7 @@ comparisons_files_for_merging
 process ATAC__removing_specific_regions {
   tag "${COMP}"
 
-  // container = params.samtools_bedtools_perl
+  container = params.samtools_bedtools_perl
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
 
@@ -1632,7 +1632,7 @@ process ATAC__removing_specific_regions {
       
       for FILE in ${BED_FILES}
       do
-        CUR_NAME=`basename -s ".bed" $FILE`
+        CUR_NAME=`basename $FILE ".bed"`
         intersectBed -v -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_filtered.bed"
       done
       
@@ -1683,6 +1683,7 @@ Reads_and_peaks_for_diffbind_1.without_input_control
 process ATAC__differential_abundance_analysis {
   tag "${COMP}"
 
+  // container = params.multi_bioconductor
   // container = params.differential_abundance
   // Error in loadNamespace(x) : there is no package called ‘edgeR’
 
@@ -2156,7 +2157,7 @@ Kallisto_out_for_sleuth1
 process mRNA__differential_abundance_analysis {
     tag "${COMP}"
 
-    // container = params.differential_abundance
+    container = params.sleuth
 
     publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
          if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) "mRNA__all_genes__rsleuth/${it}"
@@ -2274,7 +2275,7 @@ process plotting_differential_gene_expression_results {
     }
 
 
-    // container = params.differential_abundance
+    container = params.sleuth
 
     input:
       val out_path from Channel.value('2_Differential_Abundance')
@@ -2366,6 +2367,7 @@ process plotting_differential_accessibility_results {
   tag "${COMP}"
 
   // container = params.differential_abundance
+  // container = params.multi_bioconductor
 
   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
          if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
@@ -3928,6 +3930,7 @@ Exporting_to_Excel_Channel = Exporting_to_Excel_Channel.mix(Merged_table_for_Exc
 process save_excel_tables {
   tag "${csv_file}"
 
+  // container = params.openxlsx => sh: : Permission denied ; Error: zipping up workbook failed. Please make sure Rtools is installed or a zip application is available to R.
   container = params.differential_abundance
 
   publishDir path: "${out_dir}/${out_path}", mode: "${pub_mode}", enabled: params.save_tables_as_excel
@@ -3944,7 +3947,6 @@ process save_excel_tables {
   '''
       #!/usr/bin/env Rscript
 
-      library(magrittr)
       library(openxlsx)
 
       csv_file = '!{csv_file}'
@@ -3981,7 +3983,7 @@ process save_excel_tables {
 
       get_nms_type <- function(nms){
         nms_coordinates = c('chr','start', 'end',	'width', 'strand')
-        nms_coordinates %<>% c(., paste0('gene_', .))
+        nms_coordinates = c(nms_coordinates, paste0('gene_', nms_coordinates))
 
         if(nms %in% c('GE', 'ET', 'PF', 'FC', 'FDR', 'COMP')) return('filter') else
         if(nms %in% c('gene_name', 'gene_id', 'entrez_id'))   return('gene') else
@@ -4010,7 +4012,7 @@ process save_excel_tables {
       widths = apply(df, 2, function(x) {
         if(all(is.na(x))) return(5)
         width = max(nchar(x), na.rm = T) + 2.5
-        width %<>% ifelse(. > excel_max_width, excel_max_width, .)
+        width = ifelse(width > excel_max_width, excel_max_width, width)
         return(width)
       })
       setColWidths(wb, sheet, cols, widths = widths)
@@ -4032,7 +4034,8 @@ process save_excel_tables {
           }
           if(col_nm == 'L2OR') {
             if(length(L2OR_not_Inf) > 0) {
-              vec1 = vec[L2OR_not_Inf] %>% .[!is.na(.)]
+              vec1 = vec[L2OR_not_Inf]
+              vec1 = vec1[!is.na(vec1)]
               conditionalFormatting(wb, sheet, cols = col, rows = L2OR_not_Inf + 1, type = 'colourScale', style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), rule = c(min(vec1), 0, max(vec1)))
             }
             if(length(L2OR_Inf_up) > 0) addStyle(wb, sheet, createStyle(fgFill = c(lightblue = '#ff7c80'), halign = 'center', valign = 'center'), rows = L2OR_Inf_up + 1, col)
