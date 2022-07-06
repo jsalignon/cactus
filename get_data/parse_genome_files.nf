@@ -1,241 +1,412 @@
 
-// to run this script, use these commands:
-// ATAC=/home/jersal/lluis/atac
-// cd $ATAC/data/nextflow
-// nextflow run $ATAC/src/initialization/generate_necessary_files.nf -dump-channels genomes -ansi-log false 
+params.ensembl_release = '105'
+params.number_of_cores = 8   // how to initialize if missing?
+number_of_cores = params.number_of_cores
+
+channel_species = Channel.from( [
+	['worm',  'caenorhabditis_elegans',  'Ce', 'ce11', 'WBcel235', 'toplevel' ],
+	['fly',   'drosophila_melanogaster', 'Dm', 'dm6',  'BDGP6.32', 'toplevel' ],
+	['mouse', 'mus_musculus',            'Mm', 'mm39', 'GRCm39',   'primary_assembly' ],
+  ['human', 'homo_sapiens',            'Hs', 'hg38', 'GRCh38',   'primary_assembly' ]
+]) 
+	.map { it[0, 1, 4, 5]}
+	.set{ channel_species_1 }
+
+// checking the latest assembly version:
+// http://ftp.ensembl.org/pub/release-105/gff3/mus_musculus/
+// http://ftp.ensembl.org/pub/release-105/gff3/homo_sapiens/
 
 
-cactusdir = params.cactusdir
-pblm = 'link'
-genomedir = "${cactusdir}/data/${params.init_version}/genomes"
-ncores = 8 // for building bowtie2 indexes
+// channel_species = 
+// 	Channel.from( [ 'worm', 'fly', 'mouse', 'human' ] )
+// 	.flatten()
+// 	.map{ [ it, file("${it}/genome/annotation/annotation.gff3"), file("${it}/genome/sequence/genome.fa") ].flatten() }
+// 	.dump(tag:"species")
+// 	.into{ channel_species_1 ; channel_species_2 ; channel_species_3 ; channel_species_4 }
 
-// channel_genomes = Channel.from( ["WBcel235", "BDGP6.28", "GRCm38", "GRCh38"] )
-channel_genomes = Channel.from( ["WBcel235", "BDGP6.28"] ) 
 
-channel_genomes
-	// format: genome
-	.map{ [ it, "${genomedir}/${it}" ] }
-	// format: genome, data_folder_path
-	.map{ [ it[0], file("${it[1]}/annotation/anno.gff3"), file("${it[1]}/sequence/genome.fa") ].flatten() }
-	.dump(tag:"genomes")
-	// format: genome, anno_file, genome_file
-	.into{ channel_genomes_1 ; channel_genomes_2 ; channel_genomes_3 ; channel_genomes_4 }
+process get_fasta_and_gff {
+	tag "${specie}"
+
+	container = params.samtools_bedtools_perl
+
+	publishDir path: "${specie}/genome", mode: 'link', saveAs: {
+    if (it.indexOf(".gff3") > 0) "annotation/${it}"
+		else if (it.indexOf(".fa") > 0) "sequence/${it}"
+    else if (it.indexOf(".txt") > 0) "${it}"
+  }
+
+	input:
+		set specie, specie_long, genome, assembly from channel_species_1
+
+	output:
+		set specie, file('genome.fa'), file('annotation.gff3') into Genome_and_annotation
+
+	shell:
+	'''
+		
+	specie='!{specie}'
+	specie_long='!{specie_long}'
+	genome='!{genome}'
+	assembly='!{assembly}'
+	release='!{params.ensembl_release}'
 	
-
-
-process filtering_annotation_file {
-  tag "${genome}"
-
-  // container = "${cactusdir}/bin/containers_v2/bioawk:1.0--hed695b0_5"
-
-  publishDir path: "${genomedir}/${genome}/annotation", mode: "${pblm}"
-
-  input:
-    set genome, file(gff3), file(fasta) from channel_genomes_1
-
-  output:
-		set genome, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into channel_gff3_filtered
-
-  shell:
-  '''
-		
-		grep -i protein_coding !{gff3} | awk  -F"\t"  '{if($3 == "gene") print $0}' - > anno_genes_only.gff3
-		
-		grep -viE "pseudogen|ncRNA" !{gff3} > gff3_without_pseudogenes_and_ncRNA.gff3
-		
-		
-  '''
-
-}
-
-// Notes
-
-// grep -i protein_coding ${gff} > protein_coding_mRNA_and_genes.gff3
-
-// anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
-
-// protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
-
-
-process generating_bowtie2_indexes {
-  tag "${genome}"
-
-  container = params.bowtie2_samtools_bedtools
-
-  publishDir path: "${genomedir}/${genome}/sequence/bowtie2_indexes", mode: "${pblm}"
-
-  input:
-    set genome, file(gff3), file(fasta) from channel_genomes_2
-
-  output:
-		file("*.bt2")
-
-  shell:
-  '''
-		
-		bowtie2-build --threads !{ncores} !{fasta} genome
-		
-		
-  '''
-
-}
-
- 
-process indexing_genomes {
-  tag "${genome}"
-
-  container = params.bowtie2_samtools_bedtools
-
-  publishDir path: "${genomedir}/${genome}/sequence", mode: "${pblm}"
-
-  input:
-    set genome, file(gff3), file(fasta) from channel_genomes_3
-
-  output:
-		set genome, file('genome.fa.fai') into fasta_fai
-
-  shell:
-  '''
-		
-		samtools faidx !{fasta}
-		
-		
-  '''
-
-}
-
-channel_genomes_4
-	.join(fasta_fai)
-	.set{ channel_fasta_fai_gff3 }
-
-
-
-process getting_chromosome_length_and_transcriptome {
-  tag "${genome}"
-
-  publishDir path: "${genomedir}/${genome}/sequence", mode: "${pblm}"
-
-  input:
-    set genome, file(gff3), file(fasta), file(fasta_indexes) from channel_fasta_fai_gff3
-
-  output:
-    file('chromosome_size.txt')
-		set genome, file('transcriptome.fa') into transcriptome_for_building_kallisto_indexes
-
-  script:
-  """
-      cut -f1-2 ${fasta_indexes} > chromosome_size.txt
-      gffread -C ${gff3} -g ${fasta} -w transcriptome.fa
-  """
-
-}
-
-
-
-
-
-process generating_kallisto_transcriptome_indexes {
-  tag "${genome}"
-
-  container = params.kallisto
-
-  publishDir path: "${genomedir}/${genome}/sequence", mode: "${pblm}"
-
-  input:
-		set genome, file(transcriptome) from transcriptome_for_building_kallisto_indexes
-
-  output:
-    file('transcriptome_kallisto_index')
-
-  script:
-  """
-      kallisto index --make-unique -i transcriptome_kallisto_index ${transcriptome}
-  """
-
-}
-
-
-process getting_R_annotation_files {
-  tag "${genome}"
-
-  // container = params.multiple_R_packages // => the makeTxDbFromGFF function fail in the container...
-
-  publishDir path: "${genomedir}/${genome}/annotation", mode: "${pblm}"
-
-  input:
-		set genome, file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from channel_gff3_filtered
-
-  output:
-    file('*')
-
-  shell:
-  '''
-	  
-		#!/usr/bin/env Rscript
+	URL=ftp://ftp.ensembl.org/pub/release-$release
 	
-		library(magrittr)
-		library(AnnotationDbi)
-		
-		source('!{cactusdir}/src/R_analysis/general_functions.R')
-		
-		gff3_genes_only = '!{gff3_genes_only}'
-		gff3_without_pseudogenes_and_ncRNA = '!{gff3_without_pseudogenes_and_ncRNA}'
-		
-		genome = '!{genome}'
-		
-		genomedir = '!{genomedir}'
-		
-		specie_initial = switch(genome, 
-			WBcel235 = 'ce', 
-			BDGP6.28 = 'dm', 
-			GRCm38 = 'mm', 
-			GRCh38 = 'hs'
-		)
-		
-		orgdb = AnnotationDbi::loadDb(paste0(genomedir, '/../org_db/org_db_', specie_initial, '.sqlite'))
-
-		# export annotation dataframe
-		anno_df = rtracklayer::readGFF(gff3_genes_only) 
-		entrez_id = mapIds(orgdb, keys = anno_df$gene_id,  column = 'ENTREZID', keytype = 'ENSEMBL', multiVals = 'first')
-		anno_df %<>% dplyr::rename(gene_name = Name)
-		anno_df %<>% dplyr::mutate(width = end - start)
-		anno_df$entrez_id = entrez_id
-		anno_df$chr = as.character(anno_df$seqid)
-		anno_df %<>% dplyr::select(chr, start, end, width, strand, gene_name, gene_id, entrez_id)
-		saveRDS(anno_df, 'df_genes_metadata.rds', version = 2)
-		
-		# export txdb
-		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_without_pseudogenes_and_ncRNA)
-		AnnotationDbi::saveDb(txdb, file="txdb_without_pseudogenes_and_ncRNA.sqlite")
-		
-		# export gene vs transcripts 
-		df_genes_transcripts = select(txdb, keys = keys(txdb), columns = c('GENEID', 'TXNAME'), keytype = 'GENEID')
-		saveRDS(df_genes_transcripts, 'df_genes_transcripts.rds', version = 2)
-				
-		# extract promoters
-		promoters = GenomicFeatures::promoters(GenomicFeatures::genes(txdb), upstream = 1500, downstream = 500)
-		
-		# export promoters as dataframe
-		promoters_df = as.data.frame(promoters, stringsAsFactors = F)
-		promoters_df$start[promoters_df$start < 0] = 0
-		promoters_df$end[promoters_df$end < 0] = 0
-		promoters_df %<>% dplyr::rename(gene_name = gene_id)
-		promoters_df %<>% dplyr::inner_join(anno_df %>% dplyr::select(gene_id, gene_name, entrez_id), by = 'gene_name')
-		promoters_df %<>% dplyr::arrange(seqnames, start)
-		promoters_df %<>% dplyr::rename(chr = seqnames)
-		saveRDS(promoters_df, file = 'promoters_df.rds', version = 2)
-		
-		# export promoters as bed file
-		promoters_df1 = promoters_df
-		promoters_df1$score = 0
-		promoters_df1 %<>% dplyr::select(chr, start, end, gene_name, score, strand, gene_id)
-		export_df_to_bed(promoters_df1, 'promoters.bed')
+	gff3_file=${specie_long^}.$genome.$release.gff3.gz
+	fasta_file=${specie_long^}.$genome.dna_sm.$assembly.fa.gz
+	
+	wget -O annotation.gff3.gz $URL/gff3/$specie_long/$gff3_file 
+	gunzip annotation.gff3.gz 
+	
+	wget -O genome.fa.gz $URL/fasta/$specie_long/dna/$fasta_file 
+	gunzip genome.fa.gz
+	
+	echo "gff3 file : $gff3_file" > $out_folder/README.txt
+	echo "fasta file: $fasta_file" >> $out_folder/README.txt
 		
 		
-  '''
-
+	'''
 }
+
+
+// process filtering_annotation_file {
+//   tag "${specie}"
+// 
+//   container = params.samtools_bedtools_perl
+// 
+//   publishDir path: "${specie}/genome/annotation", mode: 'link'
+// 
+//   input:
+//     set specie, file(gff3), file(fasta) from channel_species_1
+// 
+//   output:
+// 		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into channel_gff3_filtered
+// 
+//   shell:
+//   '''
+// 
+// 		grep -i protein_coding !{gff3} | awk  -F"\t"  '{if($3 == "gene") print $0}' - > anno_genes_only.gff3
+// 
+// 		grep -viE "pseudogen|ncRNA" !{gff3} > gff3_without_pseudogenes_and_ncRNA.gff3
+// 
+// 
+//   '''
+// 
+// }
+// 
+// // Notes
+// 
+// // grep -i protein_coding ${gff} > protein_coding_mRNA_and_genes.gff3
+// 
+// // anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
+// 
+// // protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
+// 
+// 
+// process generating_bowtie2_indexes {
+//   tag "${specie}"
+// 
+//   container = params.bowtie2_samtools
+// 
+//   publishDir path: "${"${specie}/genome/sequence"}/bowtie2_indexes", mode: 'link'
+// 
+//   input:
+//     set specie, file(gff3), file(fasta) from channel_species_2
+// 
+//   output:
+// 		file("*.bt2")
+// 
+//   shell:
+//   '''
+// 
+// 		bowtie2-build --threads !{number_of_cores} !{fasta} genome
+// 
+// 
+//   '''
+// 
+// }
+// 
+// 
+// process indexing_genomes {
+//   tag "${specie}"
+// 
+//   container = params.bowtie2_samtools
+// 
+//   publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+// 
+//   input:
+//     set specie, file(gff3), file(fasta) from channel_species_3
+// 
+//   output:
+// 		set specie, file('genome.fa.fai') into fasta_fai
+// 
+//   shell:
+//   '''
+// 
+// 		samtools faidx !{fasta}
+// 
+// 
+//   '''
+// 
+// }
+// 
+// channel_species_4
+// 	.join(fasta_fai)
+// 	.set{ channel_fasta_fai_gff3 }
+// 
+// 
+// 
+// process getting_chromosome_length_and_transcriptome {
+//   tag "${specie}"
+// 
+// 	container = params.gffread
+// 
+//   publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+// 
+//   input:
+//     set specie, file(gff3), file(fasta), file(fasta_indexes) from channel_fasta_fai_gff3
+// 
+//   output:
+//     file('chromosome_size.txt')
+// 		set specie, file('transcriptome.fa') into transcriptome_for_building_kallisto_indexes
+// 
+//   script:
+//   """
+//       cut -f1-2 ${fasta_indexes} > chromosome_size.txt
+//       gffread -C ${gff3} -g ${fasta} -w transcriptome.fa
+//   """
+// 
+// }
+// 
+// 
+// 
+// 
+// 
+// process generating_kallisto_transcriptome_indexes {
+//   tag "${specie}"
+// 
+//   container = params.kallisto
+// 
+//   publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+// 
+//   input:
+// 		set specie, file(transcriptome) from transcriptome_for_building_kallisto_indexes
+// 
+//   output:
+//     file('transcriptome_kallisto_index')
+// 
+//   script:
+//   """
+//       kallisto index --make-unique -i transcriptome_kallisto_index ${transcriptome}
+//   """
+// 
+// }
+
+
+
+// process getting_orgdb {
+//   tag "${specie}"
+// 
+//   container = params.annotationhub
+// 
+//   publishDir path: "${specie}/genome/annotation", mode: 'link'
+// 
+//   input:
+// 		set specie, file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from channel_species_2
+// 
+//   output:
+//     file('*')
+// 
+//   shell:
+//   '''
+// 
+// 		#!/usr/bin/env Rscript
+// 
+// 		library(AnnotationHub)
+// 		specie = '!{specie}'
+// 
+// 		specie_initial = switch(specie, 
+// 			worm  = 'Ce', 
+// 			fly   = 'Dm', 
+// 			mouse = 'Mm', 
+// 			human = 'Hs'
+// 		)
+// 
+// 		orgdb_sqlite_file = paste0('org.', specie_initial, '.eg.db.sqlite')
+// 		orgdb <- query(ah, c("OrgDb", "maintainer@bioconductor.org"))[[orgdb_sqlite_file]]
+// 
+// 		orgdb = AnnotationDbi::loadDb(paste0(genomedir, '/../org_db/org_db_', specie_initial, '.sqlite'))
+// 
+// 		orgdb_sqlite_file = paste0('org.', specie_initial, '.eg.db.sqlite')
+// 		// mcols(query(ah, 'OrgDb', '2021-10-08'))[1,] %>% as.data.frame
+// 		// mcols(query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite'))[1,] %>% as.data.frame
+// 		// orgdb = query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite')[[1]]
+// 
+//   '''
+// 
+// }
+
+// https://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html
+
+// singularity shell bioconductor-annotationhub:3.2.0--r41hdfd78af_0
+// R
+// library(AnnotationHub)
+// ah = AnnotationHub()
+// specie_initial = 'Ce'
+// orgdb_sqlite_file = paste0('org.', specie_initial, '.eg.db.sqlite')
+// mcols(query(ah, 'OrgDb', '2021-10-08'))[1,] %>% as.data.frame
+// mcols(query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite'))[1,] %>% as.data.frame
+// orgdb = query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite')[[1]]
+
+// mcols(query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite'))[1,] %>% as.data.frame %>% t
+//                    AH95964
+// title              "org.Ce.eg.db.sqlite"
+// dataprovider       "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/"
+// species            "Caenorhabditis elegans"
+// taxonomyid         6239
+// genome             "NCBI genomes"
+// description        "NCBI gene ID based annotations about Caenorhabditis elegans"
+// coordinate_1_based 1
+// maintainer         "Bioconductor Maintainer <maintainer@bioconductor.org>"
+// rdatadateadded     "2021-10-08"
+// preparerclass      "OrgDbFromPkgsImportPreparer"
+// tags               character,3
+// rdataclass         "OrgDb"
+// rdatapath          "ncbi/standard/3.14/org.Ce.eg.db.sqlite"
+// sourceurl          "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/, ftp://ftp.ensembl.org/pub/current_fasta"
+// sourcetype         "NCBI/ensembl"
+
+// ah[ah$dataprovider == 'ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/' & ah$rdataclass == 'OrgDb',]
+// mcols(ah[ah$dataprovider == 'Ensembl', ]) %>% .[nrow(.),] %>% as.data.frame %>% t
+// 
+// mcols(ah[ah$dataprovider == 'Ensembl' & ah$sourcetype == 'FASTA' & , ])
+// 
+// mcols(ah[ah$dataprovider == 'Ensembl' & ah$rdatadateadded == '2021-10-20' & , ])
+// ""
+
+// mcols(ah[ah$dataprovider == 'Ensembl', ])$sourcetype %>% table
+//   FASTA     GTF ensembl
+//   15163   10156    2962
+
+
+// Playing around with this package!
+
+// > mcols(ah[ah$dataprovider == 'Ensembl', ]) %>% .[nrow(.),] %>% as.data.frame %>% t
+//                    AH100303
+// title              "Zosterops_lateralis_melanops.ASM128173v1.ncrna.2bit"
+// dataprovider       "Ensembl"
+// species            "zosterops lateralis_melanops"
+// taxonomyid         1220523
+// genome             "ASM128173v1"
+// description        "TwoBit ncRNA sequence for zosterops lateralis_melanops"
+// coordinate_1_based 1
+// maintainer         "Bioconductor Maintainer <maintainer@bioconductor.org>"
+// rdatadateadded     "2021-10-20"
+// preparerclass      "EnsemblTwoBitPreparer"
+// tags               character,5
+// rdataclass         "TwoBitFile"
+// rdatapath          "ensembl/release-105/fasta/zosterops_lateralis_melanops/ncrna/Zosterops_lateralis_melanops.ASM128173" [truncated]
+// sourceurl          "ftp://ftp.ensembl.org/pub/release-105/fasta/zosterops_lateralis_melanops/ncrna/Zosterops_lateralis_" [truncated]
+// sourcetype         "FASTA"
+
+// > 
+// mcols(ah[ah$dataprovider == 'Ensembl', ]) %>% .[nrow(.),] %>% as.data.frame %>% t
+// 
+// mcols(query(ah, 'ensembl/release-105'))[1, ] %>% as.data.frame %>% t
+// mcols(query(ah, 'ensembl/release-105', 'caenorhabditis elegans'))
+//  ] %>% as.data.frame %>% t
+// 
+// df = mcols(query(ah[ah$species == 'caenorhabditis elegans' & ah$description == 'TwoBit DNA sequence for caenorhabditis elegans'], 'ensembl/release-105', 'dna_sm')) 
+// 
+// mcols(query(ah[ah$species == 'caenorhabditis elegans'], 'ensembl/release-105', 'dna_sm')) 
+// mcols(query(query(ah[ah$species == 'caenorhabditis elegans'], 'ensembl/release-105'), 'dna_sm')) %>% as.data.frame %>% t
+// mcols(query(query(query(ah, 'caenorhabditis elegans'), 'ensembl/release-105'), 'dna_sm')) %>% as.data.frame %>% t
+// query(query(query(ah, 'caenorhabditis elegans'), 'ensembl/release-105'), 'dna_sm')[[1]]
+
+
+
+
+
+// process getting_R_annotation_files {
+//   tag "${specie}"
+// 
+//   container = params.bioconductor
+// 
+//   publishDir path: "${specie}/genome/annotation", mode: 'link'
+// 
+//   input:
+// 		set specie, file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from channel_gff3_filtered
+// 
+//   output:
+//     file('*')
+// 
+//   shell:
+//   '''
+// 
+// 		#!/usr/bin/env Rscript
+// 
+// 		library(magrittr)
+// 		library(AnnotationDbi)
+// 
+// 		gff3_genes_only = '!{gff3_genes_only}'
+// 		gff3_without_pseudogenes_and_ncRNA = '!{gff3_without_pseudogenes_and_ncRNA}'
+// 		specie = '!{specie}'
+// 		genomedir = '!{genomedir}'
+// 
+// 		specie_initial = switch(genome, 
+// 			WBcel235 = 'ce', 
+// 			BDGP6.28 = 'dm', 
+// 			GRCm38 = 'mm', 
+// 			GRCh38 = 'hs'
+// 		)
+// 
+// 		orgdb = AnnotationDbi::loadDb(paste0(genomedir, '/../org_db/org_db_', specie_initial, '.sqlite'))
+// 
+// 		# export annotation dataframe
+// 		anno_df = rtracklayer::readGFF(gff3_genes_only) 
+// 		entrez_id = mapIds(orgdb, keys = anno_df$gene_id,  column = 'ENTREZID', keytype = 'ENSEMBL', multiVals = 'first')
+// 		anno_df %<>% dplyr::rename(gene_name = Name)
+// 		anno_df %<>% dplyr::mutate(width = end - start)
+// 		anno_df$entrez_id = entrez_id
+// 		anno_df$chr = as.character(anno_df$seqid)
+// 		anno_df %<>% dplyr::select(chr, start, end, width, strand, gene_name, gene_id, entrez_id)
+// 		saveRDS(anno_df, 'df_genes_metadata.rds', version = 2)
+// 
+// 		# export txdb
+// 		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_without_pseudogenes_and_ncRNA)
+// 		AnnotationDbi::saveDb(txdb, file="txdb_without_pseudogenes_and_ncRNA.sqlite")
+// 
+// 		# export gene vs transcripts 
+// 		df_genes_transcripts = select(txdb, keys = keys(txdb), columns = c('GENEID', 'TXNAME'), keytype = 'GENEID')
+// 		saveRDS(df_genes_transcripts, 'df_genes_transcripts.rds', version = 2)
+// 
+// 		# extract promoters
+// 		promoters = GenomicFeatures::promoters(GenomicFeatures::genes(txdb), upstream = 1500, downstream = 500)
+// 
+// 		# export promoters as dataframe
+// 		promoters_df = as.data.frame(promoters, stringsAsFactors = F)
+// 		promoters_df$start[promoters_df$start < 0] = 0
+// 		promoters_df$end[promoters_df$end < 0] = 0
+// 		promoters_df %<>% dplyr::rename(gene_name = gene_id)
+// 		promoters_df %<>% dplyr::inner_join(anno_df %>% dplyr::select(gene_id, gene_name, entrez_id), by = 'gene_name')
+// 		promoters_df %<>% dplyr::arrange(seqnames, start)
+// 		promoters_df %<>% dplyr::rename(chr = seqnames)
+// 		saveRDS(promoters_df, file = 'promoters_df.rds', version = 2)
+// 
+// 		# export promoters as bed file
+// 		promoters_df1 = promoters_df
+// 		promoters_df1$score = 0
+// 		promoters_df1 %<>% dplyr::select(chr, start, end, gene_name, score, strand, gene_id)
+// 		export_df_to_bed(promoters_df1, 'promoters.bed')
+// 
+// 
+//   '''
+// 
+// }
+
+// source('!{cactusdir}/src/R_analysis/general_functions.R')
+
 
 // rtracklayer::export(promoters, 'promoters.bed')
 

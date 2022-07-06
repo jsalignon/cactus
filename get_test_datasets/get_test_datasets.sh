@@ -380,12 +380,13 @@ EOL
 
 
 
+
 ##############################################
 ### The end
 ##############################################
 
 # saving compressed objects and their sizes
-du -h -d1 specie/ > test_datasets_sizes.txt
-tar --use-compress-program="pigz -p 15 -k -r" -cf specie.tar.gz specie
+du -h -d1 > test_datasets_sizes.txt
+# tar --use-compress-program="pigz -p 15 -k -r" -cf worm.tar.gz worm
 
 

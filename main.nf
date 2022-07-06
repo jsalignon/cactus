@@ -2,7 +2,6 @@
 
 // shortening certain oftenly used parameters
 out_dir = params.out_dir
-cactusdir = params.cactusdir
 
 // grouped = params.grouped
 pub_mode = params.pub_mode
@@ -1683,6 +1682,7 @@ Reads_and_peaks_for_diffbind_1.without_input_control
 process ATAC__differential_abundance_analysis {
   tag "${COMP}"
 
+  container = params.diffbind
   // container = params.multi_bioconductor
   // container = params.differential_abundance
   // Error in loadNamespace(x) : there is no package called ‘edgeR’
@@ -2366,6 +2366,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_Other_plot_for_merging_pdfs.g
 process plotting_differential_accessibility_results {
   tag "${COMP}"
 
+  container = params.diffbind
   // container = params.differential_abundance
   // container = params.multi_bioconductor
 
