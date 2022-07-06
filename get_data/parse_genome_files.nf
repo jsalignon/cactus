@@ -1,20 +1,27 @@
 
-params.ensembl_release = '105'
+params.ensembl_release = '102'
+
 params.number_of_cores = 8   // how to initialize if missing?
 number_of_cores = params.number_of_cores
 
-channel_species = Channel.from( [
-	['worm',  'caenorhabditis_elegans',  'Ce', 'ce11', 'WBcel235', 'toplevel' ],
-	['fly',   'drosophila_melanogaster', 'Dm', 'dm6',  'BDGP6.32', 'toplevel' ],
-	['mouse', 'mus_musculus',            'Mm', 'mm39', 'GRCm39',   'primary_assembly' ],
-  ['human', 'homo_sapiens',            'Hs', 'hg38', 'GRCh38',   'primary_assembly' ]
-]) 
-	.map { it[0, 1, 4, 5]}
-	.set{ channel_species_1 }
+channel_species = Channel
+	.from( 	
+		[
+			['worm',  'caenorhabditis_elegans',  'Ce', 'ce11', 'WBcel235', 'toplevel' ],
+			['fly',   'drosophila_melanogaster', 'Dm', 'dm6',  'BDGP6.28', 'toplevel' ],
+			['mouse', 'mus_musculus',            'Mm', 'mm10', 'GRCm38',   'primary_assembly' ],
+		  ['human', 'homo_sapiens',            'Hs', 'hg38', 'GRCh38',   'primary_assembly' ]
+		]
+	)
+	.dump(tag: 'start_channel')
+	.multiMap { it ->
+		get_fasta: it[0, 1, 4, 5]
+		blacklist: it[0, 3, 4]
+	}
+	.set { start_channel }
 
-// checking the latest assembly version:
-// http://ftp.ensembl.org/pub/release-105/gff3/mus_musculus/
-// http://ftp.ensembl.org/pub/release-105/gff3/homo_sapiens/
+
+
 
 
 // channel_species = 
@@ -37,7 +44,7 @@ process get_fasta_and_gff {
   }
 
 	input:
-		set specie, specie_long, genome, assembly from channel_species_1
+		set specie, specie_long, genome, assembly from start_channel.get_fasta
 
 	output:
 		set specie, file('genome.fa'), file('annotation.gff3') into Genome_and_annotation
@@ -62,12 +69,50 @@ process get_fasta_and_gff {
 	wget -O genome.fa.gz $URL/fasta/$specie_long/dna/$fasta_file 
 	gunzip genome.fa.gz
 	
-	echo "gff3 file : $gff3_file" > $out_folder/README.txt
-	echo "fasta file: $fasta_file" >> $out_folder/README.txt
+	echo "gff3 file : $gff3_file" > README.txt
+	echo "fasta file: $fasta_file" >> README.txt
 		
 		
 	'''
 }
+
+
+
+
+process get_blacklisted_regions {
+	tag "${specie}"
+
+	container = params.cvbio
+
+	publishDir path: "${specie}/blacklisted_regions", mode: 'link'
+
+	input:
+		set specie, specie_code, ncbi_code from start_channel.blacklist
+
+	output:
+		file("${specie_code}_blacklist_Ensembl.bed")
+
+	shell:
+	'''
+		
+	specie_code='!{specie_code}'
+	ncbi_code='!{ncbi_code}'
+	
+	url_blacklist="https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists"
+	url_mapping="https://raw.githubusercontent.com/dpryan79/ChromosomeMappings/master"
+
+	wget -O ${specie_code}_blacklist_NCBI.bed.gz $url_blacklist/${specie_code}-blacklist.v2.bed.gz
+	gunzip  ${specie_code}_blacklist_NCBI.bed.gz
+	
+	wget -O NCBI_to_Ensembl.txt $url_mapping/${ncbi_code}_UCSC2ensembl.txt
+	
+	cvbio UpdateContigNames -i ${specie_code}_blacklist_NCBI.bed. -o ${specie_code}_blacklist_Ensembl.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
+	
+	'''
+}
+
+
+
 
 
 // process filtering_annotation_file {

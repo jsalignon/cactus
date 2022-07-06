@@ -1713,6 +1713,7 @@ process ATAC__differential_abundance_analysis {
 
         library(DiffBind)
         library(magrittr)
+        library(parallel)
 
         COMP = '!{COMP}'
         use_input_control = '!{params.use_input_control}'
@@ -1767,6 +1768,7 @@ process ATAC__differential_abundance_analysis {
 
         dbo <- dba(sampleSheet = df1, minOverlap = 0)
         if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
+        dbo$config$RunParallel = F
         dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F)
         dbo$config$edgeR$bTagwise = T
         dbo$config$AnalysisMethod = DBA_EDGER 
