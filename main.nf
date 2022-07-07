@@ -3230,6 +3230,8 @@ CHIP_channel         = Channel.fromPath( "${params.encode_chip}/*bed" )    .toLi
 Chrom_states_channel = Channel.fromPath( "${params.chromatin_state}/*bed" ).toList().map{ [ 'chrom_states', it ] }
 DA_regions_channel   = DA_regions_with_bg_for_bed_overlap1.map{ it[1] }    .toList().map{ [ 'peaks_self'  , it ] }
 
+if( ! params.do_chromatin_state ) Chrom_states_channel.close()
+
 Bed_regions_to_overlap_with = CHIP_channel.mix(Chrom_states_channel).mix(DA_regions_channel)
 
 DA_regions_with_bg_for_bed_overlap2

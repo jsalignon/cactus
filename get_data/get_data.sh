@@ -103,3 +103,16 @@ orgdb_sqlite_file = paste0('org.', specie_initial, '.eg.db.sqlite')
 mcols(query(ah, 'OrgDb', '2021-10-08'))[1,] %>% as.data.frame
 mcols(query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite'))[1,] %>% as.data.frame
 orgdb = query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite')[[1]]
+
+
+
+
+
+
+
+
+
+
+
+
+
