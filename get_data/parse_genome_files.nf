@@ -4,7 +4,7 @@ params.ensembl_release = '102'
 params.number_of_cores = 8   // how to initialize if missing?
 number_of_cores = params.number_of_cores
 
-channel_species = Channel
+Species_channel = Channel
 	.from( 	
 		[
 			['worm',  'caenorhabditis_elegans',  'Ce', 'ce11', 'WBcel235', 'toplevel' ],
@@ -18,7 +18,7 @@ channel_species = Channel
 		get_fasta: it[0, 1, 4, 5]
 		blacklist: it[0, 3, 4]
 	}
-	.set { start_channel }
+	.set { Start_channel }
 
 
 
@@ -44,10 +44,10 @@ process get_fasta_and_gff {
   }
 
 	input:
-		set specie, specie_long, genome, assembly from start_channel.get_fasta
+		set specie, specie_long, genome, assembly from Start_channel.get_fasta
 
 	output:
-		set specie, file('genome.fa'), file('annotation.gff3') into Genome_and_annotation
+		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
 
 	shell:
 	'''
@@ -87,166 +87,179 @@ process get_blacklisted_regions {
 	publishDir path: "${specie}/blacklisted_regions", mode: 'link'
 
 	input:
-		set specie, specie_code, ncbi_code from start_channel.blacklist
+		set specie, specie_code, ncbi_code from Start_channel.blacklist
 
 	output:
 		file("${specie_code}_blacklist_Ensembl.bed")
 
 	shell:
 	'''
+			
+		specie_code='!{specie_code}'
+		ncbi_code='!{ncbi_code}'
 		
-	specie_code='!{specie_code}'
-	ncbi_code='!{ncbi_code}'
-	
-	url_blacklist="https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists"
-	url_mapping="https://raw.githubusercontent.com/dpryan79/ChromosomeMappings/master"
+		url_blacklist="https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists"
+		url_mapping="https://raw.githubusercontent.com/dpryan79/ChromosomeMappings/master"
 
-	wget -O ${specie_code}_blacklist_NCBI.bed.gz $url_blacklist/${specie_code}-blacklist.v2.bed.gz
-	gunzip  ${specie_code}_blacklist_NCBI.bed.gz
-	
-	wget -O NCBI_to_Ensembl.txt $url_mapping/${ncbi_code}_UCSC2ensembl.txt
-	
-	cvbio UpdateContigNames -i ${specie_code}_blacklist_NCBI.bed. -o ${specie_code}_blacklist_Ensembl.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
-	
+		wget -O ${specie_code}_blacklist_NCBI.bed.gz $url_blacklist/${specie_code}-blacklist.v2.bed.gz
+		gunzip  ${specie_code}_blacklist_NCBI.bed.gz
+		
+		ncbi_code_1=${ncbi_code%%.*}
+				
+		wget -O NCBI_to_Ensembl.txt $url_mapping/${ncbi_code_1}_UCSC2ensembl.txt
+		
+		cvbio UpdateContigNames -i ${specie_code}_blacklist_NCBI.bed -o ${specie_code}_blacklist_Ensembl.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
+		
 	'''
+}
+
+
+// this lines fails with a weird Nextflow bug of variable substitution:
+// ncbi_code_1=${ncbi_code//\.*/}
+// Script compilation error
+// - file : /home/jersal/workspace/cactus/software/get_data/parse_genome_files.nf
+// - cause: Unexpected character: '\'' @ line 96, column 4.
+
+
+// AnnotationDbi::saveDb(org.Ce.eg.db, file = 'org_db_ce.sqlite')
+// saveRDS(cur_seq_info, '~/workspace/cactus/data/worm/genome/sequence/cur_seqinfo.rds')
+// 
+// cur_seq_info = rtracklayer::SeqinfoForUCSCGenome('ce11')
+// cur_seq_info@seqnames %<>% gsub('chr', '', .)
+
+
+process filtering_annotation_file {
+  tag "${specie}"
+
+  container = params.samtools_bedtools_perl
+
+  publishDir path: "${specie}/genome/annotation", mode: 'link'
+
+  input:
+    set specie, file(gff3), file(fasta) from Genome_and_annotation
+
+  output:
+		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into channel_gff3_filtered
+
+  shell:
+  '''
+
+		grep -i protein_coding !{gff3} | awk  -F"\t"  '{if($3 == "gene") print $0}' - > anno_genes_only.gff3
+
+		grep -viE "pseudogen|ncRNA" !{gff3} > gff3_without_pseudogenes_and_ncRNA.gff3
+
+
+  '''
+
+}
+
+// Notes
+
+// grep -i protein_coding ${gff} > protein_coding_mRNA_and_genes.gff3
+
+// anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
+
+// protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
+
+
+process generating_bowtie2_indexes {
+  tag "${specie}"
+
+  container = params.bowtie2_samtools
+
+  publishDir path: "${"${specie}/genome/sequence"}/bowtie2_indexes", mode: 'link'
+
+  input:
+    set specie, file(gff3), file(fasta) from Genome_and_annotation_1
+
+  output:
+		file("*.bt2")
+
+  shell:
+  '''
+
+		bowtie2-build --threads !{number_of_cores} !{fasta} genome
+
+
+  '''
+
+}
+
+
+process indexing_genomes {
+  tag "${specie}"
+
+  container = params.bowtie2_samtools
+
+  publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+
+  input:
+    set specie, file(gff3), file(fasta) from Genome_and_annotation_2
+
+  output:
+		set specie, file('genome.fa.fai') into Fasta_fai
+
+  shell:
+  '''
+
+		samtools faidx !{fasta}
+
+
+  '''
+
+}
+
+Genome_and_annotation_3
+	.join(Fasta_fai)
+	.set{ Fasta_fai_gff3 }
+
+
+
+process getting_chromosome_length_and_transcriptome {
+  tag "${specie}"
+
+	container = params.gffread
+
+  publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+
+  input:
+    set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
+
+  output:
+    file('chromosome_size.txt')
+		set specie, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
+
+  script:
+  """
+      cut -f1-2 ${fasta_indexes} > chromosome_size.txt
+      gffread -C ${gff3} -g ${fasta} -w transcriptome.fa
+  """
+
 }
 
 
 
 
 
-// process filtering_annotation_file {
-//   tag "${specie}"
-// 
-//   container = params.samtools_bedtools_perl
-// 
-//   publishDir path: "${specie}/genome/annotation", mode: 'link'
-// 
-//   input:
-//     set specie, file(gff3), file(fasta) from channel_species_1
-// 
-//   output:
-// 		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into channel_gff3_filtered
-// 
-//   shell:
-//   '''
-// 
-// 		grep -i protein_coding !{gff3} | awk  -F"\t"  '{if($3 == "gene") print $0}' - > anno_genes_only.gff3
-// 
-// 		grep -viE "pseudogen|ncRNA" !{gff3} > gff3_without_pseudogenes_and_ncRNA.gff3
-// 
-// 
-//   '''
-// 
-// }
-// 
-// // Notes
-// 
-// // grep -i protein_coding ${gff} > protein_coding_mRNA_and_genes.gff3
-// 
-// // anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
-// 
-// // protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
-// 
-// 
-// process generating_bowtie2_indexes {
-//   tag "${specie}"
-// 
-//   container = params.bowtie2_samtools
-// 
-//   publishDir path: "${"${specie}/genome/sequence"}/bowtie2_indexes", mode: 'link'
-// 
-//   input:
-//     set specie, file(gff3), file(fasta) from channel_species_2
-// 
-//   output:
-// 		file("*.bt2")
-// 
-//   shell:
-//   '''
-// 
-// 		bowtie2-build --threads !{number_of_cores} !{fasta} genome
-// 
-// 
-//   '''
-// 
-// }
-// 
-// 
-// process indexing_genomes {
-//   tag "${specie}"
-// 
-//   container = params.bowtie2_samtools
-// 
-//   publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
-// 
-//   input:
-//     set specie, file(gff3), file(fasta) from channel_species_3
-// 
-//   output:
-// 		set specie, file('genome.fa.fai') into fasta_fai
-// 
-//   shell:
-//   '''
-// 
-// 		samtools faidx !{fasta}
-// 
-// 
-//   '''
-// 
-// }
-// 
-// channel_species_4
-// 	.join(fasta_fai)
-// 	.set{ channel_fasta_fai_gff3 }
-// 
-// 
-// 
-// process getting_chromosome_length_and_transcriptome {
-//   tag "${specie}"
-// 
-// 	container = params.gffread
-// 
-//   publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
-// 
-//   input:
-//     set specie, file(gff3), file(fasta), file(fasta_indexes) from channel_fasta_fai_gff3
-// 
-//   output:
-//     file('chromosome_size.txt')
-// 		set specie, file('transcriptome.fa') into transcriptome_for_building_kallisto_indexes
-// 
-//   script:
-//   """
-//       cut -f1-2 ${fasta_indexes} > chromosome_size.txt
-//       gffread -C ${gff3} -g ${fasta} -w transcriptome.fa
-//   """
-// 
-// }
-// 
-// 
-// 
-// 
-// 
-// process generating_kallisto_transcriptome_indexes {
-//   tag "${specie}"
-// 
-//   container = params.kallisto
-// 
-//   publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
-// 
-//   input:
-// 		set specie, file(transcriptome) from transcriptome_for_building_kallisto_indexes
-// 
-//   output:
-//     file('transcriptome_kallisto_index')
-// 
-//   script:
-//   """
-//       kallisto index --make-unique -i transcriptome_kallisto_index ${transcriptome}
-//   """
-// 
-// }
+process generating_kallisto_transcriptome_indexes {
+  tag "${specie}"
+
+  container = params.kallisto
+
+  publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+
+  input:
+		set specie, file(transcriptome) from Transcriptome_for_building_kallisto_indexes
+
+  output:
+    file('transcriptome_kallisto_index')
+
+  script:
+  """
+      kallisto index --make-unique -i transcriptome_kallisto_index ${transcriptome}
+  """
+
+}
 
 
 
