@@ -7,16 +7,17 @@ number_of_cores = params.number_of_cores
 Species_channel = Channel
 	.from( 	
 		[
-			['worm',  'caenorhabditis_elegans',  'Ce', 'ce11', 'WBcel235', 'toplevel' ],
-			['fly',   'drosophila_melanogaster', 'Dm', 'dm6',  'BDGP6.28', 'toplevel' ],
-			['mouse', 'mus_musculus',            'Mm', 'mm10', 'GRCm38',   'primary_assembly' ],
-		  ['human', 'homo_sapiens',            'Hs', 'hg38', 'GRCh38',   'primary_assembly' ]
+			['worm',  'caenorhabditis_elegans',  'ce11', 'WBcel235', 'toplevel' ],
+			['fly',   'drosophila_melanogaster', 'dm6',  'BDGP6.28', 'toplevel' ],
+			['mouse', 'mus_musculus',            'mm10', 'GRCm38',   'primary_assembly' ],
+		  ['human', 'homo_sapiens',            'hg38', 'GRCh38',   'primary_assembly' ]
 		]
 	)
 	.dump(tag: 'start_channel')
 	.multiMap { it ->
-		get_fasta: it[0, 1, 4, 5]
-		blacklist: it[0, 3, 4]
+		    fasta: it[0, 1, 3, 4]
+		blacklist: it[0, 2, 3]
+		    orgdb: it[0, 1]
 	}
 	.set { Start_channel }
 
@@ -44,7 +45,7 @@ process get_fasta_and_gff {
   }
 
 	input:
-		set specie, specie_long, genome, assembly from Start_channel.get_fasta
+		set specie, specie_long, genome, assembly from Start_channel.fasta
 
 	output:
 		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
@@ -264,49 +265,57 @@ process generating_kallisto_transcriptome_indexes {
 
 
 
+process getting_orgdb {
+  tag "${specie}"
+
+  container = params.annotationhub
+
+  publishDir path: "${specie}/orgdb", mode: 'link'
+
+  input:
+		set specie, specie_long from Start_channel.orgdb
+
+  output:
+    file('orgdb.sqlite')
+
+  shell:
+  '''
+
+		#!/usr/bin/env Rscript
+
+		library(AnnotationHub)
+
+		specie = '!{specie}'
+		specie_long = '!{specie_long}'
+		annotationhub_cache = '!{params.annotationhub_cache}'
+
+		specie_initial =  sapply(strsplit(specie_long, '_')[[1]], substr, 1, 1) %>% {paste0(toupper(.[1]), .[2])}
+
+		ah = AnnotationHub(cache = annotationhub_cache)
+
+		orgdb = query(ah, paste0('ncbi/standard/3.14/org.', specie_initial, '.eg.db.sqlite'))[[1]]
+
+		AnnotationDbi::saveDb(orgdb, 'orgdb.sqlite')
+
+  '''
+
+}
+
+// orgdb = AnnotationDbi::loadDb('orgdb.sqlite')
+
+// AnnotationDbi::saveDb(org.Ce.eg.db, file = 'org_db_ce.sqlite')
+// saveRDS(cur_seq_info, '~/workspace/cactus/data/worm/genome/sequence/cur_seqinfo.rds')
+// 
 
 
-// process getting_orgdb {
-//   tag "${specie}"
-// 
-//   container = params.annotationhub
-// 
-//   publishDir path: "${specie}/genome/annotation", mode: 'link'
-// 
-//   input:
-// 		set specie, file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from channel_species_2
-// 
-//   output:
-//     file('*')
-// 
-//   shell:
-//   '''
-// 
-// 		#!/usr/bin/env Rscript
-// 
-// 		library(AnnotationHub)
-// 		specie = '!{specie}'
-// 
-// 		specie_initial = switch(specie, 
-// 			worm  = 'Ce', 
-// 			fly   = 'Dm', 
-// 			mouse = 'Mm', 
-// 			human = 'Hs'
-// 		)
-// 
-// 		orgdb_sqlite_file = paste0('org.', specie_initial, '.eg.db.sqlite')
-// 		orgdb <- query(ah, c("OrgDb", "maintainer@bioconductor.org"))[[orgdb_sqlite_file]]
-// 
-// 		orgdb = AnnotationDbi::loadDb(paste0(genomedir, '/../org_db/org_db_', specie_initial, '.sqlite'))
-// 
-// 		orgdb_sqlite_file = paste0('org.', specie_initial, '.eg.db.sqlite')
-// 		// mcols(query(ah, 'OrgDb', '2021-10-08'))[1,] %>% as.data.frame
-// 		// mcols(query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite'))[1,] %>% as.data.frame
-// 		// orgdb = query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite')[[1]]
-// 
-//   '''
-// 
-// }
+// ah = AnnotationHub(cache = annotationhub_cache)
+// Error: Corrupt Cache: index file
+//   See AnnotationHub's TroubleshootingTheCache vignette section on corrupt cache
+//   cache: /home/jersal/workspace/cactus/util/annotationhub_cache
+//   filename: annotationhub.index.rds
+
+// => this error was solved by creating the cache in the cache folder direclty with the container and the command:
+// ah = AnnotationHub(cache = '.')
 
 // https://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html
 
@@ -467,6 +476,10 @@ process generating_kallisto_transcriptome_indexes {
 // }
 
 // source('!{cactusdir}/src/R_analysis/general_functions.R')
+
+// cur_seq_info = rtracklayer::SeqinfoForUCSCGenome('ce11')
+// cur_seq_info@seqnames %<>% gsub('chr', '', .)
+
 
 
 // rtracklayer::export(promoters, 'promoters.bed')

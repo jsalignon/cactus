@@ -116,3 +116,132 @@ orgdb = query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite')[[1]]
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Chromatin states: to do later... pretty complicated...
+
+# 
+# process getting_chromatin_states {
+#   tag "${specie}"
+# 
+#   container = params.liftover
+# 
+#   publishDir path: "${specie}/chromatin_state", mode: 'link'
+# 
+#   input:
+# 		set specie, file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from channel_species_2
+# 
+#   output:
+#     file('*')
+# 
+#   shell:
+#   '''
+#       url_liftover="https://hgdownload.cse.ucsc.edu/goldenPath/ce10/liftOver"
+#       wget $url_liftover/ce10ToCe11.over.chain.gz
+# 
+# 		#!/usr/bin/env Rscript
+# 
+# 		library(AnnotationHub)
+# 		specie = '!{specie}'
+# 
+# 		specie_initial = switch(specie, 
+# 			worm  = 'Ce', 
+# 			fly   = 'Dm', 
+# 			mouse = 'Mm', 
+# 			human = 'Hs'
+# 		)
+# 
+# 		orgdb_sqlite_file = paste0('org.', specie_initial, '.eg.db.sqlite')
+# 		orgdb <- query(ah, c("OrgDb", "maintainer@bioconductor.org"))[[orgdb_sqlite_file]]
+# 
+# 		orgdb = AnnotationDbi::loadDb(paste0(genomedir, '/../org_db/org_db_', specie_initial, '.sqlite'))
+# 
+# 		orgdb_sqlite_file = paste0('org.', specie_initial, '.eg.db.sqlite')
+# 		// mcols(query(ah, 'OrgDb', '2021-10-08'))[1,] %>% as.data.frame
+# 		// mcols(query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite'))[1,] %>% as.data.frame
+# 		// orgdb = query(ah, 'ncbi/standard/3.14/org.Ce.eg.db.sqlite')[[1]]
+# 
+#   '''
+# 
+# }
+# 
+# 
+# 
+# # 
+# # cd $LOP 
+# # wget https://hgdownload.cse.ucsc.edu/goldenPath/ce10/liftOver/ce10ToCe11.over.chain.gz
+# # wget https://hgdownload.cse.ucsc.edu/goldenPath/dm3/liftOver/dm3ToDm6.over.chain.gz
+# # wget https://hgdownload.cse.ucsc.edu/goldenPath/mm9/liftOver/mm9ToMm10.over.chain.gz
+# # wget https://hgdownload.cse.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
+# 
+# 
+# ## initialization
+# cd $OUTF ; mkdir chromatin_states
+# cd $OUTF/chromatin_states ; mkdir raw modif lifted split
+# 
+# 
+# ## downloading raw chromatin state files 
+# cd $OUTF/chromatin_states/raw
+# 
+# for BED in iHMM.M1K16.fly_EL.bed iHMM.M1K16.fly_L3.bed iHMM.M1K16.human_GM.bed iHMM.M1K16.human_H1.bed iHMM.M1K16.worm_EE.bed iHMM.M1K16.worm_L3.bed
+#  do wget http://compbio.med.harvard.edu/modencode/webpage/hihmm/$BED
+# done
+# 
+# ## modifying names and custom files
+# cp iHMM.M1K16.worm_EE.bed ../modif/worm_EE_ce10.bed 
+# cp iHMM.M1K16.worm_L3.bed ../modif/worm_L3_ce10.bed 
+# cp iHMM.M1K16.fly_EL.bed ../modif/fly_EL_dm3.bed 
+# cp iHMM.M1K16.fly_L3.bed ../modif/fly_L3_dm3.bed 
+# cp iHMM.M1K16.human_GM.bed ../modif/human_GM12878_hg19.bed 
+# cp iHMM.M1K16.human_H1.bed ../modif/human_H1_hESC_hg19.bed 
+# 
+# gawk -i inplace '{print "chr"$0}' ../modif/worm_EE_ce10.bed 
+# gawk -i inplace '{print "chr"$0}' ../modif/worm_L3_ce10.bed 
+# 
+# 
+# ## remaping genomic coordinates to a newer genome version
+# cd $OUTF/chromatin_states/lifted
+# mkdir unmapped
+# 
+# $LOP/../liftOver ../modif/worm_EE_ce10.bed  $LOP/ce10ToCe11.over.chain.gz worm_EE_ce11.bed unmapped/worm_EE_ce11_unmapped.bed
+# $LOP/../liftOver ../modif/worm_L3_ce10.bed  $LOP/ce10ToCe11.over.chain.gz worm_L3_ce11.bed unmapped/worm_L3_ce11_unmapped.bed
+# 
+# $LOP/../liftOver ../modif/fly_EL_dm3.bed  $LOP/dm3ToDm6.over.chain.gz fly_EL_dm6.bed unmapped/fly_EL_dm6_unmapped.bed 
+# $LOP/../liftOver ../modif/fly_L3_dm3.bed  $LOP/dm3ToDm6.over.chain.gz fly_L3_dm6.bed unmapped/fly_L3_dm6_unmapped.bed 
+# 
+# $LOP/../liftOver ../modif/human_GM12878_hg19.bed  $LOP/hg19ToHg38.over.chain.gz human_GM12878_hg38.bed unmapped/human_GM12878_hg38_unmapped.bed 
+# $LOP/../liftOver ../modif/human_H1_hESC_hg19.bed  $LOP/hg19ToHg38.over.chain.gz human_H1_hESC_hg38.bed unmapped/human_H1_hESC_hg19_unmapped.bed 
+# 
+# 
+# ## splitting bed files with one file for each chromatin state
+# cd $OUTF/chromatin_states/split
+# 
+# cp ../lifted/*.bed .
+# awk ' { FOLDERN=FILENAME; gsub(".bed", "", FOLDERN); "mkdir -p " FOLDERN | getline ; print >  FOLDERN"/"$4".bed" }' *.bed 
+# rm *.bed
+# 
+# # removing the unmapped files
+# find . -name "17_Unmap.bed" -delete
+
+
+
+
+
+
+
+
+
