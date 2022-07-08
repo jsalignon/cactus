@@ -153,16 +153,32 @@ process get_all_pwms {
 		encode_species = c('Caenorhabditis_elegans', 'Drosophila_melanogaster', 'Mus_musculus', 'Homo_sapiens')
 		dt_encode = dt_all[TF_Species %in% encode_species]
 		dt_encode = dt_encode[Motif_ID != '.']
-
+		dt_encode = dt_encode[!duplicated(TF_ID)]
+		
 		saveRDS(dt_encode, 'dt_cisbp_encode.rds')
-
-		dt_encode[TF_Species == 'Caenorhabditis_elegans']
-			
+	
 		system('rm *.zip')
 		
 	'''
 	
 }
+
+// dt_encode = dt_all[TF_Species %in% encode_species]
+// dt_encode = dt_encode[Motif_ID != '.']
+// dt_encode1 = dt_encode[!duplicated(TF_ID)]
+// > dt_encode$TF_Species %>% table
+// .
+//  Caenorhabditis_elegans Drosophila_melanogaster            Homo_sapiens
+//                     402                    1301                    5422
+//            Mus_musculus
+//                    1503
+// >
+// > dt_encode1$TF_Species %>% table
+// .
+//  Caenorhabditis_elegans Drosophila_melanogaster            Homo_sapiens
+//                     373                     425                    1200
+//            Mus_musculus
+//                     938
 
 // However, there are still multiple entries per TF
 // dt_encode[TF_Species == 'Caenorhabditis_elegans']$TF_Name %>% table %>% sort %>% rev %>% head(10)
@@ -170,9 +186,11 @@ process get_all_pwms {
   //     7       4       3       3       3       2       2       2       2       2
 // dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'skn-1']
 // dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'hlh-1']
+// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'snpc-4']
+// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'pha-4']
 
 // I think I understand what happened: the entries that are duplicated are all from the similarity regression method. And they all have the same score. So instead of picking one arbitrarily, CISBP kept all of these entries with the same score. I could keep only the CHIP.
-
+// Conclusions: these are probably exactly the same motifs (or very very similar). So we can just keep the first of them!
 
 
 // # Identifying and removing empty motifs files
