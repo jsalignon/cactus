@@ -1,8 +1,13 @@
 
-params.ensembl_release = '102'
 
 params.number_of_cores = 8   // how to initialize if missing?
 number_of_cores = params.number_of_cores
+
+params.ensembl_release  = '102'
+ncbi_orgdb_version      = '3.14'
+homer_genomes_version   = '6.4'
+homer_organisms_version = '6.3'
+homer_promoters_version = '5.5'
 
 Species_channel = Channel
 	.from( 	
@@ -16,6 +21,7 @@ Species_channel = Channel
 	.dump(tag: 'start_channel')
 	.multiMap { it ->
 		    fasta: it[0, 1, 3, 4]
+				homer: it[0, 2]
 		blacklist: it[0, 2, 3]
 		    orgdb: it[0, 1]
 	}
@@ -76,6 +82,42 @@ process get_fasta_and_gff {
 		
 	'''
 }
+
+
+
+process get_homer_data {
+	tag "${specie}"
+
+	container = params.samtools_bedtools_perl
+
+	publishDir path: "${specie}/homer_data", mode: 'link'
+	input:
+		set specie, specie_code from Start_channel.homer
+
+	output:
+		file('*')
+
+	shell:
+	'''
+		
+		specie='!{specie}'
+		specie_code='!{specie_code}'
+		homer_genomes_version='!{homer_genomes_version}'
+		homer_organisms_version='!{homer_organisms_version}'
+		homer_promoters_version='!{homer_promoters_version}'
+		
+		URL=http://homer.ucsd.edu/homer/data
+		
+		wget -nc $URL/genomes/${specie_code}.v${homer_genomes_version}.zip
+		wget -nc $URL/organisms/${specie}.v${homer_organisms_version}.zip
+		wget -nc $URL/promoters/${specie}.v${homer_promoters_version}.zip
+		
+		unzip *
+		
+		
+	'''
+}
+
 
 
 
@@ -227,7 +269,7 @@ process getting_chromosome_length_and_transcriptome {
     set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
 
   output:
-    file('chromosome_size.txt')
+    set specie, file('chromosome_size.txt') into Chromosome_size_for_seqinfo
 		set specie, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
 
   script:
@@ -276,7 +318,7 @@ process getting_orgdb {
 		set specie, specie_long from Start_channel.orgdb
 
   output:
-    set specie, file('orgdb.sqlite') into Orgdb_for_annotation
+    set specie, specie_long, file('orgdb.sqlite') into Orgdb_for_annotation
 
   shell:
   '''
@@ -287,13 +329,14 @@ process getting_orgdb {
 
 		specie = '!{specie}'
 		specie_long = '!{specie_long}'
+		ncbi_orgdb_version = '!{ncbi_orgdb_version}'
 		annotationhub_cache = '!{params.annotationhub_cache}'
 
 		specie_initial =  sapply(strsplit(specie_long, '_')[[1]], substr, 1, 1) %>% {paste0(toupper(.[1]), .[2])}
 
 		ah = AnnotationHub(cache = annotationhub_cache)
 
-		orgdb = query(ah, paste0('ncbi/standard/3.14/org.', specie_initial, '.eg.db.sqlite'))[[1]]
+		orgdb = query(ah, paste0('ncbi/standard/', ncbi_orgdb_version, '/org.', specie_initial, '.eg.db.sqlite'))[[1]]
 
 		AnnotationDbi::saveDb(orgdb, 'orgdb.sqlite')
 
@@ -303,6 +346,7 @@ process getting_orgdb {
 
 
 Orgdb_for_annotation
+	.join(Chromosome_size_for_seqinfo)
 	.join(Channel_gff3_filtered)
 	.set{Channel_gff3_filtered_1}
 
@@ -314,7 +358,7 @@ process getting_R_annotation_files {
   publishDir path: "${specie}/genome/annotation", mode: 'link'
 
   input:
-		set specie, orgdb, file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from Channel_gff3_filtered_1
+		set specie, specie_long, orgdb, file(chr_size), file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from Channel_gff3_filtered_1
 
   output:
     file('*')
@@ -327,11 +371,13 @@ process getting_R_annotation_files {
 		library(magrittr)
 		library(AnnotationDbi)
 
-		source('!{cactus_dir}/software/bin/export_df_to_bed.R')
+		source('!{params.cactus_dir}/software/bin/export_df_to_bed.R')
 		gff3_genes_only = '!{gff3_genes_only}'
 		gff3_without_pseudogenes_and_ncRNA = '!{gff3_without_pseudogenes_and_ncRNA}'
 		specie = '!{specie}'
 		orgdb = AnnotationDbi::loadDb('!{orgdb}')
+		df_chr_size = read.table('!{chr_size}', sep = '\t')
+		specie_long = '!{specie_long}'
 
 		# export annotation dataframe
 		anno_df = rtracklayer::readGFF(gff3_genes_only) 
@@ -343,8 +389,13 @@ process getting_R_annotation_files {
 		anno_df %<>% dplyr::select(chr, start, end, width, strand, gene_name, gene_id, entrez_id)
 		saveRDS(anno_df, 'df_genes_metadata.rds', version = 2)
 
+		# create the seqinfo object
+		nr = nrow(df_chr_size)
+		seqinfo = GenomeInfoDb::Seqinfo(seqnames = df_chr_size[,1], seqlengths = df_chr_size[,2], isCircular = rep(F, nr) , genome = rep(specie_long, nr))
+		saveRDS(seqinfo, 'seqinfo.rds')
+
 		# export txdb
-		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_without_pseudogenes_and_ncRNA)
+		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_without_pseudogenes_and_ncRNA, chrominfo = seqinfo)
 		AnnotationDbi::saveDb(txdb, file="txdb_without_pseudogenes_and_ncRNA.sqlite")
 
 		# export gene vs transcripts 
