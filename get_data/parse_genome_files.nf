@@ -112,11 +112,96 @@ process get_homer_data {
 		wget -nc $URL/organisms/${specie}.v${homer_organisms_version}.zip
 		wget -nc $URL/promoters/${specie}.v${homer_promoters_version}.zip
 		
-		unzip *
-		
-		
+		for z in *.zip; do unzip "$z"; done
+		mv data/* .
+		rm -r data *.zip
+		 
 	'''
 }
+
+
+process get_all_pwms {
+
+	container = params.r_basic
+
+	publishDir path: "util/motifs_PWMS", mode: 'link'
+	input:
+
+	output:
+		file('*')
+
+	
+	shell:
+	'''
+		#!/usr/bin/env Rscript
+		
+		url="http://cisbp.ccbr.utoronto.ca/data/2.00/DataFiles/Bulk_downloads/EntireDataset"
+		f1 = 'PWMs.zip'                          ; download.file(paste0(url, '/', f1), f1)
+		f1 = 'TF_Information.txt.zip' ; download.file(paste0(url, '/', f1), f1)
+		
+		unzip('TF_Information.txt.zip')
+		unzip('PWMs.zip')
+		
+		system("sed -i 's/#/|/g' TF_Information.txt")
+
+		library(purrr)
+		library(data.table)
+		library(magrittr)
+		
+		dt_all = fread('TF_Information.txt')
+		
+		encode_species = c('Caenorhabditis_elegans', 'Drosophila_melanogaster', 'Mus_musculus', 'Homo_sapiens')
+		dt_encode = dt_all[TF_Species %in% encode_species]
+		dt_encode = dt_encode[Motif_ID != '.']
+
+		saveRDS(dt_encode, 'dt_cisbp_encode.rds')
+
+		dt_encode[TF_Species == 'Caenorhabditis_elegans']
+			
+		system('rm *.zip')
+		
+	'''
+	
+}
+
+// However, there are still multiple entries per TF
+// dt_encode[TF_Species == 'Caenorhabditis_elegans']$TF_Name %>% table %>% sort %>% rev %>% head(10)
+  // hlh-1   skn-1  snpc-4   pha-4   efl-1   tra-1 nhr-182   mab-3  lin-39   eor-1
+  //     7       4       3       3       3       2       2       2       2       2
+// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'skn-1']
+// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'hlh-1']
+
+// I think I understand what happened: the entries that are duplicated are all from the similarity regression method. And they all have the same score. So instead of picking one arbitrarily, CISBP kept all of these entries with the same score. I could keep only the CHIP.
+
+
+
+// # Identifying and removing empty motifs files
+// file_is_correct = map_lgl(paste0('pwms/', dt_encode$Motif_ID, '.txt'), function(f1) {ifelse(nrow(fread(f1)) == 1, F, T)})
+// file_is_correct %>% table # => all TRUE
+// TRUE
+// 8628
+
+// https://github.com/TedCCLeung/PhMotif/blob/9ace03a196e02375b3024af3506b9f58e98f1a1d/data-raw/processCISBPfiles.R
+
+
+// nice explanations about the cisbp files here:
+// https://github.com/Danko-Lab/rtfbs_db/blob/a29f73b24e8984aad8bcd1227b06446ebef44b08/rtfbsdb/man/CisBP.getTFinformation.Rd
+// Three TF information files in CisBP dataset.\cr\cr
+// 1: TF_Information.txt : (direct motifs) or (no direct but inferred motifs with 90\%)\cr
+// 2: TF_Information_all_motifs.txt: (direct motifs) and (inferred motifs above the threshold)\cr
+// 3: F_Information_all_motifs_plus.txt: All motifs\cr
+
+// 'TF_Information_all_motifs.txt' is a superset of 'TF_Information.txt'.  It also includes any motif that can be inferred for a given TF, given the TF family-specific threshold.  For example, if a TF has a directly determined motif, and two TFs with motifs with 90% and 80% identical DBDs to it, TF_Information.txt will only include the direct motif, but 
+// TF_Information_all_motifs.txt will include all three motifs.  Likewise, if a TF does not have a direct motif, but has two TFs with 90% and 80% identical DBDs to it, TF_Information.txt will only include the motif from the 90% indentical TF, while TF_Information_all_motifs.txt would include both.\cr\cr
+
+
+
+// f1 = 'TF_Information_all_motifs.txt.zip' ; download.file(paste0(url, '/', f1), f1)
+// unzip('TF_Information_all_motifs.txt.zip')
+// system("sed -i 's/#/|/g' TF_Information_all_motifs.txt")
+// dt_all = fread('TF_Information_all_motifs.txt')
+
+
 
 
 
