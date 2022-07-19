@@ -9,6 +9,8 @@ homer_genomes_version   = '6.4'
 homer_organisms_version = '6.3'
 homer_promoters_version = '5.5'
 
+params.homer_odd_score_threshold = 0.5
+
 Species_channel = Channel
 	.from( 	
 		[
@@ -20,68 +22,15 @@ Species_channel = Channel
 	)
 	.dump(tag: 'start_channel')
 	.multiMap { it ->
-		    fasta: it[0, 1, 3, 4]
-				homer: it[0, 2]
-		blacklist: it[0, 2, 3]
-		    orgdb: it[0, 1]
+		      fasta: it[0, 1, 3, 4]
+			  	homer: it[0, 2]
+				   pwms: it[0, 1]
+      blacklist: it[0, 2, 3]
+	  			orgdb: it[0, 1]
 	}
 	.set { Start_channel }
 
 
-
-
-
-// channel_species = 
-// 	Channel.from( [ 'worm', 'fly', 'mouse', 'human' ] )
-// 	.flatten()
-// 	.map{ [ it, file("${it}/genome/annotation/annotation.gff3"), file("${it}/genome/sequence/genome.fa") ].flatten() }
-// 	.dump(tag:"species")
-// 	.into{ channel_species_1 ; channel_species_2 ; channel_species_3 ; channel_species_4 }
-
-
-process get_fasta_and_gff {
-	tag "${specie}"
-
-	container = params.samtools_bedtools_perl
-
-	publishDir path: "${specie}/genome", mode: 'link', saveAs: {
-    if (it.indexOf(".gff3") > 0) "annotation/${it}"
-		else if (it.indexOf(".fa") > 0) "sequence/${it}"
-    else if (it.indexOf(".txt") > 0) "${it}"
-  }
-
-	input:
-		set specie, specie_long, genome, assembly from Start_channel.fasta
-
-	output:
-		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
-
-	shell:
-	'''
-		
-	specie='!{specie}'
-	specie_long='!{specie_long}'
-	genome='!{genome}'
-	assembly='!{assembly}'
-	release='!{params.ensembl_release}'
-	
-	URL=ftp://ftp.ensembl.org/pub/release-$release
-	
-	gff3_file=${specie_long^}.$genome.$release.gff3.gz
-	fasta_file=${specie_long^}.$genome.dna_sm.$assembly.fa.gz
-	
-	wget -O annotation.gff3.gz $URL/gff3/$specie_long/$gff3_file 
-	gunzip annotation.gff3.gz 
-	
-	wget -O genome.fa.gz $URL/fasta/$specie_long/dna/$fasta_file 
-	gunzip genome.fa.gz
-	
-	echo "gff3 file : $gff3_file" > README.txt
-	echo "fasta file: $fasta_file" >> README.txt
-		
-		
-	'''
-}
 
 
 
@@ -120,19 +69,22 @@ process get_homer_data {
 }
 
 
-process get_all_pwms {
 
-	container = params.universalmotif
+process get_pwms {
 
-	// publishDir path: "util/motifs_PWMS", mode: 'link'
+	container = params.r_basic
+
+	publishDir path: "util/motifs_PWMS", mode: 'link'
 
 	output:
-		set file('dt_cisbp_encode.rds'), file('pwms/') into cisbp_motifs
-		// file('TF_Information.txt')
+		file('dt_cisbp_encode.rds') into cisbp_motifs_all_species
+		file('*')
 	
 	shell:
 	'''
 		#!/usr/bin/env Rscript
+		
+		homer_odd_score_threshold = !{params.homer_odd_score_threshold}
 		
 		url="http://cisbp.ccbr.utoronto.ca/data/2.00/DataFiles/Bulk_downloads/EntireDataset"
 		f1 = 'PWMs.zip'               ; download.file(paste0(url, '/', f1), f1)
@@ -142,78 +94,80 @@ process get_all_pwms {
 		unzip('PWMs.zip')
 		
 		system("sed -i 's/#/|/g' TF_Information.txt")
-
-		library(universalmotif)
 		
-		df_all = read.table('TF_Information.txt', sep = '\t', header = T, stringsAsFactors = F)
+		library(data.table)
+		library(magrittr)
+		library(purrr)
+	
+		dt_all = fread('TF_Information.txt')
+		
 		encode_species = c('Caenorhabditis_elegans', 'Drosophila_melanogaster', 'Mus_musculus', 'Homo_sapiens')
-		df_encode = df_all[df_all$TF_Species %in% encode_species, ]
-		df_encode = df_encode[df_encode$Motif_ID != '.', ]
-		df_encode = df_encode[!duplicated(df_encode$TF_ID), ]
-		
+		dt_cisbp = dt_all[TF_Species %in% encode_species]
+		dt_cisbp = dt_cisbp[Motif_ID != '.']
+		dt_cisbp = dt_cisbp[!duplicated(TF_ID)]
+
 		# removing emtpy motifs
-		nrow(df_encode) # 2936
-		nrows = sapply(df_encode$Motif_ID, function(x) nrow(read.table(paste0('pwms/', x, '.txt'), sep = '\t')))
-		df_encode = df_encode[nrows != 1, ]
-		nrow(df_encode) # 2779
+		nrow(dt_cisbp) # 2936
+		nrows = sapply(dt_cisbp$Motif_ID, function(x) nrow(read.table(paste0('pwms/', x, '.txt'), sep = '\t')))
+		dt_cisbp = dt_cisbp[nrows != 1]
+		nrow(dt_cisbp) # 2779
 
-		l_motifs = lapply(df_encode$Motif_ID, function(x) read_cisbp(paste0('pwms/', x, '.txt')))
+		# loading motifs and determining odd scores, thresholds and consensus sequences
+		dt_cisbp$motif = lapply(dt_cisbp$Motif_ID, function(x) read.table(paste0('pwms/', x,'.txt'), sep = '\t', header = T, stringsAsFactors = F)[, -1])
+		dt_cisbp[, log2_odd_score := sapply(motif, function(motif1) sum(apply(motif1, 1, function(cur_row) log2(max(cur_row)/0.25))))]
+		dt_cisbp[, homer_threshold := log2_odd_score * homer_odd_score_threshold]
+		dt_cisbp[, consensus_sequence := sapply(motif, function(motif1) paste0(colnames(motif1)[apply(motif1, 1, function(x) which.max(x))], collapse = ''))]
 
-		
-		
-		read_cisbp('pwms/T000021_2.00.txt')
-		
-		saveRDS(dt_encode, 'dt_cisbp_encode.rds')
+		saveRDS(dt_cisbp, 'dt_cisbp_encode.rds')
 	
 		
 	'''
 	
 }
 
-
-#     motif = read.table(paste0(specie, '/pwms_all_motifs/', Motif_ID,'.txt'), sep = '\t', header = T, stringsAsFactors = F)
-#     motif1 = motif[, -1]
-#     log2_odd_score = sum(apply(motif[,-1], 1, function(x) log2(max(x)/0.25)))
-#     if(log2_odd_score == 0) next() # some motifs are empty
-#     homer_threshold = 0.7 * log2_odd_score
-#     consensus_sequence = paste0(colnames(motif1)[apply(motif[,-1], 1, function(x) which.max(x))], collapse = '')
-# 
-#     cat(paste0('>', consensus_sequence, '\t', TF_Name_unique, '\t', homer_threshold, '\n'))
-#     cat(paste0(apply(motif1, 1, paste0, collapse = '\t'), '\n'))
-# 
-# awk 'BEGIN { OFS = "\t" } ; { if (substr($1,1,1) == ">") {odd_score = $3 * 100 / 70; $3 = odd_score * 50 / 100} ; print $0 } '  homer_motifs.txt > homer_motifs_threshold_50_percent.txt
+Start_channel.pwms
+	.combine(cisbp_motifs_all_species)
+	.set{ cisbp_motifs_all_species_1 }
 
 
+process split_pwms {
 
-process filter_cisbp_motfis {
+	container = params.r_basic
 
-	container = params.universalmotif
+	publishDir path: "${specie}/motifs_PWMs", mode: 'link'
 
-	publishDir path: "util/motifs_PWMS", mode: 'link'
 	input:
-		set file(dt_cisbp_name), file(pwms_motifs) from cisbp_motifs
+		set specie, specie_long, file(dt_cisbp_encode_rds) from cisbp_motifs_all_species_1
 
 	output:
-		file('*')
+		file('homer_motifs.txt')
 	
 	shell:
 	'''
 		#!/usr/bin/env Rscript
 		
-		library(universalmotif)
+		library(data.table)
 		
-		dt_cisbp = readRDS('!{dt_cisbp_name}')
-		read_cisbp()
+		dt_cisbp_encode = readRDS('!{dt_cisbp_encode_rds}')
+		specie_long = '!{specie_long}'
 		
-		pwms_motifs_files = list.files('!{pwms_motifs_dir}')
+		specie_long_1 = paste0(toupper(substr(specie_long, 1, 1)), substr(specie_long, 2, nchar(specie_long)))
+		dt_cisbp = dt_cisbp_encode[TF_Species == specie_long_1]
 		
+		
+		sink('homer_motifs.txt')
+		
+			apply(dt_cisbp, 1, function(x) {
+					cat(paste0('>', x$consensus_sequence, '\t', x$TF_Name, '\t', x$homer_threshold, '\n'))
+					cat(paste0(apply(x$motif, 1, paste0, collapse = '\t'), '\n'))
+				})
+
+		sink()
 		
 	'''
 	
 }
 
-
-// # awk 'BEGIN { OFS = "\t" } ; { if (substr($1,1,1) == ">") {odd_score = $3 * 100 / 70; $3 = odd_score * 50 / 100} ; print $0 } '  homer_motifs.txt > homer_motifs_threshold_50_percent.txt
 
 
 
@@ -328,6 +282,55 @@ process get_blacklisted_regions {
 // 
 // cur_seq_info = rtracklayer::SeqinfoForUCSCGenome('ce11')
 // cur_seq_info@seqnames %<>% gsub('chr', '', .)
+
+
+
+
+
+process get_fasta_and_gff {
+	tag "${specie}"
+
+	container = params.samtools_bedtools_perl
+
+	publishDir path: "${specie}/genome", mode: 'link', saveAs: {
+    if (it.indexOf(".gff3") > 0) "annotation/${it}"
+		else if (it.indexOf(".fa") > 0) "sequence/${it}"
+    else if (it.indexOf(".txt") > 0) "${it}"
+  }
+
+	input:
+		set specie, specie_long, genome, assembly from Start_channel.fasta
+
+	output:
+		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
+
+	shell:
+	'''
+		
+	specie='!{specie}'
+	specie_long='!{specie_long}'
+	genome='!{genome}'
+	assembly='!{assembly}'
+	release='!{params.ensembl_release}'
+	
+	URL=ftp://ftp.ensembl.org/pub/release-$release
+	
+	gff3_file=${specie_long^}.$genome.$release.gff3.gz
+	fasta_file=${specie_long^}.$genome.dna_sm.$assembly.fa.gz
+	
+	wget -O annotation.gff3.gz $URL/gff3/$specie_long/$gff3_file 
+	gunzip annotation.gff3.gz 
+	
+	wget -O genome.fa.gz $URL/fasta/$specie_long/dna/$fasta_file 
+	gunzip genome.fa.gz
+	
+	echo "gff3 file : $gff3_file" > README.txt
+	echo "fasta file: $fasta_file" >> README.txt
+		
+		
+	'''
+}
+
 
 
 process filtering_annotation_file {
