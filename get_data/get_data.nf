@@ -287,6 +287,40 @@ process get_blacklisted_regions {
 
 
 
+process get_chip_seq {
+	tag "${specie}"
+
+	container = params.encodeexplorer
+
+	// publishDir path: "${specie}/blacklisted_regions", mode: 'link'
+
+	input:
+		// set specie, specie_code, ncbi_code from Start_channel.blacklist
+
+	output:
+		file("${specie_code}_blacklist_Ensembl.bed")
+
+	shell:
+	'''
+
+		#!/usr/bin/env Rscript
+		
+		annotationhub_cache = '!{params.annotationhub_cache}'
+
+		library(ENCODExplorer)
+		library(AnnotationHub)
+		library(magrittr)
+	
+		ah = AnnotationHub(cache = annotationhub_cache)
+		query(ah, "ENCODExplorerData")
+
+
+	'''
+}
+
+
+
+
 process get_fasta_and_gff {
 	tag "${specie}"
 
