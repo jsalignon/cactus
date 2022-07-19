@@ -124,11 +124,12 @@ process get_all_pwms {
 
 	container = params.r_basic
 
-	publishDir path: "util/motifs_PWMS", mode: 'link'
+	// publishDir path: "util/motifs_PWMS", mode: 'link'
+
 	input:
 
 	output:
-		file('*')
+		set file('TF_Information.txt'), file('dt_cisbp_encode.rds'), file('pwms/') into cisbp_motifs
 
 	
 	shell:
@@ -136,7 +137,7 @@ process get_all_pwms {
 		#!/usr/bin/env Rscript
 		
 		url="http://cisbp.ccbr.utoronto.ca/data/2.00/DataFiles/Bulk_downloads/EntireDataset"
-		f1 = 'PWMs.zip'                          ; download.file(paste0(url, '/', f1), f1)
+		f1 = 'PWMs.zip'               ; download.file(paste0(url, '/', f1), f1)
 		f1 = 'TF_Information.txt.zip' ; download.file(paste0(url, '/', f1), f1)
 		
 		unzip('TF_Information.txt.zip')
@@ -162,6 +163,36 @@ process get_all_pwms {
 	'''
 	
 }
+
+
+process filter_cisbp_motfis {
+
+	container = params.universalmotif
+
+	publishDir path: "util/motifs_PWMS", mode: 'link'
+	input:
+		set file(tf_info), file(dt_cisbp), file(pwms) from cisbp_motifs
+
+	output:
+		file('*')
+
+	
+	shell:
+	'''
+		#!/usr/bin/env Rscript
+		
+		test
+		
+	'''
+	
+}
+
+
+// # awk 'BEGIN { OFS = "\t" } ; { if (substr($1,1,1) == ">") {odd_score = $3 * 100 / 70; $3 = odd_score * 50 / 100} ; print $0 } '  homer_motifs.txt > homer_motifs_threshold_50_percent.txt
+
+
+
+// bioconductor-universalmotif:1.8.3--r40h399db7b_0
 
 // dt_encode = dt_all[TF_Species %in% encode_species]
 // dt_encode = dt_encode[Motif_ID != '.']
