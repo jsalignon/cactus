@@ -122,15 +122,13 @@ process get_homer_data {
 
 process get_all_pwms {
 
-	container = params.r_basic
+	container = params.universalmotif
 
 	// publishDir path: "util/motifs_PWMS", mode: 'link'
 
-	input:
-
 	output:
-		set file('TF_Information.txt'), file('dt_cisbp_encode.rds'), file('pwms/') into cisbp_motifs
-
+		set file('dt_cisbp_encode.rds'), file('pwms/') into cisbp_motifs
+		// file('TF_Information.txt')
 	
 	shell:
 	'''
@@ -145,24 +143,46 @@ process get_all_pwms {
 		
 		system("sed -i 's/#/|/g' TF_Information.txt")
 
-		library(purrr)
-		library(data.table)
-		library(magrittr)
+		library(universalmotif)
 		
-		dt_all = fread('TF_Information.txt')
-		
+		df_all = read.table('TF_Information.txt', sep = '\t', header = T, stringsAsFactors = F)
 		encode_species = c('Caenorhabditis_elegans', 'Drosophila_melanogaster', 'Mus_musculus', 'Homo_sapiens')
-		dt_encode = dt_all[TF_Species %in% encode_species]
-		dt_encode = dt_encode[Motif_ID != '.']
-		dt_encode = dt_encode[!duplicated(TF_ID)]
+		df_encode = df_all[df_all$TF_Species %in% encode_species, ]
+		df_encode = df_encode[df_encode$Motif_ID != '.', ]
+		df_encode = df_encode[!duplicated(df_encode$TF_ID), ]
+		
+		# removing emtpy motifs
+		nrow(df_encode) # 2936
+		nrows = sapply(df_encode$Motif_ID, function(x) nrow(read.table(paste0('pwms/', x, '.txt'), sep = '\t')))
+		df_encode = df_encode[nrows != 1, ]
+		nrow(df_encode) # 2779
+
+		l_motifs = lapply(df_encode$Motif_ID, function(x) read_cisbp(paste0('pwms/', x, '.txt')))
+
+		
+		
+		read_cisbp('pwms/T000021_2.00.txt')
 		
 		saveRDS(dt_encode, 'dt_cisbp_encode.rds')
 	
-		system('rm *.zip')
 		
 	'''
 	
 }
+
+
+#     motif = read.table(paste0(specie, '/pwms_all_motifs/', Motif_ID,'.txt'), sep = '\t', header = T, stringsAsFactors = F)
+#     motif1 = motif[, -1]
+#     log2_odd_score = sum(apply(motif[,-1], 1, function(x) log2(max(x)/0.25)))
+#     if(log2_odd_score == 0) next() # some motifs are empty
+#     homer_threshold = 0.7 * log2_odd_score
+#     consensus_sequence = paste0(colnames(motif1)[apply(motif[,-1], 1, function(x) which.max(x))], collapse = '')
+# 
+#     cat(paste0('>', consensus_sequence, '\t', TF_Name_unique, '\t', homer_threshold, '\n'))
+#     cat(paste0(apply(motif1, 1, paste0, collapse = '\t'), '\n'))
+# 
+# awk 'BEGIN { OFS = "\t" } ; { if (substr($1,1,1) == ">") {odd_score = $3 * 100 / 70; $3 = odd_score * 50 / 100} ; print $0 } '  homer_motifs.txt > homer_motifs_threshold_50_percent.txt
+
 
 
 process filter_cisbp_motfis {
@@ -171,17 +191,22 @@ process filter_cisbp_motfis {
 
 	publishDir path: "util/motifs_PWMS", mode: 'link'
 	input:
-		set file(tf_info), file(dt_cisbp), file(pwms) from cisbp_motifs
+		set file(dt_cisbp_name), file(pwms_motifs) from cisbp_motifs
 
 	output:
 		file('*')
-
 	
 	shell:
 	'''
 		#!/usr/bin/env Rscript
 		
-		test
+		library(universalmotif)
+		
+		dt_cisbp = readRDS('!{dt_cisbp_name}')
+		read_cisbp()
+		
+		pwms_motifs_files = list.files('!{pwms_motifs_dir}')
+		
 		
 	'''
 	
