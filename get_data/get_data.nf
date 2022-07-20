@@ -347,6 +347,10 @@ process get_chip_seq {
 
 
 
+
+
+
+
 library(data.table)
 
 url_encode = 'https://www.encodeproject.org/' 
@@ -367,6 +371,70 @@ sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c
 
 dt[, md5sum_dl := tools::md5sum(file_name)]
 if(any(dt$md5sum != dt$md5sum_dl)) stop('not all md5 sums are equal')
+
+
+
+
+
+### FILE
+url_append_test = '&frame=embedded&format=json&limit=all'
+my_query = 'type=File&accession=ENCFF209GZO'
+my_url = paste0(url_search, my_query, url_append_test)
+RCurl::url.exists(my_url)
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+df1 = df[1,]
+
+
+my_query = 'type=File&file_format=bed&status=released&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&assembly=ce11'
+my_url = paste0(url_search, my_query, url_append_test)
+RCurl::url.exists(my_url)
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+df1 = df[1,]
+
+## => the @id present in all category indicates the path:
+# https://www.encodeproject.org/{cur_id}/?format=json
+# i.e. @id=	"/organisms/celegans/"
+# path: https://www.encodeproject.org/genes/176069/?format=json
+
+# https://www.encodeproject.org/genes/176069/?format=json
+# https://www.encodeproject.org/files/ENCDO503XTK/?format=json
+# https://www.encodeproject.org/files/ENCSR342TEL/?format=json
+# https://www.encodeproject.org/files/ENCFF209GZO/?format=json
+df1[, c('accession', 'target', 'simple_biosample_summary')]
+dt1 = data.table(accession = df1$accession, target_name = df1$target$label, target_id = df1$target$genes, classification = df1$biosample_ontology$classification, assembly = df1$assembly, biosample_summary = df1$simple_biosample_summary)
+
+dt1 = data.table(file = df$accession, target_name = df$target$label, target_id = gsub(df$target$genes, pattern = '/.*/(.*)/', replacement = '\\1'), classification = df$biosample_ontology$classification, assembly = df$assembly, biosample_summary = df$simple_biosample_summary, donor = gsub(df$donor, pattern = '/.*/(.*)/', replacement = '\\1'))
+
+# combining with the donor information to have more information on the sample
+my_query = 'type=Donor&organism.scientific_name=Caenorhabditis+elegans'
+my_url = paste0(url_search, my_query, url_append_test)
+RCurl::url.exists(my_url)
+res2 = jsonlite::fromJSON(my_url)
+df2 = res2[['@graph']]
+
+dt2 = data.table(donor = df2$accession, strain_name = df2$strain_name, genotype = df2$genotype, description = purrr::map_chr(df2$genetic_modifications, ~ifelse(nrow(.x) > 0, ifelse('description' %in% colnames(.x), .x$description, 'NA'), 'NA')))
+
+dt3 = dt1[dt2, , on = 'donor']
+
+dt3[1,] %>% t
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
