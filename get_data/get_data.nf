@@ -315,10 +315,332 @@ process get_chip_seq {
 		query(ah, "ENCODExplorerData")
 
 
+		https://www.encodeproject.org/search/?type=File&file_format=bed&status=released&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq
+		
+		url_encode = 'https://www.encodeproject.org/' 
+		url_search = paste0(url_encode, 'search/?' 
+		url_append = '&frame=object&format=json&limit=all'
+
+		my_query = 'type=File&file_format=bed&status=released&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&assembly=ce11'
+		my_url = paste0(url_encode, my_query, url_append)
+		RCurl::url.exists(my_url)
+		res1 = jsonlite::fromJSON(my_url)
+		df = res1[['@graph']]
+		df$href[1:2]
+		df[, c('href', 'md5sum')]
+		
+		fileName = strsplit(x = file_url, split = "@@download/", fixed = TRUE)[[1]][2]
+		fileName <- paste0(dir,"/", fileName, sep="")
+		
+		# Identify the target URL.
+		href <- as.character(file_url)
+		
+		# Calculate the md5 of the file if it already exists.
+		md5sum_file <- tools::md5sum(fileName)
+		md5sum_encode <- as.character(file_md5)
+
+
+
 	'''
 }
 
 
+
+
+library(data.table)
+
+url_encode = 'https://www.encodeproject.org/' 
+url_search = paste0(url_encode, 'search/?')
+url_append = '&frame=object&format=json&limit=all'
+
+my_query = 'type=File&file_format=bed&status=released&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&assembly=ce11'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+
+dt = data.table(df[, c('href', 'md5sum')])
+dt = dt[1:5]
+dt[, file_name := gsub('.*download/', '', href)]
+
+sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$file_name[c1], method = 'curl', extra = '-L' ))
+
+dt[, md5sum_dl := tools::md5sum(file_name)]
+if(any(dt$md5sum != dt$md5sum_dl)) stop('not all md5 sums are equal')
+
+
+
+
+
+df1[, c('title', 'dataset')]
+
+df1$title # [1] "ENCFF209GZO"
+df1$dataset # [1] "ENCFF209GZO"
+
+
+
+### FILE
+url_append_test = '&frame=embedded&format=json&limit=all'
+my_query = 'type=File&accession=ENCFF209GZO'
+my_url = paste0(url_search, my_query, url_append_test)
+RCurl::url.exists(my_url)
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+df1 = df[1,]
+
+
+my_query = 'type=File&file_format=bed&status=released&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&assembly=ce11'
+my_url = paste0(url_search, my_query, url_append_test)
+RCurl::url.exists(my_url)
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+df1 = df[1,]
+
+
+# https://www.encodeproject.org/files/ENCDO503XTK/?format=json
+# https://www.encodeproject.org/files/ENCSR342TEL/?format=json
+# https://www.encodeproject.org/files/ENCFF209GZO/?format=json
+df1[, c('accession', 'target', 'simple_biosample_summary')]
+dt1 = data.table(accession = df1$accession, target_name = df1$target$label, target_id = df1$target$genes, classification = df1$biosample_ontology$classification, assembly = df1$assembly, biosample_summary = df1$simple_biosample_summary)
+
+df1[, c('accession', 'target', 'simple_biosample_summary')]
+dt1 = data.table(accession = df$accession, target_name = df$target$label, target_id = df$target$genes, classification = df$biosample_ontology$classification, assembly = df$assembly, biosample_summary = df$simple_biosample_summary)
+
+# => need to combine with the donor information to have the full details on the strain and the notes and so on
+https://www.encodeproject.org/worm-donors/ENCDO503XTK/?format=json
+
+# 
+
+
+https://www.encodeproject.org/search/?type=File&accession=ENCFF209GZO
+https://www.encodeproject.org/search/?type=Experiment&accession=ENCSR342TEL
+https://www.encodeproject.org/search/?type=Biosample&accession=ENCBS802NRN
+https://www.encodeproject.org/search/?type=Donor&accession=ENCDO503XTK
+https://www.encodeproject.org/search/?type=Analysis&accession=ENCAN948JEG
+
+
+
+### FILE
+my_query = 'type=File&accession=ENCFF209GZO'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+df1 = df[1,]
+
+df1[, c('accession', 'target', 'simple_biosample_summary')]
+
+
+## BIOSAMPLE (NOT NEEDED)
+my_query = 'type=Biosample&accession=ENCBS802NRN'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+res2 = jsonlite::fromJSON(my_url)
+df = res2[['@graph']]
+
+## DONOR
+my_query = 'type=Donor&accession=ENCDO503XTK'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+res2 = jsonlite::fromJSON(my_url)
+df = res2[['@graph']]
+df1 = df[1,]
+df1[, c('accession', 'genotype', 'strain_name', 'notes')]
+
+df1$genetic_modifications
+[1] "/genetic-modifications/ENCGM568HEQ/"
+
+
+## GeneticModification
+my_query = 'type=GeneticModification&accession=ENCGM568HEQ'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+res2 = jsonlite::fromJSON(my_url)
+df = res2[['@graph']]
+df1 = df[1,]
+
+
+
+
+my_query = 'dataset=/experiments/ENCSR342TEL/'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+
+res2 = jsonlite::fromJSON(my_url)
+df = res2[['@graph']]
+df1 = df[1,]
+
+df1[, c('accession', 'target', 'description', 'biosample_summary', 'simple_biosample_summary')]
+
+Biosample {ENCBS590PQG|/biosamples/ENCBS590PQG/}
+
+
+
+my_query = 'biosample_ontology.term_id=UBERON_0000468'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+
+
+my_query = 'type=Biosample&biosample_ontology.term_id=UBERON_0000468'
+
+my_query = 'type=Biosample&term_id=UBERON_0000468'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+
+
+
+res2 = jsonlite::fromJSON(my_url)
+df = res2[['@graph']]
+df
+
+
+
+my_query = 'type=Experiment&accession=ENCSR342TEL'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+
+res2 = jsonlite::fromJSON(my_url)
+df = res2[['@graph']]
+
+https://www.encodeproject.org/search/?type=Biosample&biosample_ontology=UBERON_0000468
+
+
+
+my_query = 'type=Biosample&term_id=UBERON_0000468/'
+my_url = paste0(url_search, my_query, url_append)
+RCurl::url.exists(my_url)
+
+
+https://www.encodeproject.org/experiments/ENCSR342TEL/?format=json
+
+type=Replicate&experiment.accession=ENCSR000AKS&format=json&frame=embedded
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://www.encodeproject.org/search/?type=Experiment&control_type%21=%2A&status=released&perturbed=false&replicates.library.biosample.donor.organism.scientific_name=Homo+sapiens&assay_title=TF+ChIP-seq&files.file_type=bed+idr_ranked_peak
+
+
+# Step 2 : Handling unavailable files via ENCODE rest-api
+
+    filter <- "/&frame=object&format=json&limit=all"
+    
+    #Simple rest-api query to
+    
+    if(length(unavail) > 0) {
+      
+      for(i in 1:length(unavail)){
+        #Step 2.1 : Handling files
+        if(RCurl::url.exists(paste0(url_file,unavail[[i]],filter))){ 
+          res <- jsonlite::fromJSON(paste0(url_file,unavail[[i]],filter))
+          if (res[["notification"]] == "Success") {
+            results <- res[["@graph"]]
+						
+url_encode = 'https://www.encodeproject.org/search/?' 
+url_append = '&format=json&limit=all'
+url_search = paste0(url_encode, 'searchTerm=', url_append)
+url_file = paste0(url_encode, 'type=file&title=', url_append)
+url_ds = paste0(url_encode, 'type=file&dataset=/', url_append)
+
+RCurl::url.exists(paste0(url_search, unavail[[i]], '&format=json&limit=all'))
+
+https://www.encodeproject.org/search/?type=Experiment&control_type!=*&status=released&perturbed=false&replicates.library.biosample.donor.organism.scientific_name=Homo+sapiens&assay_title=TF+ChIP-seq&files.file_type=bed+idr_ranked_peak&assembly=GRCh38
+
+my_url = paste0('https://www.encodeproject.org/search/?type=Experiment&control_type%21=%2A&status=released&perturbed=false&replicates.library.biosample.donor.organism.scientific_name=Homo+sapiens&assay_title=TF+ChIP-seq&files.file_type=bed+idr_ranked_peak', url_append)
+RCurl::url.exists(my_url)
+res = jsonlite::fromJSON(my_url)
+exp_dataset <- res[["@graph"]][["@id"]]
+// exp_dataset <- gsub(exp_dataset, pattern="/(.*)/.*/", replacement = "\\1")
+exp_dataset <- gsub(exp_dataset, pattern="/.*/(.*)/", replacement = "\\1")
+
+res[["@graph"]]$files[[1]]
+
+
+my_url = 'https://www.encodeproject.org/search/?type=Experiment&searchTerm=CTCF/&frame=object&format=json&limit=all'
+RCurl::url.exists(my_url)
+res = jsonlite::fromJSON(my_url)
+
+my_query = '?type=Experiment&control_type%21=%2A&status=released&perturbed=false&replicates.library.biosample.donor.organism.scientific_name=Homo+sapiens&assay_title=TF+ChIP-seq&files.file_type=bed+idr_ranked_peak&type=File'
+
+https://www.encodeproject.org/search/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo+sapiens
+
+https://www.encodeproject.org/search/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo+sapiens&files.file_type=bed+idr_ranked_peak
+
+df_chip = encode_df %>% .[.$assay == 'TF ChIP-seq', ] %T>% pnrow # 141085
+df_chip1 = df_chip %>% .[.$file_type == 'bed narrowPeak', ] %T>% pnrow # 30776
+df_chip2 = df_chip1 %>% .[.$output_type == 'optimal IDR thresholded peaks'
+
+
+url_append = '&format=json&limit=all'
+my_query = 'assay_term_name=ChIP-seq&files.file_type=bed+idr_ranked_peak&replicates.library.biosample.donor.organism.scientific_name=Homo+sapiens'
+my_url = paste0(url_encode, my_query, url_append)
+RCurl::url.exists(my_url)
+
+
+url_append = '&format=json&limit=all'
+my_query = 'assay_term_name=ChIP-seq&files.file_type=bed+narrowPeak&files.output_type=optimal+IDR+thresholded+peaks&replicates.library.biosample.donor.organism.scientific_name=Homo+sapiens'
+my_url = paste0(url_encode, my_query, url_append)
+RCurl::url.exists(my_url)
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+
+
+
+url_append = '&format=json&limit=all'
+my_query = 'type=File&replicates.library.biosample.donor.organism.scientific_name=Homo+sapiens'
+my_url = paste0(url_encode, my_query, url_append)
+RCurl::url.exists(my_url)
+
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+
+
+// https://www.encodeproject.org/search/?type=File&file_format_type=narrowPeak&file_format=bed&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&assembly=GRCh38&status=released
+
+
+
+url_append = '&format=json&limit=all'
+my_query = 'type=File&file_format_type=narrowPeak&file_format=bed&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&assembly=GRCh38&status=released'
+my_url = paste0(url_encode, my_query, url_append)
+RCurl::url.exists(my_url)
+
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+
+
+
+
+
+https://www.encodeproject.org/search/?type=File&file_format=bed&status=released&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&assembly=ce11
+
+https://www.encodeproject.org/files/ENCFF734ALE/?format=json
+
+// > df$status %>% table
+// released
+//     3665
+// > df$control_type %>% table
+// .
+// control
+//       6
+
+ str(res,1)
+ res[["@graph"]] %>% str(1)
 
 
 process get_fasta_and_gff {
