@@ -423,21 +423,152 @@ dt3[1,] %>% t
 
 
 
+my_query = 'type=Gene&organism.scientific_name=Caenorhabditis+elegans'
+my_url = paste0(url_search, my_query, url_append_test)
+RCurl::url.exists(my_url)
+res1 = jsonlite::fromJSON(my_url)
+df = res1[['@graph']]
+df1 = df[1,]
+
+scientific_name	"Caenorhabditis elegans"
+
+get_encode_df <- function(my_query){
+	my_url = paste0(url_search, my_query, url_append)
+	if(!RCurl::url.exists(my_url)) stop('url doesn\'t exist')
+	res = jsonlite::fromJSON(my_url)
+	df = res[['@graph']]
+	return(df)
+}
+
+// Here are example of json links associated to a given bed file 
+
+// of a worm experiment:
+// https://www.encodeproject.org/files/ENCFF667MVT/  => bigBed narrowPeak
+// https://www.encodeproject.org/experiments/ENCSR956TMJ/?format=json
+// https://www.encodeproject.org/biosamples/ENCBS172XOM/?format=json
+// https://www.encodeproject.org/worm-donors/ENCDO164EGI/?format=json
+// https://www.encodeproject.org/genetic-modifications/ENCGM416HQF/?format=json
+// https://www.encodeproject.org/targets/npax-4-celegans/?format=json
+// https://www.encodeproject.org/genes/182466/?format=json
+
+// https://www.encodeproject.org/help/data-organization/ 
+// => we don't need the Biosample level: replicates (biosamples) are merged in the donor levels => note 2: we do need the biosample level, as it is there that the ontologies are stored (i.e. cell line, tissue, cell type)
+// cell line: biosample_ontology.term_name
+// cell type: biosample_ontology.cell_slims
+//    tissue: biosample_ontology.organ_slims
+
+// of a human experiment:
+// https://www.encodeproject.org/files/ENCFF739GZC/?format=json
+// https://www.encodeproject.org/experiments/ENCSR468DVP/?format=json
+// https://www.encodeproject.org/human-donors/ENCDO000AAD/?format=json
+// https://www.encodeproject.org/biosample-types/cell_line_EFO_0002067/?format=json
+
+// https://www.encodeproject.org/biosample-types/tissue_UBERON_0000160/?format=json
+
+
+//// Test in worm
+
+df_chip_files = get_encode_df('type=File&file_format=bed&status=released&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&assembly=ce11')
+
+df_experiments = get_encode_df('type=Experiment&assembly=ce11')
+df_biosamples = get_encode_df('type=Biosample&organism.scientific_name=Caenorhabditis+elegans')
+df_donor = get_encode_df('type=Donor&organism.scientific_name=Caenorhabditis+elegans')
+df_genetic_modifications = get_encode_df('type=GeneticModification&modified_site_by_target_id.organism=/organisms/celegans/')
+df_targets = get_encode_df('type=Target&organism.scientific_name=Caenorhabditis+elegans')
+df_genes = get_encode_df('type=Gene&organism.scientific_name=Caenorhabditis+elegans')
+
+get_id <- function(cur_id) exp_dataset <- gsub(cur_id, pattern="/.*/(.*)/", replacement = "\\1")
+s
+dt_experiment = data.table(df_experiments[, c('accession', 'target', 'life_stage_age', 'biosample_summary', 'description', 'simple_biosample_summary')])
+
+dt_experiment = data.table(
+	accession = 
+	)
+
+dt_donor = data.table(df_donor[, c('accession', 'genotype', 'strain_name')])
+
+https://www.encodeproject.org/search/?type=File&biosample_ontology.cell_slims=leukocyte&biosample_ontology.term_name=K562&biosample_ontology.organ_slims=blood
+
+
+//// Test in human
+
+pnrow <- function(x) print(nrow(x))
+
+df_chip_files = get_encode_df('type=File&file_format=bed&status=released&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&assembly=GRCh38') %T>% pnrow # 1554
+df_experiments = get_encode_df('type=Experiment&assembly=GRCh38') %T>% pnrow # 15362
+df_biosamples = get_encode_df('type=Biosample&organism.scientific_name=Homo+sapiens') %T>% pnrow # 15828
+// df_donor = get_encode_df('type=Donor&organism.scientific_name=Caenorhabditis+elegans')
+// df_genetic_modifications = get_encode_df('type=GeneticModification&modified_site_by_target_id.organism=/organisms/celegans/')
+// df_targets = get_encode_df('type=Target&organism.scientific_name=Caenorhabditis+elegans')
+// df_genes = get_encode_df('type=Gene&organism.scientific_name=Caenorhabditis+elegans')
+
+
+
+/// let's first get all the data and annotation that we need in one process and do the detailed annotation in annother process
 
 
 
 
+library(data.table)
+library(magrittr)
+library(purrr)
+
+url_encode = 'https://www.encodeproject.org/' 
+url_search = paste0(url_encode, 'search/?')
+url_append = '&frame=object&format=json&limit=all'
+
+get_encode_df <- function(my_query){
+	my_url = paste0(url_search, my_query, url_append)
+	if(!RCurl::url.exists(my_url)) stop('url doesn\'t exist')
+	res = jsonlite::fromJSON(my_url)
+	df = res[['@graph']]
+	return(df)
+}
+
+pnrow <- function(x) print(nrow(x))
+
+
+df_chip_files = get_encode_df('type=File&file_format=bed&output_type=optimal+IDR+thresholded+peaks&assembly=GRCh38&assembly=ce11&assembly=dm6&assembly=mm10&assay_title=TF+ChIP-seq&status=released') %T>% pnrow # 2716
+df_experiments = get_encode_df('type=Experiment&assay_title=TF+ChIP-seq&status=released') %T>% pnrow # 4425
+df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow # 936
+df_targets = get_encode_df('type=Target&investigated_as=transcription+factor') %T>% pnrow # 6492
+df_targets$genes %<>% unlist
+df_targets = df_targets[!map_lgl(df_targets$genes, is.null), ] %T>% pnrow # 6490
+df_targets = df_targets[!map_lgl(df_targets$genes, is.na), ] %T>% pnrow # 6490
+df_genes = get_encode_df('type=Gene') %T>% pnrow # 179933
+
+map_int(df_targets$genes, length) %>% table
+//    1    2   23
+// 6464   25    1
 
 
 
 
+dt0 = data.table(df_chip_files[, c('accession', 'dataset', 'href')])
+dt = dt0[, 1:2]
+
+dt_experiment = data.table(df_experiments[, c('@id', 'biosample_summary', 'biosample_ontology', 'life_stage_age', 'target')])
+
+dt_targets = data.table(df_targets[, c('@id', 'genes')])
+dt_targets[, genes := unlist(genes)]
+dt_genes = data.table(df_genes[, c('@id', 'geneid', 'symbol')])
+
+dt_genes[dt_targets, , on = c('@id' = 'genes')]
+
+dt_genes[dt_targets, , on = c('genes' = '@id')]
+
+dt_targets[dt_genes, ]
+unlist(df_genes$genes) %>% str
+
+// characterization:
+df_chip_files$assembly %>% table
+  // ce11    dm6 GRCh38   mm10
+  //  474    532   1554    156
 
 
+ df_biosamples[1,] %>% t
 
-
-
-
-
+// df_biosamples = data.table(df_experiments[, c('accession', 'genotype', 'life_stage_age', 'biosample_summary', 'description', 'simple_biosample_summary')])
 
 
 df1[, c('title', 'dataset')]
@@ -635,7 +766,7 @@ RCurl::url.exists(my_url)
 res = jsonlite::fromJSON(my_url)
 exp_dataset <- res[["@graph"]][["@id"]]
 // exp_dataset <- gsub(exp_dataset, pattern="/(.*)/.*/", replacement = "\\1")
-exp_dataset <- gsub(exp_dataset, pattern="/.*/(.*)/", replacement = "\\1")
+exp_dataset <- gsub(exp_dataset, pattern="/.f*/(.*)/", replacement = "\\1")
 
 res[["@graph"]]$files[[1]]
 
