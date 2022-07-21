@@ -319,15 +319,17 @@ process get_encode_chip_metadata {
 		
 		## merging the genes and target tables
 		df_targets_0 = get_encode_df('type=Target') %T>% pnrow # 9941
+		
 		df_targets = df_targets_0
 		df_targets = df_targets[!map_lgl(df_targets$genes, is.null), ] %T>% pnrow # 9885
 		# few entries target multiple genes, we remove them
 		map_int(df_targets$genes, length) %>% table
 		df_targets$genes %<>% map_chr(~.x[1])
-		dt_targets = data.table(df_targets[, c('targets', 'genes')])
+		dt_targets = data.table(df_targets[, c('targets', 'genes', 'organism')])
+		dt_targets[, organism := organism %>% gsub('/organisms/|/', '', .)]
 		dt_genes = data.table(df_genes[, c('genes', 'geneid', 'symbol')])
 		colnames(dt_genes)[2:3] = c('target_id', 'target_symbol')
-		dt_genes_target = dt_genes[dt_targets, , on = 'genes'][, 2:4] %T>% pnrow # 9885
+		dt_genes_target = dt_genes[dt_targets, , on = 'genes'][, genes := NULL] %T>% pnrow # 9885
 		
 		## adding the target gene annotations to the experiment table
 		dt_experiment = data.table(df_experiments[, c('experiments', 'target', 'biosample_ontology', 'biosample_summary', 'life_stage_age')])
@@ -346,14 +348,22 @@ process get_encode_chip_metadata {
 		dt_experiment2 = dt_biosample_types[dt_experiment1, , on = 'biosample_ontology'][, biosample_ontology := NULL]
 		
 		## adding the experiment table to the file table to get the final metadata table
-		dt = data.table(df_chip_files[, c('accession', 'dataset', 'assembly')])
+		dt = data.table(df_chip_files[, c('accession', 'dataset', 'assembly', 'href', 'md5sum')])
 		colnames(dt)[1:2] = c('file', 'experiments')
 		dt = dt_experiment2[dt, , on = 'experiments'][, experiments := NULL]
 		colnames(dt)[colnames(dt) == 'term_name'] = 'ontology'
-		dt = dt[, c('file', 'assembly', 'target_symbol', 'target_id', 'life_stage_age', 'ontology', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'biosample_summary')]
+		dt = dt[, c('file', 'target_symbol', 'target_id', 'life_stage_age', 'ontology', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'biosample_summary', 'organism', 'assembly', 'href', 'md5sum')]
 		
 		# renaming the human assembly
 		dt[assembly == 'GRCh38', assembly := 'hg38']
+		
+		## adding a column indicating either the cell line or tissue (human or mice) or stage (yeast or worms)
+		dt[, stage_cell := biosample_summary]
+		
+		# for worm
+		dt[assembly == 'ce11', stage_cell := stage_cell %>% gsub('.*whole organism ', '', .) %>% gsub('.*hermaphrodite ', '', .) %>% gsub('(L[1-4]).*', '\\1', .) %>% gsub('young adult.*', 'YA', .) %>% gsub('late embryo.*', 'LE', .) %>% gsub('early embryo.*', 'EE', .) %>% gsub('mixed stage \\(embryo\\).*', 'MSE', .) %>% gsub('dauer.*', 'DA', .) %>% gsub('midembryo.*', 'ME', .)]
+		dt[assembly == 'ce11', ]$stage_cell %>% table	
+		
 		
 		saveRDS(dt, 'dt_encode_chip.rds')
 
@@ -361,6 +371,7 @@ process get_encode_chip_metadata {
 	'''
 }
 
+// to do now: make the stage_cell column
 
 // Here are examples of json links associated to a given bed file 
 
@@ -422,6 +433,23 @@ process get_encode_chip_data {
 		
 		dt = dt_encode_chip[assembly == assembly1]
 		
+		
+		dt = dt_encode_chip
+		
+
+		# donwloading the data first
+		
+		dt = data.table(df[, c('href', 'md5sum')])
+		dt = dt[1:5]
+		dt[, file_name := gsub('.*download/', '', href)]
+
+		url_files = 'https://www.encodeproject.org/files/' 
+		sapply(dt$file, function(x) download.file(url = paste0(url_files, x, '/@@download/', x, '.bed.gz'), quiet = T, destfile = paste0(x, '.bed.gz'), method = 'curl', extra = '-L' ))
+
+		dt[, md5sum_dl := tools::md5sum(paste0(file, '.bed.gz'))]
+		if(any(dt$md5sum != dt$md5sum_dl)) stop('not all md5 sums are equal')
+
+		
 		get_ontology_files <- function(dt, ontology_id, ontology_name){
 			
 			ontology_values = dt[[ontology_id]]
@@ -438,6 +466,7 @@ process get_encode_chip_data {
 			return(l_ontology_files)
 		}
 			
+		
 		l_tissue_files        = get_ontology_files(dt, 'organ_slims', 'organ')
 		l_cell_type_files     = get_ontology_files(dt, 'cell_slims', 'cell_type')
 		l_cell_line_files     = get_ontology_files(dt, 'ontology', 'cell_line')
@@ -449,17 +478,12 @@ process get_encode_chip_data {
 		ontology_order = map_int(l_ontology_files, length) %>% sort %>% rev %>% names
 		l_ontology_files %<>% .[ontology_order]
 		
-		dt_number = data.table(ontology = names(l_ontology_files), number_of_chip = map_int(l_ontology_files, length))
+		dt_n_chip_by_ontology = data.table(ontology = names(l_ontology_files), number_of_chip = map_int(l_ontology_files, length))
+		dt_n_chip_by_ontology
+		
+		write.csv(dt_n_chip_by_ontology, 'dt_n_chip_by_ontology.csv')
 		
 		
-			
-		} else {
-			l_ontology_files = list()
-		}
-		
-		
-		
-		dt = dt_encode_chip[assembly == 'hg38']
 		
 		url_encode = 'https://www.encodeproject.org/' 
 		url_search = paste0(url_encode, 'search/?')
@@ -469,7 +493,6 @@ process get_encode_chip_data {
 	'''
 }
 
-cur_onlology = dt$organ_slims
 	
 
 	
