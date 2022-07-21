@@ -25,12 +25,11 @@ Species_channel = Channel
 			  	homer: it[0, 2]
 					 pwms: it[0, 1]
       blacklist: it[0, 2, 3]
-					 chip: it[0, 1]
+					 chip: it[0, 2]
 					fasta: it[0, 1, 3, 4]
 					orgdb: it[0, 1]
 	}
 	.set { Start_channel }
-
 
 
 
@@ -289,14 +288,10 @@ process get_blacklisted_regions {
 
 
 process get_encode_chip_metadata {
-	tag "${specie}"
 
 	container = params.encodeexplorer
 
-	// publishDir path: "${specie}/blacklisted_regions", mode: 'link'
-
 	input:
-		// set specie, specie_code, ncbi_code from Start_channel.blacklist
 
 	output:
 		file("dt_encode_chip.rds") into Encode_chip_metadata_channel
@@ -306,6 +301,8 @@ process get_encode_chip_metadata {
 
 		#!/usr/bin/env Rscript
 		
+		source('!{params.cactus_dir}/software/get_data/bin/encode_chip_functions.R')
+		
 		library(data.table)
 		library(magrittr)
 		library(purrr)
@@ -314,48 +311,30 @@ process get_encode_chip_metadata {
 		url_search = paste0(url_encode, 'search/?')
 		url_append = '&frame=object&format=json&limit=all'
 		
-		get_encode_df <- function(my_query){
-			my_url = paste0(url_search, my_query, url_append)
-			if(!RCurl::url.exists(my_url)) stop('url doesn\'t exist')
-			res = jsonlite::fromJSON(my_url)
-			df = res[['@graph']]
-		  # type = gsub(my_query, pattern = 'type=(.*?)&.*', replacement = '\\1') %>% tolower
-		  type = gsub(df[1,'@id'], pattern="/(.*)/.*/", replacement = "\\1") %>% gsub('-', '_', .)
-		  colnames(df)[1] = type
-			return(df)
-		}
-		
-		pnrow <- function(x) print(nrow(x))
-		
-		collapse_slims <- function(x) map_chr(x, ~paste(.x, collapse = ', '))
-		
+		## getting all tables
 		df_chip_files = get_encode_df('type=File&file_format=bed&output_type=optimal+IDR+thresholded+peaks&assembly=GRCh38&assembly=ce11&assembly=dm6&assembly=mm10&assay_title=TF+ChIP-seq&status=released') %T>% pnrow # 2716
 		df_experiments = get_encode_df('type=Experiment&assay_title=TF+ChIP-seq&status=released') %T>% pnrow # 4425
 		df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow # 936
-		df_genes = get_encode_df('type=Gene') %T>% pnrow # 179933
-		df_donors = get_encode_df('type=Donor') %T>% pnrow # 179933
+		df_genes = get_encode_df('type=Gene&targets=*') %T>% pnrow # 5989
 		
+		## merging the genes and target tables
 		df_targets_0 = get_encode_df('type=Target') %T>% pnrow # 9941
 		df_targets = df_targets_0
 		df_targets = df_targets[!map_lgl(df_targets$genes, is.null), ] %T>% pnrow # 9885
 		# few entries target multiple genes, we remove them
 		map_int(df_targets$genes, length) %>% table
-		#    1    2    3    6    8   10   14   15   16   22   23   24
-		# 9736   55   13    3   11    4    5   23    4    7   22    2
 		df_targets$genes %<>% map_chr(~.x[1])
-		
 		dt_targets = data.table(df_targets[, c('targets', 'genes')])
 		dt_genes = data.table(df_genes[, c('genes', 'geneid', 'symbol')])
 		colnames(dt_genes)[2:3] = c('target_id', 'target_symbol')
+		dt_genes_target = dt_genes[dt_targets, , on = 'genes'][, 2:4] %T>% pnrow # 9885
 		
-		dt_genes_target = dt_genes[dt_targets, , on = 'genes'][, 2:4]
-		
-		# dt_experiment = data.table(df_experiments[, c('experiments', 'biosample_summary', 'life_stage_age')])
+		## adding the target gene annotations to the experiment table
 		dt_experiment = data.table(df_experiments[, c('experiments', 'target', 'biosample_ontology', 'biosample_summary', 'life_stage_age')])
 		colnames(dt_experiment)[2] = 'targets'
 		dt_experiment1 = dt_genes_target[dt_experiment, , on = 'targets'][, targets := NULL]
 		
-		
+		## adding the ontology annotations to the experiment table
 		dt_biosample_types = data.table(
 		  df_biosample_types[, c('biosample_types', 'classification', 'term_name')],
 		  cell_slims  = collapse_slims(df_biosample_types$cell_slims),
@@ -364,16 +343,17 @@ process get_encode_chip_metadata {
 		  system_slims = collapse_slims(df_biosample_types$system_slims)
 		)
 		colnames(dt_biosample_types)[1] = 'biosample_ontology'
-		
-		
 		dt_experiment2 = dt_biosample_types[dt_experiment1, , on = 'biosample_ontology'][, biosample_ontology := NULL]
 		
-		
+		## adding the experiment table to the file table to get the final metadata table
 		dt = data.table(df_chip_files[, c('accession', 'dataset', 'assembly')])
 		colnames(dt)[1:2] = c('file', 'experiments')
 		dt = dt_experiment2[dt, , on = 'experiments'][, experiments := NULL]
 		colnames(dt)[colnames(dt) == 'term_name'] = 'ontology'
 		dt = dt[, c('file', 'assembly', 'target_symbol', 'target_id', 'life_stage_age', 'ontology', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'biosample_summary')]
+		
+		# renaming the human assembly
+		dt[assembly == 'GRCh38', assembly := 'hg38']
 		
 		saveRDS(dt, 'dt_encode_chip.rds')
 
@@ -382,7 +362,7 @@ process get_encode_chip_metadata {
 }
 
 
-// Here are example of json links associated to a given bed file 
+// Here are examples of json links associated to a given bed file 
 
 // of a worm experiment:
 // https://www.encodeproject.org/files/ENCFF667MVT/  => bigBed narrowPeak
@@ -407,14 +387,14 @@ process get_encode_chip_metadata {
 
 
 
-Start_channel.homer
+Start_channel.chip
 	.combine(Encode_chip_metadata_channel)
 	.set{ Encode_chip_metadata_channel_1 }
 	
 	
 	
 
-process get_encode_chip_metadata {
+process get_encode_chip_data {
 	tag "${specie}"
 
 	container = params.encodeexplorer
@@ -422,7 +402,7 @@ process get_encode_chip_metadata {
 	// publishDir path: "${specie}/blacklisted_regions", mode: 'link'
 
 	input:
-		set specie, specie_long, ncbi_code from Encode_chip_metadata_channel_1
+		set specie, assembly, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_1
 
 	output:
 		file("*")
@@ -436,6 +416,51 @@ process get_encode_chip_metadata {
 		library(magrittr)
 		library(purrr)
 		
+		specie = '!{specie}'
+		assembly1 = '!{assembly}'
+		dt_encode_chip = readRDS('!{dt_encode_chip_rds}')
+		
+		dt = dt_encode_chip[assembly == assembly1]
+		
+		get_ontology_files <- function(dt, ontology_id, ontology_name){
+			
+			ontology_values = dt[[ontology_id]]
+			
+			# making a dictionary of all bed files for the ontology
+			all_ontologies = strsplit(unique(ontology_values), ', ') %>% unlist %>% unique 
+			all_ontologies %<>% setNames(., paste0(ontology_name, '.', .) %>% gsub(' ', '_', .))			
+			l_ontology_files = map(all_ontologies, ~dt[grepl(.x, ontology_values)]$file)
+			
+			# keeping only ontologies with at least 10 files 
+			ontologies_to_keep = which(map_int(l_ontology_files, length) > 10) %>% names
+			l_ontology_files %<>% .[ontologies_to_keep]
+			
+			return(l_ontology_files)
+		}
+			
+		l_tissue_files        = get_ontology_files(dt, 'organ_slims', 'organ')
+		l_cell_type_files     = get_ontology_files(dt, 'cell_slims', 'cell_type')
+		l_cell_line_files     = get_ontology_files(dt, 'ontology', 'cell_line')
+		l_system_files        = get_ontology_files(dt, 'system_slims', 'system')
+		l_developmental_files = get_ontology_files(dt, 'developmental_slims', 'development')
+		l_all_files = list(all = dt$file)
+		
+		l_ontology_files = c(l_all_files, l_tissue_files, l_cell_type_files, l_cell_line_files, l_system_files, l_developmental_files)
+		ontology_order = map_int(l_ontology_files, length) %>% sort %>% rev %>% names
+		l_ontology_files %<>% .[ontology_order]
+		
+		dt_number = data.table(ontology = names(l_ontology_files), number_of_chip = map_int(l_ontology_files, length))
+		
+		
+			
+		} else {
+			l_ontology_files = list()
+		}
+		
+		
+		
+		dt = dt_encode_chip[assembly == 'hg38']
+		
 		url_encode = 'https://www.encodeproject.org/' 
 		url_search = paste0(url_encode, 'search/?')
 		url_append = '&frame=object&format=json&limit=all'
@@ -444,13 +469,9 @@ process get_encode_chip_metadata {
 	'''
 }
 
+cur_onlology = dt$organ_slims
 	
-	
-	
-	
-	
-	
-	
+
 	
 
 
