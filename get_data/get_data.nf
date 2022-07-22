@@ -350,20 +350,53 @@ process get_encode_chip_metadata {
 		## adding the experiment table to the file table to get the final metadata table
 		dt = data.table(df_chip_files[, c('accession', 'dataset', 'assembly', 'href', 'md5sum')])
 		colnames(dt)[1:2] = c('file', 'experiments')
-		dt = dt_experiment2[dt, , on = 'experiments'][, experiments := NULL]
+		dt = dt_experiment2[dt, , on = 'experiments'][, experiments := NULL] %T>% pnrow
 		colnames(dt)[colnames(dt) == 'term_name'] = 'ontology'
-		dt = dt[, c('file', 'target_symbol', 'target_id', 'life_stage_age', 'ontology', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'biosample_summary', 'organism', 'assembly', 'href', 'md5sum')]
 		
-		# renaming the human assembly
+		# renaming the human assembly and removing entries with missing annotations
 		dt[assembly == 'GRCh38', assembly := 'hg38']
+		dt = dt[!is.na(target_symbol)] %T>% pnrow # 2714
 		
 		## adding a column indicating either the cell line or tissue (human or mice) or stage (yeast or worms)
 		dt[, stage_cell := biosample_summary]
 		
 		# for worm
-		dt[assembly == 'ce11', stage_cell := stage_cell %>% gsub('.*whole organism ', '', .) %>% gsub('.*hermaphrodite ', '', .) %>% gsub('(L[1-4]).*', '\\1', .) %>% gsub('young adult.*', 'YA', .) %>% gsub('late embryo.*', 'LE', .) %>% gsub('early embryo.*', 'EE', .) %>% gsub('mixed stage \\(embryo\\).*', 'MSE', .) %>% gsub('dauer.*', 'DA', .) %>% gsub('midembryo.*', 'ME', .)]
-		dt[assembly == 'ce11', ]$stage_cell %>% table	
+		dt[organism == 'celegans', stage_cell := biosample_summary]
+		dt[organism == 'celegans', stage_cell := stage_cell %>% gsub('.*whole organism ', '', .) %>% gsub('.*hermaphrodite ', '', .) %>% gsub('(L[1-4]).*', '\\1', .) %>% gsub('young adult.*', 'YA', .) %>% gsub('late embryo.*', 'LE', .) %>% gsub('early embryo.*', 'EE', .) %>% gsub('mixed stage (embryo)', 'mixed stage embryo', ., fixed = T) %>% gsub('mixed stage embryo.*', 'MS', .) %>% gsub('dauer.*', 'Da', .) %>% gsub('midembryo.*', 'ME', .)]
+		dt[organism == 'celegans', ]$stage_cell %>% table %>% sort %>% rev
 		
+		# for fly
+		dt[organism == 'dmelanogaster', stage_cell := biosample_summary]
+		dt[organism == 'dmelanogaster', stage_cell := stage_cell %>% gsub('.*whole organism male adult.*', 'MA', .) %>% gsub('.*whole organism female adult.*', 'FA', .) %>% gsub('.*whole organism adult.*', 'MS', .) %>% gsub('.*whole organism embryo.*', 'Em', .) %>% gsub('.*whole organism prepupa.*', 'PP', .) %>% gsub('.*whole organism wandering third.*', 'WT', .) %>% gsub('.*whole organism pupa.*', 'Pu', .) %>% gsub('.*white prepupa stage.*', 'WP', .) %>% gsub('.*strain Oregon-R S2.*', 'SO', .) %>% gsub('.*ovary female.*', 'OF', .) %>% gsub('.*whole organism larva.*', 'La', .) %>% gsub('Drosophila melanogaster ', '', .) %>% gsub('Kc167', 'Kc', .)]
+		dt[organism == 'dmelanogaster' & ontology == 'ovary', stage_cell := 'OF']
+		dt[organism == 'dmelanogaster', ]$stage_cell %>% table %>% sort %>% rev
+		
+		# for human
+		dt[organism == 'human', stage_cell := ontology]
+		terms_to_remove = which(table(dt[organism == 'human', ]$stage_cell) <= 5) %>% names
+		dt[organism == 'human' & stage_cell %in% terms_to_remove, stage_cell := 'Other']
+		dt[organism == 'human', stage_cell := stage_cell %>% gsub('neural cell', 'NC', .) %>% gsub('-| ', '', .) %>% gsub('Ishikawa', 'Ishikaw', .)]
+		dt[organism == 'human', ]$stage_cell %>% table %>% sort %>% rev
+		
+		# for mouse
+		dt[organism == 'mouse', stage_cell := ontology]
+		terms_to_remove = which(table(dt[organism == 'mouse', ]$stage_cell) <= 4) %>% names
+		dt[organism == 'mouse' & stage_cell %in% terms_to_remove, stage_cell := 'Other']
+		dt[organism == 'mouse', stage_cell := stage_cell %>% gsub('.', '', ., fixed = T) %>% gsub('-', '', .) %>% gsub('Ishikawa', 'Ishikaw', .)]
+		dt[organism == 'mouse', ]$stage_cell %>% table %>% sort %>% rev
+
+		# creating a simplified target symbol with max 7 characters
+		dt[, target_symbol_1 := target_symbol %>% gsub('-', '', .) %>% gsub('.', '', ., fixed = T) %>% gsub(')', '', ., fixed = T) %>% gsub('(', '', ., fixed = T) %>% substr(., 1, 7)]
+		
+		# creating final unique CHIP names
+		dt[, chip_name := paste0(target_symbol_1, '_', stage_cell)]
+		# most entries are unique. We add an identifyier for the duplicated entries
+		dt$chip_name %>% table %>% as.integer %>% summary 
+		dt[, chip_name := paste0(chip_name, '_', 1:.N), chip_name]
+		dt[, chip_name := chip_name %>% gsub('_1$', '', .)]
+
+		# reordering columns
+		dt = dt[, c('chip_name', 'target_symbol', 'target_symbol_1', 'stage_cell', 'target_id', 'life_stage_age', 'ontology', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'biosample_summary', 'organism', 'assembly', 'file', 'href', 'md5sum')]
 		
 		saveRDS(dt, 'dt_encode_chip.rds')
 
@@ -371,7 +404,64 @@ process get_encode_chip_metadata {
 	'''
 }
 
-// to do now: make the stage_cell column
+
+// Legend for the stage_cell column:
+
+// Worm:
+	// L1 YA L4 LE L3 L2 MS EE ME Da
+	// 93 86 77 67 50 50 35 12  2  1
+
+//  -  L1: L1 stage
+//  -  YA: Young Adult
+//  -  L4: L4 stage
+//  -  LE: Late Embryo
+//  -  L3: L3 stage
+//  -  L2: L2 stage
+//  -  MS: Mixed Stage embryo
+//  -  EE: Early Embryo
+//  -  ME: Mid-Embryo
+//  -  Da: Dauer
+
+
+// Fly:
+	//  Em  PP  WT  Pu  FA  WP  MA  Kc  SO  MS  OF  La
+	// 372  57  46  14  10   8   8   7   3   3   1   1
+//
+//  - Em: Embryo
+//  - PP: Prepupa
+//  - WT: Wandering third instar larval stage
+//  - Pu: Puppa
+//  - FA: Female Adult
+//  - WP: White prepupa stage
+//  - MA: Male Adult
+//  - Kc: Kc167 cell line (embryonic)
+//  - SO: Cell line from strain Oregon-R S2
+//  - MS: Mixed Sex Adult
+//  - OF: Ovary female
+//  - La: larva (48 days)
+
+// Human:
+  //  K562   HepG2  HEK293 GM12878   Other    MCF7    A549      H1   liver Ishikaw
+  //   432     249     193     156     137     106      55      54      35      24
+  // SKNSH  HeLaS3 HEK293T   IMR90  MCF10A  HCT116    T47D GM12891      NC GM23338
+  //    19      19      17      12      10      10       7       7       6       6
+
+//  - NC: Neural Cell
+//  - Other: Any ontology present less than 5 times
+//  - Ishikaw: Ishikawa
+//  - SKNSH: SK-N-SH
+
+// Mouse:
+   // MEL CH12LX  Other  liver   lung  heart G1EER4    G1E  ESE14
+   //  49     39     36      7      5      5      5      5      5
+
+//  - Other: Any ontology present less than 4 times
+//  - CH12LX: CH12.LX
+//  - G1EER4: G1E-ER4
+//  -  ESE14: ES-E14
+
+
+
 
 // Here are examples of json links associated to a given bed file 
 
@@ -394,7 +484,7 @@ process get_encode_chip_metadata {
 
 // dt1 = copy(dt)
 // dt1[, href1 := paste0('/files/', file, '/@@download/', file, '.bed.gz')]
-// identical(dt1$href, dt1$href1)
+// identical(dt1$href, dt1$href1) # T
 
 
 
@@ -410,8 +500,11 @@ process get_encode_chip_data {
 
 	container = params.encodeexplorer
 
-	// publishDir path: "${specie}/blacklisted_regions", mode: 'link'
-
+	publishDir path: "${specie}/encode_CHIP", mode: 'link', saveAs: {
+    if (it.indexOf(".txt") > 0 | it.indexOf(".rds") > 0) "${it}"
+		else if (it.indexOf(".bed.gz") > 0) "files/${it}"
+  }
+	
 	input:
 		set specie, assembly, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_1
 
@@ -433,63 +526,57 @@ process get_encode_chip_data {
 		
 		dt = dt_encode_chip[assembly == assembly1]
 		
-		
-		dt = dt_encode_chip
-		
 
-		# donwloading the data first
+		# donwloading the data
+		dt[, file_name := paste0(chip_name, '.bed.gz')]
+		url_encode = 'https://www.encodeproject.org' 
+		sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$file_name[c1], method = 'curl', extra = '-L' ))
+
+		dt[, md5sum_downloaded_files := tools::md5sum(file_name)]
+		if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
 		
-		dt = data.table(df[, c('href', 'md5sum')])
-		dt = dt[1:5]
-		dt[, file_name := gsub('.*download/', '', href)]
-
-		url_files = 'https://www.encodeproject.org/files/' 
-		sapply(dt$file, function(x) download.file(url = paste0(url_files, x, '/@@download/', x, '.bed.gz'), quiet = T, destfile = paste0(x, '.bed.gz'), method = 'curl', extra = '-L' ))
-
-		dt[, md5sum_dl := tools::md5sum(paste0(file, '.bed.gz'))]
-		if(any(dt$md5sum != dt$md5sum_dl)) stop('not all md5 sums are equal')
-
+		dt[, md5sum := NULL][, md5sum_downloaded_files := NULL]
 		
-		get_ontology_files <- function(dt, ontology_id, ontology_name){
+		
+		# creating ontology groups
+		
+		get_ontology_chip_names <- function(dt, ontology_id, ontology_name){
 			
 			ontology_values = dt[[ontology_id]]
 			
-			# making a dictionary of all bed files for the ontology
+			# making a dictionary of all bed chip_names for the ontology
 			all_ontologies = strsplit(unique(ontology_values), ', ') %>% unlist %>% unique 
-			all_ontologies %<>% setNames(., paste0(ontology_name, '.', .) %>% gsub(' ', '_', .))			
-			l_ontology_files = map(all_ontologies, ~dt[grepl(.x, ontology_values)]$file)
+			all_ontologies %<>% setNames(., paste0(ontology_name, '.', .) %>% gsub(' ', '_', .) %>% gsub('-', '', .))
+			l_ontology_chip_names = map(all_ontologies, ~dt[grepl(.x, ontology_values)]$file_name)
 			
-			# keeping only ontologies with at least 10 files 
-			ontologies_to_keep = which(map_int(l_ontology_files, length) > 10) %>% names
-			l_ontology_files %<>% .[ontologies_to_keep]
+			# keeping only ontologies with at least 10 chip_names 
+			ontologies_to_keep = which(map_int(l_ontology_chip_names, length) > 10) %>% names
+			l_ontology_chip_names %<>% .[ontologies_to_keep]
 			
-			return(l_ontology_files)
+			return(l_ontology_chip_names)
 		}
 			
 		
-		l_tissue_files        = get_ontology_files(dt, 'organ_slims', 'organ')
-		l_cell_type_files     = get_ontology_files(dt, 'cell_slims', 'cell_type')
-		l_cell_line_files     = get_ontology_files(dt, 'ontology', 'cell_line')
-		l_system_files        = get_ontology_files(dt, 'system_slims', 'system')
-		l_developmental_files = get_ontology_files(dt, 'developmental_slims', 'development')
-		l_all_files = list(all = dt$file)
+		l_tissue_chip_names        = get_ontology_chip_names(dt, 'organ_slims', 'organ')
+		l_cell_type_chip_names     = get_ontology_chip_names(dt, 'cell_slims', 'cell_type')
+		l_cell_line_chip_names     = get_ontology_chip_names(dt, 'ontology', 'cell_line')
+		l_system_chip_names        = get_ontology_chip_names(dt, 'system_slims', 'system')
+		l_developmental_chip_names = get_ontology_chip_names(dt, 'developmental_slims', 'development')
+		l_all_chip_names           = list(all = dt$file_name)
 		
-		l_ontology_files = c(l_all_files, l_tissue_files, l_cell_type_files, l_cell_line_files, l_system_files, l_developmental_files)
-		ontology_order = map_int(l_ontology_files, length) %>% sort %>% rev %>% names
-		l_ontology_files %<>% .[ontology_order]
+		l_ontology_chip_names = c(l_all_chip_names, l_tissue_chip_names, l_cell_type_chip_names, l_cell_line_chip_names, l_system_chip_names, l_developmental_chip_names)
+		ontology_order = map_int(l_ontology_chip_names, length) %>% sort %>% rev %>% names
+		l_ontology_chip_names %<>% .[ontology_order]
 		
-		dt_n_chip_by_ontology = data.table(ontology = names(l_ontology_files), number_of_chip = map_int(l_ontology_files, length))
-		dt_n_chip_by_ontology
+		dt_n_chip_by_ontology = data.table(ontology = names(l_ontology_chip_names), number_of_chip = map_int(l_ontology_chip_names, length))
 		
-		write.csv(dt_n_chip_by_ontology, 'dt_n_chip_by_ontology.csv')
+		sink('CHIP_ontologies.txt')
+			 print(dt_n_chip_by_ontology)
+		sink()
+		
+		saveRDS(l_ontology_chip_names, 'l_ontology_chip_names.rds')
 		
 		
-		
-		url_encode = 'https://www.encodeproject.org/' 
-		url_search = paste0(url_encode, 'search/?')
-		url_append = '&frame=object&format=json&limit=all'
-		
-
 	'''
 }
 
