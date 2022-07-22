@@ -633,6 +633,7 @@ process get_encode_chromatin_state_metadata {
     df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow
     df_annotations = get_encode_df('type=Annotation&annotation_type=chromatin+state&status=released') %T>% pnrow
     
+		/labs/zhiping-weng/
     
     ## formatting and merging tables
     
@@ -652,19 +653,23 @@ process get_encode_chromatin_state_metadata {
     dt_annotation$organism %<>% gsub('/organisms/', '', .) %>% gsub('/', '', .)
     colnames(dt_annotation) %<>% gsub('relevant_', '', .)
     
-    dt = data.table(df_ecsm_files[, c('accession', 'files', 'assembly', 'md5sum', 'href', 'dataset', 'biosample_ontology')])
+    dt = data.table(df_ecsm_files[, c('accession', 'files', 'assembly', 'md5sum', 'href', 'dataset', 'biosample_ontology', 'file_size')])
     colnames(dt)[colnames(dt) == 'dataset'] = 'annotations'
     dt = dt_biosample_types[dt, , on = 'biosample_ontology']
     dt = dt_annotation[dt, , on = 'annotations']
 		dt[, local_file := paste0(accession, '.bed.gz')]    
 	
-		dt = dt[, c('local_file', 'assembly', 'description', 'alias', 'timepoint', 'timepoint_units', 'life_stage', 'term_name', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'organism', 'href', 'md5sum')]
+		dt = dt[, c('local_file', 'assembly', 'description', 'alias', 'timepoint', 'timepoint_units', 'life_stage', 'term_name', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'organism', 'accession', 'href', 'md5sum', 'file_size')]
+		
+		if(assembly == 'mm10') dt = dt[grep('18states', dt$alias)]
 		
 		saveRDS(dt, 'dt_encode_chromatin_states.rds')
 
 
 	'''
 }
+
+// dt[local_file == 'ENCFF686HVR.bed.gz']
 
 // search link
 // https://www.encodeproject.org/search/?type=File&annotation_type=chromatin+state&assembly=GRCh38&assembly=mm10&status=released&file_format=bed
@@ -689,10 +694,24 @@ process get_encode_chromatin_state_metadata {
 	// system('for z in *.gz; do gunzip "$z"; done')
 
 
+// All experiments have been made in a 15 and 18 state model
+// However, the 15 state model is much bigger
+// > dt[alias %in% c("zhiping-weng:chromhmm-8marks-15states-mm10-heart-12.5", "zhiping-weng:chromhmm-10marks-18states-mm10-heart-12.5")][, c('description', 'file_size')]
+//                                                description file_size
+// 1: ChromHMM 15-state model for heart (embryonic 12.5 days) 121270263
+// 2: ChromHMM 18 state model for heart (embryonic 12.5 days)   8684869
+
+// => using the 18 state model
+
+// dt[grep('18states', dt$alias)]$file_size %>% max #   8684869
+// dt[grep('15states', dt$alias)]$file_size %>% min # 109950661
+
+
 
 process get_encode_chromatin_state_data {
 
-	container = params.bedtools_r
+	// container = params.huge_container
+	// could not find any container that works. Doing it without containers for now
 
 	input:
 		set specie, file(dt_encode_chromatin_state_rds) from Encode_chromatin_state_metadata_channel
@@ -705,31 +724,28 @@ process get_encode_chromatin_state_data {
 
 		#!/usr/bin/env Rscript
 		
-		sds ds
-		
-		source('!{params.cactus_dir}/software/get_data/bin/encode_chip_functions.R')
-		dt_encode_chromatin_state = readRDS('!{dt_encode_chromatin_state_rds}')
-		
 		library(data.table)
-		library(magrittr)
-		library(purrr)
+		library(bedr)
+		
+		dt = readRDS('!{dt_encode_chromatin_state_rds}')
 		
 		url_encode = 'https://www.encodeproject.org' 
-		url_search = paste0(url_encode, '/search/?')
-		url_append = '&frame=object&format=json&limit=all'
 		
-		dt = dt_encode_chromatin_state
+		## processing files one by one as they are huge to not fill up the server
+		for(c1 in 1:nrow(dt)) {
 			
-			## processing files one by one as they are huge to not fill up the server
-			sapply(1:nrow(dt), function(c1) {
-				accession = dt$accession[c1]
-				local_file = paste0(accession, '.bed.gz')
-				download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
-				md5sum_downloaded_files = tools::md5sum(local_file)
-				if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
-				
-				grep "Quies" ENCFF786MCR.bed | bedtools merge -i - > ENCFF786MCR_merged_Quies.bed
-	
+			accession = dt$accession[c1]
+			local_file = paste0(accession, '.bed.gz')
+			download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
+			md5sum_downloaded_files = tools::md5sum(local_file)
+			if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
+			cur_bed = rtracklayer::import(local_file)
+			system(paste('gunzip', local_file))
+		}
+			grep "Quies" ENCFF786MCR.bed | bedtools merge -i - > ENCFF786MCR_merged_Quies.bed
+
+			} function(c1) {
+			
 				
 			dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
 			if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
