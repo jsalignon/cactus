@@ -14,10 +14,12 @@ params.homer_odd_score_threshold = 0.5
 Species_channel = Channel
 	.from( 	
 		[
-			['worm',  'caenorhabditis_elegans',  'ce11', 'WBcel235', 'toplevel' ],
-			['fly',   'drosophila_melanogaster', 'dm6',  'BDGP6.28', 'toplevel' ],
-			['mouse', 'mus_musculus',            'mm10', 'GRCm38',   'primary_assembly' ],
-		  ['human', 'homo_sapiens',            'hg38', 'GRCh38',   'primary_assembly' ]
+		//                                    assembly  assembly                       assembly
+		// specie    scientific_name           Ensembl  NCBI       assembly type       ENCODE
+			['worm',  'caenorhabditis_elegans',  'ce11', 'WBcel235', 'toplevel',         'ce11' ],
+			['fly',   'drosophila_melanogaster', 'dm6',  'BDGP6.28', 'toplevel',         'dm6' ],
+			['mouse', 'mus_musculus',            'mm10', 'GRCm38',   'primary_assembly', 'mm10' ],
+		  ['human', 'homo_sapiens',            'hg38', 'GRCh38',   'primary_assembly', 'GRCh38' ]
 		]
 	)
 	.dump(tag: 'start_channel')
@@ -25,8 +27,8 @@ Species_channel = Channel
 			  	homer: it[0, 2]
 					 pwms: it[0, 1]
       blacklist: it[0, 2, 3]
-chromatin_state: it[0, 2]
-					 chip: it[0, 2]
+					 chip: it[0, 5]
+chromatin_state: it[0, 5]
 					fasta: it[0, 1, 3, 4]
 					orgdb: it[0, 1]
 	}
@@ -293,9 +295,10 @@ process get_chip_metadata {
 	container = params.encodeexplorer
 
 	input:
+		set specie, assembly from Start_channel.chip
 
 	output:
-		file("dt_encode_chip.rds") into Encode_chip_metadata_channel
+		set specie, file("dt_encode_chip.rds") into (Encode_chip_metadata_channel_1, Encode_chip_metadata_channel_2)		
 
 	shell:
 	'''
@@ -303,17 +306,20 @@ process get_chip_metadata {
 		#!/usr/bin/env Rscript
 		
 		source('!{params.cactus_dir}/software/get_data/bin/encode_chip_functions.R')
+		assembly = '!{assembly}'
 		
 		library(data.table)
 		library(magrittr)
 		library(purrr)
 		
-		url_encode = 'https://www.encodeproject.org/' 
-		url_search = paste0(url_encode, 'search/?')
+		url_encode = 'https://www.encodeproject.org' 
+		url_search = paste0(url_encode, '/search/?')
 		url_append = '&frame=object&format=json&limit=all'
-		
+
+
 		## getting all tables
-		df_chip_files = get_encode_df('type=File&file_format=bed&output_type=optimal+IDR+thresholded+peaks&assembly=GRCh38&assembly=ce11&assembly=dm6&assembly=mm10&assay_title=TF+ChIP-seq&status=released') %T>% pnrow # 2716
+		query_chip_files = paste0('type=File&file_format=bed&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&status=released&assembly=', assembly)
+		df_chip_files = get_encode_df(query_chip_files) %T>% pnrow # 2716
 		df_experiments = get_encode_df('type=Experiment&assay_title=TF+ChIP-seq&status=released') %T>% pnrow # 4425
 		df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow # 936
 		df_genes = get_encode_df('type=Gene&targets=*') %T>% pnrow # 5989
@@ -491,10 +497,6 @@ process get_chip_metadata {
 
 
 
-Start_channel.chip
-	.combine(Encode_chip_metadata_channel)
-	.into{ Encode_chip_metadata_channel_1; Encode_chip_metadata_channel_2 }
-	
 
 
 
@@ -506,7 +508,7 @@ process make_chip_ontology_groups {
 	publishDir path: "${specie}/CHIP", mode: 'link'
 	
 	input:
-		set specie, assembly, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_1
+		set specie, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_1
 
 	output:
 		file("*")
@@ -521,12 +523,10 @@ process make_chip_ontology_groups {
 		library(purrr)
 		
 		specie = '!{specie}'
-		assembly1 = '!{assembly}'
-		dt_encode_chip = readRDS('!{dt_encode_chip_rds}')
+		dt1 = readRDS('!{dt_encode_chip_rds}')
 		source('!{params.cactus_dir}/software/get_data/bin/make_chip_ontology_groups_functions.R')
 		
-		
-		dt = dt_encode_chip[assembly == assembly1]
+		dt = copy(dt1)
 		
 		l_tissue_chip_names        = get_ontology_chip_names(dt, 'organ_slims', 'organ')
 		l_cell_type_chip_names     = get_ontology_chip_names(dt, 'cell_slims', 'cell_type')
@@ -562,7 +562,7 @@ container = params.encodeexplorer
 publishDir path: "${specie}/CHIP/files", mode: 'link'
 
 input:
-	set specie, assembly, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_2
+	set specie, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_2
 
 output:
 	file("*.bed")
@@ -577,12 +577,10 @@ shell:
 	library(purrr)
 
 	specie = '!{specie}'
-	assembly1 = '!{assembly}'
-	dt_encode_chip = readRDS('!{dt_encode_chip_rds}')
-
-	dt = dt_encode_chip[assembly == assembly1]
-
-
+	dt1 = readRDS('!{dt_encode_chip_rds}')
+	
+	dt = copy(dt1)
+	
 	# donwloading the data
 	url_encode = 'https://www.encodeproject.org' 
 	sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$local_file[c1], method = 'curl', extra = '-L' ))
@@ -596,20 +594,21 @@ shell:
 }
 
 
-start_channel.chromatin_state
-	.filter{ specie, assembly -> specie == ['human', 'mouse']}
-	.set{ start_channel_chromatin_state }
+Start_channel.chromatin_state
+	.filter{ specie, assembly -> specie in ['human', 'mouse']}
+	.set{ Start_channel_chromatin_state }
 
 
 process get_encode_chromatin_state_metadata {
+	tag "${specie}"
 
 	container = params.encodeexplorer
 
 	input:
-		set specie, assembly from start_channel_chromatin_state
+		set specie, assembly from Start_channel_chromatin_state
 
 	output:
-		file("dt_encode_chip.rds") into Encode_chip_metadata_channel
+		set specie, file("dt_encode_chromatin_states.rds") into Encode_chromatin_state_metadata_channel
 
 	shell:
 	'''
@@ -659,13 +658,7 @@ process get_encode_chromatin_state_metadata {
     dt = dt_annotation[dt, , on = 'annotations']
 		dt[, local_file := paste0(accession, '.bed.gz')]    
 	
-		## donwloading and unzipping the data
-		sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$local_file[c1], method = 'curl', extra = '-L' ))
-		dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
-		if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
-		system('for z in *.gz; do gunzip "$z"; done')
-
-		dt1 = dt[, c('local_file', 'assembly', 'description', 'alias', 'timepoint', 'timepoint_units', 'life_stage', 'term_name', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'organism')]
+		dt = dt[, c('local_file', 'assembly', 'description', 'alias', 'timepoint', 'timepoint_units', 'life_stage', 'term_name', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'organism', 'href', 'md5sum')]
 		
 		saveRDS(dt, 'dt_encode_chromatin_states.rds')
 
@@ -681,6 +674,19 @@ process get_encode_chromatin_state_metadata {
 // df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow # 936
 // df_annotations = get_encode_df('type=Annotation&annotation_type=chromatin+state&status=released') %T>% pnrow # 1251
 
+// >   df_ecsm_files = get_encode_df(paste0('type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=', assembly)) %T>% pnrow
+// Error in get_encode_df(paste0("type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=",  :
+//   url doesnt exist
+// > paste0('type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=', assembly)
+// [1] "type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=hg38"
+// >
+
+
+	// ## donwloading and unzipping the data
+	// sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$local_file[c1], method = 'curl', extra = '-L' ))
+	// dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
+	// if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
+	// system('for z in *.gz; do gunzip "$z"; done')
 
 
 
@@ -689,18 +695,20 @@ process get_encode_chromatin_state_data {
 	container = params.bedtools_r
 
 	input:
-		set specie, assembly from start_channel_chromatin_state
+		set specie, file(dt_encode_chromatin_state_rds) from Encode_chromatin_state_metadata_channel
 
 	output:
-		file("dt_encode_chip.rds") into Encode_chip_metadata_channel
+		file("dt_encode_chip.rds") 
 
 	shell:
 	'''
 
 		#!/usr/bin/env Rscript
 		
+		sds ds
+		
 		source('!{params.cactus_dir}/software/get_data/bin/encode_chip_functions.R')
-		assembly = '!{assembly}'
+		dt_encode_chromatin_state = readRDS('!{dt_encode_chromatin_state_rds}')
 		
 		library(data.table)
 		library(magrittr)
@@ -710,74 +718,31 @@ process get_encode_chromatin_state_data {
 		url_search = paste0(url_encode, '/search/?')
 		url_append = '&frame=object&format=json&limit=all'
 		
-    
-    ## fetching tables
-    
-    df_ecsm_files = get_encode_df(paste0('type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=', assembly)) %T>% pnrow
-    df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow
-    df_annotations = get_encode_df('type=Annotation&annotation_type=chromatin+state&status=released') %T>% pnrow
-    
-    
-    ## formatting and merging tables
-    
-		dt_biosample_types = data.table(
-		  df_biosample_types[, c('biosample_types', 'classification', 'term_name')],
-		  cell_slims  = collapse_slims(df_biosample_types$cell_slims),
-		  organ_slims = collapse_slims(df_biosample_types$organ_slims),
-		  developmental_slims = collapse_slims(df_biosample_types$developmental_slims),
-		  system_slims = collapse_slims(df_biosample_types$system_slims)
-		)
-    colnames(dt_biosample_types)[1] = 'biosample_ontology'
-  
-    dt_annotation = data.table(df_annotations[, c('annotations', 'aliases', 'description', 'organism', 'relevant_timepoint', 'relevant_timepoint_units', 'relevant_life_stage')])
-    dt_annotation$aliases %<>% map_chr(~ifelse(is.null(.x), NA, .x))
-    dt_annotation[, alias := map_chr(aliases, ~ifelse(is.null(.x), NA, .x))]
-    dt_annotation[, aliases := NULL]
-    dt_annotation$organism %<>% gsub('/organisms/', '', .) %>% gsub('/', '', .)
-    colnames(dt_annotation) %<>% gsub('relevant_', '', .)
-    
-    dt = data.table(df_ecsm_files[, c('accession', 'files', 'assembly', 'md5sum', 'href', 'dataset', 'biosample_ontology')])
-    colnames(dt)[colnames(dt) == 'dataset'] = 'annotations'
-    dt = dt_biosample_types[dt, , on = 'biosample_ontology']
-    dt = dt_annotation[dt, , on = 'annotations']
-		dt[, local_file := paste0(accession, '.bed.gz')]    
-	
-		## donwloading and unzipping the data
-		sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$local_file[c1], method = 'curl', extra = '-L' ))
-		dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
-		if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
-		system('for z in *.gz; do gunzip "$z"; done')
-
-		dt1 = dt[, c('local_file', 'assembly', 'description', 'alias', 'timepoint', 'timepoint_units', 'life_stage', 'term_name', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'organism')]
-		
-		saveRDS(dt, 'dt_encode_chromatin_states.rds')
-
-		read.table('ENCFF686HVR.bed', sep = '\t')
-
-	
-		
-		## processing files one by one as they are huge to not fill up the server
-		sapply(1:nrow(dt), function(c1) {
-			accession = dt$accession[c1]
-			local_file = paste0(accession, '.bed.gz')
-			download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
-			md5sum_downloaded_files = tools::md5sum(local_file)
-			if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
+		dt = dt_encode_chromatin_state
 			
-			grep "Quies" ENCFF786MCR.bed | bedtools merge -i - > ENCFF786MCR_merged_Quies.bed
-
-			
-		dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
-		if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
-		system('for z in *.gz; do gunzip "$z"; done')
-
-		.
-		      Enh    EnhLo1    EnhLo2  EnhPois1  EnhPois2   HetCons    HetFac     Quies
-		    15563     44844     27291     61335    304983    155305    166918   8910113
-		   QuiesG      TssA TssAFlnk1 TssAFlnk2    TssBiv       Tx1       Tx2
-		  3259122     41348     11619     65583     36083     19092    508479
-		>
-
+			## processing files one by one as they are huge to not fill up the server
+			sapply(1:nrow(dt), function(c1) {
+				accession = dt$accession[c1]
+				local_file = paste0(accession, '.bed.gz')
+				download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
+				md5sum_downloaded_files = tools::md5sum(local_file)
+				if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
+				
+				grep "Quies" ENCFF786MCR.bed | bedtools merge -i - > ENCFF786MCR_merged_Quies.bed
+	
+				
+			dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
+			if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
+			system('for z in *.gz; do gunzip "$z"; done')
+	
+			.
+			      Enh    EnhLo1    EnhLo2  EnhPois1  EnhPois2   HetCons    HetFac     Quies
+			    15563     44844     27291     61335    304983    155305    166918   8910113
+			   QuiesG      TssA TssAFlnk1 TssAFlnk2    TssBiv       Tx1       Tx2
+			  3259122     41348     11619     65583     36083     19092    508479
+			>
+				
+				
 	'''
 }
 
