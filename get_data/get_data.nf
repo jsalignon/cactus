@@ -287,7 +287,7 @@ process get_blacklisted_regions {
 
 
 
-process get_encode_chip_metadata {
+process get_chip_metadata {
 
 	container = params.encodeexplorer
 
@@ -394,9 +394,10 @@ process get_encode_chip_metadata {
 		dt$chip_name %>% table %>% as.integer %>% summary 
 		dt[, chip_name := paste0(chip_name, '_', 1:.N), chip_name]
 		dt[, chip_name := chip_name %>% gsub('_1$', '', .)]
+		dt[, local_file := paste0(chip_name, '.bed.gz')]
 
 		# reordering columns
-		dt = dt[, c('chip_name', 'target_symbol', 'target_symbol_1', 'stage_cell', 'target_id', 'life_stage_age', 'ontology', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'biosample_summary', 'organism', 'assembly', 'file', 'href', 'md5sum')]
+		dt = dt[, c('chip_name', 'target_symbol', 'target_symbol_1', 'stage_cell', 'target_id', 'life_stage_age', 'ontology', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'biosample_summary', 'organism', 'assembly', 'file', 'href', 'md5sum', 'local_file')]
 		
 		saveRDS(dt, 'dt_encode_chip.rds')
 
@@ -490,20 +491,17 @@ process get_encode_chip_metadata {
 
 Start_channel.chip
 	.combine(Encode_chip_metadata_channel)
-	.set{ Encode_chip_metadata_channel_1 }
-	
-	
+	.into{ Encode_chip_metadata_channel_1; Encode_chip_metadata_channel_2 }
 	
 
-process get_encode_chip_data {
+
+
+process make_chip_ontology_groups {
 	tag "${specie}"
 
 	container = params.encodeexplorer
 
-	publishDir path: "${specie}/encode_CHIP", mode: 'link', saveAs: {
-    if (it.indexOf(".txt") > 0 | it.indexOf(".rds") > 0) "${it}"
-		else if (it.indexOf(".bed.gz") > 0) "files/${it}"
-  }
+	publishDir path: "${specie}/encode_CHIP", mode: 'link'
 	
 	input:
 		set specie, assembly, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_1
@@ -526,20 +524,6 @@ process get_encode_chip_data {
 		
 		dt = dt_encode_chip[assembly == assembly1]
 		
-
-		# donwloading the data
-		dt[, file_name := paste0(chip_name, '.bed.gz')]
-		url_encode = 'https://www.encodeproject.org' 
-		sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$file_name[c1], method = 'curl', extra = '-L' ))
-
-		dt[, md5sum_downloaded_files := tools::md5sum(file_name)]
-		if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
-		
-		dt[, md5sum := NULL][, md5sum_downloaded_files := NULL]
-		
-		
-		# creating ontology groups
-		
 		get_ontology_chip_names <- function(dt, ontology_id, ontology_name){
 			
 			ontology_values = dt[[ontology_id]]
@@ -547,7 +531,7 @@ process get_encode_chip_data {
 			# making a dictionary of all bed chip_names for the ontology
 			all_ontologies = strsplit(unique(ontology_values), ', ') %>% unlist %>% unique 
 			all_ontologies %<>% setNames(., paste0(ontology_name, '.', .) %>% gsub(' ', '_', .) %>% gsub('-', '', .))
-			l_ontology_chip_names = map(all_ontologies, ~dt[grepl(.x, ontology_values)]$file_name)
+			l_ontology_chip_names = map(all_ontologies, ~dt[grepl(.x, ontology_values)]$local_file)
 			
 			# keeping only ontologies with at least 10 chip_names 
 			ontologies_to_keep = which(map_int(l_ontology_chip_names, length) > 10) %>% names
@@ -562,7 +546,7 @@ process get_encode_chip_data {
 		l_cell_line_chip_names     = get_ontology_chip_names(dt, 'ontology', 'cell_line')
 		l_system_chip_names        = get_ontology_chip_names(dt, 'system_slims', 'system')
 		l_developmental_chip_names = get_ontology_chip_names(dt, 'developmental_slims', 'development')
-		l_all_chip_names           = list(all = dt$file_name)
+		l_all_chip_names           = list(all = dt$local_file)
 		
 		l_ontology_chip_names = c(l_all_chip_names, l_tissue_chip_names, l_cell_type_chip_names, l_cell_line_chip_names, l_system_chip_names, l_developmental_chip_names)
 		ontology_order = map_int(l_ontology_chip_names, length) %>% sort %>% rev %>% names
@@ -574,13 +558,64 @@ process get_encode_chip_data {
 			 print(dt_n_chip_by_ontology)
 		sink()
 		
-		saveRDS(l_ontology_chip_names, 'l_ontology_chip_names.rds')
+		tb = tibble::enframe(l_ontology_chip_names) %>% {tidyr::unnest(., cols = c(value))}
+		sink('CHIP_ontologies.txt')
+			print(tb)
+ 		sink()
 		
+		write.table(tb, file = 'chip_ontology_groups.tsv', col.names = F, row.names = F, quote = F, sep = '\t')
 		
 	'''
 }
 
+
+
+process get_chip_data {
+tag "${specie}"
+
+container = params.encodeexplorer
+
+publishDir path: "${specie}/encode_CHIP/files", mode: 'link'
+
+input:
+	set specie, assembly, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_2
+
+output:
+	file("*.bed.gz")
+
+shell:
+'''
+
+	#!/usr/bin/env Rscript
 	
+	library(data.table)
+	library(magrittr)
+	library(purrr)
+	
+	specie = '!{specie}'
+	assembly1 = '!{assembly}'
+	dt_encode_chip = readRDS('!{dt_encode_chip_rds}')
+	
+	dt = dt_encode_chip[assembly == assembly1]
+	
+
+	# donwloading the data
+	url_encode = 'https://www.encodeproject.org' 
+	sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$local_file[c1], method = 'curl', extra = '-L' ))
+
+	dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
+	if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
+	
+	
+'''
+}
+
+
+
+
+
+
+
 
 	
 

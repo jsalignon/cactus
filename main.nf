@@ -3226,11 +3226,15 @@ Counts_tables_Channel = Counts_tables_Channel.mix(Genes_self_overlap_for_computi
 
 (DA_regions_with_bg_for_bed_overlap1, DA_regions_with_bg_for_bed_overlap2) = DA_regions_with_bg_for_bed_overlap.into(2)
 
-CHIP_channel         = Channel.fromPath( "${params.encode_chip}/*bed" )    .toList().map{ [ 'CHIP'        , it ] }
+CHIP_channel         = Channel.fromPath( "${params.encode_chip_files}/*bed" )    .toList().map{ [ 'CHIP'        , it ] }
 Chrom_states_channel = Channel.fromPath( "${params.chromatin_state}/*bed" ).toList().map{ [ 'chrom_states', it ] }
 DA_regions_channel   = DA_regions_with_bg_for_bed_overlap1.map{ it[1] }    .toList().map{ [ 'peaks_self'  , it ] }
 
 if( ! params.do_chromatin_state ) Chrom_states_channel.close()
+
+// ... TO DO
+CHIP_channel_1
+chip_ontology_groups
 
 Bed_regions_to_overlap_with = CHIP_channel.mix(Chrom_states_channel).mix(DA_regions_channel)
 
