@@ -299,7 +299,7 @@ process get_chip_metadata {
 
 	output:
 		set specie, file("dt_encode_chip.rds") into Encode_chip_metadata		
-		set specie, file("*__split_dt.rds") into Encode_chromatin_state_split_dt
+		set specie, file("*__split_dt.rds") into Encode_chip_split_dt mode flatten
 		
 
 	shell:
@@ -516,7 +516,7 @@ process make_chip_ontology_groups {
   }
 	
 	input:
-		set specie, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_1
+		set specie, file(dt_encode_chip_rds) from Encode_chip_metadata
 
 	output:
 		file("*")
@@ -570,8 +570,7 @@ container = params.encodeexplorer
 publishDir path: "${specie}/CHIP", mode: 'link'
 
 input:
-	set specie, file(dt_encode_chip_rds) from Encode_chromatin_state_split_dt
-	TO DO: finish the split dt
+	set specie, file(dt_rds) from Encode_chip_split_dt
 	
 output:
 	file("*.bed")
@@ -582,23 +581,15 @@ shell:
 	#!/usr/bin/env Rscript
 
 	library(data.table)
-	library(magrittr)
-	library(purrr)
-
-	specie = '!{specie}'
-	dt1 = readRDS('!{dt_encode_chip_rds}')
-	
-	dt = copy(dt1)
-	
-	# donwloading the data
+	dt = readRDS('!{dt_rds}')
 	url_encode = 'https://www.encodeproject.org' 
-	sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$local_file[c1], method = 'curl', extra = '-L' ))
-
-	dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
-	if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
-
-	system('for z in *.gz; do gunzip "$z"; done')
 	
+	local_file = dt$local_file
+	download.file(url = paste0(url_encode, dt$href), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
+	md5sum_downloaded_files = tools::md5sum(local_file)
+	if(dt$md5sum != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
+	system(paste('gunzip', local_file))
+			
 '''
 }
 
@@ -741,7 +732,7 @@ process get_encode_chromatin_state_data {
 		set specie, file(dt_rds) from Encode_chromatin_state_split_dt
 
 	output:
-		set specie, file("*.bed") from Encode_chromatin_state_split_bed
+		set specie, file("*.bed") into Encode_chromatin_state_split_bed
 
 	shell:
 	'''
@@ -749,22 +740,15 @@ process get_encode_chromatin_state_data {
 		#!/usr/bin/env Rscript
 		
 		library(data.table)
-		
 		dt = readRDS('!{dt_rds}')
+		url_encode = 'https://www.encodeproject.org'
 		
-		url_encode = 'https://www.encodeproject.org' 
+		local_file = dt$local_file
+		download.file(url = paste0(url_encode, dt$href), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
+		md5sum_downloaded_files = tools::md5sum(local_file)
+		if(dt$md5sum != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
+		system(paste('gunzip', local_file))
 		
-		## processing files one by one as they are huge to not fill up the server
-		for(c1 in 1:nrow(dt)) {
-			
-			accession = dt$accession[c1]
-			local_file = paste0(accession, '.bed.gz')
-			download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
-			md5sum_downloaded_files = tools::md5sum(local_file)
-			if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
-			system(paste('gunzip', local_file))
-		}
-				
 	'''
 }
 
