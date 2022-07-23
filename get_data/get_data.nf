@@ -298,7 +298,9 @@ process get_chip_metadata {
 		set specie, assembly from Start_channel.chip
 
 	output:
-		set specie, file("dt_encode_chip.rds") into (Encode_chip_metadata_channel_1, Encode_chip_metadata_channel_2)		
+		set specie, file("dt_encode_chip.rds") into Encode_chip_metadata		
+		set specie, file("*__split_dt.rds") into Encode_chromatin_state_split_dt
+		
 
 	shell:
 	'''
@@ -409,6 +411,9 @@ process get_chip_metadata {
 		
 		saveRDS(dt, 'dt_encode_chip.rds')
 
+		ldt = split(dt, dt$chip_name)
+		walk(ldt, ~saveRDS(.x, paste0(.x$chip_name, '__split_dt.rds')))
+
 
 	'''
 }
@@ -505,7 +510,10 @@ process make_chip_ontology_groups {
 
 	container = params.encodeexplorer
 
-	publishDir path: "${specie}/CHIP", mode: 'link'
+	publishDir path: "${specie}", mode: 'link', saveAs: {
+    if (it.indexOf(".txt") > 0) "util/${it}"
+		else if (it.indexOf(".tsv") > 0) "CHIP/${it}"
+  }
 	
 	input:
 		set specie, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_1
@@ -559,11 +567,12 @@ tag "${specie}"
 
 container = params.encodeexplorer
 
-publishDir path: "${specie}/CHIP/files", mode: 'link'
+publishDir path: "${specie}/CHIP", mode: 'link'
 
 input:
-	set specie, file(dt_encode_chip_rds) from Encode_chip_metadata_channel_2
-
+	set specie, file(dt_encode_chip_rds) from Encode_chromatin_state_split_dt
+	TO DO: finish the split dt
+	
 output:
 	file("*.bed")
 
@@ -604,11 +613,14 @@ process get_encode_chromatin_state_metadata {
 
 	container = params.encodeexplorer
 
+	publishDir path: "${specie}/util", mode: 'link', pattern: "*.csv"
+
 	input:
 		set specie, assembly from Start_channel_chromatin_state
 
 	output:
-		set specie, file("dt_encode_chromatin_states.rds") into Encode_chromatin_state_metadata_channel
+		set specie, file("*.rds") into Encode_chromatin_state_split_dt mode flatten
+		file('encode_chromatin_states.csv')
 
 	shell:
 	'''
@@ -633,7 +645,6 @@ process get_encode_chromatin_state_metadata {
     df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow
     df_annotations = get_encode_df('type=Annotation&annotation_type=chromatin+state&status=released') %T>% pnrow
     
-		/labs/zhiping-weng/
     
     ## formatting and merging tables
     
@@ -659,15 +670,23 @@ process get_encode_chromatin_state_metadata {
     dt = dt_annotation[dt, , on = 'annotations']
 		dt[, local_file := paste0(accession, '.bed.gz')]    
 	
-		dt = dt[, c('local_file', 'assembly', 'description', 'alias', 'timepoint', 'timepoint_units', 'life_stage', 'term_name', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'organism', 'accession', 'href', 'md5sum', 'file_size')]
+		dt = dt[, c('accession', 'assembly', 'description', 'alias', 'timepoint', 'timepoint_units', 'life_stage', 'term_name', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'organism', 'local_file', 'href', 'md5sum', 'file_size')]
 		
 		if(assembly == 'mm10') dt = dt[grep('18states', dt$alias)]
 		
-		saveRDS(dt, 'dt_encode_chromatin_states.rds')
-
-
+		dt1 = dt[, 1:(ncol(dt)-4)]
+		write.csv(dt1, 'encode_chromatin_states.csv')
+		
+		ldt = split(dt, dt$accession)
+		walk(ldt, ~saveRDS(.x, paste0(.x$accession, '.rds')))
+		
+		
 	'''
 }
+
+	
+
+
 
 // dt[local_file == 'ENCFF686HVR.bed.gz']
 
@@ -708,16 +727,21 @@ process get_encode_chromatin_state_metadata {
 
 
 
+
+
+
+
 process get_encode_chromatin_state_data {
 
-	// container = params.huge_container
-	// could not find any container that works. Doing it without containers for now
+	container = params.encodeexplorer
+
+	// publishDir path: "${specie}/chromatin_states", mode: 'link', pattern: "*.csv"
 
 	input:
-		set specie, file(dt_encode_chromatin_state_rds) from Encode_chromatin_state_metadata_channel
+		set specie, file(dt_rds) from Encode_chromatin_state_split_dt
 
 	output:
-		file("dt_encode_chip.rds") 
+		set specie, file("*.bed") from Encode_chromatin_state_split_bed
 
 	shell:
 	'''
@@ -725,9 +749,8 @@ process get_encode_chromatin_state_data {
 		#!/usr/bin/env Rscript
 		
 		library(data.table)
-		library(bedr)
 		
-		dt = readRDS('!{dt_encode_chromatin_state_rds}')
+		dt = readRDS('!{dt_rds}')
 		
 		url_encode = 'https://www.encodeproject.org' 
 		
@@ -739,28 +762,124 @@ process get_encode_chromatin_state_data {
 			download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
 			md5sum_downloaded_files = tools::md5sum(local_file)
 			if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
-			cur_bed = rtracklayer::import(local_file)
 			system(paste('gunzip', local_file))
 		}
-			grep "Quies" ENCFF786MCR.bed | bedtools merge -i - > ENCFF786MCR_merged_Quies.bed
-
-			} function(c1) {
-			
-				
-			dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
-			if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
-			system('for z in *.gz; do gunzip "$z"; done')
-	
-			.
-			      Enh    EnhLo1    EnhLo2  EnhPois1  EnhPois2   HetCons    HetFac     Quies
-			    15563     44844     27291     61335    304983    155305    166918   8910113
-			   QuiesG      TssA TssAFlnk1 TssAFlnk2    TssBiv       Tx1       Tx2
-			  3259122     41348     11619     65583     36083     19092    508479
-			>
-				
 				
 	'''
 }
+
+
+
+
+// process split_encode_chromatin_state_data {
+// 
+// 	container = params.encodeexplorer
+// 
+// 	// publishDir path: "${specie}/chromatin_states", mode: 'link', pattern: "*.csv"
+// 
+// 	input:
+// 		set specie, file(dt_rds) from Encode_chromatin_state_split_dt
+// 
+// 	output:
+// 		file("dt_encode_chip.rds") 
+// 
+// 	shell:
+// 	'''
+// 
+// 		#!/usr/bin/env Rscript
+// 
+// 		library(data.table)
+// 
+// 		dt = readRDS('!{dt_rds}')
+// 
+// 		url_encode = 'https://www.encodeproject.org' 
+// 
+// 		## processing files one by one as they are huge to not fill up the server
+// 		for(c1 in 1:nrow(dt)) {
+// 
+// 			accession = dt$accession[c1]
+// 			local_file = paste0(accession, '.bed.gz')
+// 			download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
+// 			md5sum_downloaded_files = tools::md5sum(local_file)
+// 			if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
+// 			system(paste('gunzip', local_file))
+// 		}
+// 			grep "Quies" ENCFF786MCR.bed | bedtools merge -i - > ENCFF786MCR_merged_Quies.bed
+// 
+// 			} function(c1) {
+// 
+// 
+// 			dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
+// 			if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
+// 			system('for z in *.gz; do gunzip "$z"; done')
+// 
+// 			.
+// 			      Enh    EnhLo1    EnhLo2  EnhPois1  EnhPois2   HetCons    HetFac     Quies
+// 			    15563     44844     27291     61335    304983    155305    166918   8910113
+// 			   QuiesG      TssA TssAFlnk1 TssAFlnk2    TssBiv       Tx1       Tx2
+// 			  3259122     41348     11619     65583     36083     19092    508479
+// 			>
+// 
+// 
+// 	'''
+// }
+
+
+
+
+// process get_encode_chromatin_state_data {
+// 
+// 	// container = params.huge_container
+// 	// could not find any container that works. Doing it without containers for now
+// 
+// 	input:
+// 		set specie, file(dt_encode_chromatin_state_rds) from Encode_chromatin_state_metadata_channel
+// 
+// 	output:
+// 		file("dt_encode_chip.rds") 
+// 
+// 	shell:
+// 	'''
+// 
+// 		#!/usr/bin/env Rscript
+// 
+// 		library(data.table)
+// 		library(bedr)
+// 
+// 		dt = readRDS('!{dt_encode_chromatin_state_rds}')
+// 
+// 		url_encode = 'https://www.encodeproject.org' 
+// 
+// 		## processing files one by one as they are huge to not fill up the server
+// 		for(c1 in 1:nrow(dt)) {
+// 
+// 			accession = dt$accession[c1]
+// 			local_file = paste0(accession, '.bed.gz')
+// 			download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
+// 			md5sum_downloaded_files = tools::md5sum(local_file)
+// 			if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
+// 			cur_bed = rtracklayer::import(local_file)
+// 			system(paste('gunzip', local_file))
+// 		}
+// 			grep "Quies" ENCFF786MCR.bed | bedtools merge -i - > ENCFF786MCR_merged_Quies.bed
+// 
+// 			} function(c1) {
+// 
+// 
+// 			dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
+// 			if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
+// 			system('for z in *.gz; do gunzip "$z"; done')
+// 
+// 			.
+// 			      Enh    EnhLo1    EnhLo2  EnhPois1  EnhPois2   HetCons    HetFac     Quies
+// 			    15563     44844     27291     61335    304983    155305    166918   8910113
+// 			   QuiesG      TssA TssAFlnk1 TssAFlnk2    TssBiv       Tx1       Tx2
+// 			  3259122     41348     11619     65583     36083     19092    508479
+// 			>
+// 
+// 
+// 	'''
+// }
 
 
 
