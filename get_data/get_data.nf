@@ -723,6 +723,7 @@ process get_encode_chromatin_state_metadata {
 
 
 process get_encode_chromatin_state_data {
+	tag "${specie}, ${dt_rds}"
 
 	container = params.encodeexplorer
 
@@ -755,58 +756,44 @@ process get_encode_chromatin_state_data {
 
 
 
-// process split_encode_chromatin_state_data {
-// 
-// 	container = params.encodeexplorer
-// 
-// 	// publishDir path: "${specie}/chromatin_states", mode: 'link', pattern: "*.csv"
-// 
-// 	input:
-// 		set specie, file(dt_rds) from Encode_chromatin_state_split_dt
-// 
-// 	output:
-// 		file("dt_encode_chip.rds") 
-// 
-// 	shell:
-// 	'''
-// 
-// 		#!/usr/bin/env Rscript
-// 
-// 		library(data.table)
-// 
-// 		dt = readRDS('!{dt_rds}')
-// 
-// 		url_encode = 'https://www.encodeproject.org' 
-// 
-// 		## processing files one by one as they are huge to not fill up the server
-// 		for(c1 in 1:nrow(dt)) {
-// 
-// 			accession = dt$accession[c1]
-// 			local_file = paste0(accession, '.bed.gz')
-// 			download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
-// 			md5sum_downloaded_files = tools::md5sum(local_file)
-// 			if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
-// 			system(paste('gunzip', local_file))
-// 		}
-// 			grep "Quies" ENCFF786MCR.bed | bedtools merge -i - > ENCFF786MCR_merged_Quies.bed
-// 
-// 			} function(c1) {
-// 
-// 
-// 			dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
-// 			if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
-// 			system('for z in *.gz; do gunzip "$z"; done')
-// 
-// 			.
-// 			      Enh    EnhLo1    EnhLo2  EnhPois1  EnhPois2   HetCons    HetFac     Quies
-// 			    15563     44844     27291     61335    304983    155305    166918   8910113
-// 			   QuiesG      TssA TssAFlnk1 TssAFlnk2    TssBiv       Tx1       Tx2
-// 			  3259122     41348     11619     65583     36083     19092    508479
-// 			>
-// 
-// 
-// 	'''
-// }
+process split_encode_chromatin_state_data {
+	tag "${specie}, ${cur_bed_file}"
+
+	container = params.bedtools_r
+
+	publishDir path: "${specie}/chromatin_states", mode: 'link'
+
+	input:
+		set specie, file(cur_bed_file) from Encode_chromatin_state_split_bed
+
+	output:
+		file("*") 
+
+	shell:
+	'''
+
+		#!/usr/bin/env Rscript
+
+		cur_bed_file = '!{cur_bed_file}'
+		
+		accession = gsub('.bed', '', cur_bed_file, fixed = T)
+		df = read.table(cur_bed_file, sep = '\t', stringsAsFactors = F)
+		
+		dir.create(accession)
+		
+		v_states = sort(unique(df[,4]))
+		for(state in v_states){
+			df1 = df[df$V4 == state, ]
+			write.table(df1, 'tmp.bed', col.names = F, row.names = F, quote = F, sep = '\t')
+			cmd = paste0('bedtools merge -i tmp.bed > ', accession, '/', state, '.bed')
+			system(cmd)
+		}
+		
+		file.remove('tmp.bed')
+
+
+	'''
+}
 
 
 
