@@ -533,6 +533,7 @@ process make_chip_ontology_groups {
 		specie = '!{specie}'
 		dt1 = readRDS('!{dt_encode_chip_rds}')
 		source('!{params.cactus_dir}/software/get_data/bin/make_chip_ontology_groups_functions.R')
+		source('!{params.cactus_dir}/software/get_data/bin/get_tab.R')
 		
 		dt = copy(dt1)
 		
@@ -727,78 +728,54 @@ process get_encode_chromatin_state_data {
 
 	container = params.encodeexplorer
 
-	// publishDir path: "${specie}/chromatin_states", mode: 'link', pattern: "*.csv"
+	publishDir path: "${specie}/chromatin_states", mode: 'link'
 
 	input:
 		set specie, file(dt_rds) from Encode_chromatin_state_split_dt
 
 	output:
-		set specie, file("*.bed") into Encode_chromatin_state_split_bed
+		file("*")
 
 	shell:
 	'''
 
 		#!/usr/bin/env Rscript
 		
+		library(magrittr)
 		library(data.table)
 		dt = readRDS('!{dt_rds}')
-		url_encode = 'https://www.encodeproject.org'
+		source('!{params.cactus_dir}/software/get_data/bin/get_tab.R')
 		
+		# downloading the bed file
+		url_encode = 'https://www.encodeproject.org'
 		local_file = dt$local_file
 		download.file(url = paste0(url_encode, dt$href), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
 		md5sum_downloaded_files = tools::md5sum(local_file)
 		if(dt$md5sum != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
 		system(paste('gunzip', local_file))
 		
-	'''
-}
-
-
-
-
-process split_encode_chromatin_state_data {
-	tag "${specie}, ${cur_bed_file}"
-
-	container = params.bedtools_r
-
-	publishDir path: "${specie}/chromatin_states", mode: 'link'
-
-	input:
-		set specie, file(cur_bed_file) from Encode_chromatin_state_split_bed
-
-	output:
-		file("*") 
-
-	shell:
-	'''
-
-		#!/usr/bin/env Rscript
-
-		cur_bed_file = '!{cur_bed_file}'
 		
-		accession = gsub('.bed', '', cur_bed_file, fixed = T)
-		df = read.table(cur_bed_file, sep = '\t', stringsAsFactors = F)
-		
+		# splitting each state in a separate file
+		accession = dt$accession
+		bed_file = paste0(accession, '.bed')
+		df = read.table(bed_file, sep = get_tab(), stringsAsFactors = F)
 		dir.create(accession)
+		df$V4 %<>% gsub('/', '_', .)
 		
 		v_states = sort(unique(df[,4]))
 		for(state in v_states){
 			df1 = df[df$V4 == state, ]
-			write.table(df1, 'tmp.bed', col.names = F, row.names = F, quote = F, sep = '\t')
-			cmd = paste0('bedtools merge -i tmp.bed > ', accession, '/', state, '.bed')
-			system(cmd)
+			write.table(df1, paste0(accession, '/', state, '.bed'), col.names = F, row.names = F, quote = F, sep = get_tab())
 		}
 		
-		file.remove('tmp.bed')
-
-
 	'''
 }
 
 
 
 
-// process get_encode_chromatin_state_data {
+
+// process get_other_chromatin_state_data {
 // 
 // 	// container = params.huge_container
 // 	// could not find any container that works. Doing it without containers for now
