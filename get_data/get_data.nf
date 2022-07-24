@@ -774,8 +774,21 @@ process get_encode_chromatin_state_data {
 
 
 
+IHMM_chromatin_states_channel = Channel
+	.from( 	
+		[
+			[  'fly', 'iHMM.M1K16.fly_EL.bed']
+			[  'fly', 'iHMM.M1K16.fly_L3.bed']
+			['human', 'iHMM.M1K16.human_GM.bed']
+			['human', 'iHMM.M1K16.human_H1.bed']
+			[ 'worm', 'iHMM.M1K16.worm_EE.bed']
+			[ 'worm', 'iHMM.M1K16.worm_L3.bed']
+		]
+	)
 
-// process get_other_chromatin_state_data {
+
+
+// process get_ihmm_chromatin_state_data {
 // 
 // 	// container = params.huge_container
 // 	// could not find any container that works. Doing it without containers for now
