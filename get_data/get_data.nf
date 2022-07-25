@@ -1009,6 +1009,7 @@ process get_fasta_and_gff {
 
 	output:
 		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
+		set specie, file('annotation.gff3') into Annotation_channel
 
 	shell:
 	'''
@@ -1041,6 +1042,105 @@ process get_fasta_and_gff {
 // an example of link:
 // http://ftp.ensembl.org/pub/release-102/fasta/caenorhabditis_elegans/dna/Caenorhabditis_elegans.WBcel235.dna_sm.toplevel.fa.gz
 // => primary_assembly is not available for worm an fly
+
+
+
+process get_bed_files_annotated_regions {
+	tag "${specie}"
+
+	container = params.bedparse
+
+	publishDir path: "${specie}/genome/annotation/bed_regions", mode: 'link'
+
+	input:
+		set specie, file('annotation.gff3') from Annotation_channel
+
+	output:
+		file('*.bed')
+
+	shell:
+	'''
+		  df d
+			gtf2bed < annotation.gtf > annotation.bed
+			grep -v "sequence-region" annotation.bed | cut -f 8 | sort | uniq
+			
+			gff2bed < annotation.gff3 > annotation.bed
+			
+			
+			bedparse gtf2bed  annotation.gtf 
+			
+			bedparse promoter --up 1500 --down 500 annotation.bed | head
+
+				
+			# make a bed file of chromosome sizes
+			awk 'OFS="\t" {print $1, "0", $2}' chromSizes.txt | sort -k1,1 -k2,2n > chromSizes.bed
+			
+			# Sort the GFF file
+			cat in.gff | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1 -k4,4n -k5,5n"}' > in_sorted.gff
+
+			# Get intergenic regions
+			bedtools complement -i in_sorted.gff -g chromSizes.txt > intergenic_sorted.bed
+			
+			# Get exons
+			awk 'OFS="\t", $1 ~ /^#/ {print $0;next} {if ($3 == "exon") print $1, $4-1, $5}' in_sorted.gff > exon_sorted.bed
+			
+			# Get introns
+			bedtools complement -i <(cat exon_sorted.bed intergenic_sorted.bed | sort -k1,1 -k2,2n) -g chromSizes.txt > intron_sorted.bed
+			
+			# Get promoters
+			gff2bed < genes.gff > genes.bed
+			awk -vFS="\t" -vOFS="\t" '($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes.bed \
+    	| bedops --range -400:50 --everything - > promoters.for.bed
+			awk -vFS="\t" -vOFS="\t" '($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes.bed \
+    	| bedops --range -50:400 --everything - > promoters.rev.bed
+
+			
+			
+			get_bed_region () { region="$1"; awk -v cur_region="$1" -F "\t" 'BEGIN {OFS = FS}{if ($8 == cur_region) { print $0 }}' annotation.bed | head ; }
+			
+			get_bed_region exon
+			get_bed_region three_prime_UTR
+			get_bed_region five_prime_UTR
+			get_bed_region five_prime_UTR
+			get_bed_region five_prime_UTR
+			get_bed_region five_prime_UTR
+			
+			BED_PATH="${params.refgene_ucsc_dir}"
+			PROMOTER=`getTotalReadsMappedToBedFile \$BED_PATH/promoters.bed ${bam}`
+			EXONS=`getTotalReadsMappedToBedFile \$BED_PATH/exons.bed ${bam}`
+			INTRONS=`getTotalReadsMappedToBedFile \$BED_PATH/introns.bed ${bam}`
+			INTERGENIC=`getTotalReadsMappedToBedFile \$BED_PATH/intergenic.bed ${bam}`
+			GENIC_REGIONS=`getTotalReadsMappedToBedFile \$BED_PATH/genic_regions.bed ${bam}`
+			ALL_REGIONS=`getTotalReadsMappedToBedFile \$BED_PATH/all_regions.bed ${bam}`
+			BAM_NB_READS=`samtools view -c ${bam}`
+
+			
+			
+			awk -F "\t" 'BEGIN {OFS = FS}{if ($8 == "exon") { print $0 }}' annotation.bed | head
+			> exons.bed 
+			
+			
+			
+			awk -F="\t" 'BEGIN {OFS = FS}{if ($8 == "three_prime_UTR") { print $0 }}' annotation.bed | head
+			awk -F="\t" 'BEGIN {OFS = FS}{ { print $8 }}' annotation.bed | head
+			
+			
+			cat annotation.bed | awk -v region="exon" -F="\t" 'BEGIN {OFS = FS}{if ($8 == $region) { print $0 }}' > exons.bed 
+			
+			get_bed_region () { cat annotations.bed | awk -v="$1" -F '\t' 'BEGIN {OFS = FS}{if ($3 == "exon") { print $0 }}' > exons.bed }
+			
+		
+	'''
+}
+
+// https://www.biostars.org/p/112251/ => get intergenic, exons and introns .bed
+// https://www.biostars.org/p/360842/#9531161 // => get promoter.bed
+
+// other links
+// https://github.com/TriLab-bioinf/Script_wrappers/blob/main/get_intergenic_bed_from_gtf.sh
+// https://davetang.org/muse/2013/01/18/defining-genomic-regions/
+// https://bedparse.readthedocs.io/en/stable/Tutorial.html // => could not make it work
+
 
 
 process filtering_annotation_file {
