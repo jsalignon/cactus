@@ -1061,31 +1061,26 @@ process get_bed_files_annotated_regions {
 	shell:
 	'''
 		  df d
-			gtf2bed < annotation.gtf > annotation.bed
-			grep -v "sequence-region" annotation.bed | cut -f 8 | sort | uniq
 			
+			# convert gff3 to bed
 			gff2bed < annotation.gff3 > annotation.bed
-			
-			
-			bedparse gtf2bed  annotation.gtf 
-			
-			bedparse promoter --up 1500 --down 500 annotation.bed | head
-
+			grep -v "sequence-region" annotation.bed | cut -f 8 | sort | uniq
 				
 			# make a bed file of chromosome sizes
-			awk 'OFS="\t" {print $1, "0", $2}' chromSizes.txt | sort -k1,1 -k2,2n > chromSizes.bed
+			awk 'OFS="\t" {print $1, "0", $2}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size.bed
 			
 			# Sort the GFF file
-			cat in.gff | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1 -k4,4n -k5,5n"}' > in_sorted.gff
+			cat annotation.gff3 | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1 -k4,4n -k5,5n"}' > annotation_sorted.gff3
+			 -> TO DO: this line didn't work; need to filter the lines that start with #
 
 			# Get intergenic regions
-			bedtools complement -i in_sorted.gff -g chromSizes.txt > intergenic_sorted.bed
+			bedtools complement -i annotation_sorted.gff -g chromosome_size.txt > intergenic.bed
 			
 			# Get exons
-			awk 'OFS="\t", $1 ~ /^#/ {print $0;next} {if ($3 == "exon") print $1, $4-1, $5}' in_sorted.gff > exon_sorted.bed
+			awk 'OFS="\t", $1 ~ /^#/ {print $0;next} {if ($3 == "exon") print $1, $4-1, $5}' annotation_sorted.gff3 > exons.bed
 			
 			# Get introns
-			bedtools complement -i <(cat exon_sorted.bed intergenic_sorted.bed | sort -k1,1 -k2,2n) -g chromSizes.txt > intron_sorted.bed
+			bedtools complement -i <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) -g chromosome_size.txt > introns.bed
 			
 			# Get promoters
 			gff2bed < genes.gff > genes.bed
@@ -1235,7 +1230,8 @@ process getting_chromosome_length_and_transcriptome {
 
 	container = params.gffread
 
-  publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+	publishDir path: "${"${specie}/genome/sequence"}", mode: 'link', pattern = "*.fa"
+  publishDir path: "${"${specie}/genome/annotation"}", mode: 'link', pattern = "*.txt"
 
   input:
     set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
