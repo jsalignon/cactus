@@ -774,73 +774,78 @@ process get_encode_chromatin_state_data {
 
 
 
-IHMM_chromatin_states_channel = Channel
+HiHMM_chromatin_states_channel = Channel
 	.from( 	
 		[
-			[  'fly', 'iHMM.M1K16.fly_EL.bed']
-			[  'fly', 'iHMM.M1K16.fly_L3.bed']
-			['human', 'iHMM.M1K16.human_GM.bed']
-			['human', 'iHMM.M1K16.human_H1.bed']
-			[ 'worm', 'iHMM.M1K16.worm_EE.bed']
-			[ 'worm', 'iHMM.M1K16.worm_L3.bed']
+			['human', 'iHMM.M1K16.human_GM'],
+			['human', 'iHMM.M1K16.human_H1'],
+			[  'fly', 'iHMM.M1K16.fly_EL'],
+			[  'fly', 'iHMM.M1K16.fly_L3'],
+			[ 'worm', 'iHMM.M1K16.worm_EE'],
+			[ 'worm', 'iHMM.M1K16.worm_L3']
 		]
 	)
+	
+	
+
+HiHMM_liftover_channel = Channel
+	.from( 	
+		[
+			['human', 'hg19', 'hg19ToHg38'],
+			[ 'worm', 'ce10', 'ce10ToCe11'],
+			[  'fly',  'dm3', 'dm3ToDm6']
+		]
+	)
+	
+HiHMM_chromatin_states_channel
+	.join(HiHMM_liftover_channel)
+	.set{ HiHMM_chromatin_states_channel_1 }
+	
 
 
 
-// process get_ihmm_chromatin_state_data {
-// 
-// 	// container = params.huge_container
-// 	// could not find any container that works. Doing it without containers for now
-// 
-// 	input:
-// 		set specie, file(dt_encode_chromatin_state_rds) from Encode_chromatin_state_metadata_channel
-// 
-// 	output:
-// 		file("dt_encode_chip.rds") 
-// 
-// 	shell:
-// 	'''
-// 
-// 		#!/usr/bin/env Rscript
-// 
-// 		library(data.table)
-// 		library(bedr)
-// 
-// 		dt = readRDS('!{dt_encode_chromatin_state_rds}')
-// 
-// 		url_encode = 'https://www.encodeproject.org' 
-// 
-// 		## processing files one by one as they are huge to not fill up the server
-// 		for(c1 in 1:nrow(dt)) {
-// 
-// 			accession = dt$accession[c1]
-// 			local_file = paste0(accession, '.bed.gz')
-// 			download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
-// 			md5sum_downloaded_files = tools::md5sum(local_file)
-// 			if(dt$md5sum[c1] != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
-// 			cur_bed = rtracklayer::import(local_file)
-// 			system(paste('gunzip', local_file))
-// 		}
-// 			grep "Quies" ENCFF786MCR.bed | bedtools merge -i - > ENCFF786MCR_merged_Quies.bed
-// 
-// 			} function(c1) {
-// 
-// 
-// 			dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
-// 			if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
-// 			system('for z in *.gz; do gunzip "$z"; done')
-// 
-// 			.
-// 			      Enh    EnhLo1    EnhLo2  EnhPois1  EnhPois2   HetCons    HetFac     Quies
-// 			    15563     44844     27291     61335    304983    155305    166918   8910113
-// 			   QuiesG      TssA TssAFlnk1 TssAFlnk2    TssBiv       Tx1       Tx2
-// 			  3259122     41348     11619     65583     36083     19092    508479
-// 			>
-// 
-// 
-// 	'''
-// }
+process get_hihmm_chromatin_state_data {
+	publishDir path: "${specie}/chromatin_states", mode: 'link'
+
+	container = params.liftover
+
+	input:
+		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_channel_1
+
+	output:
+		file(bed_name)
+
+	shell:
+	'''
+			
+			liftover_name="!{liftover_name}"
+			bed_name="!{bed_name}"
+			original_assembly="!{original_assembly}"
+			
+			liftover_file="${liftover_name}.over.chain.gz"
+			bed_file="${bed_name}.bed"
+			bed_file_lifted="${bed_name}_lifted.bed"
+			
+			liftover_path="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
+			hiHMM_path="http://compbio.med.harvard.edu/modencode/webpage/hihmm"
+
+			wget $liftover_path/$liftover_file
+			wget $hiHMM_path/$bed_file
+
+			gawk -i inplace '{print "chr"$0}' $bed_file
+
+			liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed 
+
+			mkdir $bed_name
+			awk ' { print >  $bed_name"/"$4".bed" }' $bed_file_lifted
+
+
+	'''
+}
+
+// this command fails in the container but not outside the container:
+// wget "http://compbio.med.harvard.edu/modencode/webpage/hihmm/iHMM.M1K16.human_H1.bed"
+// wget: bad header line:     XeuOGalu: ptQ; path=/; Max-Age=900
 
 
 
