@@ -13,7 +13,7 @@ params.homer_odd_score_threshold = 0.5
 
 Species_channel = Channel
 	.from( 	
-		[
+		[   //  0          1                     2        3             4                 5
 		//                                    assembly  assembly                       assembly
 		// specie    scientific_name           Ensembl  NCBI       assembly type       ENCODE
 			['worm',  'caenorhabditis_elegans',  'ce11', 'WBcel235', 'toplevel',         'ce11' ],
@@ -798,16 +798,14 @@ HiHMM_liftover_channel = Channel
 	)
 	
 HiHMM_chromatin_states_channel
-	.cross(HiHMM_liftover_channel)
-	.view()
+	.combine(HiHMM_liftover_channel, by:0)
 	.set{ HiHMM_chromatin_states_channel_1 }
 	
-// To finish: get all joins good
+
 
 process get_hihmm_chromatin_state_data_part_1 {
 	tag "${specie}"
-	// publishDir path: "${specie}/chromatin_states", mode: 'link'
-
+	
 	// container = "	kernsuite-debian/singularity-container"
 	// container = "${params.depot_galaxy}/ucsc_tools:357--0"
 	// container = params.bioconductor
@@ -878,15 +876,6 @@ process get_hihmm_chromatin_state_data_part_2 {
 // wget "http://compbio.med.harvard.edu/modencode/webpage/hihmm/iHMM.M1K16.human_H1.bed"
 // wget: bad header line:     XeuOGalu: ptQ; path=/; Max-Age=900
 
-// wget $liftover_path/$liftover_file
-
-			// gawk -i inplace '{print "chr"$0}' $bed_file
-			// 
-			// liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed 
-			// 
-			// mkdir $bed_name
-			// awk ' { print >  $bed_name"/"$4".bed" }' $bed_file_lifted
-
 					
 
 
@@ -928,6 +917,75 @@ process get_hihmm_chromatin_state_data_part_2 {
 // // wget "http://compbio.med.harvard.edu/modencode/webpage/hihmm/iHMM.M1K16.human_H1.bed"
 // // wget: bad header line:     XeuOGalu: ptQ; path=/; Max-Age=900
 // => all containers I tried fail with this command
+
+
+
+
+// process get_bowtie2_indexes_for_checking_contaminations {
+// 	tag "${specie}"
+// 
+// 	// container = "	kernsuite-debian/singularity-container"
+// 	container = "aws-cli_latest.sif"
+// 	// container = params.bioconductor
+// 
+// 	input:
+// 		// set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_channel_1
+// 
+// 	output:
+// 		// set specie, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_channel_2
+// 
+// 
+// 	shell:
+// 	'''
+// 
+// 			aws s3 --no-sign-request --region eu-west-1 sync s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Sequence/STARIndex/ ./my_refs/
+// 
+// 
+// 	'''
+// }
+// 
+// // https://ewels.github.io/AWS-iGenomes/
+// // https://support.illumina.com/sequencing/sequencing_software/igenome.html
+
+// => E coli OP50 strain is not present on iGenomes. Need to get the file another way.
+
+
+
+
+process get_contamination_bowtie2 {
+	tag "${specie}"
+
+	container = params.bowtie2_samtools
+
+	publishDir path: "human/bowtie2_indexes_conta", mode: 'link'
+	publishDir path: "mouse/bowtie2_indexes_conta", mode: 'link'
+	publishDir path:   "fly/bowtie2_indexes_conta", mode: 'link'
+	publishDir path:  "worm/bowtie2_indexes_conta", mode: 'link'
+
+	input:
+
+	output:
+		set file('README.txt'), file('*.bt2')
+
+	shell:
+	'''
+			
+		wget -O genome_contamination.fa.gz https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/009/496/595/GCF_009496595.1_ASM949659v1/GCF_009496595.1_ASM949659v1_genomic.fna.gz
+		echo "fasta file: GCF_009496595.1_ASM949659v1_genomic.fna.gz" > README.txt
+		
+		gunzip genome_contamination.fa.gz
+		
+		bowtie2-build --threads !{number_of_cores} genome_contamination.fa genome_contamination
+			
+	'''
+}
+
+// There are 3 assemblies for OP50 (one from 2009 and 2 from 2019):
+// https://www.ncbi.nlm.nih.gov/assembly/?term=Escherichia+coli+OP50+%28E.+coli%29
+// The latest one is this one (ASM949659v1):
+// https://www.ncbi.nlm.nih.gov/assembly/GCF_009496595.1 (file: GCF_009496595.1_ASM949659v1_genomic.fna.gz)
+// (previously I was using the one from 2009: ASM17681v1, with the file GCA_000176815.1_ASM17681v1_genomic.fna)
+
 
 
 process get_fasta_and_gff {
@@ -974,6 +1032,10 @@ process get_fasta_and_gff {
 	'''
 }
 
+// https://bioinformatics.stackexchange.com/questions/540/what-ensembl-genome-version-should-i-use-for-alignments-e-g-toplevel-fa-vs-p
+// an example of link:
+// http://ftp.ensembl.org/pub/release-102/fasta/caenorhabditis_elegans/dna/Caenorhabditis_elegans.WBcel235.dna_sm.toplevel.fa.gz
+// => primary_assembly is not available for worm an fly
 
 
 process filtering_annotation_file {
