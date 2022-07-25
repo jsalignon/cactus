@@ -798,55 +798,136 @@ HiHMM_liftover_channel = Channel
 	)
 	
 HiHMM_chromatin_states_channel
-	.join(HiHMM_liftover_channel)
+	.cross(HiHMM_liftover_channel)
+	.view()
 	.set{ HiHMM_chromatin_states_channel_1 }
 	
+// To finish: get all joins good
 
+process get_hihmm_chromatin_state_data_part_1 {
+	tag "${specie}"
+	// publishDir path: "${specie}/chromatin_states", mode: 'link'
 
-
-process get_hihmm_chromatin_state_data {
-	publishDir path: "${specie}/chromatin_states", mode: 'link'
-
-	container = params.liftover
+	// container = "	kernsuite-debian/singularity-container"
+	// container = "${params.depot_galaxy}/ucsc_tools:357--0"
+	// container = params.bioconductor
 
 	input:
 		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_channel_1
 
 	output:
-		file(bed_name)
+		set specie, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_channel_2
+		
 
 	shell:
 	'''
 			
-			liftover_name="!{liftover_name}"
 			bed_name="!{bed_name}"
-			original_assembly="!{original_assembly}"
+			specie="!{specie}"
 			
-			liftover_file="${liftover_name}.over.chain.gz"
 			bed_file="${bed_name}.bed"
 			bed_file_lifted="${bed_name}_lifted.bed"
 			
-			liftover_path="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
 			hiHMM_path="http://compbio.med.harvard.edu/modencode/webpage/hihmm"
-
-			wget $liftover_path/$liftover_file
+			
 			wget $hiHMM_path/$bed_file
-
-			gawk -i inplace '{print "chr"$0}' $bed_file
-
-			liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed 
-
-			mkdir $bed_name
-			awk ' { print >  $bed_name"/"$4".bed" }' $bed_file_lifted
-
+			
+			if [ $specie = 'worm' ]; then
+				gawk -i inplace '{print "chr"$0}' $bed_file
+			fi
 
 	'''
 }
+
+
+process get_hihmm_chromatin_state_data_part_2 {
+	tag "${specie}"
+	
+	publishDir path: "${specie}/chromatin_states", mode: 'link'
+
+	container = params.liftover
+
+	input:
+		set specie, bed_name, file(bed_file), original_assembly, liftover_name from HiHMM_chromatin_states_channel_2
+
+	output:
+		file("${bed_name}/*")
+
+	shell:
+	'''
+					
+			original_assembly="!{original_assembly}"
+			liftover_name="!{liftover_name}"
+			bed_name="!{bed_name}"
+			bed_file="!{bed_file}"
+
+			liftover_file="${liftover_name}.over.chain.gz"
+			bed_file_lifted="${bed_name}_lifted.bed"
+
+			liftover_path="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
+			wget $liftover_path/$liftover_file
+			liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed
+			mkdir $bed_name
+			awk  -v FOLDER="$bed_name" ' { print > FOLDER"/"$4".bed" }' $bed_file_lifted
+
+	'''
+}
+
 
 // this command fails in the container but not outside the container:
 // wget "http://compbio.med.harvard.edu/modencode/webpage/hihmm/iHMM.M1K16.human_H1.bed"
 // wget: bad header line:     XeuOGalu: ptQ; path=/; Max-Age=900
 
+// wget $liftover_path/$liftover_file
+
+			// gawk -i inplace '{print "chr"$0}' $bed_file
+			// 
+			// liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed 
+			// 
+			// mkdir $bed_name
+			// awk ' { print >  $bed_name"/"$4".bed" }' $bed_file_lifted
+
+					
+
+
+
+// process get_hihmm_chromatin_state_data {
+// 	publishDir path: "${specie}/chromatin_states", mode: 'link'
+// 
+// 	container = params.liftover
+// 
+// 	input:
+// 		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_channel_1
+// 
+// 	output:
+// 		file(bed_name)
+// 
+// 	shell:
+// 	'''
+// 
+// 			liftover_name="!{liftover_name}"
+// 			bed_name="!{bed_name}"
+// 			original_assembly="!{original_assembly}"
+// 
+// 			liftover_file="${liftover_name}.over.chain.gz"
+// 			bed_file="${bed_name}.bed"
+// 			bed_file_lifted="${bed_name}_lifted.bed"
+// 
+// 			liftover_path="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
+// 			hiHMM_path="http://compbio.med.harvard.edu/modencode/webpage/hihmm"
+// 			wget $liftover_path/$liftover_file
+// 			wget $hiHMM_path/$bed_file
+// 			gawk -i inplace '{print "chr"$0}' $bed_file
+// 			liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed 
+// 			mkdir $bed_name
+// 			awk ' { print >  $bed_name"/"$4".bed" }' $bed_file_lifted
+// 	'''
+// }
+// 
+// // this command fails in the container but not outside the container:
+// // wget "http://compbio.med.harvard.edu/modencode/webpage/hihmm/iHMM.M1K16.human_H1.bed"
+// // wget: bad header line:     XeuOGalu: ptQ; path=/; Max-Age=900
+// => all containers I tried fail with this command
 
 
 process get_fasta_and_gff {
