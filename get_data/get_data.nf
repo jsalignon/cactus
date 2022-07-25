@@ -137,7 +137,7 @@ process split_pwms {
 
 	container = params.r_basic
 
-	publishDir path: "${specie}/motifs_PWMs", mode: 'link'
+	publishDir path: "${specie}/homer_data", mode: 'link'
 
 	input:
 		set specie, specie_long, file(dt_cisbp_encode_rds) from cisbp_motifs_all_species_1
@@ -243,13 +243,13 @@ process get_blacklisted_regions {
 
 	container = params.cvbio
 
-	publishDir path: "${specie}/blacklisted_regions", mode: 'link'
+	publishDir path: "${specie}/genome/annotation", mode: 'link'
 
 	input:
 		set specie, specie_code, ncbi_code from Start_channel.blacklist
 
 	output:
-		file("${specie_code}_blacklist_Ensembl.bed")
+		file("blacklisted_regions.bed")
 
 	shell:
 	'''
@@ -267,7 +267,7 @@ process get_blacklisted_regions {
 				
 		wget -O NCBI_to_Ensembl.txt $url_mapping/${ncbi_code_1}_UCSC2ensembl.txt
 		
-		cvbio UpdateContigNames -i ${specie_code}_blacklist_NCBI.bed -o ${specie_code}_blacklist_Ensembl.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
+		cvbio UpdateContigNames -i ${specie_code}_blacklist_NCBI.bed -o blacklisted_regions.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
 		
 	'''
 }
@@ -511,7 +511,7 @@ process make_chip_ontology_groups {
 	container = params.encodeexplorer
 
 	publishDir path: "${specie}", mode: 'link', saveAs: {
-    if (it.indexOf(".txt") > 0) "util/${it}"
+    if (it.indexOf(".txt") > 0) "${it}"
 		else if (it.indexOf(".tsv") > 0) "CHIP/${it}"
   }
 	
@@ -605,7 +605,7 @@ process get_encode_chromatin_state_metadata {
 
 	container = params.encodeexplorer
 
-	publishDir path: "${specie}/util", mode: 'link', pattern: "*.csv"
+	publishDir path: "${specie}", mode: 'link', pattern: "*.csv"
 
 	input:
 		set specie, assembly from Start_channel_chromatin_state
@@ -806,9 +806,13 @@ HiHMM_chromatin_states_channel
 process get_hihmm_chromatin_state_data_part_1 {
 	tag "${specie}"
 	
-	// container = "	kernsuite-debian/singularity-container"
+	// No containers for the process as of now since I couldn't get one that works (and that is downloaded directly from within nextflow. This may be an issue with the outdated version of Singularity that is installed on my server)
+	// container = "kernsuite-debian/singularity-container"
+	// container = "kernsuite-debian/singularity-container"
 	// container = "${params.depot_galaxy}/ucsc_tools:357--0"
 	// container = params.bioconductor
+	// container = 'ubuntu/library/ubuntu/22.10'
+	// container = 'debian/stable-slim.sif'
 
 	input:
 		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_channel_1
@@ -946,6 +950,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 // 
 // // https://ewels.github.io/AWS-iGenomes/
 // // https://support.illumina.com/sequencing/sequencing_software/igenome.html
+// note: I pulled the singularity image separately prior to run the script in this case
 
 // => E coli OP50 strain is not present on iGenomes. Need to get the file another way.
 
@@ -1179,7 +1184,7 @@ process getting_orgdb {
 
   container = params.annotationhub
 
-  publishDir path: "${specie}/orgdb", mode: 'link'
+  publishDir path: "${specie}/genome/annotation", mode: 'link'
 
   input:
 		set specie, specie_long from Start_channel.orgdb
