@@ -1009,7 +1009,6 @@ process get_fasta_and_gff {
 
 	output:
 		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
-		set specie, file('annotation.gff3') into Annotation_channel
 
 	shell:
 	'''
@@ -1045,15 +1044,129 @@ process get_fasta_and_gff {
 
 
 
-process get_bed_files_annotated_regions {
+process filtering_annotation_file {
+  tag "${specie}"
+
+  container = params.samtools_bedtools_perl
+
+  publishDir path: "${specie}/genome/annotation", mode: 'link'
+
+  input:
+    set specie, file(gff3), file(fasta) from Genome_and_annotation
+
+  output:
+		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into Channel_gff3_filtered
+
+  shell:
+  '''
+
+		grep -i protein_coding !{gff3} | awk  -F"\t"  '{if($3 == "gene") print $0}' - > anno_genes_only.gff3
+
+		grep -viE "pseudogen|ncRNA" !{gff3} > gff3_without_pseudogenes_and_ncRNA.gff3
+
+
+  '''
+
+}
+
+// Notes
+
+// grep -i protein_coding ${gff} > protein_coding_mRNA_and_genes.gff3
+
+// anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
+
+// protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
+
+
+process generating_bowtie2_indexes {
+  tag "${specie}"
+
+  container = params.bowtie2_samtools
+
+  publishDir path: "${"${specie}/genome/sequence"}/bowtie2_indexes", mode: 'link'
+
+  input:
+    set specie, file(gff3), file(fasta) from Genome_and_annotation_1
+
+  output:
+		file("*.bt2")
+
+  shell:
+  '''
+
+		bowtie2-build --threads !{number_of_cores} !{fasta} genome
+
+
+  '''
+
+}
+
+
+process indexing_genomes {
+  tag "${specie}"
+
+  container = params.bowtie2_samtools
+
+  publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+
+  input:
+    set specie, file(gff3), file(fasta) from Genome_and_annotation_2
+
+  output:
+		set specie, file('genome.fa.fai') into Fasta_fai
+
+  shell:
+  '''
+
+		samtools faidx !{fasta}
+
+
+  '''
+
+}
+
+Genome_and_annotation_3
+	.join(Fasta_fai)
+	.set{ Fasta_fai_gff3 }
+
+
+
+process getting_chromosome_length_and_transcriptome {
+  tag "${specie}"
+
+	container = params.gffread
+
+	publishDir path: "${"${specie}/genome/sequence"}", mode: 'link', pattern = "*.fa"
+  publishDir path: "${"${specie}/genome/annotation"}", mode: 'link', pattern = "*.txt"
+
+  input:
+    set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
+
+  output:
+		set specie, file('chromosome_size.txt') into Chromosome_size_for_seqinfo
+    set specie, file(gff3), file('chromosome_size.txt') into Annotation_for_bed_files
+		set specie, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
+
+  script:
+  """
+      cut -f1-2 ${fasta_indexes} > chromosome_size.txt
+      gffread -C ${gff3} -g ${fasta} -w transcriptome.fa
+  """
+
+}
+
+
+
+
+process get_bed_files_of_annotated_regions {
 	tag "${specie}"
 
-	container = params.bedparse
+	container = params.bedops
 
 	publishDir path: "${specie}/genome/annotation/bed_regions", mode: 'link'
 
 	input:
-		set specie, file('annotation.gff3') from Annotation_channel
+		set specie, file(gff3), file(chr_size) from Annotation_for_bed_files
 
 	output:
 		file('*.bed')
@@ -1061,79 +1174,65 @@ process get_bed_files_annotated_regions {
 	shell:
 	'''
 	
-			# Filter (predicted TSS and CpG islands) and sor the gff file
-			awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 != "biological_region") print}' annotation.gff3 | sort -k1,1V -k4,4n -k5,5n > annotation_clean.gff3
+			source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
+			gff3=!{gff3}
+			chr_size=!{chr_size}
+		
+			tab=$(get_tab)
 
-			# Get genic regions
-			awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 == "gene") print $1, $4-1, $5}' annotation_clean.gff3 > genic_regions.bed
+			# Filter (predicted TSS, CpG islands and chromosomes) and sort the gff file
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "chromosome" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
+
+			# Get already defined regions: exons, genes, 3_prime_utr, 5_prime_utr
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "exon")            print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "gene")            print $1, $4-1, $5}' annotation_clean.gff3 > genic_regions.bed
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "five_prime_UTR")  print $1, $4-1, $5}' annotation_clean.gff3 > five_prime_UTR.bed
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "three_prime_UTR") print $1, $4-1, $5}' annotation_clean.gff3 > three_prime_UTR.bed
 			
 			# get sorted chromosome size file	
-			awk 'OFS="\t" {print}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size_sorted.txt
+			sort -k1,1 -k2,2n $chr_size > chromosome_size_sorted.txt
+			
+			# make a bed files for chromosome sizes and gff
+			gff2bed < annotation_clean.gff3 > annotation_clean.bed
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {print $1, "0", $2}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size.bed
 			
 			# Get intergenic regions
-			bedtools complement -i annotation_clean.gff3 -g chromosome_size.txt > intergenic.bed
+			bedops --difference chromosome_size.bed annotation_clean.bed > intergenic.bed
 			
-			# Get exons
-			awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 == "exon") print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
-		
 			# Get introns
-			bedtools complement -i <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) -g chromosome_size_sorted.txt > introns.bed
+			bedops --difference chromosome_size.bed <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) > introns.bed
 			
 			# Get promoters
-			gff2bed < genes.gff > genes.bed
-			awk -vFS="\t" -vOFS="\t" '($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes.bed \
-    	| bedops --range -400:50 --everything - > promoters.for.bed
-			awk -vFS="\t" -vOFS="\t" '($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes.bed \
-    	| bedops --range -50:400 --everything - > promoters.rev.bed
-
-			awk '$9 ~ /ENSG00000223972/' {print $0}' annotation_clean.gff3 | head
+			gff2bed < <(awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "gene") print}' annotation_clean.gff3) > genes.bed
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} ($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes.bed | bedops --range -1500:500 --everything - > promoters_forward.bed
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} ($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes.bed | bedops --range -1500:500 --everything - > promoters_reverse.bed
+			bedops --everything promoters_forward.bed promoters_reverse.bed > promoters.bed
 			
-
-			awk 'OFS="\t" {if (substr($1, 1, 1) != "#") print $9}' annotation_clean.gff3 | head
-			
-			
-			get_bed_region () { region="$1"; awk -v cur_region="$1" -F "\t" 'BEGIN {OFS = FS}{if ($8 == cur_region) { print $0 }}' annotation_clean.bed | head ; }
-			
-			get_bed_region exon
-			get_bed_region three_prime_UTR
-			get_bed_region five_prime_UTR
-			get_bed_region five_prime_UTR
-			get_bed_region five_prime_UTR
-			get_bed_region five_prime_UTR
-			
-			BED_PATH="${params.refgene_ucsc_dir}"
-			PROMOTER=`getTotalReadsMappedToBedFile \$BED_PATH/promoters.bed ${bam}`
-			EXONS=`getTotalReadsMappedToBedFile \$BED_PATH/exons.bed ${bam}`
-			INTRONS=`getTotalReadsMappedToBedFile \$BED_PATH/introns.bed ${bam}`
-			INTERGENIC=`getTotalReadsMappedToBedFile \$BED_PATH/intergenic.bed ${bam}`
-			GENIC_REGIONS=`getTotalReadsMappedToBedFile \$BED_PATH/genic_regions.bed ${bam}`
-			ALL_REGIONS=`getTotalReadsMappedToBedFile \$BED_PATH/all_regions.bed ${bam}`
-			BAM_NB_READS=`samtools view -c ${bam}`
-
-			
-			
-			awk -F "\t" 'BEGIN {OFS = FS}{if ($8 == "exon") { print $0 }}' annotation.bed | head
-			> exons.bed 
-			
-			
-			
-			awk -F="\t" 'BEGIN {OFS = FS}{if ($8 == "three_prime_UTR") { print $0 }}' annotation.bed | head
-			awk -F="\t" 'BEGIN {OFS = FS}{ { print $8 }}' annotation.bed | head
-			
-			
-			cat annotation.bed | awk -v region="exon" -F="\t" 'BEGIN {OFS = FS}{if ($8 == $region) { print $0 }}' > exons.bed 
-			
-			get_bed_region () { cat annotations.bed | awk -v="$1" -F '\t' 'BEGIN {OFS = FS}{if ($3 == "exon") { print $0 }}' > exons.bed }
-			
+			rm genes.bed promoters_forward.bed promoters_reverse.bed annotation_clean.bed chromosome_size.bed
 		
 	'''
 }
 
-awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 != "biological_region" ) print}' annotation.gff3 | head
+// tab=$(get_tab)
+// awk -v my_var="$tab" ' BEGIN {OFS=my_var} {print $1, $2}' test_anno_2.bed
 
-bedtools complement -i <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) -g chromosome_size_sorted.txt > introns.bed
+// not that to get intergenic there commands are equivalent"
+// bedops --difference chrom_size.bed target_file.bed
+// bedtools --complement target_file.bed chrom_size.txt
+
+// cut -f8 annotation_clean.bed | sort | uniq | paste -sd "  " - 
+// cut -f1 exons.bed | uniq	
+
+// Here are the lines used to create the get_tab.sh script (creating within bash prevent the issue with windows line-breaks)
+// cat > get_data/bin/get_tab.sh << EOL
+// #!/usr/bin/env bash
+// 
+// get_tab () { echo "\t" ; }
+// 
+// EOL
 
 
+// cat '!{params.cactus_dir}/software/get_data/bin/get_tab.sh'
 
 
 // https://www.biostars.org/p/112251/#314840 => get intergenic, exons and introns .bed
@@ -1245,117 +1344,8 @@ bedtools complement -i <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) -g ch
 // awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 != "biological_region") print}' annotation.gff3 | sort -k1,1V -k4,4n -k5,5n | head
 
 
-
-process filtering_annotation_file {
-  tag "${specie}"
-
-  container = params.samtools_bedtools_perl
-
-  publishDir path: "${specie}/genome/annotation", mode: 'link'
-
-  input:
-    set specie, file(gff3), file(fasta) from Genome_and_annotation
-
-  output:
-		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into Channel_gff3_filtered
-
-  shell:
-  '''
-
-		grep -i protein_coding !{gff3} | awk  -F"\t"  '{if($3 == "gene") print $0}' - > anno_genes_only.gff3
-
-		grep -viE "pseudogen|ncRNA" !{gff3} > gff3_without_pseudogenes_and_ncRNA.gff3
-
-
-  '''
-
-}
-
-// Notes
-
-// grep -i protein_coding ${gff} > protein_coding_mRNA_and_genes.gff3
-
-// anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
-
-// protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
-
-
-process generating_bowtie2_indexes {
-  tag "${specie}"
-
-  container = params.bowtie2_samtools
-
-  publishDir path: "${"${specie}/genome/sequence"}/bowtie2_indexes", mode: 'link'
-
-  input:
-    set specie, file(gff3), file(fasta) from Genome_and_annotation_1
-
-  output:
-		file("*.bt2")
-
-  shell:
-  '''
-
-		bowtie2-build --threads !{number_of_cores} !{fasta} genome
-
-
-  '''
-
-}
-
-
-process indexing_genomes {
-  tag "${specie}"
-
-  container = params.bowtie2_samtools
-
-  publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
-
-  input:
-    set specie, file(gff3), file(fasta) from Genome_and_annotation_2
-
-  output:
-		set specie, file('genome.fa.fai') into Fasta_fai
-
-  shell:
-  '''
-
-		samtools faidx !{fasta}
-
-
-  '''
-
-}
-
-Genome_and_annotation_3
-	.join(Fasta_fai)
-	.set{ Fasta_fai_gff3 }
-
-
-
-process getting_chromosome_length_and_transcriptome {
-  tag "${specie}"
-
-	container = params.gffread
-
-	publishDir path: "${"${specie}/genome/sequence"}", mode: 'link', pattern = "*.fa"
-  publishDir path: "${"${specie}/genome/annotation"}", mode: 'link', pattern = "*.txt"
-
-  input:
-    set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
-
-  output:
-    set specie, file('chromosome_size.txt') into Chromosome_size_for_seqinfo
-		set specie, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
-
-  script:
-  """
-      cut -f1-2 ${fasta_indexes} > chromosome_size.txt
-      gffread -C ${gff3} -g ${fasta} -w transcriptome.fa
-  """
-
-}
-
+// scaffolds should be kept
+// https://www.biostars.org/p/223541/
 
 
 
