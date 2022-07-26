@@ -1136,9 +1136,11 @@ process getting_chromosome_length_and_transcriptome {
 
 	container = params.gffread
 
-	publishDir path: "${"${specie}/genome/sequence"}", mode: 'link', pattern = "*.fa"
-  publishDir path: "${"${specie}/genome/annotation"}", mode: 'link', pattern = "*.txt"
-
+	publishDir path: "${specie}/genome", mode: 'link', saveAs:{
+		     if (it.indexOf(".txt") > 0) "annotation/${it}"
+		else if (it.indexOf(".fa") > 0) "genome/${it}"
+		} 
+		
   input:
     set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
 
