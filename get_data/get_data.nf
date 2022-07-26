@@ -1060,27 +1060,24 @@ process get_bed_files_annotated_regions {
 
 	shell:
 	'''
-		  df d
-			
-			# convert gff3 to bed
-			gff2bed < annotation.gff3 > annotation.bed
-			grep -v "sequence-region" annotation.bed | cut -f 8 | sort | uniq
-				
-			# make a bed file of chromosome sizes
-			awk 'OFS="\t" {print $1, "0", $2}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size.bed
-			
-			# Sort the GFF file
-			cat annotation.gff3 | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1 -k4,4n -k5,5n"}' > annotation_sorted.gff3
-			 -> TO DO: this line didn't work; need to filter the lines that start with #
+	
+			# Filter (predicted TSS and CpG islands) and sor the gff file
+			awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 != "biological_region") print}' annotation.gff3 | sort -k1,1V -k4,4n -k5,5n > annotation_clean.gff3
 
+			# Get genic regions
+			awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 == "gene") print $1, $4-1, $5}' annotation_clean.gff3 > genic_regions.bed
+			
+			# get sorted chromosome size file	
+			awk 'OFS="\t" {print}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size_sorted.txt
+			
 			# Get intergenic regions
-			bedtools complement -i annotation_sorted.gff -g chromosome_size.txt > intergenic.bed
+			bedtools complement -i annotation_clean.gff3 -g chromosome_size.txt > intergenic.bed
 			
 			# Get exons
-			awk 'OFS="\t", $1 ~ /^#/ {print $0;next} {if ($3 == "exon") print $1, $4-1, $5}' annotation_sorted.gff3 > exons.bed
-			
+			awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 == "exon") print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
+		
 			# Get introns
-			bedtools complement -i <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) -g chromosome_size.txt > introns.bed
+			bedtools complement -i <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) -g chromosome_size_sorted.txt > introns.bed
 			
 			# Get promoters
 			gff2bed < genes.gff > genes.bed
@@ -1089,9 +1086,13 @@ process get_bed_files_annotated_regions {
 			awk -vFS="\t" -vOFS="\t" '($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes.bed \
     	| bedops --range -50:400 --everything - > promoters.rev.bed
 
+			awk '$9 ~ /ENSG00000223972/' {print $0}' annotation_clean.gff3 | head
+			
+
+			awk 'OFS="\t" {if (substr($1, 1, 1) != "#") print $9}' annotation_clean.gff3 | head
 			
 			
-			get_bed_region () { region="$1"; awk -v cur_region="$1" -F "\t" 'BEGIN {OFS = FS}{if ($8 == cur_region) { print $0 }}' annotation.bed | head ; }
+			get_bed_region () { region="$1"; awk -v cur_region="$1" -F "\t" 'BEGIN {OFS = FS}{if ($8 == cur_region) { print $0 }}' annotation_clean.bed | head ; }
 			
 			get_bed_region exon
 			get_bed_region three_prime_UTR
@@ -1128,13 +1129,120 @@ process get_bed_files_annotated_regions {
 	'''
 }
 
-// https://www.biostars.org/p/112251/ => get intergenic, exons and introns .bed
+awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 != "biological_region" ) print}' annotation.gff3 | head
+
+bedtools complement -i <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) -g chromosome_size_sorted.txt > introns.bed
+
+
+
+
+// https://www.biostars.org/p/112251/#314840 => get intergenic, exons and introns .bed
 // https://www.biostars.org/p/360842/#9531161 // => get promoter.bed
 
 // other links
 // https://github.com/TriLab-bioinf/Script_wrappers/blob/main/get_intergenic_bed_from_gtf.sh
 // https://davetang.org/muse/2013/01/18/defining-genomic-regions/
 // https://bedparse.readthedocs.io/en/stable/Tutorial.html // => could not make it work
+
+// grep -v "sequence-region" annotation.bed | cut -f 8 | sort | uniq | paste -sd "  " - 
+// biological_region CDS C_gene_segment chromosome D_gene_segment exon five_prime_UTR gene J_gene_segment lnc_RNA miRNA mRNA ncRNA ncRNA_gene pseudogene pseudogenic_transcript rRNA scaffold scRNA snoRNA snRNA three_prime_UTR tRNA unconfirmed_transcript V_gene_segment
+
+// commands not needed:
+// # convert gff3 to bed
+// gff2bed < annotation.gff3 > annotation.bed
+//
+// # make a bed file of chromosome sizes
+// awk 'OFS="\t" {print $1, "0", $2}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size.bed
+
+
+
+// The gff3 file needs to be sorted:
+// Error: Sorted input specified, but the file annotation.gff3 has the following out of order record
+// 1       havana  pseudogenic_transcript  12010   13670   .       +       .       ID=transcript:ENST00000450305;Parent=gene:ENSG00000223972;Name=DDX11L1-201;biotype=transcribed_unprocessed_pseudogene;tag=basic;transcript_id=ENST00000450305;transcript_support_level=NA;version=2
+
+
+// ## Exploring a bit the structure of the gff file
+// 
+// awk '{ if(substr($1, 1, 1) != "#") {print $0}}' annotation.gff3 | head
+// 
+// awk '{ if($3 == "gene") {print $0}}' annotation.gff3 | head -1
+// // 1       ensembl_havana  gene    65419   71585   .       +       .       ID=gene:ENSG00000186092;Name=OR4F5;biotype=protein_coding;description=olfactory receptor family 4 subfamily F member 5 [Source:HGNC Symbol%3BAcc:HGNC:14825];gene_id=ENSG00000186092;logic_name=ensembl_havana_gene_homo_sapiens;version=6
+// 
+// awk '{ if($3 == "exon") {print $0}}' annotation.gff3 | head -1
+// // 1       havana  exon    11869   12227   .       +       .       Parent=transcript:ENST00000456328;Name=ENSE00002234944;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00002234944;rank=1;version=1
+// 
+// awk '{ if($3 == "mRNA") {print $0}}' annotation.gff3 | head -1
+// // 1       havana  mRNA    65419   71585   .       +       .       ID=transcript:ENST00000641515;Parent=gene:ENSG00000186092;Name=OR4F5-202;biotype=protein_coding;tag=basic;transcript_id=ENST00000641515;version=2
+// 
+// 
+// awk '{ if($3 == "exon") {print $0}}' annotation.gff3 | head -10
+// // 1       havana  exon    11869   12227   .       +       .       Parent=transcript:ENST00000456328;Name=ENSE00002234944;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00002234944;rank=1;version=1
+// // 1       havana  exon    12010   12057   .       +       .       Parent=transcript:ENST00000450305;Name=ENSE00001948541;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001948541;rank=1;version=1
+// // 1       havana  exon    14404   14501   .       -       .       Parent=transcript:ENST00000488147;Name=ENSE00001843071;constitutive=1;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001843071;
+// 
+// awk '{ if($9 ~ /ENST00000456328/) {print $0}}' annotation.gff3 | head -1
+// // 1       havana  lnc_RNA 11869   14409   .       +       .       ID=transcript:ENST00000456328;Parent=gene:ENSG00000223972;Name=DDX11L1-202;biotype=processed_transcript;tag=basic;transcript_id=ENST00000456328;transcript_support_level=1;version=2
+// 
+// awk '{ if($9 ~ /ENST00000450305/) {print $0}}' annotation.gff3 | head -1
+// // 1       havana  pseudogenic_transcript  12010   13670   .       +       .       ID=transcript:ENST00000450305;Parent=gene:ENSG00000223972;Name=DDX11L1-201;biotype=transcribed_unprocessed_pseudogene;tag=basic;transcript_id=ENST00000450305;transcript_support_level=NA;version=2
+// 
+// awk '{ if($9 ~ /ENST00000488147/) {print $0}}' annotation.gff3 | head -1
+// // 1       havana  pseudogenic_transcript  14404   29570   .       -       .       ID=transcript:ENST00000488147;Parent=gene:ENSG00000227232;Name=WASH7P-201;biotype=unprocessed_pseudogene;tag=basic;transcript_id=ENST00000488147;transcript_support_level=NA;version=1
+// 
+// // => the first exons are from pseudogenes or non-coding RNAs that is why the coordinates of the first gene starts way after the first exons
+
+
+
+// head -300 annotation.gff3
+
+// ##sequence-region   KI270756.1 1 79590
+// ##sequence-region   KI270757.1 1 71251
+// ##sequence-region   MT 1 16569
+// ##sequence-region   X 1 156040895
+// ##sequence-region   Y 2781480 56887902
+// #!genome-build  GRCh38.p13
+// #!genome-version GRCh38
+// #!genome-date 2013-12
+// #!genome-build-accession NCBI:GCA_000001405.28
+// #!genebuild-last-updated 2020-09
+// 1       GRCh38  chromosome      1       248956422       .       .       .       ID=chromosome:1;Alias=CM000663.2,chr1,NC_000001.11
+// ###
+// 1       .       biological_region       10469   11240   1.3e+03 .       .       external_name=oe %3D 0.79;logic_name=cpg
+// 1       .       biological_region       10650   10657   0.999   +       .       logic_name=eponine
+// 1       .       biological_region       10655   10657   0.999   -       .       logic_name=eponine
+// 1       .       biological_region       10678   10687   0.999   +       .       logic_name=eponine
+// 1       .       biological_region       10681   10688   0.999   -       .       logic_name=eponine
+// 1       .       biological_region       10707   10716   0.999   +       .       logic_name=eponine
+// 1       .       biological_region       10708   10718   0.999   -       .       logic_name=eponine
+// 1       .       biological_region       10735   10747   0.999   -       .       logic_name=eponine
+// 1       .       biological_region       10737   10744   0.999   +       .       logic_name=eponine
+// 1       .       biological_region       10766   10773   0.999   +       .       logic_name=eponine
+// 1       .       biological_region       10770   10779   0.999   -       .       logic_name=eponine
+// 1       .       biological_region       10796   10801   0.999   +       .       logic_name=eponine
+// 1       .       biological_region       10810   10819   0.999   -       .       logic_name=eponine
+// 1       .       biological_region       10870   10872   0.999   +       .       logic_name=eponine
+// 1       .       biological_region       10889   10893   0.999   -       .       logic_name=eponine
+// 1       havana  pseudogene      11869   14409   .       +       .       ID=gene:ENSG00000223972;Name=DDX11L1;biotype=transcribed_unprocessed_pseu
+// dogene;description=DEAD/H-box helicase 11 like 1 (pseudogene) [Source:HGNC Symbol%3BAcc:HGNC:37102];gene_id=ENSG00000223972;logic_name=havana_hom
+// o_sapiens;version=5
+
+// => the first lines are chromosome sizes, then few lines describe the genome build, then a first line indicate the start of the chromosome 1, then there is a serie of short regions with external id "logic_name=eponine". These corresponds to predicted Transcription Start Sites. And then finally the real features appear. These predicted TSS could be removed from all analysis since these are anyway putative features (these regions would thus be considered intergenic if no other feature overlap these)
+// https://www.sanger.ac.uk/tool/eponine/
+
+// $ awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 == "biological_region") print}' annotation.gff3 | head -100
+// 1       .       biological_region       827637  827722  1       -       .       external_name=rank %3D 2;logic_name=firstef
+// 1       .       biological_region       904315  905706  1.34e+03        .       .       external_name=oe %3D 1.03;logic_name=cpg
+
+// => firstef regions are also predicted TSS regions
+// https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3577817/#pone.0054843-Davuluri1
+// To evaluate the prediction performance of our method, we have compared our method with four other open access human promoter prediction programs. We have selected these four methods among a number of promoter prediction tools because they have performed well in the previous comparative studies. The methods are FirstEF [52], Eponine [14], Ep3 [22] and ProSOM [53]. All these methods are free and publicly available. FirstEF is based on discriminant analysis to find potential first donor sites and CpG-related and non-CpG-related promoter regions. Ep3 uses large scale structural properties of DNA to locate promoter regions in whole genome sequence and ProSOM utilizes self-organizing maps to distinguish promoters from non-promoter sequences.
+
+// And CpG island can be intergenic as well. We remove all these
+
+
+// -> the command to filter and sort the gff file:
+// awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 != "biological_region") print}' annotation.gff3 | head
+// awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 != "biological_region") print}' annotation.gff3 | sort -k1,1V -k4,4n -k5,5n | head
 
 
 
