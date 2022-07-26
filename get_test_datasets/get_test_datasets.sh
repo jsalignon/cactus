@@ -65,11 +65,11 @@ cat > run_custom.config << EOL
 
 params {
 
-	use_input_control = true
+  use_input_control = true
   
   save_bed_type = 'all'
 
-	fdr_for_splitting_subsets = [ 0.2, 1.3 ] // setting -log10 FDR thresholds 
+  fdr_for_splitting_subsets = [ 0.2, 1.3 ] // setting -log10 FDR thresholds 
 
 }
 
@@ -90,7 +90,6 @@ prepro_dir="preprocessing/${specie}"
 
 mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
 cp run_custom.config $specie/conf
-
 
 # downloading our fastq samples of interest and subsampling them
 nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 --force_sratools_download 
@@ -166,6 +165,10 @@ prepro_dir="preprocessing/${specie}"
 
 mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
 cp run_custom.config $specie/conf
+sed -i "3s/^/\n  specie = 'worm'\n/" $specie/conf/run_custom.config
+sed -i "5s/^/\n  chromatin_state = 'iHMM.M1K16.worm_L3'\n/" $specie/conf/run_custom.config
+sed -i "5s/^/\n  chip_ontology = 'all'\n/" $specie/conf/run_custom.config
+cat $specie/conf/run_custom.config
 
 
 # downloading our fastq samples of interest and subsampling them

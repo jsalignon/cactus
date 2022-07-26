@@ -536,6 +536,7 @@ process make_chip_ontology_groups {
 		source('!{params.cactus_dir}/software/get_data/bin/get_tab.R')
 		
 		dt = copy(dt1)
+		dt$local_file %<>% gsub('.gz', '', ., fixed = T)
 		
 		l_tissue_chip_names        = get_ontology_chip_names(dt, 'organ_slims', 'organ')
 		l_cell_type_chip_names     = get_ontology_chip_names(dt, 'cell_slims', 'cell_type')
@@ -1185,12 +1186,10 @@ process get_bed_files_of_annotated_regions {
 			# Filter (predicted TSS, CpG islands and chromosomes) and sort the gff file
 			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "chromosome" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
 
-			# Get already defined regions: exons, genes, 3_prime_utr, 5_prime_utr
+			# Get already defined regions: exons, genes
 			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "exon")            print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
 			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "gene")            print $1, $4-1, $5}' annotation_clean.gff3 > genic_regions.bed
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "five_prime_UTR")  print $1, $4-1, $5}' annotation_clean.gff3 > five_prime_UTR.bed
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "three_prime_UTR") print $1, $4-1, $5}' annotation_clean.gff3 > three_prime_UTR.bed
-			
+
 			# get sorted chromosome size file	
 			sort -k1,1 -k2,2n $chr_size > chromosome_size_sorted.txt
 			
@@ -1209,6 +1208,9 @@ process get_bed_files_of_annotated_regions {
 			awk -v my_var="$tab" 'BEGIN {OFS=my_var} ($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes.bed | bedops --range -1500:500 --everything - > promoters_forward.bed
 			awk -v my_var="$tab" 'BEGIN {OFS=my_var} ($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes.bed | bedops --range -1500:500 --everything - > promoters_reverse.bed
 			bedops --everything promoters_forward.bed promoters_reverse.bed > promoters.bed
+			
+			# Get all regions
+			bedops --everything promoters.bed exons.bed introns.bed intergenic.bed genic_regions.bed > all_regions.bed
 			
 			rm genes.bed promoters_forward.bed promoters_reverse.bed annotation_clean.bed chromosome_size.bed
 		
@@ -1254,7 +1256,8 @@ process get_bed_files_of_annotated_regions {
 //
 // # make a bed file of chromosome sizes
 // awk 'OFS="\t" {print $1, "0", $2}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size.bed
-
+// awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "five_prime_UTR")  print $1, $4-1, $5}' annotation_clean.gff3 > five_prime_UTR.bed
+// awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "three_prime_UTR") print $1, $4-1, $5}' annotation_clean.gff3 > three_prime_UTR.bed
 
 
 // The gff3 file needs to be sorted:
