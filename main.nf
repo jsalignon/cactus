@@ -1070,6 +1070,7 @@ process ATAC__reads_stat_1_features_enrichment {
   
     getTotalReadsMappedToBedFile () { bedtools coverage -a $1 -b $2 | cut -f 4 | awk '{ sum+=$1} END {print sum}' ;}
     
+    
 
     PROMOTER=`getTotalReadsMappedToBedFile $BED_PATH/promoters.bed ${bam}`
     EXONS=`getTotalReadsMappedToBedFile $BED_PATH/exons.bed ${bam}`
@@ -1095,6 +1096,11 @@ process ATAC__reads_stat_1_features_enrichment {
   '''
 
 }
+
+// bedtools_coverage_only () { bedtools coverage -a $1 -b $2 ;}
+// bedtools_coverage_only $BED_PATH/promoters.bed ${bam} | head
+// bedtools_coverage_only $BED_PATH/promoters.bed ${bam} | cut -f 4 | head
+
 
 
 process ATAC__reads_stat_2_library_complexity {
@@ -1220,46 +1226,59 @@ process ATAC__statistics_on_aligned_reads {
   output:
   file("*_bam_stats.txt") into Stats_on_aligned_reads_for_gathering
 
-  script:
-  """
+  shell:
+  '''
 
+    id=!{id}
+    features_enrichment=!{features_enrichment}
+    library_complexity=!{library_complexity}
+    cel_flagstat=!{cel_flagstat}
+    op50_flagstat=!{op50_flagstat}
+    bam=!{bam}
+    nb_aligned_pairs=!{nb_aligned_pairs}
+    nb_total_pairs=!{nb_total_pairs}
+    final_bed=!{final_bed}
+
+    # number of paired end reads
     FINAL_PAIRS=`awk 'END{print NR/2}' ${final_bed}`
-
     ALIGNED_PAIRS=`basename ${nb_aligned_pairs} .NB_ALIGNED_PAIRS_${id}`
     RAW_PAIRS=`basename ${nb_total_pairs} .RAW_PAIRS_${id}`
 
-    # samtools flagstat ${bam} > ${id}_flagstat.qc
-
-    # getting percentage of mitochondrial chromosomes
-    PERCENT_MITO=\$(awk "BEGIN { print 100 * \$(samtools view -c ${bam} MtDNA) / \$(samtools view -c ${bam}) }" )
-
-    # enrichment of reads at TSS
-    PERCENT_TSS=\$(sed '3q;d' ${features_enrichment} | cut -f 1 -d ' ')
-
-    # estimate library size = library complexity
-    # => needs aligned but not filtered reads
-
-    LIBRARY_SIZE=0
-    RES_LIB_COMP=`sed '8q;d' ${library_complexity}`
-    PERCENT_DUPLI=`echo \$RES_LIB_COMP | cut -f 9 -d ' '`
-    if [ "\$PERCENT_DUPLI" = 0 ]; then
-      LIBRARY_SIZE=0
-    else
-      #LIBRARY_SIZE=`awk "BEGIN {print `echo \$RES_LIB_COMP | cut -f 10 -d ' '` }"`
-      LIBRARY_SIZE=`echo \$RES_LIB_COMP | cut -f 10 -d ' '`
-    fi
-    PERCENT_DUPLI=`awk -v x=\$PERCENT_DUPLI 'BEGIN {printf "%.2f\\n", 100 * x }' }`
-
-    # percentage of alignment
+    # percentage of aligned reads
     PERCENT_ALIGN_CEL=`sed '7q;d' ${cel_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
     PERCENT_ALIGN_OP50=`sed '7q;d' ${op50_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
 
+    # percentage of mitochondrial reads
+    PERCENT_MITO=$(awk "BEGIN { print 100 * $(samtools view -c ${bam} MtDNA) / $(samtools view -c ${bam}) }" )
+
+    # percentage of reads mapping to various annotated regions
+    PERCENT_PROMOTERS=$(sed '3q;d' ${features_enrichment} | cut -f 1 -d ' ')
+    PERCENT_EXONS=$(sed '3q;d' ${features_enrichment} | cut -f 2 -d ' ')
+    PERCENT_INTRONS=$(sed '3q;d' ${features_enrichment} | cut -f 3 -d ' ')
+    PERCENT_INTERGENIC=$(sed '3q;d' ${features_enrichment} | cut -f 4 -d ' ')
+    PERCENT_GENIC=$(sed '3q;d' ${features_enrichment} | cut -f 5 -d ' ')
+
+    # library size and percentage of duplicated reads 
+    LIBRARY_SIZE=0
+    RES_LIB_COMP=`sed '8q;d' ${library_complexity}`
+    PERCENT_DUPLI=`echo $RES_LIB_COMP | cut -f 9 -d ' '`
+    if [ "$PERCENT_DUPLI" = 0 ]; then
+      LIBRARY_SIZE=0
+    else
+      LIBRARY_SIZE=`echo $RES_LIB_COMP | cut -f 10 -d ' '`
+    fi
+    PERCENT_DUPLI=`awk -v x=$PERCENT_DUPLI 'BEGIN {printf "%.2f\\n", 100 * x }' }`
+
     # gathering the results
-    echo "${id},\$PERCENT_MITO,\$PERCENT_TSS,\$PERCENT_ALIGN_CEL,\$PERCENT_ALIGN_OP50,\$PERCENT_DUPLI,\$LIBRARY_SIZE,\$RAW_PAIRS,\$ALIGNED_PAIRS,\$FINAL_PAIRS" > ${id}_bam_stats.txt
+    echo "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,$PERCENT_INTERGENIC,$PERCENT_GENIC,$PERCENT_ALIGN_CEL,$PERCENT_ALIGN_OP50,$PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" > ${id}_bam_stats.txt
 
-  """
+  '''
 }
+// library size = library complexity
+// # (=> needs aligned but not filtered reads)
 
+
+// this process gather all individual statistics files and make a merged table 
 
 process ATAC__gathering_statistics_on_aligned_reads {
 
@@ -1280,7 +1299,7 @@ process ATAC__gathering_statistics_on_aligned_reads {
   '''
       OUTFILE="ATAC__alignment_statistics.csv"
 
-      echo "LIBRARY_NAME,PERCENT_MITO,PERCENT_TSS,PERCENT_ALIGN_CEL,PERCENT_ALIGN_OP50,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,FINAL_PAIRS" > ${OUTFILE}
+      echo "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_CEL,PERCENT_ALIGN_OP50,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,FINAL_PAIRS" > ${OUTFILE}
 
       cat *_bam_stats.txt >> ${OUTFILE}
 
@@ -1315,7 +1334,7 @@ process ATAC__splitting_statistics_for_multiqc {
       df = read.csv(bam_stat_csv, stringsAsFactors = F)
       colnames(df) %<>% tolower %>% gsub('percent', 'percentage', .)
 
-      df %<>% rename(percentage_mitochondrial = percentage_mito, percentage_TSS = percentage_tss, percentage_aligned_C_elegans = percentage_align_cel, percentage_aligned_OP50 = percentage_align_op50, percentage_duplications = percentage_dupli)
+      df %<>% rename(percentage_mitochondrial = percentage_mito, percentage_aligned_C_elegans = percentage_align_cel, percentage_aligned_OP50 = percentage_align_op50, percentage_duplications = percentage_dupli)
 
       colnames = colnames(df)[2:ncol(df)]
       for(colname in colnames){
@@ -2308,6 +2327,7 @@ process plotting_differential_gene_expression_results {
       source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
 
       sleo = readRDS('!{mRNA_DEG_rsleuth_rds}')
+      df_genes_metadata = readRDS('!{params.df_genes_metadata}')
 
       COMP = '!{COMP}'
       conditions = strsplit(COMP, '_vs_')[[1]]
@@ -2322,7 +2342,9 @@ process plotting_differential_gene_expression_results {
       ##### volcano plots
 
       res_volcano <- sleuth_results(sleo, test_cond)
-      res_volcano %<>% dplyr::rename(gene_name = target_id, L2FC = b)
+      res_volcano %<>% dplyr::rename(gene_id = target_id, L2FC = b)
+      df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
+      res_volcano %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
       res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
 
       pdf(paste0(COMP, '__mRNA_volcano.pdf'))
@@ -2335,6 +2357,8 @@ process plotting_differential_gene_expression_results {
       # the pca is computed using the default parameters in the sleuth functions sleuth::plot_pca
       mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 'scaled_reads_per_base')
       prcomp1 <- prcomp(mat)
+      v_gene_id_name = df_genes_metadata_1$gene_name %>% setNames(., df_genes_metadata_1$gene_id)
+      rownames(prcomp1$x) %<>% v_gene_id_name[.]
 
       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
       lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'mRNA'))
@@ -2389,8 +2413,8 @@ process plotting_differential_accessibility_results {
 
   output:
     set val("ATAC__volcano"), out_path, file('*__ATAC_volcano.pdf') into ATAC_Volcano_for_merging_pdfs
-    // set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') into ATAC_PCA_1_2_for_merging_pdfs
-    // set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') into ATAC_PCA_3_4_for_merging_pdfs
+    set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') into ATAC_PCA_1_2_for_merging_pdfs
+    set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') into ATAC_PCA_3_4_for_merging_pdfs
     set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') into ATAC_Other_plot_for_merging_pdfs
 
   shell:
@@ -2413,14 +2437,16 @@ process plotting_differential_accessibility_results {
       dbo = readRDS('!{diffbind_object_rds}')
       FDR_threshold = !{params.fdr_threshold_diffbind_plots}
       dbo$config$th = FDR_threshold
-
+      df_genes_metadata = readRDS('!{params.df_genes_metadata}')
       df_annotated_peaks = readRDS('!{annotated_peaks}')
 
 
 
       ##### volcano plots
 
-      res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_name = geneId)
+      res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_id = geneId)
+      df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
+      res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
 
       pdf(paste0(COMP, '__ATAC_volcano.pdf'))
         plot_volcano_custom(res, sig_level = FDR_threshold, label_column = 'gene_name', title = paste(COMP, 'ATAC'))
@@ -2460,8 +2486,8 @@ process plotting_differential_accessibility_results {
 }
 
 Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
 Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
 
 
@@ -3486,6 +3512,7 @@ process compute_enrichment_pvalue {
         motifs_test_type = '!{params.motifs_test_type}'
 
 
+
         # computing pvalue and L2OR
         df = df1
         for(c1 in 1:nrow(df)){
@@ -3609,7 +3636,7 @@ process plot_enrichment_barplot {
     set val("Barplots__${data_type}"), val("3_Enrichment"), file("*.pdf") optional true into Barplot_for_merging_pdfs
 
 
-  when: params.do_gene_set_enrichment
+  // when: params.do_gene_set_enrichment
 
   shell:
   '''
@@ -3699,7 +3726,7 @@ process plot_enrichment_heatmap {
     set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") optional true into Heatmap_for_merging_pdfs
 
 
-  when: params.do_motif_enrichment
+  // when: params.do_motif_enrichment
 
   shell:
   '''
@@ -3726,15 +3753,19 @@ process plot_enrichment_heatmap {
 
 
 
+
     # loading, merging and processing data
     rds_files = list.files(pattern = '*.rds')
     ldf = lapply(rds_files, readRDS)
     df = do.call(rbind, ldf)
-
-    key1 = paste(df[1, c('ET', 'PF', 'FDR')], collapse = '__')
-    df$tgt_key = sapply(strsplit(df$tgt, '__'), function(x) paste(x[c(1,2,4)], collapse = '__'))
-    df %<>% .[.$tgt_key %in% key1, ]
-    df$tgt_key <- NULL
+    
+    # filtering table
+    if(data_type %in% c('genes_self', 'peaks_self')){
+      key1 = paste(df[1, c('ET', 'PF', 'FDR')], collapse = '__')
+      df$tgt_key = sapply(strsplit(df$tgt, '__'), function(x) paste(x[c(1,2,4)], collapse = '__'))
+      df %<>% .[.$tgt_key %in% key1, ]
+      df$tgt_key <- NULL
+    }
 
     ## quitting if there are no significant results to show
     if(all(df$padj > threshold_plot_adj_pval)) quit(save = 'no')
@@ -3794,7 +3825,9 @@ process plot_enrichment_heatmap {
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
       terms_levels = select_y_axis_terms_grouped_plot(mat, nshared = nshared, nunique = nunique, ntotal = ntotal, threshold_type = threshold_type, threshold_value = threshold_value, remove_similar = remove_similar, remove_similar_n = 2, seed = 38)
     }
-    if(data_type == 'chrom_states') terms_levels = rev(unname(get_chrom_states_names_vec()))
+    if(data_type == 'chrom_states') {
+      terms_levels = get_chrom_states_names_vec() %>% .[. %in% df$tgt] %>% unname  %>% rev
+    }
 
     # clustering y-axis terms and adding final matrix indexes to the df
     mat_final = mat[terms_levels, comp_order1]

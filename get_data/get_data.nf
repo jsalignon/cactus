@@ -873,6 +873,8 @@ process get_hihmm_chromatin_state_data_part_2 {
 			mkdir $bed_name
 			awk  -v FOLDER="$bed_name" ' { print > FOLDER"/"$4".bed" }' $bed_file_lifted
 
+			rm $bed_name/17_Unmap.bed
+			
 	'''
 }
 
@@ -1207,10 +1209,7 @@ process get_bed_files_of_annotated_regions {
 			gff2bed < <(awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "gene") print}' annotation_clean.gff3) > genes.bed
 			awk -v my_var="$tab" 'BEGIN {OFS=my_var} ($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes.bed | bedops --range -1500:500 --everything - > promoters_forward.bed
 			awk -v my_var="$tab" 'BEGIN {OFS=my_var} ($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes.bed | bedops --range -1500:500 --everything - > promoters_reverse.bed
-			bedops --everything promoters_forward.bed promoters_reverse.bed > promoters.bed
-			
-			# Get all regions
-			bedops --everything promoters.bed exons.bed introns.bed intergenic.bed genic_regions.bed > all_regions.bed
+			bedops --everything promoters_forward.bed promoters_reverse.bed | cut -f1-3 > promoters.bed
 			
 			rm genes.bed promoters_forward.bed promoters_reverse.bed annotation_clean.bed chromosome_size.bed
 		
@@ -1258,7 +1257,8 @@ process get_bed_files_of_annotated_regions {
 // awk 'OFS="\t" {print $1, "0", $2}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size.bed
 // awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "five_prime_UTR")  print $1, $4-1, $5}' annotation_clean.gff3 > five_prime_UTR.bed
 // awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "three_prime_UTR") print $1, $4-1, $5}' annotation_clean.gff3 > three_prime_UTR.bed
-
+// # Get all regions
+// bedops --everything promoters.bed exons.bed introns.bed intergenic.bed genic_regions.bed > all_regions.bed
 
 // The gff3 file needs to be sorted:
 // Error: Sorted input specified, but the file annotation.gff3 has the following out of order record

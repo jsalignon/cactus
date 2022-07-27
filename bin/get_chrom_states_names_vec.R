@@ -1,33 +1,40 @@
 
-## terms for chromatin states analysis. See reference below
-## hiHMM: Bayesian non-parametric joint inference of chromatin state maps
-# https://www.nature.com/articles/nature13415
-# https://www.nature.com/articles/nature13415/figures/2
+## Nature 17 states HiHMM model 
+# states details 1: https://www.nature.com/articles/nature13415/figures/2
+# states details 2: https://gander.wustl.edu/cgi-bin/hgTables?db=dm6&hgta_track=hiHMM_models&hgta_table=hiHMM_M1K16_L3&hgta_doSchema=describe+table+schema
+#       reference: https://www.nature.com/articles/nature13415
 
-## details on the 18 states model from ENCODE ChromHMM chromatin state files
-# https://hzhou.scholar.harvard.edu/blog/chromhmm
+## ENCODE 18 states ChromHMM model 
+#              states details: https://hzhou.scholar.harvard.edu/blog/chromhmm
+#  66 mouse samples reference: https://www.nature.com/articles/s42003-021-01756-4
+# 833 human samples reference: https://www.nature.com/articles/s41586-020-03145-z
 
+## checking that we have indeed the right number of ENCODE files
+# cd ${cactus}/data
+# ls -p mouse/chromatin_states | grep -v / | wc -l # 66
+# ls -p human/chromatin_states | grep -v / | wc -l # 833
 
 get_chrom_states_names_vec <- function(){
   vec = c(
     
     # HiHMM
-    '1_Pro'   = '1. Promoter',
-    '2_Enh1'  = '2. Enhancer 1',
-    '3_Enh2'  = '3. Enhancer 2',
-    '4_Egn1'  = '4. Transcription 5\' 1',
-    '5_Egn2'  = '5. Transcription 5\' 2',
-    '6_Egn3'  = '6. Gene, H420me1',
-    '7_Egn4'  = '7. Transcription 3\' 1',
-    '8_Egn5'  = '8. Transcription 3\' 2',
-    '9_Egn6'  = '9. Transcription 3\' 3',
-    '10_Rep1' = '10. PC repressed 1',
-    '11_Rep2' = '11. PC repressed 2',
-    '12_Het1' = '12. Heterochromatin 1',
-    '13_Het2' = '13. Heterochromatin 2',
-    '14_Low1' = '14. Low signal 1',
-    '15_Low2' = '15. Low signal 2',
-    '16_Low3' = '16. Low signal 3',
+    '1_Pro'    = '1. Promoter',
+    '2_Enh1'   = '2. Enhancer 1',
+    '3_Enh2'   = '3. Enhancer 2',
+    '4_Egn1'   = '4. Transcription 5\' 1',
+    '5_Egn2'   = '5. Transcription 5\' 2',
+    '6_Egn3'   = '6. Gene, H420me1',
+    '7_Egn4'   = '7. Transcription 3\' 1',
+    '8_Egn5'   = '8. Transcription 3\' 2',
+    '9_Egn6'   = '9. Transcription 3\' 3',
+    '10_Rep1'  = '10. PC repressed 1',
+    '11_Rep2'  = '11. PC repressed 2',
+    '12_Het1'  = '12. Heterochromatin 1',
+    '13_Het2'  = '13. Heterochromatin 2',
+    '14_Low1'  = '14. Low signal 1',
+    '15_Low2'  = '15. Low signal 2',
+    '16_Low3'  = '16. Low signal 3',
+    '17_Unmap' = '17. Unmappable',
     
     # ENCODE
     TssA     = '1. Active TSS',
