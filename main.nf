@@ -944,7 +944,7 @@ process ATAC__removing_blacklisted_regions {
 
     // cat "${id}_peaks_kept_after_blacklist_removal.bed" | awk -F'\t' 'BEGIN {OFS = FS} { if ( \$1 == "MtDNA" ) { \$1 = "chrM" } else { \$1 = "chr"\$1 };  print \$0 }' > "${id}_peaks_kept_after_blacklist_removal_2.bed"
 
-
+// println "params.use_input_control: ${params.use_input_control}"
 
 Peaks_wo_blacklist
   .branch {
@@ -953,8 +953,13 @@ Peaks_wo_blacklist
   }
   .set { Peaks_wo_blacklist_1 }
 
+// this command redirects the channel items to: 
+// Peaks_wo_blacklist_1.w_input_control  if params.use_input_control = true
+// Peaks_wo_blacklist_1.wo_input_control if params.use_input_control = false
+
 
 Peaks_wo_blacklist_1.w_input_control
+  // .view{"test_IP: ${it}"}
   .branch { it ->
     peaks_control: it[0] == 'input'
     peaks_treatment: true
@@ -997,7 +1002,9 @@ process ATAC__removing_input_control_peaks {
   """
 }
 
-Peaks_for_removing_specific_regions_1 = Peaks_wo_blacklist_1.wo_input_control.concat(Peaks_for_removing_specific_regions)
+Peaks_for_removing_specific_regions_1 = 
+  Peaks_wo_blacklist_1.wo_input_control
+  .concat(Peaks_for_removing_specific_regions)
 
 
 
@@ -1245,7 +1252,7 @@ process ATAC__statistics_on_aligned_reads {
     RAW_PAIRS=`basename ${nb_total_pairs} .RAW_PAIRS_${id}`
 
     # percentage of aligned reads
-    PERCENT_ALIGN_CEL=`sed '7q;d' ${cel_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
+    PERCENT_ALIGN_REF=`sed '7q;d' ${cel_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
     PERCENT_ALIGN_OP50=`sed '7q;d' ${op50_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
 
     # percentage of mitochondrial reads
@@ -1270,7 +1277,7 @@ process ATAC__statistics_on_aligned_reads {
     PERCENT_DUPLI=`awk -v x=$PERCENT_DUPLI 'BEGIN {printf "%.2f\\n", 100 * x }' }`
 
     # gathering the results
-    echo "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,$PERCENT_INTERGENIC,$PERCENT_GENIC,$PERCENT_ALIGN_CEL,$PERCENT_ALIGN_OP50,$PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" > ${id}_bam_stats.txt
+    echo "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,$PERCENT_INTERGENIC,$PERCENT_GENIC,$PERCENT_ALIGN_REF,$PERCENT_ALIGN_OP50,$PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" > ${id}_bam_stats.txt
 
   '''
 }
@@ -1299,7 +1306,7 @@ process ATAC__gathering_statistics_on_aligned_reads {
   '''
       OUTFILE="ATAC__alignment_statistics.csv"
 
-      echo "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_CEL,PERCENT_ALIGN_OP50,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,FINAL_PAIRS" > ${OUTFILE}
+      echo "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_REF,PERCENT_ALIGN_OP50,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,FINAL_PAIRS" > ${OUTFILE}
 
       cat *_bam_stats.txt >> ${OUTFILE}
 
@@ -1334,7 +1341,7 @@ process ATAC__splitting_statistics_for_multiqc {
       df = read.csv(bam_stat_csv, stringsAsFactors = F)
       colnames(df) %<>% tolower %>% gsub('percent', 'percentage', .)
 
-      df %<>% rename(percentage_mitochondrial = percentage_mito, percentage_aligned_C_elegans = percentage_align_cel, percentage_aligned_OP50 = percentage_align_op50, percentage_duplications = percentage_dupli)
+      df %<>% rename(percentage_mitochondrial = percentage_mito, percentage_align_reference = percentage_align_ref, percentage_aligned_OP50 = percentage_align_op50, percentage_duplications = percentage_dupli)
 
       colnames = colnames(df)[2:ncol(df)]
       for(colname in colnames){
@@ -1788,6 +1795,25 @@ process ATAC__differential_abundance_analysis {
 
         ##### Running DiffBind
 
+        dbo <- dba(sampleSheet = df1, minOverlap = 2)
+        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
+        dbo$config$RunParallel = F
+        dbo <- dba.count(dbo, bParallel = F, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = T, fragmentSize = 1, bRemoveDuplicates = FALSE, minOverlap = 0, bSubControl = F, minCount = 1)
+        dbo$config$edgeR$bTagwise = T
+        dbo$config$AnalysisMethod = DBA_EDGER 
+        dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
+        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
+        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
+        
+
+        saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
+
+        
+        dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
+        dbo <- dba.count(dbo, bParallel = F, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = T, fragmentSize = 1, bRemoveDuplicates = FALSE, minOverlap = 0, bSubControl = F, minCount = 1)
+        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, summits = F)
+        
+
         dbo <- dba(sampleSheet = df1, minOverlap = 0)
         if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
         dbo$config$RunParallel = F
@@ -1795,10 +1821,15 @@ process ATAC__differential_abundance_analysis {
         dbo$config$edgeR$bTagwise = T
         dbo$config$AnalysisMethod = DBA_EDGER 
         dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
-        dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
+        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
         dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
 
-        saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
+
+        dbo$config$edgeR$bTagwise = T
+  >         dbo$config$AnalysisMethod = DBA_EDGER
+  >         dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
+        >         dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
+        >         dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
 
 
         ##### Exporting all peaks as a data frame
@@ -1831,8 +1862,20 @@ process ATAC__differential_abundance_analysis {
     '''
 }
 
+// I get this error with the fly test dataset:
+// Error in estimateSizeFactorsForMatrix(counts(object), locfunc = locfunc,  : 
+//   every gene contains at least one zero, cannot compute log geometric means
+// https://www.biostars.org/p/440379/
+
+df_tmp = data.frame(dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_TMM_READS_FULL_CPM))
+data.frame(df_tmp)[, 6:ncol(df_tmp)]
+which(apply(data.frame(df_tmp)[, 6:ncol(df_tmp)], 1, function(x) all(x == 0)))
+ 
 // here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
 
+dbo <- dba.count(dbo, minCount = 1)
+dbo$minCount
+minCount=
 
 // # cur_greylist <- dba.blacklist(dbo, Retrieve=DBA_GREYLIST)
 
@@ -3285,9 +3328,8 @@ CHIP_channel_all
 // grep "CHIP file" nf_log.txt  | head
 // grep "CHIP ontology" nf_log.txt  | head
 // grep "Chromatin state" nf_log.txt  | head
-
-println "chromatin state file: ${params.chromatin_state_1}"
-println "chip ontology: ${params.chip_ontology}"
+// println "chromatin state file: ${params.chromatin_state_1}"
+// println "chip ontology: ${params.chip_ontology}"
 
 
 if( ! params.do_chromatin_state ) Chrom_states_channel.close()
