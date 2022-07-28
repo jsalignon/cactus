@@ -1351,6 +1351,7 @@ process get_bed_files_of_annotated_regions {
 
 // scaffolds should be kept
 // https://www.biostars.org/p/223541/
+// The scaffolds are needed, they are likely parts of the reference genome which could not yet in this assembly build be confidently assigned to chromosomes. This is typical of repeat containing scaffolds. They are likely to be small and not gene rich, but excluding them would cause short reads which should map to them to be forced to map to the chromosomes and cause problemes downstream, such as false SNPs etc.
 
 
 

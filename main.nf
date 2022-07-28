@@ -688,17 +688,25 @@ process ATAC__removing_mitochondrial_reads {
     file "*_reads_per_chrm_before_removal.txt"
     file "*_reads_per_chrm_after_removal.txt"
 
-  script:
-    """
+  shell:
+    '''
+      id=!{id}
+      bam=!{bam}
 
-      samtools view ${bam} | awk ' \$1 !~ /@/ {print \$3}' - | uniq -c > "${id}_reads_per_chrm_before_removal.txt"
+      samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c > "${id}_reads_per_chrm_before_removal.txt"
 
-      samtools view -b ${bam} I II III IV V X | tee ${id}_no_mito.bam | samtools view - | awk ' \$1 !~ /@/ {print \$3}' - | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+      samtools view -h ${bam} | awk '{if($3 != "MtDNA" && $3 != "mitochondrion_genome" && $3 != "MT"){print $0}}' | samtools view -Sb - | tee ${id}_no_mito.bam | samtools view - | awk ' $1 !~ /@/ {print $3}' - | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
 
-    """
+    '''
 
 }
 
+
+// samtools view -b ${bam} I II III IV V X | tee ${id}_no_mito.bam | samtools view - | awk ' \$1 !~ /@/ {print \$3}' - | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+// worm  |         fly          | mouse  | human  
+// MtDNA | mitochondrion_genome |   MT   |  MT
+
+  
 
 process ATAC__plot_insert_size_distribution {
   tag "${id}"
@@ -767,6 +775,37 @@ process ATAC__bamToBed_and_atacShift {
 }
 
 
+// an example of a read pair:
+
+// input:
+// samtools view n301b170_2_no_mito.bam | grep SRR11607686.9081238 - | cut -f1-9
+//       QNAME             FLAG           RNAME    POS    MAPQ    CIGAR  RNEXT    PNEXT   TLEN
+// SRR11607686.9081238     163     211000022278033 357     31      37M     =       408     88
+// SRR11607686.9081238     83      211000022278033 408     31      37M     =       357     -88
+
+// output:
+// grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_1bp_shifted_reads.bed
+// 211000022278033 360     361     SRR11607686.9081238/2   88      +
+// 211000022278033 438     439     SRR11607686.9081238/1   -88     -
+
+// reads on the + strand are shifted by + 4 base pair
+// reads on the - strand are shifted by - 5 base pair
+// - 1 coordinate...
+
+// explanations for the input:
+// the fragment has a size of 88 bp from 
+// ranges: 
+// - read 1 [357-394 -> size: 37]
+// - read 2 [408-445 -> size: 37]
+// - insert [357-445 -> size: 88]
+// - fragment [345-457 -> size: 112] (not entirely sure for this. I just added 12 for the ATAC-Seq adapter length)
+// https://www.frontiersin.org/files/Articles/77572/fgene-05-00005-HTML/image_m/fgene-05-00005-g001.jpg
+// https://samtools-help.narkive.com/BpGYAdaT/isize-field-determining-insert-sizes-in-paired-end-data
+// The coordinates reported in the SAM file will be 4 for the first read and 13 for the second read - the left most aligned bases of each. However, the insert size is calculated from the outer-most coordinate of each read, which in this case is 4 and 17, so the insert size is 14.
+// The trick here is just to understand that for reads mapped to the negative strand of the genome the reported coordinate is really the last aligned base of the read as it came off the instrument.
+
+
+
 process ATAC__extend_bed_before_peak_calling {
   tag "${id}"
 
@@ -790,6 +829,20 @@ process ATAC__extend_bed_before_peak_calling {
   """
 
 }
+
+// an example of a read pair:
+
+// input:
+// grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_1bp_shifted_reads.bed
+// 211000022278033 285     286     SRR11607686.9081238/2   88      +
+// 211000022278033 513     514     SRR11607686.9081238/1   -88     -
+
+// output:
+// grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_for_macs.bed
+// 211000022278033 360     361     SRR11607686.9081238/2   88      +
+// 211000022278033 438     439     SRR11607686.9081238/1   -88     -
+
+
 
 
 process ATAC__saturation_curve {
@@ -882,6 +935,10 @@ process ATAC__calling_peaks {
 
   """
 }
+
+// some links 
+// https://github.com/macs3-project/MACS/issues/145
+// https://twitter.com/XiChenUoM/status/1336658454866325506
 
 
 process ATAC__splitting_sub_peaks {
@@ -1737,7 +1794,7 @@ process ATAC__differential_abundance_analysis {
 
         #!/usr/bin/env Rscript
 
-
+        df df
         ##### loading data and libraries
 
         library(DiffBind)
@@ -1794,6 +1851,45 @@ process ATAC__differential_abundance_analysis {
 
 
         ##### Running DiffBind
+macs2 - nomodel
+        # this script works...
+        dbo <- dba(sampleSheet = df1, minOverlap = 2)
+        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
+        dbo$config$RunParallel = F
+        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, summits = F)
+        dbo$config$edgeR$bTagwise = T
+        dbo$config$AnalysisMethod = DBA_EDGER
+        dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
+        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
+        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
+        
+        
+        
+        dbo <- dba(sampleSheet = df1, minOverlap = 0)
+        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
+        dbo$config$RunParallel = F
+        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F)
+        dbo$config$edgeR$bTagwise = T
+        dbo$config$AnalysisMethod = DBA_EDGER 
+        dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
+        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
+        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
+
+        dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
+        
+        
+        
+                dbo <- dba(sampleSheet = df1, minOverlap = 0)
+                if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
+                dbo$config$RunParallel = F
+                dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F)
+                dbo$config$edgeR$bTagwise = T
+                dbo$config$AnalysisMethod = DBA_EDGER 
+                dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
+                dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
+                dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
+
+
 
         dbo <- dba(sampleSheet = df1, minOverlap = 2)
         if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
@@ -1862,20 +1958,19 @@ process ATAC__differential_abundance_analysis {
     '''
 }
 
+// cut -f1,1 ctl_2_peaks_kept_after_blacklist_removal_filtered.bed | sort | uniq // X
+
+
 // I get this error with the fly test dataset:
 // Error in estimateSizeFactorsForMatrix(counts(object), locfunc = locfunc,  : 
 //   every gene contains at least one zero, cannot compute log geometric means
 // https://www.biostars.org/p/440379/
 
-df_tmp = data.frame(dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_TMM_READS_FULL_CPM))
-data.frame(df_tmp)[, 6:ncol(df_tmp)]
-which(apply(data.frame(df_tmp)[, 6:ncol(df_tmp)], 1, function(x) all(x == 0)))
+// df_tmp = data.frame(dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_TMM_READS_FULL_CPM))
+// data.frame(df_tmp)[, 6:ncol(df_tmp)]
+// which(apply(data.frame(df_tmp)[, 6:ncol(df_tmp)], 1, function(x) all(x == 0)))
  
 // here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
-
-dbo <- dba.count(dbo, minCount = 1)
-dbo$minCount
-minCount=
 
 // # cur_greylist <- dba.blacklist(dbo, Retrieve=DBA_GREYLIST)
 
