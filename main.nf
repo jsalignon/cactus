@@ -775,7 +775,7 @@ process ATAC__bamToBed_and_atacShift {
 }
 
 
-// an example of a read pair:
+// Example of a read pair:
 
 // input:
 // samtools view n301b170_2_no_mito.bam | grep SRR11607686.9081238 - | cut -f1-9
@@ -788,9 +788,8 @@ process ATAC__bamToBed_and_atacShift {
 // 211000022278033 360     361     SRR11607686.9081238/2   88      +
 // 211000022278033 438     439     SRR11607686.9081238/1   -88     -
 
-// reads on the + strand are shifted by + 4 base pair
-// reads on the - strand are shifted by - 5 base pair
-// - 1 coordinate...
+// reads on the + strand are shifted by + 4 base pair -1 (different coordinate system) (357 + 4 -1 = 360)
+// reads on the - strand are shifted by - 5 base pair -1 (different coordinate system) (445 -5 - 1 = 439)
 
 // explanations for the input:
 // the fragment has a size of 88 bp from 
@@ -801,8 +800,9 @@ process ATAC__bamToBed_and_atacShift {
 // - fragment [345-457 -> size: 112] (not entirely sure for this. I just added 12 for the ATAC-Seq adapter length)
 // https://www.frontiersin.org/files/Articles/77572/fgene-05-00005-HTML/image_m/fgene-05-00005-g001.jpg
 // https://samtools-help.narkive.com/BpGYAdaT/isize-field-determining-insert-sizes-in-paired-end-data
-// The coordinates reported in the SAM file will be 4 for the first read and 13 for the second read - the left most aligned bases of each. However, the insert size is calculated from the outer-most coordinate of each read, which in this case is 4 and 17, so the insert size is 14.
-// The trick here is just to understand that for reads mapped to the negative strand of the genome the reported coordinate is really the last aligned base of the read as it came off the instrument.
+
+// Note: here the 1 base pair long (5') transposase-shifted peaks are sent to DiffBind directly for Differential Accessibility Analysis.
+// However, for macs2, they are previously extended by 75 bp (Alternatively, this shift could be done in macs with this option: --shift -75 in macs2)
 
 
 
@@ -830,19 +830,21 @@ process ATAC__extend_bed_before_peak_calling {
 
 }
 
-// an example of a read pair:
+// Example of a read pair:
 
 // input:
 // grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_1bp_shifted_reads.bed
-// 211000022278033 285     286     SRR11607686.9081238/2   88      +
-// 211000022278033 513     514     SRR11607686.9081238/1   -88     -
-
-// output:
-// grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_for_macs.bed
 // 211000022278033 360     361     SRR11607686.9081238/2   88      +
 // 211000022278033 438     439     SRR11607686.9081238/1   -88     -
 
+// output:
+// grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_for_macs.bed
+// 211000022278033 285     286     SRR11607686.9081238/2   88      +
+// 211000022278033 513     514     SRR11607686.9081238/1   -88     -
 
+// reads are extended in opposite directions: -75bp on the + strand and +75 bp on the - strand
+// 360 - 75 = 285
+// 439 + 75 = 514
 
 
 process ATAC__saturation_curve {
@@ -936,9 +938,42 @@ process ATAC__calling_peaks {
   """
 }
 
-// some links 
+//// some relevant links 
 // https://github.com/macs3-project/MACS/issues/145
 // https://twitter.com/XiChenUoM/status/1336658454866325506
+// https://groups.google.com/g/macs-announcement/c/4OCE59gkpKY/m/v9Tnh9jWriUJ
+// https://www.biostars.org/p/209592/
+// https://hbctraining.github.io/In-depth-NGS-Data-Analysis-Course/sessionV/lessons/04_peak_calling_macs.html
+// https://hbctraining.github.io/Intro-to-ChIPseq/lessons/05_peak_calling_macs.html
+
+//// Here are details for the macs2 parameters (the macs2 website is broken)
+// https://www.biostars.org/p/207318/
+// --extsize
+//     While '--nomodel' is set, MACS uses this parameter to extend reads in 5'->3' direction to fix-sized fragments. For example, if the size of binding region for your transcription factor is 200 bp, and you want to bypass the model building by MACS, this parameter can be set as 200. This option is only valid when --nomodel is set or when MACS fails to build model and --fix-bimodal is on.
+// 
+// --shift
+//     Note, this is NOT the legacy --shiftsize option which is replaced by --extsize! You can set an arbitrary shift in bp here. Please Use discretion while setting it other than default value (0). When --nomodel is set, MACS will use this value to move cutting ends (5') then apply --extsize from 5' to 3' direction to extend them to fragments. When this value is negative, ends will be moved toward 3'->5' direction, otherwise 5'->3' direction. Recommended to keep it as default 0 for ChIP-Seq datasets, or -1 * half of EXTSIZE together with --extsize option for detecting enriched cutting loci such as certain DNAseI-Seq datasets. Note, you can't set values other than 0 if format is BAMPE or BEDPE for paired-end data. Default is 0.
+
+//// a recommanded setting to use both read pairs is the following:
+// https://github.com/macs3-project/MACS/issues/145#issuecomment-742593158
+// https://twitter.com/XiChenUoM/status/1336658454866325506
+// macs2 callpeak -f BED --shift -100 --extsize 200 ...
+
+
+// In my analysis I shift the reads manually by 75 bp with slopBed (process ATAC__extend_bed_before_peak_calling). So I don't need to use the shift argument in the call to macs2
+
+//// There is also a justification to use 150 bp instead of 200:
+// https://twitter.com/hoondy/status/1337170830997004290
+// Is there any reason you chose the size as 200bp? For example, I use "shift -75 --extsize 150" (approx. size of nucleosome) and wonder if there were any benefit of making the unit of pileup 200bp.
+// We use 200 due to habit. The choice is arbitrary. Not sure how diff it makes. Intuitively smaller fragLen give better res. but it can’t be too short. Check Fig1 in this ref (not ATAC though) https://ncbi.nlm.nih.gov/pmc/articles/PMC2596141/ 75 gives better res. Maybe that’s the reason ENCODE use it.
+
+//// So to sum up: 
+// - the two ends of each read pair are analyzed separately
+// - we keep only the 5' end of each read pair. This is were we want our peak to be centered
+// - we shift the reads to take into account the transposase (+4 bp on + strand, -5 on the - strand)
+// - we shift the reads manually by -75 bp (in the 5' direction)
+// - we use macs2 with the argument --extsize 150 which indicate to extend the read by 150 bp in the 3' direction. This way they will be centered in the original 5' location. 150 bp is the approximate size of nucleosome.
+// - the peaks in the .narrowPeak file are 150 base pair long
 
 
 process ATAC__splitting_sub_peaks {
@@ -963,6 +998,7 @@ process ATAC__splitting_sub_peaks {
 
   """
 }
+
 
 
 process ATAC__removing_blacklisted_regions {
@@ -1794,7 +1830,6 @@ process ATAC__differential_abundance_analysis {
 
         #!/usr/bin/env Rscript
 
-        df df
         ##### loading data and libraries
 
         library(DiffBind)
@@ -1851,83 +1886,20 @@ process ATAC__differential_abundance_analysis {
 
 
         ##### Running DiffBind
-macs2 - nomodel
-        # this script works...
-        dbo <- dba(sampleSheet = df1, minOverlap = 2)
+
+        dbo <- dba(sampleSheet = df1, minOverlap = 1)
         if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
         dbo$config$RunParallel = F
-        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, summits = F)
-        dbo$config$edgeR$bTagwise = T
-        dbo$config$AnalysisMethod = DBA_EDGER
-        dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
-        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
+        dbo$config$singleEnd = T
+        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 1, score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, summits = 75)
+        dbo$config$AnalysisMethod = DBA_DESEQ2 
+        dbo <- dba.normalize(dbo, normalize = DBA_NORM_RLE, library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
+        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
         dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
-        
-        
-        
-        dbo <- dba(sampleSheet = df1, minOverlap = 0)
-        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
-        dbo$config$RunParallel = F
-        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F)
-        dbo$config$edgeR$bTagwise = T
-        dbo$config$AnalysisMethod = DBA_EDGER 
-        dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
-        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
-        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
-
-        dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
-        
-        
-        
-                dbo <- dba(sampleSheet = df1, minOverlap = 0)
-                if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
-                dbo$config$RunParallel = F
-                dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F)
-                dbo$config$edgeR$bTagwise = T
-                dbo$config$AnalysisMethod = DBA_EDGER 
-                dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
-                dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
-                dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
-
-
-
-        dbo <- dba(sampleSheet = df1, minOverlap = 2)
-        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
-        dbo$config$RunParallel = F
-        dbo <- dba.count(dbo, bParallel = F, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = T, fragmentSize = 1, bRemoveDuplicates = FALSE, minOverlap = 0, bSubControl = F, minCount = 1)
-        dbo$config$edgeR$bTagwise = T
-        dbo$config$AnalysisMethod = DBA_EDGER 
-        dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
-        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
-        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
-        
 
         saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
 
         
-        dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
-        dbo <- dba.count(dbo, bParallel = F, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = T, fragmentSize = 1, bRemoveDuplicates = FALSE, minOverlap = 0, bSubControl = F, minCount = 1)
-        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, summits = F)
-        
-
-        dbo <- dba(sampleSheet = df1, minOverlap = 0)
-        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
-        dbo$config$RunParallel = F
-        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_TMM_READS_FULL_CPM, bUseSummarizeOverlaps = F, bSubControl = F)
-        dbo$config$edgeR$bTagwise = T
-        dbo$config$AnalysisMethod = DBA_EDGER 
-        dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
-        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
-        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
-
-
-        dbo$config$edgeR$bTagwise = T
-  >         dbo$config$AnalysisMethod = DBA_EDGER
-  >         dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, library = DBA_LIBSIZE_FULL)
-        >         dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers=2)
-        >         dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
-
-
         ##### Exporting all peaks as a data frame
 
         # extracting all peaks (note: th is the fdr threshold, so with th = 1 we keep all peaks)
@@ -1957,6 +1929,133 @@ macs2 - nomodel
 
     '''
 }
+
+////// justification for the parameters used
+
+//// dba: minOverlap = 1
+// could be set to 1 (any peak), or 2 peaks present in at least 2 peak set. The latter is much more stringent in situations where one has only 2 replicates per condition, which is why I decided to go with 1 for now.
+// https://support.bioconductor.org/p/57809/
+
+//// grey list is applied only if we have an input control as the greylist is made based on the input control sample. It is applied at the very beginning to filter out the grey regions from the start.
+
+//// dbo$config$AnalysisMethod = DBA_DESEQ2 
+// https://support.bioconductor.org/p/98736/
+// For normalization, edgeR uses the TMM method which relies on a core of sites that don't systematically change their binding affinities. While this assumption of usually true for RNA-seq, there are many ChIP-seq experiments where one sample group has a completely different binding profile than the other sample group. Often, in one condition there is very little binding, but in the other condition much additional binding has been induced. ...  This is the reason we changed the default analysis method in DiffBind from edgeR to DESeq2.
+
+//// dba.count: summits = 75
+// DiffBind Vignette
+// When forming the global binding matrix consensus peaksets, DiﬀBind ﬁrst identiﬁes all unique
+// peaks amongst the relevant peaksets. As part of this process, it merges overlapping peaks,
+// replacing them with a single peak representing the narrowest region that covers all peaks
+// that overlap by at least one base. There are at least two consequences of this that are worth
+// noting.
+// First, as more peaksets are included in analysis, the average peak width tends to become
+// longer as more overlapping peaks are detected and the start/end points are adjusted outward
+// to account for them. Secondly, peak counts may not appear to add up as you may expect
+// due to merging. For example, if one peakset contains two small peaks near to each other,
+// while a second peakset includes a single peak that overlaps both of these by at least one
+// base, these will all be replaced in the merged matrix with a single peak. As more peaksets
+// are added, multiple peaks from multiple peaksets may be merged together to form a single,
+// wider peak. Use of the "summits" parameter is recommended to control for this widening
+// eﬀect.
+// ?dba.count
+// summits: unless set to ‘FALSE’, summit heights (read pileup) and
+// locations will be calculated for each peak.  
+// If the value of ‘summits’ is ‘TRUE’ (or ‘0’), the summits
+// will be calculated but the peaksets will be unaffected.  If
+// the value is greater than zero, all consensus peaks will be
+// re-centered around a consensus summit, with the value of
+// ‘summits’ indicating how many base pairs to include upstream
+// and downstream of the summit (so all consensus peaks will be
+// of the same width, namely ‘2 * summits + 1’).
+// https://support.bioconductor.org/p/9138959/
+// "Generally, ATAC-seq benefits from using the summits parameter at a relatively low value (50 or 100) to focus on clear regions of open chromatin with less background signal. Note that often there are two "peaks" in ATAC fragment lengths."
+// => by setting summits to 75, the summits of the consensus peaks will be extende by 75 bp on both side. 
+
+//// dba.count: fragmentSize = 1, bUseSummarizeOverlaps = F
+//// dbo$config$singleEnd = T
+// ?dba.count
+// bUseSummarizeOverlaps: logical indicating that ‘summarizeOverlaps’
+//           should be used for counting instead of the built-in counting
+//           code.  This option is slower but uses the more standard
+//           counting function. If ‘TRUE’, all read files must be BAM
+//           (.bam extension), with associated index files (.bam.bai
+//           extension).  The ‘fragmentSize’ parameter must absent.
+// fragmentSize: This value will be used as the length of the reads.  Each
+//           read will be extended from its endpoint along the appropriate
+//           strand by this many bases.  If set to zero, the read size
+//           indicated in the BAM/BED file will be used. ‘fragmentSize’
+//           may also be a vector of values, one for each ChIP sample plus
+//           one for each unique Control library.
+// https://support.bioconductor.org/p/9138959/
+// The fragmentSize parameter is only used if you have single-end data (otherwise the paired-end insert size is used). In that case, it is a good idea to specify a value for this parameter to "extend" the single-end reads by the mean fragment size.
+// bUseSummarizeOverlaps=TRUE is generally the preferred option. If it is set to FALSE, it will use some internal code that, among other things, does not match paired-end reads, resulting in counts that may be up to double (each end counted separately). That option also gives you more fine-grained control over how the counting is done via $config parameters.
+// => we do want each pair to be analyzed separately. And we want to keep reads at 1 bp as this is the most precise signal we have (transposase-shifted 5' end of reads)
+
+
+
+//// dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, )
+// https://support.bioconductor.org/p/p133577/
+
+//// dba.normalize: 
+
+
+//// dba.normalize: normalize = DBA_NORM_RLE, library = DBA_LIBSIZE_BACKGROUND,  background = TRUE
+// => background
+// help(dba.normalize)
+// background: This parameter controls the option to use "background"
+//           bins, which should not have differential enrichment between
+//           samples, as the basis for normalizing (instead of using reads
+//           counts overlapping consensus peaks).  When enabled, the
+//           chromosomes for which there are peaks in the consensus
+//           peakset are tiled into large bins and reads overlapping these
+//           bins are counted.
+//
+// Vignette:
+// An assumption in RNA-seq analysis, that the read count matrix reﬂects an unbiased repre-
+// sentation of the experimental data, may be violated when using a narrow set of consensus
+// peaks that are chosen speciﬁcally based on their rates of enrichment. It is not clear that
+// using normalization methods developed for RNA-seq count matrices on the consensus reads
+// will not alter biological signals; it is probably a good idea to avoid using the consensus count matrix (Reads in Peaks) for normalizing unless there is a good prior reason to expect balanced changes in binding.
+// https://support.bioconductor.org/p/p133577/
+// If you are getting different results, it is likely that there is a systematic shift in enriched regions in one of the conditions. Unless you have a specific reason to believe this is due to technical issues, this is likely a biological signal you want to retain. In this case, you should NOT use RLE on the binding matrix.
+// DBA_NORM_LIB is a quick way to perform a minimal normalization. I would try:
+// normalize <- dba.normalize(CTCF_narrowpeakscount, method = DBA_DESEQ2, 
+//                            normalize = DBA_NORM_RLE,  background=TRUE)
+// to run RLE against background bins rather than the binding matrix.
+// This should probably be the default, but computing the background bins is somewhat compute intensive.
+// => normalize
+// Vignette:
+// # About normalization
+// DiﬀBind relies on three underlying core methods for normalization. These include the "na-
+// tive" normalization methods supplied with DESeq2 and edgeR , as well as a simple library-
+// based method. The normalization method is speciﬁed with the normalize parameter to
+// dba.normalize
+// The native DESeq2 normalization method is based on calculating the geometric mean for
+// each gene across samples[6], and is referred to "RLE" or DBA_NORM_RLE in DiﬀBind .
+// The native edgeR normalization method is based on the trimmed mean of M-values approach[7],
+// and is referred to as "TMM" or DBA_NORM_TMM in DiﬀBind .
+// A third method is also provided that avoids making any assumptions regarding the distribution
+// of reads between binding sites in diﬀerent samples that may be speciﬁc to RNA-seq analysis
+// and inappropriate for ChIP-seq analysis. This method ( "lib" or DBA_NORM_LIB ) is based on
+// the diﬀerent library sizes for each sample, computing normalization factors to weight each
+// sample so as to appear to have the same library size. For DESeq2 , this is accomplished
+// by dividing the number of reads in each library by the mean library size. For edgeR , the
+// normalization factors are all set to 1.0 , indicating that only library-size normalization should occur.
+// Note that any of these normalization methods can be used with either the DESeq2 or
+// edgeR analysis methods, as DiﬀBind converts normalization factors to work appropriately
+// in either DESeq2 or edgeR .
+
+
+//// Other references
+// https://support.bioconductor.org/p/86594/
+// https://support.bioconductor.org/p/107679/
+
+
+// note: it may be better to use a fragment size of 150 together with the slopBed 75 bp shifted reads. Need to check that in more details some day. For now "fragmentSize = 1" should be good enough.
+
+
+
 
 // cut -f1,1 ctl_2_peaks_kept_after_blacklist_removal_filtered.bed | sort | uniq // X
 
@@ -2047,8 +2146,7 @@ macs2 - nomodel
 // the diﬀerent library sizes for each sample, computing normalization factors to weight each
 // sample so as to appear to have the same library size. For DESeq2 , this is accomplished
 // by dividing the number of reads in each library by the mean library size. For edgeR , the
-// normalization factors are all set to 1.0 , indicating that only library-size normalization should
-// occur.
+// normalization factors are all set to 1.0 , indicating that only library-size normalization should occur.
 // Note that any of these normalization methods can be used with either the DESeq2 or
 // edgeR analysis methods, as DiﬀBind converts normalization factors to work appropriately
 // in either DESeq2 or edgeR .
