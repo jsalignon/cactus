@@ -54,6 +54,9 @@ Assembly_Ensembl = Channel
 // Ensembl Release 107 (Jul 2022)
 // http://ftp.ensembl.org/pub/release-107/gff3/drosophila_melanogaster/
 
+//// UCSC releases and details:
+// https://genome.ucsc.edu/FAQ/FAQreleases.html
+
 //// A note on the mouse genome:
 // ENCODE (chip and chromatin states) and blacklisted regions are not available yet fo mm11/GRCm39. Therefore, we need to stick with release 102, which is the latest release for mm10/GRCm38. I could eventually use liftover files in the future to remedy this issue, or just wait for the correct assembly files to be released.
 
@@ -85,7 +88,7 @@ Assembly_ENCODE = Channel
 	.into{ Assembly_ENCODE_chip ; Assembly_ENCODE_chromatin_state }
 
 
-	
+
 HiHMM_liftover = Channel
 	.from( 	
 		[
@@ -696,7 +699,7 @@ process get_encode_chromatin_state_metadata {
 		set specie, assembly from Assembly_ENCODE_chromatin_state_1
 
 	output:
-		set specie, file("*.rds") into Encode_chromatin_state_split_dt mode flatten
+		set specie, assembly, file("*.rds") into Encode_chromatin_state_split_dt mode flatten
 		file('encode_chromatin_states.csv')
 
 	shell:
@@ -816,10 +819,11 @@ process get_encode_chromatin_state_data {
 	publishDir path: "${specie}/chromatin_states", mode: 'link'
 
 	input:
-		set specie, file(dt_rds) from Encode_chromatin_state_split_dt
+		set specie, assembly, file(dt_rds) from Encode_chromatin_state_split_dt
 
 	output:
 		file("*")
+		set specie, assembly, file("*.bed") into Encode_bed_for_liftover
 
 	shell:
 	'''
@@ -855,6 +859,102 @@ process get_encode_chromatin_state_data {
 		
 	'''
 }
+
+
+
+liftover_files_to_get = Channel
+	.from( 	
+		[
+			['human', 'hg19', 'hg38'],
+			[ 'worm', 'ce10', 'ce11'],
+			[  'fly',  'dm3', 'dm6'],
+			['mouse',  'mm10', 'mm39']
+		]
+	)
+
+
+
+process get_liftover_files {
+	tag "${specie}/${original_assembly} to ${target_assembly}"
+	
+	publishDir path: "util/liftover_files", mode: 'link'
+
+	container = params.liftover
+
+	input:
+		set specie, original_assembly, target_assembly from liftover_files_to_get
+
+	output:
+		set specie, original_assembly, target_assembly, file("*.over.chain.gz") into liftover_files
+
+	shell:
+	'''
+					
+			original_assembly="!{original_assembly}"
+			target_assembly="!{target_assembly}"
+			
+			target_assembly_1=$(echo $target_assembly | awk '{ printf ("%s%s", toupper (substr ($0, 1, 1)), substr ($0, 2)); }')
+			liftover_name="${original_assembly}To${target_assembly_1}"
+			liftover_file="${liftover_name}.over.chain.gz"
+
+			url="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
+			wget $url/$liftover_file
+			
+	'''
+}
+
+//// md5sum is missing for ce10ToCe11 => so we unfortunately need to skip md5sum checking of files
+// (command not needed: wget $url/$liftover_file $url/md5sum.txt)
+// https://hgdownload.cse.ucsc.edu/goldenPath/ce10/liftOver/md5sum.txt
+// However, I do still manually check that the file of the file we get is the same as the one indicated online. That is:
+// ce10ToCe11.over.chain.gz     2015-06-23 15:39  3.2K  
+// mm10ToMm39.over.chain.gz     2020-07-30 14:50   24K  
+// hg19ToHg38.over.chain.gz     2013-12-31 23:08  222K
+// dm3ToDm6.over.chain.gz     2014-08-28 14:29  1.8M  
+
+// ls -sh util/liftover_files
+
+
+Encode_bed_for_liftover
+	.join(liftover_files, by:[0,1])
+	.view()
+
+
+// process convert_bed_coordinates_to_latest_assembly {
+// 	tag "${specie}/${out_folder}"
+// 
+// 	publishDir path: "${specie}/{out_folder}", mode: 'link'
+// 
+// 	container = params.liftover
+// 
+// 	input:
+// 		set specie, out_folder, original_assembly, target_assembly, file(bed_file) from channel_xx
+// 
+// 	output:
+// 		file("*")
+// 
+// 	shell:
+// 	'''
+// 
+// 			original_assembly="!{original_assembly}"
+// 			liftover_name="!{liftover_name}"
+// 			bed_name="!{bed_name}"
+// 			bed_file="!{bed_file}"
+// 
+// 			liftover_file="${liftover_name}.over.chain.gz"
+// 			bed_file_lifted="${bed_name}_lifted.bed"
+// 
+// 			liftover_path="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
+// 			wget $liftover_path/$liftover_file
+// 			liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed
+// 			mkdir $bed_name
+// 			awk  -v FOLDER="$bed_name" ' { print > FOLDER"/"$4".bed" }' $bed_file_lifted
+// 
+// 			rm $bed_name/17_Unmap.bed
+// 
+// 	'''
+// }
+
 
 
 
@@ -945,7 +1045,10 @@ process get_hihmm_chromatin_state_data_part_2 {
 // wget "http://compbio.med.harvard.edu/modencode/webpage/hihmm/iHMM.M1K16.human_H1.bed"
 // wget: bad header line:     XeuOGalu: ptQ; path=/; Max-Age=900
 
-					
+
+
+
+
 
 
 
@@ -1133,39 +1236,6 @@ process get_fasta_and_gff {
 
 
 
-process filtering_annotation_file {
-  tag "${specie}"
-
-  container = params.samtools_bedtools_perl
-
-  publishDir path: "${specie}/genome/annotation", mode: 'link'
-
-  input:
-    set specie, file(gff3), file(fasta) from Genome_and_annotation
-
-  output:
-		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into GFF3_filtered
-
-  shell:
-  '''
-
-		grep -i protein_coding !{gff3} | awk  -F"\t"  '{if($3 == "gene") print $0}' - > anno_genes_only.gff3
-
-		grep -viE "pseudogen|ncRNA" !{gff3} > gff3_without_pseudogenes_and_ncRNA.gff3
-
-
-  '''
-
-}
-
-// Notes
-
-// grep -i protein_coding ${gff} > protein_coding_mRNA_and_genes.gff3
-
-// anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
-
-// protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
-
 
 process generating_bowtie2_indexes {
   tag "${specie}"
@@ -1220,6 +1290,38 @@ Genome_and_annotation_3
 
 
 
+
+// process filtering_annotation_file {
+//   tag "${specie}"
+// 
+//   container = params.samtools_bedtools_perl
+// 
+//   publishDir path: "${specie}/genome/annotation", mode: 'link'
+// 
+//   input:
+//     set specie, file(gff3), file(fasta) from Genome_and_annotation
+// 
+//   output:
+// 		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into GFF3_filtered
+// 
+//   shell:
+//   '''
+// 
+// 		grep -i protein_coding !{gff3} | awk  -F"\t"  '{if($3 == "gene") print $0}' - > anno_genes_only.gff3
+// 
+// 		grep -viE "pseudogen|ncRNA" !{gff3} > gff3_without_pseudogenes_and_ncRNA.gff3
+// 
+// 
+//   '''
+// 
+// }
+// 
+// // Notes
+// 
+// // grep -i protein_coding ${gff} > protein_coding_mRNA_and_genes.gff3
+
+
+
 process getting_chromosome_length_and_transcriptome {
   tag "${specie}"
 
@@ -1234,17 +1336,50 @@ process getting_chromosome_length_and_transcriptome {
     set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
 
   output:
-		set specie, file('chromosome_size.txt') into Chromosome_size_for_seqinfo
-    set specie, file(gff3), file('chromosome_size.txt') into Annotation_for_bed_files
+		set specie, file('protein_coding_genes.gff3'), file('annotation_wo_mito_contigs_pseudogenes.gff3') into GFF3_filtered
+		set specie, file('chromosomes_sizes.txt') into Chromosome_size_for_seqinfo
+    set specie, file(gff3), file('chromosomes_sizes.txt') into Annotation_for_bed_files
 		set specie, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
+		file("*.txt")
+		
+  shell:
+  '''
+			
+			source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
+			fasta=!{fasta}
+			fasta_indexes=!{fasta_indexes}
+			gff3=!{gff3}
+		
+			tab=$(get_tab)
+			gff3_filtered=annotation_wo_mito_contigs_pseudogenes.gff3
 
-  script:
-  """
-      cut -f1-2 ${fasta_indexes} > chromosome_size.txt
+			# filtering out mitochondrial genome and contigs
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($1 !~ "#" && $1 !~ "2110000" && $1 !~ "Scaffold" && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element") {print}}' ${gff3} > ${gff3_filtered}
+				
+			# saving reports on feature types
+			cut -f3 ${gff3} | sort | uniq -c | sort -nr | grep -v "#" > feature_types__raw_gff3_file.txt
+			cut -f3 ${gff3_filtered} | sort | uniq -c | sort -nr      > feature_types__filtered_gff3_file.txt
+			
+			# exporting chromosome size
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "region") {print $1, $4, $5}}' ${gff3_filtered} > chromosomes_sizes.txt
+			
+			# exporting protein coding genes
+			grep -i protein_coding ${gff3_filtered} | awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if($3 == "gene") print $0}' - > protein_coding_genes.gff3
+			
+			# making the transcriptome for Kallisto
       gffread -C ${gff3} -g ${fasta} -w transcriptome.fa
-  """
+			
+  '''
 
 }
+
+//// outputs:
+// - protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
+// - anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
+
+//// mitochondrial chromosomes:
+// worm  |         fly          | mouse  | human  
+// MtDNA | mitochondrion_genome |   MT   |  MT
 
 
 
@@ -1272,7 +1407,7 @@ process get_bed_files_of_annotated_regions {
 			tab=$(get_tab)
 
 			# Filter (predicted TSS, CpG islands and chromosomes) and sort the gff file
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "chromosome" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
 
 			# Get already defined regions: exons, genes
 			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "exon")            print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed

@@ -703,8 +703,6 @@ process ATAC__removing_mitochondrial_reads {
 
 
 // samtools view -b ${bam} I II III IV V X | tee ${id}_no_mito.bam | samtools view - | awk ' \$1 !~ /@/ {print \$3}' - | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
-// worm  |         fly          | mouse  | human  
-// MtDNA | mitochondrion_genome |   MT   |  MT
 
   
 
