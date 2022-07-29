@@ -1,5 +1,25 @@
 
 
+
+//// list of processes (not in order)
+// get_fasta_and_gff
+// get_blacklisted_regions
+// get_hihmm_chromatin_state_data_part_1
+// get_hihmm_chromatin_state_data_part_1
+// get_homer_data
+// getting_orgdb
+// get_chip_data
+// indexing_genomes
+// filtering_annotation_file
+// get_hihmm_chromatin_state_data_part_2
+// getting_chromosome_length_and_transcriptome
+// generating_bowtie2_indexes
+// get_hihmm_chromatin_state_data_part_2
+// generating_kallisto_transcriptome_indexes
+// get_bed_files_of_annotated_regions
+// getting_R_annotation_files
+
+
 params.number_of_cores = 8   // how to initialize if missing?
 number_of_cores = params.number_of_cores
 
@@ -11,28 +31,82 @@ homer_promoters_version = '5.5'
 
 params.homer_odd_score_threshold = 0.5
 
-Species_channel = Channel
-	.from( 	
-		[   //  0          1                     2        3             4                 5
-		//                                    assembly  assembly                       assembly
-		// specie    scientific_name           Ensembl  NCBI       assembly type       ENCODE
-			['worm',  'caenorhabditis_elegans',  'ce11', 'WBcel235', 'toplevel',         'ce11' ],
-			['fly',   'drosophila_melanogaster', 'dm6',  'BDGP6.28', 'toplevel',         'dm6' ],
-			['mouse', 'mus_musculus',            'mm10', 'GRCm38',   'primary_assembly', 'mm10' ],
-		  ['human', 'homo_sapiens',            'hg38', 'GRCh38',   'primary_assembly', 'GRCh38' ]
+Assembly_Ensembl = Channel
+	.from(
+		[   //  0          1                     2              3                4     
+		//                                     assembly      assembly          Ensembl            
+		// specie    scientific_name            name           type            Release
+			['worm',  'caenorhabditis_elegans',  'WBcel235', 'toplevel',         '107' ],
+			['fly',   'drosophila_melanogaster', 'BDGP6.32', 'toplevel',         '107' ],
+			['mouse', 'mus_musculus',            'GRCm38',   'primary_assembly', '102' ],
+			['human', 'homo_sapiens',            'GRCh38',   'primary_assembly', '107' ]
 		]
 	)
-	.dump(tag: 'start_channel')
 	.multiMap { it ->
-			  	homer: it[0, 2]
+					fasta: it
 					 pwms: it[0, 1]
-      blacklist: it[0, 2, 3]
-					 chip: it[0, 5]
-chromatin_state: it[0, 5]
-					fasta: it[0, 1, 3, 4]
 					orgdb: it[0, 1]
 	}
-	.set { Start_channel }
+	.set { Assembly_Ensembl_1 }
+
+//// checking Ensembl latest release and fly genome build name (BDGP6.XX)
+// https://www.ensembl.org/index.html?redirect=no
+// Ensembl Release 107 (Jul 2022)
+// http://ftp.ensembl.org/pub/release-107/gff3/drosophila_melanogaster/
+
+//// A note on the mouse genome:
+// ENCODE (chip and chromatin states) and blacklisted regions are not available yet fo mm11/GRCm39. Therefore, we need to stick with release 102, which is the latest release for mm10/GRCm38. I could eventually use liftover files in the future to remedy this issue, or just wait for the correct assembly files to be released.
+
+
+Assembly_nickname = Channel
+	.from(
+		[
+			['worm',  'ce11', 'WBcel235',],
+			['fly',   'dm6',  'BDGP6',],
+			['mouse', 'mm10', 'GRCm38',  ],
+			['human', 'hg38', 'GRCh38',  ]
+		]
+	)
+	.multiMap { it ->
+			blacklist: it
+			  	homer: it[0, 1]
+	}
+	.set { Assembly_nickname_1 }
+
+Assembly_ENCODE = Channel
+	.from( 	
+		[  
+			['worm',   'ce11' ],
+			['fly',    'dm6' ],
+			['mouse',  'mm10' ],
+			['human',  'GRCh38' ]
+		]
+	)
+	.into{ Assembly_ENCODE_chip ; Assembly_ENCODE_chromatin_state }
+
+
+	
+HiHMM_liftover = Channel
+	.from( 	
+		[
+			['human', 'hg19', 'hg19ToHg38'],
+			[ 'worm', 'ce10', 'ce10ToCe11'],
+			[  'fly',  'dm3', 'dm3ToDm6']
+		]
+	)
+
+HiHMM_chromatin_states = Channel
+	.from( 	
+		[
+			['human', 'iHMM.M1K16.human_GM'],
+			['human', 'iHMM.M1K16.human_H1'],
+			[  'fly', 'iHMM.M1K16.fly_EL'],
+			[  'fly', 'iHMM.M1K16.fly_L3'],
+			[ 'worm', 'iHMM.M1K16.worm_EE'],
+			[ 'worm', 'iHMM.M1K16.worm_L3']
+		]
+	)
+	
 
 
 
@@ -44,7 +118,7 @@ process get_homer_data {
 
 	publishDir path: "${specie}/homer_data", mode: 'link'
 	input:
-		set specie, specie_code from Start_channel.homer
+		set specie, specie_code from Assembly_nickname_1.homer
 
 	output:
 		file('*')
@@ -128,7 +202,7 @@ process get_pwms {
 	
 }
 
-Start_channel.pwms
+Assembly_Ensembl_1.pwms
 	.combine(cisbp_motifs_all_species)
 	.set{ cisbp_motifs_all_species_1 }
 
@@ -246,7 +320,7 @@ process get_blacklisted_regions {
 	publishDir path: "${specie}/genome/annotation", mode: 'link'
 
 	input:
-		set specie, specie_code, ncbi_code from Start_channel.blacklist
+		set specie, specie_code, ncbi_code from Assembly_nickname_1.blacklist
 
 	output:
 		file("blacklisted_regions.bed")
@@ -263,15 +337,24 @@ process get_blacklisted_regions {
 		wget -O ${specie_code}_blacklist_NCBI.bed.gz $url_blacklist/${specie_code}-blacklist.v2.bed.gz
 		gunzip  ${specie_code}_blacklist_NCBI.bed.gz
 		
-		ncbi_code_1=${ncbi_code%%.*}
-				
-		wget -O NCBI_to_Ensembl.txt $url_mapping/${ncbi_code_1}_UCSC2ensembl.txt
+		wget -O NCBI_to_Ensembl.txt $url_mapping/${ncbi_code}_UCSC2ensembl.txt
 		
 		cvbio UpdateContigNames -i ${specie_code}_blacklist_NCBI.bed -o blacklisted_regions.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
 		
 	'''
 }
 
+///// blacklist files
+// https://github.com/Boyle-Lab/Blacklist/tree/master/lists
+// ce11, hg38, dm6, mm10
+// mm11 is missing for now so we don't use the latest genome assembly version
+
+//// chromosome mapping files
+// https://github.com/dpryan79/ChromosomeMappings
+// human: GRCh38_UCSC2ensembl.txt
+// mouse: GRCm38_UCSC2ensembl.txt
+//   fly: BDGP6_ensembl2UCSC.txt 
+//  worm: WBcel235_UCSC2ensembl.txt
 
 // this lines fails with a weird Nextflow bug of variable substitution:
 // ncbi_code_1=${ncbi_code//\.*/}
@@ -290,12 +373,13 @@ process get_blacklisted_regions {
 
 
 
+
 process get_chip_metadata {
 
 	container = params.encodeexplorer
 
 	input:
-		set specie, assembly from Start_channel.chip
+		set specie, assembly from Assembly_ENCODE_chip
 
 	output:
 		set specie, file("dt_encode_chip.rds") into Encode_chip_metadata		
@@ -596,9 +680,9 @@ shell:
 }
 
 
-Start_channel.chromatin_state
+Assembly_ENCODE_chromatin_state
 	.filter{ specie, assembly -> specie in ['human', 'mouse']}
-	.set{ Start_channel_chromatin_state }
+	.set{ Assembly_ENCODE_chromatin_state_1 }
 
 
 process get_encode_chromatin_state_metadata {
@@ -609,7 +693,7 @@ process get_encode_chromatin_state_metadata {
 	publishDir path: "${specie}", mode: 'link', pattern: "*.csv"
 
 	input:
-		set specie, assembly from Start_channel_chromatin_state
+		set specie, assembly from Assembly_ENCODE_chromatin_state_1
 
 	output:
 		set specie, file("*.rds") into Encode_chromatin_state_split_dt mode flatten
@@ -775,32 +859,10 @@ process get_encode_chromatin_state_data {
 
 
 
-HiHMM_chromatin_states_channel = Channel
-	.from( 	
-		[
-			['human', 'iHMM.M1K16.human_GM'],
-			['human', 'iHMM.M1K16.human_H1'],
-			[  'fly', 'iHMM.M1K16.fly_EL'],
-			[  'fly', 'iHMM.M1K16.fly_L3'],
-			[ 'worm', 'iHMM.M1K16.worm_EE'],
-			[ 'worm', 'iHMM.M1K16.worm_L3']
-		]
-	)
-	
-	
 
-HiHMM_liftover_channel = Channel
-	.from( 	
-		[
-			['human', 'hg19', 'hg19ToHg38'],
-			[ 'worm', 'ce10', 'ce10ToCe11'],
-			[  'fly',  'dm3', 'dm3ToDm6']
-		]
-	)
-	
-HiHMM_chromatin_states_channel
-	.combine(HiHMM_liftover_channel, by:0)
-	.set{ HiHMM_chromatin_states_channel_1 }
+HiHMM_chromatin_states
+	.combine(HiHMM_liftover, by:0)
+	.set{ HiHMM_chromatin_states_1 }
 	
 
 
@@ -816,10 +878,10 @@ process get_hihmm_chromatin_state_data_part_1 {
 	// container = 'debian/stable-slim.sif'
 
 	input:
-		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_channel_1
+		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
 
 	output:
-		set specie, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_channel_2
+		set specie, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_2
 		
 
 	shell:
@@ -851,7 +913,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 	container = params.liftover
 
 	input:
-		set specie, bed_name, file(bed_file), original_assembly, liftover_name from HiHMM_chromatin_states_channel_2
+		set specie, bed_name, file(bed_file), original_assembly, liftover_name from HiHMM_chromatin_states_2
 
 	output:
 		file("${bed_name}/*")
@@ -893,7 +955,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 // 	container = params.liftover
 // 
 // 	input:
-// 		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_channel_1
+// 		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
 // 
 // 	output:
 // 		file(bed_name)
@@ -936,10 +998,10 @@ process get_hihmm_chromatin_state_data_part_2 {
 // 	// container = params.bioconductor
 // 
 // 	input:
-// 		// set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_channel_1
+// 		// set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
 // 
 // 	output:
-// 		// set specie, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_channel_2
+// 		// set specie, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_2
 // 
 // 
 // 	shell:
@@ -1008,42 +1070,66 @@ process get_fasta_and_gff {
   }
 
 	input:
-		set specie, specie_long, genome, assembly from Start_channel.fasta
+		set specie, specie_long, genome, assembly, release from Assembly_Ensembl_1.fasta
 
 	output:
 		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
 
 	shell:
 	'''
-		
+	
+	source !{params.cactus_dir}/software/get_data/bin/check_checksum_ensembl.sh
 	specie='!{specie}'
 	specie_long='!{specie_long}'
 	genome='!{genome}'
 	assembly='!{assembly}'
-	release='!{params.ensembl_release}'
+	release='!{release}'
 	
-	URL=ftp://ftp.ensembl.org/pub/release-$release
+	base_url=ftp://ftp.ensembl.org/pub/release-$release
 	
 	gff3_file=${specie_long^}.$genome.$release.gff3.gz
 	fasta_file=${specie_long^}.$genome.dna_sm.$assembly.fa.gz
 	
-	wget -O annotation.gff3.gz $URL/gff3/$specie_long/$gff3_file 
-	gunzip annotation.gff3.gz 
+	url_anno=$base_url/gff3/$specie_long
+	wget -O annotation.gff3.gz $url_anno/$gff3_file 
+	wget -O checksums_anno $url_anno/CHECKSUMS
+	check_checksum_and_gunzip annotation.gff3.gz $gff3_file checksums_anno
 	
-	wget -O genome.fa.gz $URL/fasta/$specie_long/dna/$fasta_file 
-	gunzip genome.fa.gz
-	
-	echo "gff3 file : $gff3_file" > README.txt
-	echo "fasta file: $fasta_file" >> README.txt
-		
+	url_fasta=$base_url/fasta/$specie_long/dna
+	wget -O genome.fa.gz $url_fasta/$fasta_file 
+	wget -O checksums_fasta $url_fasta/CHECKSUMS
+	check_checksum_and_gunzip genome.fa.gz $fasta_file checksums_fasta
 		
 	'''
 }
 
+// downloaded_file=annotation.gff3.gz
+// downloaded_file_name=$gff3_file
+// checksums_file=checksums_anno
+
+
+// https://genomespot.blogspot.com/2015/06/mapping-ngs-data-which-genome-version.html
+// Which options are available? My recommendation at this point is Ensembl, for a number of reasons... it is clear to see what genome build and version just from the file names
+// Repeat masking? The short answer is that for the purpose of mapping NGS reads, you don't want to use a RepeatMasked genome The files with "sm" in the name are "soft masked" which means instead of the repeat regions being given Ns, they are converted to lower-case. These are OK to use because most major aligners recognise lower-case letters as valid bases.
+//  Primary assembly vs Top level? The short answer is to choose the "Primary assembly" (i.e. Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz) as it does not contain the haplotype information. The top level file contains additional sequences that are relatively common variants to the reference. 
+ // Should I use the latest version? Short answer: Generally, yes. But of course this depends. in some projects we are still using the older version of the human genome (GRCh37/hg19) because the aim of those projects is to integrate with a bunch of ENCODE data which is not yet available for the new genome build.
+  // => in our case we don't use the latest mouse genome version specifically for this reason
+
 // https://bioinformatics.stackexchange.com/questions/540/what-ensembl-genome-version-should-i-use-for-alignments-e-g-toplevel-fa-vs-p
-// an example of link:
+
+// Examples of link:
 // http://ftp.ensembl.org/pub/release-102/fasta/caenorhabditis_elegans/dna/Caenorhabditis_elegans.WBcel235.dna_sm.toplevel.fa.gz
+// http://ftp.ensembl.org/pub/release-102/gff3/drosophila_melanogaster/Drosophila_melanogaster.BDGP6.28.102.gff3.gz
+// wget -O checksums_anno.tsv http://ftp.ensembl.org/pub/release-102/gff3/drosophila_melanogaster/CHECKSUMS
+
 // => primary_assembly is not available for worm an fly
+// This means that top_level = primary_assembly in these species. See here:
+// https://www.biostars.org/p/398167/
+// "If the primary assembly file is not present, that indicates that there are no haplotype/patch regions, and the 'toplevel' file is equivalent."
+
+// checksums for ensembl genomes
+// https://stackoverflow.com/questions/14569281/checksum-and-md5-not-the-same-thing
+
 
 
 
@@ -1058,7 +1144,7 @@ process filtering_annotation_file {
     set specie, file(gff3), file(fasta) from Genome_and_annotation
 
   output:
-		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into Channel_gff3_filtered
+		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into GFF3_filtered
 
   shell:
   '''
@@ -1215,6 +1301,8 @@ process get_bed_files_of_annotated_regions {
 		
 	'''
 }
+
+ // awk '{if ($1 !~ "##" && $1 !~ "Scaffold"  && $1 !~ "2110000") print}' annotation.gff3  |  cut -f1 | sort | uniq
 
 // tab=$(get_tab)
 // awk -v my_var="$tab" ' BEGIN {OFS=my_var} {print $1, $2}' test_anno_2.bed
@@ -1387,7 +1475,7 @@ process getting_orgdb {
   publishDir path: "${specie}/genome/annotation", mode: 'link'
 
   input:
-		set specie, specie_long from Start_channel.orgdb
+		set specie, specie_long from Assembly_Ensembl_1.orgdb
 
   output:
     set specie, specie_long, file('orgdb.sqlite') into Orgdb_for_annotation
@@ -1419,8 +1507,8 @@ process getting_orgdb {
 
 Orgdb_for_annotation
 	.join(Chromosome_size_for_seqinfo)
-	.join(Channel_gff3_filtered)
-	.set{Channel_gff3_filtered_1}
+	.join(GFF3_filtered)
+	.set{GFF3_filtered_1}
 
 process getting_R_annotation_files {
   tag "${specie}"
@@ -1430,7 +1518,7 @@ process getting_R_annotation_files {
   publishDir path: "${specie}/genome/annotation", mode: 'link'
 
   input:
-		set specie, specie_long, orgdb, file(chr_size), file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from Channel_gff3_filtered_1
+		set specie, specie_long, orgdb, file(chr_size), file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from GFF3_filtered_1
 
   output:
     file('*')

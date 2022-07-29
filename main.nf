@@ -2691,7 +2691,6 @@ process plotting_differential_accessibility_results {
 
       ##### PCA plots
 
-      source('/home/jersal/workspace/cactus/software/bin/functions_plot_volcano_PCA.R')
       prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), cor = F, bLog = T)$pc
       rownames(prcomp1$x) = res %>% dplyr::arrange(peak_id) %>% .$gene_name
 
