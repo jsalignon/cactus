@@ -3,7 +3,7 @@ TODOs.plain
 work/
 data/
 results/
-bin/
+bin/conda_recipes
 containers_old_scripts/
 debug.plain
 tmp/
