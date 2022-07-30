@@ -1354,14 +1354,22 @@ process getting_chromosome_length_and_transcriptome {
 			gff3_filtered=annotation_wo_mito_contigs_pseudogenes.gff3
 
 			# filtering out mitochondrial genome and contigs
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($1 !~ "#" && $1 !~ "2110000" && $1 !~ "Scaffold" && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element") {print}}' ${gff3} > ${gff3_filtered}
-				
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($1 !~ "#" && $1 !~ "2110000" && $1 !~ "Scaffold" && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element" && $1 !~ "KI270" && $1 !~ "GL000") {print}}' ${gff3} > ${gff3_filtered}
+			# TO Do add mouse contig names
+			nb_of_genes_by_region=
+			
+			cut -f1 annotation.gff3 | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region.txt
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if($3 == "gene"){print $1}}' annotation.gff3 | sort | uniq -c | sort -nr > nb_of_genes_by_region.txt
+			ONGOING: keep only regions with more than 5 genes
+			
+			regions_to_keep=awk '{if($3 == "gene"){print $1}}' annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' -
+
 			# saving reports on feature types
 			cut -f3 ${gff3} | sort | uniq -c | sort -nr | grep -v "#" > feature_types__raw_gff3_file.txt
 			cut -f3 ${gff3_filtered} | sort | uniq -c | sort -nr      > feature_types__filtered_gff3_file.txt
 			
 			# exporting chromosome size
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "region") {print $1, $4, $5}}' ${gff3_filtered} > chromosomes_sizes.txt
+			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "region" || $3 == "chromosome") {print $1, $4, $5}}' ${gff3_filtered} > chromosomes_sizes.txt
 			
 			# exporting protein coding genes
 			grep -i protein_coding ${gff3_filtered} | awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if($3 == "gene") print $0}' - > protein_coding_genes.gff3
@@ -1373,6 +1381,16 @@ process getting_chromosome_length_and_transcriptome {
 
 }
 
+
+awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' - | wc -l # 30
+awk '{if($3 == "gene"){print $1}}' human/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' - | wc -l # 25
+
+awk '{if($3 == "gene"){print $1}}' human/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print}}' -
+awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print}}' -
+ awk '{if($3 == "gene"){print $1}}' fly/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr 
+
+{if ($1 !~ "#"
+
 //// outputs:
 // - protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
 // - anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
@@ -1381,7 +1399,9 @@ process getting_chromosome_length_and_transcriptome {
 // worm  |         fly          | mouse  | human  
 // MtDNA | mitochondrion_genome |   MT   |  MT
 
-
+// scaffolds
+// fly: 2110000*
+// human: GL000*, KI270*
 
 
 process get_bed_files_of_annotated_regions {
