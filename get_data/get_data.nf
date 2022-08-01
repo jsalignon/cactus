@@ -1177,6 +1177,7 @@ process get_fasta_and_gff {
 
 	output:
 		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
+		set specie, file('annotation.gff3') into Gff3_annotation_for_filtering
 
 	shell:
 	'''
@@ -1291,41 +1292,37 @@ Genome_and_annotation_3
 
 
 
-// process filtering_annotation_file {
-//   tag "${specie}"
-// 
-//   container = params.samtools_bedtools_perl
-// 
-//   publishDir path: "${specie}/genome/annotation", mode: 'link'
-// 
-//   input:
-//     set specie, file(gff3), file(fasta) from Genome_and_annotation
-// 
-//   output:
-// 		set specie, file('anno_genes_only.gff3'), file('gff3_without_pseudogenes_and_ncRNA.gff3') into GFF3_filtered
-// 
-//   shell:
-//   '''
-// 
-// 		grep -i protein_coding !{gff3} | awk  -F"\t"  '{if($3 == "gene") print $0}' - > anno_genes_only.gff3
-// 
-// 		grep -viE "pseudogen|ncRNA" !{gff3} > gff3_without_pseudogenes_and_ncRNA.gff3
-// 
-// 
-//   '''
-// 
-// }
-// 
-// // Notes
-// 
-// // grep -i protein_coding ${gff} > protein_coding_mRNA_and_genes.gff3
 
-
-
-process getting_chromosome_length_and_transcriptome {
+process getting_transcriptome {
   tag "${specie}"
 
 	container = params.gffread
+
+	publishDir path: "${specie}/genome/sequence", mode: 'link'
+		
+  input:
+    set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
+
+  output:
+		set specie, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
+		file("*.txt")
+		
+  shell:
+  '''
+			
+      gffread -C !{gff3} -g !{fasta} -w transcriptome.fa
+			
+  '''
+
+}
+
+
+
+
+process filtering_annotation_file {
+  tag "${specie}"
+
+	container = params.ubuntu
 
 	publishDir path: "${specie}/genome", mode: 'link', saveAs:{
 		     if (it.indexOf(".txt") > 0) "annotation/${it}"
@@ -1333,63 +1330,60 @@ process getting_chromosome_length_and_transcriptome {
 		} 
 		
   input:
-    set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
+    set specie, file(gff3) from Gff3_annotation_for_filtering
 
   output:
-		set specie, file('protein_coding_genes.gff3'), file('annotation_wo_mito_contigs_pseudogenes.gff3') into GFF3_filtered
-		set specie, file('chromosomes_sizes.txt') into Chromosome_size_for_seqinfo
+		set specie, file(gff3), file('protein_coding_genes.gff3'), file('annotation_fitered_regions_and_pseudogenes.gff3'), file('chromosomes_sizes.txt') into GFF3_filtered_for_R
     set specie, file(gff3), file('chromosomes_sizes.txt') into Annotation_for_bed_files
-		set specie, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
 		file("*.txt")
 		
   shell:
   '''
 			
-			source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
-			fasta=!{fasta}
-			fasta_indexes=!{fasta_indexes}
 			gff3=!{gff3}
 		
-			tab=$(get_tab)
-			gff3_filtered=annotation_wo_mito_contigs_pseudogenes.gff3
+			gff3_filtered=annotation_fitered_regions_and_pseudogenes.gff3
 
-			# filtering out mitochondrial genome and contigs
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($1 !~ "#" && $1 !~ "2110000" && $1 !~ "Scaffold" && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element" && $1 !~ "KI270" && $1 !~ "GL000") {print}}' ${gff3} > ${gff3_filtered}
-			# TO Do add mouse contig names
-			nb_of_genes_by_region=
+			alias awk1='awk -v FS="\t" -v OFS="\t"'
+			alias awk2='awk -v OFS="\t"'
 			
-			cut -f1 annotation.gff3 | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region.txt
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if($3 == "gene"){print $1}}' annotation.gff3 | sort | uniq -c | sort -nr > nb_of_genes_by_region.txt
-			ONGOING: keep only regions with more than 5 genes
-			
-			regions_to_keep=awk '{if($3 == "gene"){print $1}}' annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' -
-
-			# saving reports on feature types
+			# savings statistics on the unfiltered annotation file
+			cut -f1 ${gff3} | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region__raw_gff3_file.txt
+			awk1 '{if($3 == "gene"){print $1}}' ${gff3} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__raw_gff3_file.txt 
 			cut -f3 ${gff3} | sort | uniq -c | sort -nr | grep -v "#" > feature_types__raw_gff3_file.txt
-			cut -f3 ${gff3_filtered} | sort | uniq -c | sort -nr      > feature_types__filtered_gff3_file.txt
 			
-			# exporting chromosome size
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "region" || $3 == "chromosome") {print $1, $4, $5}}' ${gff3_filtered} > chromosomes_sizes.txt
+			# keeping only regions (contigs and chromosomes) with at least 5 genes, excluding the mitochondrial chromosome and removing all genes that are not encoding for proteins
+			regions_to_keep=$(awk2 '{if($1 > 4) print $2}' nb_of_genes_by_region__raw_gff3_file.txt | sort | paste -sd ' ')
+			awk1 -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && ($3 == "gene" || $3 !~ "gene")) print}}' ${gff3} > ${gff3_filtered}
+
+			# savings statistics on the filtered annotation file
+			awk1 '{if($3 == "gene"){print $1}}' ${gff3_filtered} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__filtered_gff3_file.txt 
+			cut -f3 ${gff3_filtered} | sort | uniq -c | sort -nr | grep -v "#" > feature_types__filtered_gff3_file.txt
+			
+			# exporting chromosomes sizes
+			awk1 '{if ($3 == "region" || $3 == "chromosome" || $3 == "scaffold") {print $1, $4, $5}}' ${gff3_filtered} | sort -k3nr > chromosomes_sizes.txt
 			
 			# exporting protein coding genes
-			grep -i protein_coding ${gff3_filtered} | awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if($3 == "gene") print $0}' - > protein_coding_genes.gff3
+			grep -i protein_coding ${gff3_filtered} | awk1 '{if($3 == "gene") print $0}' - > protein_coding_genes.gff3
 			
-			# making the transcriptome for Kallisto
-      gffread -C ${gff3} -g ${fasta} -w transcriptome.fa
 			
   '''
 
 }
 
 
-awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' - | wc -l # 30
-awk '{if($3 == "gene"){print $1}}' human/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' - | wc -l # 25
+// singularity pull ubuntu:22.04
 
-awk '{if($3 == "gene"){print $1}}' human/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print}}' -
-awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print}}' -
- awk '{if($3 == "gene"){print $1}}' fly/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr 
+// not sure how the annotation will work in chipseeker. Need to check manually. Maybe we need to remove more features. In this case this command will do it:
+// awk1 -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element") print $1}}' ${gff3} > ${gff3_filtered}
 
-{if ($1 !~ "#"
+
+// awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' - | wc -l # 30
+// awk '{if($3 == "gene"){print $1}}' human/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' - | wc -l # 25
+// 
+// awk '{if($3 == "gene"){print $1}}' human/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print}}' -
+// awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print}}' -
+//  awk '{if($3 == "gene"){print $1}}' fly/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr 
 
 //// outputs:
 // - protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
@@ -1420,42 +1414,44 @@ process get_bed_files_of_annotated_regions {
 	shell:
 	'''
 	
-			source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
 			gff3=!{gff3}
-			chr_size=!{chr_size}
-		
-			tab=$(get_tab)
-
-			# Filter (predicted TSS, CpG islands and chromosomes) and sort the gff file
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
+			alias awk1='awk -v FS="\t" -v OFS="\t"'
 
 			# Get already defined regions: exons, genes
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "exon")            print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "gene")            print $1, $4-1, $5}' annotation_clean.gff3 > genic_regions.bed
+			awk1 '{if ($3 == "exon") print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
+			awk1 '{if ($3 == "gene") print $1, $4-1, $5}' annotation_clean.gff3 > genes.bed
 
-			# get sorted chromosome size file	
-			sort -k1,1 -k2,2n $chr_size > chromosome_size_sorted.txt
-			
-			# make a bed files for chromosome sizes and gff
+			# Get chromosomes sizes
+			awk1 '{if ($3 == "region" || $3 == "chromosome" || $3 == "scaffold") {print $1, $5}}' ${gff3} | sort -k1,1 > chromosomes_sizes.txt
+			awk1 '{print $1, "0", $2}' chromosomes_sizes.txt | sort -k1,1 -k2,2n > chromosomes_sizes.bed
+
+			# Filter out predicted "biological regions" (= TSS, CpG islands, fosmids, ect and chromosomes), and sort the gff file
+			awk1 '{if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
 			gff2bed < annotation_clean.gff3 > annotation_clean.bed
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} {print $1, "0", $2}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size.bed
 			
 			# Get intergenic regions
-			bedops --difference chromosome_size.bed annotation_clean.bed > intergenic.bed
+			bedops --difference chromosomes_sizes.bed annotation_clean.bed > intergenic.bed
 			
 			# Get introns
-			bedops --difference chromosome_size.bed <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) > introns.bed
+			bedops --difference chromosomes_sizes.bed <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) > introns.bed
 			
 			# Get promoters
-			gff2bed < <(awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "gene") print}' annotation_clean.gff3) > genes.bed
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} ($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes.bed | bedops --range -1500:500 --everything - > promoters_forward.bed
-			awk -v my_var="$tab" 'BEGIN {OFS=my_var} ($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes.bed | bedops --range -1500:500 --everything - > promoters_reverse.bed
+			gff2bed < <(awk1 '($3 == "gene") {print}' annotation_clean.gff3) > genes_detailed.bed
+			awk1 '($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes_detailed.bed | bedops --range -1500:500 --everything - > promoters_forward.bed
+			awk1 '($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes_detailed.bed | bedops --range -1500:500 --everything - > promoters_reverse.bed
 			bedops --everything promoters_forward.bed promoters_reverse.bed | cut -f1-3 > promoters.bed
 			
-			rm genes.bed promoters_forward.bed promoters_reverse.bed annotation_clean.bed chromosome_size.bed
+			rm genes_detailed.bed promoters_forward.bed promoters_reverse.bed annotation_clean.bed chromosomes_sizes.bed
 		
 	'''
 }
+
+
+// Not needed finally?
+// # Filter out predicted "biological regions" (= TSS, CpG islands and chromosomes),  and sort the gff file
+// awk1 '{if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
+// gff2bed < annotation_clean.gff3 > annotation_clean.bed
+
 
  // awk '{if ($1 !~ "##" && $1 !~ "Scaffold"  && $1 !~ "2110000") print}' annotation.gff3  |  cut -f1 | sort | uniq
 
@@ -1599,7 +1595,7 @@ process get_bed_files_of_annotated_regions {
 
 
 
-process generating_kallisto_transcriptome_indexes {
+process getting_kallisto_indexes {
   tag "${specie}"
 
   container = params.kallisto
@@ -1661,9 +1657,8 @@ process getting_orgdb {
 
 
 Orgdb_for_annotation
-	.join(Chromosome_size_for_seqinfo)
-	.join(GFF3_filtered)
-	.set{GFF3_filtered_1}
+	.join(GFF3_filtered_for_R)
+	.set{GFF3_filtered_for_R_1}
 
 process getting_R_annotation_files {
   tag "${specie}"
@@ -1673,7 +1668,7 @@ process getting_R_annotation_files {
   publishDir path: "${specie}/genome/annotation", mode: 'link'
 
   input:
-		set specie, specie_long, orgdb, file(chr_size), file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from GFF3_filtered_1
+		set specie, specie_long, orgdb, file(chr_size), file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from GFF3_filtered_for_R_1
 
   output:
     file('*')

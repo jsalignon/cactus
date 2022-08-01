@@ -1174,11 +1174,11 @@ process ATAC__reads_stat_1_features_enrichment {
     EXONS=`getTotalReadsMappedToBedFile $BED_PATH/exons.bed ${bam}`
     INTRONS=`getTotalReadsMappedToBedFile $BED_PATH/introns.bed ${bam}`
     INTERGENIC=`getTotalReadsMappedToBedFile $BED_PATH/intergenic.bed ${bam}`
-    GENIC_REGIONS=`getTotalReadsMappedToBedFile $BED_PATH/genic_regions.bed ${bam}`
+    GENES=`getTotalReadsMappedToBedFile $BED_PATH/genes.bed ${bam}`
     BAM_NB_READS=`samtools view -c ${bam}`
 
-    echo "PROMOTER EXONS INTRONS INTERGENIC GENIC_REGIONS BAM_NB_READS" > ${id}_reads_features_enrichment.txt
-    echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENIC_REGIONS $BAM_NB_READS" >> ${id}_reads_features_enrichment.txt
+    echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" > ${id}_reads_features_enrichment.txt
+    echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" >> ${id}_reads_features_enrichment.txt
 
     awkDecimalDivision () { awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }' ; }
 
@@ -1186,10 +1186,10 @@ process ATAC__reads_stat_1_features_enrichment {
     P_EXONS=$(awkDecimalDivision $EXONS $BAM_NB_READS)
     P_INTRONS=$(awkDecimalDivision $INTRONS $BAM_NB_READS)
     P_INTERGENIC=$(awkDecimalDivision $INTERGENIC $BAM_NB_READS)
-    P_GENIC=$(awkDecimalDivision $GENIC_REGIONS $BAM_NB_READS)
+    P_GENES=$(awkDecimalDivision $GENES $BAM_NB_READS)
     P_READS=$(awkDecimalDivision $BAM_NB_READS $BAM_NB_READS)
 
-    echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENIC $P_READS" >> ${id}_reads_features_enrichment.txt
+    echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" >> ${id}_reads_features_enrichment.txt
 
   '''
 
