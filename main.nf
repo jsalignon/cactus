@@ -671,7 +671,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Reads_Correl_for_merging_pdfs
 
 
 
-process ATAC__removing_mitochondrial_reads {
+process ATAC__removing_reads_in_mitochondria_and_contigs {
   tag "${id}"
 
   container = params.bowtie2_samtools
@@ -692,19 +692,28 @@ process ATAC__removing_mitochondrial_reads {
     '''
       id=!{id}
       bam=!{bam}
+      chromosomes_sizes=!{params.chromosomes_sizes}
 
       samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c > "${id}_reads_per_chrm_before_removal.txt"
 
-      samtools view -h ${bam} | awk '{if($3 != "MtDNA" && $3 != "mitochondrion_genome" && $3 != "MT"){print $0}}' | samtools view -Sb - | tee ${id}_no_mito.bam | samtools view - | awk ' $1 !~ /@/ {print $3}' - | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
-
+      regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
+      samtools view  ${bam} $regions_to_keep | awk '{print $3}' OFS='\t' - | sort | uniq -c
+      samtools view  ${bam} | awk '{print $3}' OFS='\t' - | sort | uniq -c
+      
+      samtools view -Sb ${bam} $regions_to_keep | tee ${id}_no_mito.bam | samtools view - | awk '{print $3}' OFS='\t' | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+      
     '''
 
 }
 
 
+
 // samtools view -b ${bam} I II III IV V X | tee ${id}_no_mito.bam | samtools view - | awk ' \$1 !~ /@/ {print \$3}' - | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
 
-  
+// chromosomes_sizes=~/workspace/cactus/data/fly/genome/annotation/filtered/chromosomes_sizes.txt
+
+// cut -f1 $chromosomes_sizes
+
 
 process ATAC__plot_insert_size_distribution {
   tag "${id}"
@@ -2266,6 +2275,8 @@ process ATAC__annotating_all_peaks {
       # creating data frame
       anno_peak_gr = anno_peak_cs@anno
       df = as.data.frame(anno_peak_gr)
+      df %<>% dplyr::rename(gene_id = geneId)
+      df %<>% dplyr::inner_join(df_genes_metadata[, c('gene_id', 'gene_name')], by = 'gene_id')
       anno_peak_df = cbind(peak_id = rownames(df), df, anno_peak_cs@detailGenomicAnnotation)
       anno_peak_df$peak_id %<>% as.character %>% as.integer
 
@@ -2577,8 +2588,7 @@ process plotting_differential_gene_expression_results {
 
       res_volcano <- sleuth_results(sleo, test_cond)
       res_volcano %<>% dplyr::rename(gene_id = target_id, L2FC = b)
-      df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
-      res_volcano %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
+      res_volcano %<>% dplyr::inner_join(df_genes_metadata[, c('gene_id', 'gene_name')], by = 'gene_id')
       res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
 
       pdf(paste0(COMP, '__mRNA_volcano.pdf'))
@@ -2591,7 +2601,7 @@ process plotting_differential_gene_expression_results {
       # the pca is computed using the default parameters in the sleuth functions sleuth::plot_pca
       mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 'scaled_reads_per_base')
       prcomp1 <- prcomp(mat)
-      v_gene_id_name = df_genes_metadata_1$gene_name %>% setNames(., df_genes_metadata_1$gene_id)
+      v_gene_id_name = df_genes_metadata$gene_name %>% setNames(., df_genes_metadata$gene_id)
       rownames(prcomp1$x) %<>% v_gene_id_name[.]
 
       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
@@ -2678,9 +2688,7 @@ process plotting_differential_accessibility_results {
 
       ##### volcano plots
 
-      res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_id = geneId)
-      df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
-      res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
+      res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold)
 
       pdf(paste0(COMP, '__ATAC_volcano.pdf'))
         plot_volcano_custom(res, sig_level = FDR_threshold, label_column = 'gene_name', title = paste(COMP, 'ATAC'))

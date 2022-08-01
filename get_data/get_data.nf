@@ -1177,7 +1177,7 @@ process get_fasta_and_gff {
 
 	output:
 		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
-		set specie, file('annotation.gff3') into Gff3_annotation_for_filtering
+		set specie, file('annotation.gff3') into ( Gff3_annotation_for_filtering, Gff3_annotation_for_bed_files)
 
 	shell:
 	'''
@@ -1323,14 +1323,13 @@ process filtering_annotation_file {
 
 	container = params.ubuntu
 
-	publishDir path: "${specie}/genome/annotation", mode: 'link'
+	publishDir path: "${specie}/genome/annotation/filtered", mode: 'link'
 		
   input:
     set specie, file(gff3) from Gff3_annotation_for_filtering
 
   output:
-		set specie, file('chromosomes_sizes.txt'), file(gff3), file('protein_coding_genes.gff3'), file('annotation_filtered_regions_and_pseudogenes.gff3'), file('chromosomes_sizes.txt') into GFF3_filtered_for_R
-    set specie, file(gff3), file('chromosomes_sizes.txt') into Annotation_for_bed_files
+		set specie, file('chromosomes_sizes.txt'), file(gff3), file('protein_coding_genes.gff3'), file('annotation_filtered_regions_and_pseudogenes.gff3') into GFF3_filtered_for_R
 		file("*.txt")
 		
   shell:
@@ -1338,40 +1337,31 @@ process filtering_annotation_file {
 			
 			gff3=!{gff3}
 			source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
-			
+		
 			tab=$(get_tab)
-			awk1 () { \
-				awk -v OFS="$tab" -v FS="$tab" $1 $2 \
-			}
-			
-			awk1 () { awk -v OFS="$tab" -v FS="$tab" $1 $2 ; }
-			
-			alias awk1='awk -v FS="\t" -v OFS="\t"'
-			alias awk2='awk -v OFS="\t"'
-			
-			awk1 '{if($3 == "gene"){print $1}}'  ${gff3} | head
-			
-			awk2 () { awk -v OFS="$tab" $1 $2 ; }
+		
 			gff3_filtered=annotation_filtered_regions_and_pseudogenes.gff3
 
 			# savings statistics on the unfiltered annotation file
 			cut -f1 ${gff3} | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region__raw_gff3_file.txt
-			awk1 '{if($3 == "gene"){print $1}}' ${gff3} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__raw_gff3_file.txt 
-			cut -f3 ${gff3} | sort | uniq -c | sort -nr | grep -v "#" > feature_types__raw_gff3_file.txt
+			awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene"){print $1}}' ${gff3} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__raw_gff3_file.txt 
+			cut -f3 ${gff3} | sort | uniq -c | sort -nr | grep -v "#" > nb_of_feature_by_feature_type__raw_gff3_file.txt
 			
 			# keeping only regions (contigs and chromosomes) with at least 5 genes, excluding the mitochondrial chromosome and removing all genes that are not encoding for proteins
-			regions_to_keep=$(awk2 '{if($1 > 4) print $2}' nb_of_genes_by_region__raw_gff3_file.txt | sort | paste -sd ' ')
-			awk1 -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && ($3 == "gene" || $3 !~ "gene")) print}}' ${gff3} > ${gff3_filtered}
+			regions_to_keep=$(awk -v OFS="$tab" '{if($1 > 4) print $2}' nb_of_genes_by_region__raw_gff3_file.txt | sort | paste -sd ' ')
+			awk -v FS="$tab" -v OFS="$tab" -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && ($3 == "gene" || $3 !~ "gene")) print}}' ${gff3} > ${gff3_filtered}
 
 			# savings statistics on the filtered annotation file
-			awk1 '{if($3 == "gene"){print $1}}' ${gff3_filtered} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__filtered_gff3_file.txt 
-			cut -f3 ${gff3_filtered} | sort | uniq -c | sort -nr | grep -v "#" > feature_types__filtered_gff3_file.txt
+			cut -f1 ${gff3_filtered} | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region__raw_gff3_file.txt
+			awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene"){print $1}}' ${gff3_filtered} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__filtered_gff3_file.txt 
+			cut -f3 ${gff3_filtered} | sort | uniq -c | sort -nr | grep -v "#" > nb_of_feature_by_feature_type__filtered_gff3_file.txt
 			
 			# exporting chromosomes sizes
-			awk1 '{if ($3 == "region" || $3 == "chromosome" || $3 == "scaffold") {print $1, $4, $5}}' ${gff3_filtered} | sort -k3nr > chromosomes_sizes.txt
+			awk -v FS="$tab" -v OFS="$tab" '{if ($3 == "region" || $3 == "chromosome" || $3 == "scaffold") {print $1, $5}}' ${gff3_filtered} | sort -k3nr > chromosomes_sizes.txt
 			
 			# exporting protein coding genes
-			grep -i protein_coding ${gff3_filtered} | awk1 '{if($3 == "gene") print $0}' - > protein_coding_genes.gff3
+			grep -i protein_coding ${gff3_filtered} | awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene") print $0}' - > protein_coding_genes.gff3
+			
 			
 			
   '''
@@ -1379,10 +1369,12 @@ process filtering_annotation_file {
 }
 
 
+// note: the important thing is to keep all contigs when mapping reads to prevent misalignement of reads to wrong location. However, discarding reads mapped to contigs after mapping is a matter of taste and depends on the downstream application. In our case, we need to avoid small contigs to avoid erroneous annotations of peaks to the closest gene. So we discard small contigs (current threshold: we keep only contigs with 5 genes or more).
+
 // singularity pull ubuntu:22.04
 
 // not sure how the annotation will work in chipseeker. Need to check manually. Maybe we need to remove more features. In this case this command will do it:
-// awk1 -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element") print $1}}' ${gff3} > ${gff3_filtered}
+// awk -v FS="\t" -v OFS="\t" -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element") print $1}}' ${gff3} > ${gff3_filtered}
 
 
 // awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' - | wc -l # 30
@@ -1404,6 +1396,7 @@ process filtering_annotation_file {
 // fly: 2110000*
 // human: GL000*, KI270*
 
+// source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
 
 process get_bed_files_of_annotated_regions {
 	tag "${specie}"
@@ -1413,7 +1406,7 @@ process get_bed_files_of_annotated_regions {
 	publishDir path: "${specie}/genome/annotation/bed_regions", mode: 'link'
 
 	input:
-		set specie, file(gff3), file(chr_size) from Annotation_for_bed_files
+		set specie, file(gff3), file(chr_size) from Gff3_annotation_for_bed_files
 
 	output:
 		file('*.bed')
@@ -1422,19 +1415,18 @@ process get_bed_files_of_annotated_regions {
 	'''
 	
 			gff3=!{gff3}
-			source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
-
-			# Get already defined regions: exons, genes
-			awk1 '{if ($3 == "exon") print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
-			awk1 '{if ($3 == "gene") print $1, $4-1, $5}' annotation_clean.gff3 > genes.bed
-
-			# Get chromosomes sizes
-			awk1 '{if ($3 == "region" || $3 == "chromosome" || $3 == "scaffold") {print $1, $5}}' ${gff3} | sort -k1,1 > chromosomes_sizes.txt
-			awk1 '{print $1, "0", $2}' chromosomes_sizes.txt | sort -k1,1 -k2,2n > chromosomes_sizes.bed
 
 			# Filter out predicted "biological regions" (= TSS, CpG islands, fosmids, ect and chromosomes), and sort the gff file
-			awk1 '{if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
+			awk -v FS="\t" -v OFS="\t" '{if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
 			gff2bed < annotation_clean.gff3 > annotation_clean.bed
+			
+			# Get already defined regions: exons, genes
+			awk -v FS="\t" -v OFS="\t" '{if ($3 == "exon") print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
+			awk -v FS="\t" -v OFS="\t" '{if ($3 == "gene") print $1, $4-1, $5}' annotation_clean.gff3 > genes.bed
+
+			# Get chromosomes sizes
+			awk -v FS="\t" -v OFS="\t" '{if ($3 == "region" || $3 == "chromosome" || $3 == "scaffold") {print $1, $5}}' ${gff3} | sort -k1,1 > chromosomes_sizes.txt
+			awk -v FS="\t" -v OFS="\t" '{print $1, "0", $2}' chromosomes_sizes.txt | sort -k1,1 -k2,2n > chromosomes_sizes.bed
 			
 			# Get intergenic regions
 			bedops --difference chromosomes_sizes.bed annotation_clean.bed > intergenic.bed
@@ -1443,9 +1435,9 @@ process get_bed_files_of_annotated_regions {
 			bedops --difference chromosomes_sizes.bed <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) > introns.bed
 			
 			# Get promoters
-			gff2bed < <(awk1 '($3 == "gene") {print}' annotation_clean.gff3) > genes_detailed.bed
-			awk1 '($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes_detailed.bed | bedops --range -1500:500 --everything - > promoters_forward.bed
-			awk1 '($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes_detailed.bed | bedops --range -1500:500 --everything - > promoters_reverse.bed
+			gff2bed < <(awk -v FS="\t" -v OFS="\t" '($3 == "gene") {print}' annotation_clean.gff3) > genes_detailed.bed
+			awk -v FS="\t" -v OFS="\t" '($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes_detailed.bed | bedops --range -1500:500 --everything - > promoters_forward.bed
+			awk -v FS="\t" -v OFS="\t" '($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes_detailed.bed | bedops --range -1500:500 --everything - > promoters_reverse.bed
 			bedops --everything promoters_forward.bed promoters_reverse.bed | cut -f1-3 > promoters.bed
 			
 			rm genes_detailed.bed promoters_forward.bed promoters_reverse.bed annotation_clean.bed chromosomes_sizes.bed
@@ -1456,7 +1448,7 @@ process get_bed_files_of_annotated_regions {
 
 // Not needed finally?
 // # Filter out predicted "biological regions" (= TSS, CpG islands and chromosomes),  and sort the gff file
-// awk1 '{if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
+// awk -v FS="\t" -v OFS="\t" '{if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
 // gff2bed < annotation_clean.gff3 > annotation_clean.bed
 
 
