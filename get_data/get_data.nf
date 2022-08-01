@@ -1305,7 +1305,6 @@ process getting_transcriptome {
 
   output:
 		set specie, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
-		file("*.txt")
 		
   shell:
   '''
@@ -1324,16 +1323,13 @@ process filtering_annotation_file {
 
 	container = params.ubuntu
 
-	publishDir path: "${specie}/genome", mode: 'link', saveAs:{
-		     if (it.indexOf(".txt") > 0) "annotation/${it}"
-		else if (it.indexOf(".fa") > 0) "genome/${it}"
-		} 
+	publishDir path: "${specie}/genome/annotation", mode: 'link'
 		
   input:
     set specie, file(gff3) from Gff3_annotation_for_filtering
 
   output:
-		set specie, file(gff3), file('protein_coding_genes.gff3'), file('annotation_fitered_regions_and_pseudogenes.gff3'), file('chromosomes_sizes.txt') into GFF3_filtered_for_R
+		set specie, file('chromosomes_sizes.txt'), file(gff3), file('protein_coding_genes.gff3'), file('annotation_filtered_regions_and_pseudogenes.gff3'), file('chromosomes_sizes.txt') into GFF3_filtered_for_R
     set specie, file(gff3), file('chromosomes_sizes.txt') into Annotation_for_bed_files
 		file("*.txt")
 		
@@ -1341,12 +1337,23 @@ process filtering_annotation_file {
   '''
 			
 			gff3=!{gff3}
-		
-			gff3_filtered=annotation_fitered_regions_and_pseudogenes.gff3
-
+			source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
+			
+			tab=$(get_tab)
+			awk1 () { \
+				awk -v OFS="$tab" -v FS="$tab" $1 $2 \
+			}
+			
+			awk1 () { awk -v OFS="$tab" -v FS="$tab" $1 $2 ; }
+			
 			alias awk1='awk -v FS="\t" -v OFS="\t"'
 			alias awk2='awk -v OFS="\t"'
 			
+			awk1 '{if($3 == "gene"){print $1}}'  ${gff3} | head
+			
+			awk2 () { awk -v OFS="$tab" $1 $2 ; }
+			gff3_filtered=annotation_filtered_regions_and_pseudogenes.gff3
+
 			# savings statistics on the unfiltered annotation file
 			cut -f1 ${gff3} | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region__raw_gff3_file.txt
 			awk1 '{if($3 == "gene"){print $1}}' ${gff3} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__raw_gff3_file.txt 
@@ -1415,7 +1422,7 @@ process get_bed_files_of_annotated_regions {
 	'''
 	
 			gff3=!{gff3}
-			alias awk1='awk -v FS="\t" -v OFS="\t"'
+			source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
 
 			# Get already defined regions: exons, genes
 			awk1 '{if ($3 == "exon") print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
@@ -1623,7 +1630,7 @@ process getting_orgdb {
 
   container = params.annotationhub
 
-  publishDir path: "${specie}/genome/annotation", mode: 'link'
+  publishDir path: "${specie}/genome/annotation/R", mode: 'link'
 
   input:
 		set specie, specie_long from Assembly_Ensembl_1.orgdb
@@ -1665,10 +1672,10 @@ process getting_R_annotation_files {
 
   container = params.bioconductor
 
-  publishDir path: "${specie}/genome/annotation", mode: 'link'
+  publishDir path: "${specie}/genome/annotation/R", mode: 'link'
 
   input:
-		set specie, specie_long, orgdb, file(chr_size), file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from GFF3_filtered_for_R_1
+		set specie, specie_long, orgdb, file(chr_size), file(gff3_raw), file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from GFF3_filtered_for_R_1
 
   output:
     file('*')
@@ -1682,6 +1689,7 @@ process getting_R_annotation_files {
 		library(AnnotationDbi)
 
 		source('!{params.cactus_dir}/software/bin/export_df_to_bed.R')
+		gff3_raw = '!{gff3_raw}'
 		gff3_genes_only = '!{gff3_genes_only}'
 		gff3_without_pseudogenes_and_ncRNA = '!{gff3_without_pseudogenes_and_ncRNA}'
 		specie = '!{specie}'
@@ -1697,7 +1705,7 @@ process getting_R_annotation_files {
 		anno_df$entrez_id = entrez_id
 		anno_df$chr = as.character(anno_df$seqid)
 		anno_df %<>% dplyr::select(chr, start, end, width, strand, gene_name, gene_id, entrez_id)
-		saveRDS(anno_df, 'df_genes_metadata.rds', version = 2)
+		saveRDS(anno_df, 'df_genes_metadata.rds')
 
 		# create the seqinfo object
 		nr = nrow(df_chr_size)
@@ -1706,11 +1714,12 @@ process getting_R_annotation_files {
 
 		# export txdb
 		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_without_pseudogenes_and_ncRNA, chrominfo = seqinfo)
-		AnnotationDbi::saveDb(txdb, file="txdb_without_pseudogenes_and_ncRNA.sqlite")
-
-		# export gene vs transcripts 
-		df_genes_transcripts = select(txdb, keys = keys(txdb), columns = c('GENEID', 'TXNAME'), keytype = 'GENEID')
-		saveRDS(df_genes_transcripts, 'df_genes_transcripts.rds', version = 2)
+		AnnotationDbi::saveDb(txdb, file="txdb.sqlite")
+		
+		# export gene vs transcripts
+		txdb1 = GenomicFeatures::makeTxDbFromGFF(gff3_raw)
+		df_genes_transcripts = select(txdb1, keys = keys(txdb1), columns = c('GENEID', 'TXNAME', 'TXCHROM'), keytype = 'GENEID')
+		saveRDS(df_genes_transcripts, 'df_genes_transcripts.rds')
 
 		# extract promoters
 		promoters = GenomicFeatures::promoters(GenomicFeatures::genes(txdb), upstream = 1500, downstream = 500)
@@ -1724,7 +1733,7 @@ process getting_R_annotation_files {
 		promoters_df %<>% dplyr::inner_join(anno_df %>% dplyr::select(gene_id, gene_name, entrez_id), by = 'gene_id')
 		promoters_df %<>% dplyr::arrange(seqnames, start)
 		promoters_df %<>% dplyr::rename(chr = seqnames)
-		saveRDS(promoters_df, file = 'promoters_df.rds', version = 2)
+		saveRDS(promoters_df, file = 'promoters_df.rds')
 
 		# export promoters as bed file
 		promoters_df1 = promoters_df
