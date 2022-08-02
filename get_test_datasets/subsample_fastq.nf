@@ -1,8 +1,10 @@
 
 
 thousand_reads = 100
-random_seed = 38
-indir = params.indir
+random_seed    = 38
+
+indir          = params.indir
+thousand_reads = params.thousand_reads
 
 nextflow.enable.dsl = 1
 

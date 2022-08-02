@@ -332,7 +332,7 @@ process ATAC__trimming_adaptors {
     set id, file(read1), file(read2) from ATAC_reads_for_trimming2
 
   output:
-    set id, file("*R1*_trim.fastq.gz"), file("*R2*_trim.fastq.gz") into Trimmed_ATAC_reads_for_fastqc, Trimmed_reads_for_alignment, Trimmed_reads_for_subsampling
+    set id, file("*_R1_trim.fastq.gz"), file("*_R2_trim.fastq.gz") into Trimmed_ATAC_reads_for_fastqc, Trimmed_reads_for_alignment, Trimmed_reads_for_subsampling
     file("*.log")
 
   shell:
@@ -344,8 +344,8 @@ process ATAC__trimming_adaptors {
       id=!{id}
       Nb_of_threads=!{params.nb_threads}
       
-      R1TRIM=$(basename ${R1} .fastq.gz)_trim.fastq
-      R2TRIM=$(basename ${R2} .fastq.gz)_trim.fastq
+      R1TRIM=$(basename ${R1} .fastq.gz)_R1_trim.fastq
+      R2TRIM=$(basename ${R2} .fastq.gz)_R2_trim.fastq
       
       skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} -o !{id} > trimer_verbose.txt
       mv !{id}-trimmed.log ${id}_skewer_trimming.log
@@ -699,8 +699,8 @@ process ATAC__removing_reads_in_mitochondria_and_contigs {
       regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
 
       samtools view -Sb ${bam} $regions_to_keep | tee ${id}_no_mito.bam | samtools view - | awk '{print $3}' OFS='\t' | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
-      
-      
+
+
     '''
 
 }
@@ -1176,14 +1176,14 @@ process ATAC__reads_stat_1_features_enrichment {
 
   shell:
   '''
-    
+
     id=!{id}
     bam=!{bam}
     BED_PATH=!{params.bed_regions}
-  
+
     getTotalReadsMappedToBedFile () { bedtools coverage -a $1 -b $2 | cut -f 4 | awk '{ sum+=$1} END {print sum}' ;}
-    
-    
+
+
 
     PROMOTER=`getTotalReadsMappedToBedFile $BED_PATH/promoters.bed ${bam}`
     EXONS=`getTotalReadsMappedToBedFile $BED_PATH/exons.bed ${bam}`
@@ -1912,7 +1912,7 @@ process ATAC__differential_abundance_analysis {
 
         saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
 
-        
+
         ##### Exporting all peaks as a data frame
 
         # extracting all peaks (note: th is the fdr threshold, so with th = 1 we keep all peaks)
@@ -2081,7 +2081,7 @@ process ATAC__differential_abundance_analysis {
 // df_tmp = data.frame(dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_TMM_READS_FULL_CPM))
 // data.frame(df_tmp)[, 6:ncol(df_tmp)]
 // which(apply(data.frame(df_tmp)[, 6:ncol(df_tmp)], 1, function(x) all(x == 0)))
- 
+
 // here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
 
 // # cur_greylist <- dba.blacklist(dbo, Retrieve=DBA_GREYLIST)
@@ -2279,7 +2279,7 @@ process ATAC__annotating_all_peaks {
       anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
       ROWNAMES(anno_peak_cs)
       anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene', overlap = 'all')
-      
+
 
       # creating data frame
       anno_peak_gr = anno_peak_cs@anno
@@ -2661,7 +2661,7 @@ process plotting_differential_accessibility_results {
   publishDir path: "${out_processed}/${out_path}", mode: "${pub_mode}", saveAs: {
         if (it.indexOf("__ATAC_non_annotated_peaks.txt") > 0) "ATAC__non_annotated_peaks/${it}"
       }
-  
+
 
   input:
     val out_path from Channel.value('2_Differential_Abundance')
@@ -2719,7 +2719,7 @@ process plotting_differential_accessibility_results {
       sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
         print(dbo$peaks[[1]][sel,])
       sink()
-      
+
       # doing and plotting the PCA
       prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), cor = F, bLog = T)$pc
       rownames(prcomp1$x) = v_gene_names
@@ -3538,7 +3538,7 @@ Channel
   .map{ [it[0] ] }
   // .view{ "CHIP ontology: $it" }
   .set{ chip_files_to_keep }
-  
+
 // Chrom_states_channel
 //   .view{ "Chromatin state: $it" }
 
@@ -4026,7 +4026,7 @@ process plot_enrichment_heatmap {
     rds_files = list.files(pattern = '*.rds')
     ldf = lapply(rds_files, readRDS)
     df = do.call(rbind, ldf)
-    
+
     # filtering table
     if(data_type %in% c('genes_self', 'peaks_self')){
       key1 = paste(df[1, c('ET', 'PF', 'FDR')], collapse = '__')

@@ -128,7 +128,7 @@ rename -v 's/_1.fastq.gz/_R1.fastq.gz/' ${prepro_dir}/fastq/*
 rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 
 # subsampling reads
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 100 -resume
 
 # moving data to appropriate folders
 mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
@@ -212,7 +212,7 @@ rename -v 's/_1.fastq.gz/_R1.fastq.gz/' ${prepro_dir}/fastq/*
 rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 
 # subsampling reads
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 100 -resume
 
 # moving data to appropriate folders
 mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
@@ -293,10 +293,11 @@ rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 ls ${prepro_dir}/fastq
 
 # subsampling reads
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 100 -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 200 -resume
 
 # moving data to appropriate folders
-mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
+mv ${prepro_dir}/fastq_200K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
 mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
 
 # adding the sample_id column (to edit manually)
@@ -311,6 +312,7 @@ awk 'BEGIN {OFS = "\t"} { \
 
 # making the fastq_info file
 make_fastq_info_file ${prepro_dir}
+sed -i -e 's/_100K_reads_atac/_200K_reads_atac/g' ${prepro_dir}/samplesheet/fastq_info.tsv
 cat ${prepro_dir}/samplesheet/fastq_info.tsv
 
 # making the fastq design files
@@ -368,7 +370,7 @@ rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 ls ${prepro_dir}/fastq
 
 # subsampling reads
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq  --thousand_reads 100 -resume
 
 # moving data to appropriate folders
 mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
