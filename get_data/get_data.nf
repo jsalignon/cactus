@@ -38,7 +38,7 @@ Assembly_Ensembl = Channel
 		// specie    scientific_name            name           type            Release
 			['worm',  'caenorhabditis_elegans',  'WBcel235', 'toplevel',         '107' ],
 			['fly',   'drosophila_melanogaster', 'BDGP6.32', 'toplevel',         '107' ],
-			['mouse', 'mus_musculus',            'GRCm38',   'primary_assembly', '102' ],
+			['mouse', 'mus_musculus',            'GRCm39',   'primary_assembly', '107' ],
 			['human', 'homo_sapiens',            'GRCh38',   'primary_assembly', '107' ]
 		]
 	)
@@ -66,7 +66,7 @@ Assembly_nickname = Channel
 		[
 			['worm',  'ce11', 'WBcel235',],
 			['fly',   'dm6',  'BDGP6',],
-			['mouse', 'mm10', 'GRCm38',  ],
+			['mouse', 'mm11', 'GRCm39',  ],
 			['human', 'hg38', 'GRCh38',  ]
 		]
 	)
@@ -79,13 +79,16 @@ Assembly_nickname = Channel
 Assembly_ENCODE = Channel
 	.from( 	
 		[  
-			['worm',   'ce11' ],
-			['fly',    'dm6' ],
-			['mouse',  'mm10' ],
-			['human',  'GRCh38' ]
+	//  assembly:  encode     target
+			['worm',   'ce11',   'ce11' ],
+			['fly',    'dm6',    'dm6' ],
+			['mouse',  'mm10',   'mm11' ],
+			['human',  'GRCh38', 'GRCh38' ]
 		]
 	)
-	.into{ Assembly_ENCODE_chip ; Assembly_ENCODE_chromatin_state }
+	.tap{ Encode_Assembly_for_CHIP }
+	.filter{ it[0] in ['human', 'mouse']}
+	.set{ Encode_Assembly_for_chromatin_state }
 
 
 
@@ -382,11 +385,11 @@ process get_chip_metadata {
 	container = params.encodeexplorer
 
 	input:
-		set specie, assembly from Assembly_ENCODE_chip
+		set specie, encode_assembly, target_assembly from Encode_Assembly_for_CHIP
 
 	output:
 		set specie, file("dt_encode_chip.rds") into Encode_chip_metadata		
-		set specie, file("*__split_dt.rds") into Encode_chip_split_dt mode flatten
+		set specie, encode_assembly, target_assembly, file("*__split_dt.rds") into Encode_chip_split_dt mode flatten
 		
 
 	shell:
@@ -395,7 +398,7 @@ process get_chip_metadata {
 		#!/usr/bin/env Rscript
 		
 		source('!{params.cactus_dir}/software/get_data/bin/encode_chip_functions.R')
-		assembly = '!{assembly}'
+		assembly = '!{encode_assembly}'
 		
 		library(data.table)
 		library(magrittr)
@@ -656,13 +659,13 @@ tag "${specie}"
 
 container = params.encodeexplorer
 
-publishDir path: "${specie}/CHIP", mode: 'link'
+publishDir path: "${specie}/CHIP", mode: 'link', enabled = encode_assembly == target_assembly
 
 input:
-	set specie, file(dt_rds) from Encode_chip_split_dt
+	set specie, encode_assembly, target_assembly, file(dt_rds) from Encode_chip_split_dt
 	
 output:
-	file("*.bed")
+	set specie, 'CHIP', encode_assembly, target_assembly, file("*.bed") into Encode_chip_bed
 
 shell:
 '''
@@ -683,10 +686,6 @@ shell:
 }
 
 
-Assembly_ENCODE_chromatin_state
-	.filter{ specie, assembly -> specie in ['human', 'mouse']}
-	.set{ Assembly_ENCODE_chromatin_state_1 }
-
 
 process get_encode_chromatin_state_metadata {
 	tag "${specie}"
@@ -696,10 +695,10 @@ process get_encode_chromatin_state_metadata {
 	publishDir path: "${specie}", mode: 'link', pattern: "*.csv"
 
 	input:
-		set specie, assembly from Assembly_ENCODE_chromatin_state_1
+		set specie, encode_assembly, target_assembly from Encode_Assembly_for_chromatin_state
 
 	output:
-		set specie, assembly, file("*.rds") into Encode_chromatin_state_split_dt mode flatten
+		set specie, encode_assembly, target_assembly, file("*.rds") into Encode_chromatin_state_split_dt mode flatten
 		file('encode_chromatin_states.csv')
 
 	shell:
@@ -816,49 +815,35 @@ process get_encode_chromatin_state_data {
 
 	container = params.encodeexplorer
 
-	publishDir path: "${specie}/chromatin_states", mode: 'link'
+	publishDir path: "${specie}/chromatin_states", mode: 'link', enabled = encode_assembly == target_assembly
 
 	input:
-		set specie, assembly, file(dt_rds) from Encode_chromatin_state_split_dt
+		set specie, encode_assembly, target_assembly file(dt_rds) from Encode_chromatin_state_split_dt
 
 	output:
-		file("*")
-		set specie, assembly, file("*.bed") into Encode_bed_for_liftover
+		set specie, 'chromatin_states', encode_assembly, target_assembly, file("*bed") into Encode_chromatin_state_bed
 
 	shell:
-	'''
+		'''
+			#!/usr/bin/env Rscript
+			
+			library(magrittr)
+			library(data.table)
+			dt = readRDS('!{dt_rds}')
+			source('!{params.cactus_dir}/software/get_data/bin/get_tab.R')
+			
+			# downloading the bed file
+			url_encode = 'https://www.encodeproject.org'
+			local_file = dt$local_file
+			download.file(url = paste0(url_encode, dt$href), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
+			md5sum_downloaded_files = tools::md5sum(local_file)
+			if(dt$md5sum != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
+			system(paste('gunzip', local_file))
+			
+		'''
+	}
+	
 
-		#!/usr/bin/env Rscript
-		
-		library(magrittr)
-		library(data.table)
-		dt = readRDS('!{dt_rds}')
-		source('!{params.cactus_dir}/software/get_data/bin/get_tab.R')
-		
-		# downloading the bed file
-		url_encode = 'https://www.encodeproject.org'
-		local_file = dt$local_file
-		download.file(url = paste0(url_encode, dt$href), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
-		md5sum_downloaded_files = tools::md5sum(local_file)
-		if(dt$md5sum != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
-		system(paste('gunzip', local_file))
-		
-		
-		# splitting each state in a separate file
-		accession = dt$accession
-		bed_file = paste0(accession, '.bed')
-		df = read.table(bed_file, sep = get_tab(), stringsAsFactors = F)
-		dir.create(accession)
-		df$V4 %<>% gsub('/', '_', .)
-		
-		v_states = sort(unique(df[,4]))
-		for(state in v_states){
-			df1 = df[df$V4 == state, ]
-			write.table(df1, paste0(accession, '/', state, '.bed'), col.names = F, row.names = F, quote = F, sep = get_tab())
-		}
-		
-	'''
-}
 
 
 
@@ -915,45 +900,91 @@ process get_liftover_files {
 // ls -sh util/liftover_files
 
 
-Encode_bed_for_liftover
-	.join(liftover_files, by:[0,1])
-	.view()
+Encode_chromatin_state_bed
+	.mix(Encode_chip_bed)
+	.filter{ specie, out_folder, encode_assembly, target_assembly, bed_file -> encode_assembly != target_assembly }
+	.dump(tag:'liftover') {"Liftover: ${it}"}
+	.join(liftover_files, by:[0,1,2])
+	.set{ bed_files_for_liftover }
+	
 
 
-// process convert_bed_coordinates_to_latest_assembly {
-// 	tag "${specie}/${out_folder}"
-// 
-// 	publishDir path: "${specie}/{out_folder}", mode: 'link'
-// 
-// 	container = params.liftover
-// 
-// 	input:
-// 		set specie, out_folder, original_assembly, target_assembly, file(bed_file) from channel_xx
-// 
-// 	output:
-// 		file("*")
-// 
-// 	shell:
-// 	'''
-// 
-// 			original_assembly="!{original_assembly}"
-// 			liftover_name="!{liftover_name}"
-// 			bed_name="!{bed_name}"
-// 			bed_file="!{bed_file}"
-// 
-// 			liftover_file="${liftover_name}.over.chain.gz"
-// 			bed_file_lifted="${bed_name}_lifted.bed"
-// 
-// 			liftover_path="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
-// 			wget $liftover_path/$liftover_file
-// 			liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed
-// 			mkdir $bed_name
-// 			awk  -v FOLDER="$bed_name" ' { print > FOLDER"/"$4".bed" }' $bed_file_lifted
-// 
-// 			rm $bed_name/17_Unmap.bed
-// 
-// 	'''
-// }
+
+process convert_bed_coordinates_to_latest_assembly {
+	tag "${specie}/${out_folder}"
+
+	publishDir path: "${specie}/{out_folder}", mode: 'link', enabled: out_folder == 'CHIP'
+
+	container = params.liftover
+
+	input:
+		set specie, out_folder, original_assembly, target_assembly, file(bed_file), file(liftover_file) from bed_files_for_liftover
+
+	output:
+		set species, out_folder, file("*.bed") into Bed_files_for_splitting_chromatin_states
+
+	shell:
+	'''
+
+			liftover_file="!{liftover_file}"
+			bed_file="!{bed_file}"
+
+			liftOver $bed_file  $liftover_file tmp.bed unmapped.bed
+			mkdir thrash
+			mv unmapped.bed $bed_file thrash
+			mv tmp.bed $bed_file
+
+	'''
+}
+
+Bed_files_for_splitting_chromatin_states
+	.filter{ it[1] == 'chromatin_states'}
+	.set{ Bed_files_for_splitting_chromatin_states_1 }
+
+
+
+
+process splitting_encode_chromatin_state_data {
+	tag "${specie}, ${bed_file}"
+
+	container = params.encodeexplorer
+
+	publishDir path: "${specie}/chromatin_states", mode: 'link', enabled = encode_assembly == target_assembly
+
+	input:
+		set species, out_folder, file(bed_file) from Bed_files_for_splitting_chromatin_states
+
+	output:
+		file("*")
+
+	shell:
+	'''
+
+		#!/usr/bin/env Rscript
+
+		library(magrittr)
+		library(data.table)
+		dt = readRDS('!{dt_rds}')
+		source('!{params.cactus_dir}/software/get_data/bin/get_tab.R')
+
+		# splitting each state in a separate file
+		accession = gsub('.bed', '', bed_file)
+		df = read.table(bed_file, sep = get_tab(), stringsAsFactors = F)
+		dir.create(accession)
+		df$V4 %<>% gsub('/', '_', .)
+
+		v_states = sort(unique(df[,4]))
+		for(state in v_states){
+			df1 = df[df$V4 == state, ]
+			write.table(df1, paste0(accession, '/', state, '.bed'), col.names = F, row.names = F, quote = F, sep = get_tab())
+		}
+
+
+	'''
+}
+
+
+
 
 
 
@@ -1363,7 +1394,6 @@ process filtering_annotation_file {
 			grep -i protein_coding ${gff3_filtered} | awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene") print $0}' - > protein_coding_genes.gff3
 			
 			
-			
   '''
 
 }
@@ -1406,7 +1436,7 @@ process get_bed_files_of_annotated_regions {
 	publishDir path: "${specie}/genome/annotation/bed_regions", mode: 'link'
 
 	input:
-		set specie, file(gff3), file(chr_size) from Gff3_annotation_for_bed_files
+		set specie, file(gff3) from Gff3_annotation_for_bed_files
 
 	output:
 		file('*.bed')
@@ -1416,8 +1446,8 @@ process get_bed_files_of_annotated_regions {
 	
 			gff3=!{gff3}
 
-			# Filter out predicted "biological regions" (= TSS, CpG islands, fosmids, ect and chromosomes), and sort the gff file
-			awk -v FS="\t" -v OFS="\t" '{if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
+			# generating a gff3 file without chromosomes 
+			awk -v FS="\t" -v OFS="\t" '{if (substr($1, 1, 1) != "#" && $3 != "chromosome" && $3 != "scaffold" && $3 != "region" && $3 != "biological_region") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
 			gff2bed < annotation_clean.gff3 > annotation_clean.bed
 			
 			# Get already defined regions: exons, genes
@@ -1425,7 +1455,7 @@ process get_bed_files_of_annotated_regions {
 			awk -v FS="\t" -v OFS="\t" '{if ($3 == "gene") print $1, $4-1, $5}' annotation_clean.gff3 > genes.bed
 
 			# Get chromosomes sizes
-			awk -v FS="\t" -v OFS="\t" '{if ($3 == "region" || $3 == "chromosome" || $3 == "scaffold") {print $1, $5}}' ${gff3} | sort -k1,1 > chromosomes_sizes.txt
+			awk -v FS="\t" -v OFS="\t" '{if ($3 == "chromosome" || $3 == "scaffold" || $3 == "region") {print $1, $5}}' ${gff3} | sort -k1,1 > chromosomes_sizes.txt
 			awk -v FS="\t" -v OFS="\t" '{print $1, "0", $2}' chromosomes_sizes.txt | sort -k1,1 -k2,2n > chromosomes_sizes.bed
 			
 			# Get intergenic regions
@@ -1440,11 +1470,16 @@ process get_bed_files_of_annotated_regions {
 			awk -v FS="\t" -v OFS="\t" '($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes_detailed.bed | bedops --range -1500:500 --everything - > promoters_reverse.bed
 			bedops --everything promoters_forward.bed promoters_reverse.bed | cut -f1-3 > promoters.bed
 			
+			# deleting intermediate files
 			rm genes_detailed.bed promoters_forward.bed promoters_reverse.bed annotation_clean.bed chromosomes_sizes.bed
 		
 	'''
 }
 
+
+// # generating a gff3 file without chromosomes => (so as to make the complement of chromosome size to get intergenic regions). "Biological regions" are also removed (= Predicted TSS, CpG islands, fosmids) since they are not really true features
+
+// ongoing: check why intergenic has nothing in worm
 
 // Not needed finally?
 // # Filter out predicted "biological regions" (= TSS, CpG islands and chromosomes),  and sort the gff file

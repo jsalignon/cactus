@@ -697,10 +697,9 @@ process ATAC__removing_reads_in_mitochondria_and_contigs {
       samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c > "${id}_reads_per_chrm_before_removal.txt"
 
       regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
-      samtools view  ${bam} $regions_to_keep | awk '{print $3}' OFS='\t' - | sort | uniq -c
-      samtools view  ${bam} | awk '{print $3}' OFS='\t' - | sort | uniq -c
-      
+
       samtools view -Sb ${bam} $regions_to_keep | tee ${id}_no_mito.bam | samtools view - | awk '{print $3}' OFS='\t' | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+      
       
     '''
 
@@ -713,6 +712,13 @@ process ATAC__removing_reads_in_mitochondria_and_contigs {
 // chromosomes_sizes=~/workspace/cactus/data/fly/genome/annotation/filtered/chromosomes_sizes.txt
 
 // cut -f1 $chromosomes_sizes
+
+// samtools view  ${bam} $regions_to_keep | awk '{print $3}' OFS='\t' - | sort | uniq -c
+// samtools view  ${bam} | awk '{print $3}' OFS='\t' - | sort | uniq -c
+
+// samtools view  hmg4_2_no_mito.bam | awk '{print $3}' OFS='\t' - | sort | uniq -c
+// samtools view  hmg4_2_no_mito.bam | head
+
 
 
 process ATAC__plot_insert_size_distribution {
@@ -2271,12 +2277,13 @@ process ATAC__annotating_all_peaks {
 
       # annotating peaks
       anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
+      ROWNAMES(anno_peak_cs)
+      anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene', overlap = 'all')
+      
 
       # creating data frame
       anno_peak_gr = anno_peak_cs@anno
       df = as.data.frame(anno_peak_gr)
-      df %<>% dplyr::rename(gene_id = geneId)
-      df %<>% dplyr::inner_join(df_genes_metadata[, c('gene_id', 'gene_name')], by = 'gene_id')
       anno_peak_df = cbind(peak_id = rownames(df), df, anno_peak_cs@detailGenomicAnnotation)
       anno_peak_df$peak_id %<>% as.character %>% as.integer
 
@@ -2588,7 +2595,8 @@ process plotting_differential_gene_expression_results {
 
       res_volcano <- sleuth_results(sleo, test_cond)
       res_volcano %<>% dplyr::rename(gene_id = target_id, L2FC = b)
-      res_volcano %<>% dplyr::inner_join(df_genes_metadata[, c('gene_id', 'gene_name')], by = 'gene_id')
+      df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
+      res_volcano %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
       res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
 
       pdf(paste0(COMP, '__mRNA_volcano.pdf'))
@@ -2601,7 +2609,7 @@ process plotting_differential_gene_expression_results {
       # the pca is computed using the default parameters in the sleuth functions sleuth::plot_pca
       mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 'scaled_reads_per_base')
       prcomp1 <- prcomp(mat)
-      v_gene_id_name = df_genes_metadata$gene_name %>% setNames(., df_genes_metadata$gene_id)
+      v_gene_id_name = df_genes_metadata_1$gene_name %>% setNames(., df_genes_metadata_1$gene_id)
       rownames(prcomp1$x) %<>% v_gene_id_name[.]
 
       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
@@ -2650,6 +2658,10 @@ process plotting_differential_accessibility_results {
          else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
          else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
   }
+  publishDir path: "${out_processed}/${out_path}", mode: "${pub_mode}", saveAs: {
+        if (it.indexOf("__ATAC_non_annotated_peaks.txt") > 0) "ATAC__non_annotated_peaks/${it}"
+      }
+  
 
   input:
     val out_path from Channel.value('2_Differential_Abundance')
@@ -2660,6 +2672,7 @@ process plotting_differential_accessibility_results {
     set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') into ATAC_PCA_1_2_for_merging_pdfs
     set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') into ATAC_PCA_3_4_for_merging_pdfs
     set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') into ATAC_Other_plot_for_merging_pdfs
+    file("*__ATAC_non_annotated_peaks.txt")
 
   shell:
   '''
@@ -2688,7 +2701,9 @@ process plotting_differential_accessibility_results {
 
       ##### volcano plots
 
-      res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold)
+      res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_id = geneId)
+      df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
+      res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
 
       pdf(paste0(COMP, '__ATAC_volcano.pdf'))
         plot_volcano_custom(res, sig_level = FDR_threshold, label_column = 'gene_name', title = paste(COMP, 'ATAC'))
@@ -2697,8 +2712,17 @@ process plotting_differential_accessibility_results {
 
       ##### PCA plots
 
+      # Handling unnanotated peaks
+      v_gene_names = res$gene_name[match(1:nrow(dbo$binding), res$peak_id)]
+      sel = which(is.na(v_gene_names))
+      v_gene_names[is.na(v_gene_names)] = paste0('no_gene_', 1:length(sel))
+      sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
+        print(dbo$peaks[[1]][sel,])
+      sink()
+      
+      # doing and plotting the PCA
       prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), cor = F, bLog = T)$pc
-      rownames(prcomp1$x) = res %>% dplyr::arrange(peak_id) %>% .$gene_name
+      rownames(prcomp1$x) = v_gene_names
 
       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
       lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
@@ -2730,6 +2754,10 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Volcano_for_merging_pdfs.grou
 Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
 Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
 Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+// DiffBind__pv_pcmask__custom was adapted from DiffBind::pv.pcmask. This little hacking is necessary because DiffBind functions plots PCA but do not return the object.
+// alternatively, the PCA could be made from scratch as done here: https://support.bioconductor.org/p/76346/
+
 
 
 
