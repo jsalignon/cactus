@@ -293,8 +293,8 @@ rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 ls ${prepro_dir}/fastq
 
 # subsampling reads
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 100 -resume
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 200 -resume
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 400 --experiment atac
+nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 100 --experiment mrna
 
 # moving data to appropriate folders
 mv ${prepro_dir}/fastq_200K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
