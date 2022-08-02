@@ -59,6 +59,7 @@ Assembly_Ensembl = Channel
 
 //// A note on the mouse genome:
 // ENCODE (chip and chromatin states) and blacklisted regions are not available yet fo mm11/GRCm39. Therefore, we need to stick with release 102, which is the latest release for mm10/GRCm38. I could eventually use liftover files in the future to remedy this issue, or just wait for the correct assembly files to be released.
+// Note: I made the code to do that however, it failed because of Homer data. 
 
 
 Assembly_nickname = Channel
@@ -151,6 +152,67 @@ process get_homer_data {
 	'''
 }
 
+// singularity shell -B /home/jersal/workspace/cactus -B "$PWD" --containall --cleanenv --home $PWD --workdir /home/jersal/workspace/cactus/tmp              /home/jersal/workspace/singularity_containers/depot.galaxyproject.org-singularity--homer-4.9.1--pl5.22.0_5.img
+// 
+// cat /usr/local/share/homer-4.9.1-5/update/ucsc.txt
+// echo -e "mm39\tmouse\tv5.9" > update_genome.txt
+// /usr/local/share/homer-4.9.1-5/update/updateUCSCGenomeAnnotations.pl update_genome.txt
+// 
+// fasta=/home/jersal/workspace/cactus/data/mouse/genome/sequence/genome.fa
+// gff3=/home/jersal/workspace/cactus/data/mouse/genome/annotation/annotation.gff3
+// /usr/local/share/homer-4.9.1-5/bin/loadGenome.pl -name mm39 -org mouse -fasta $fasta -gtf $gff3
+// perl /usr/local/share/homer-4.9.1-5/configureHomer.pl -list
+// perl /usr/local/share/homer-4.9.1-5/configureHomer.pl -install mm10
+// perl /usr/local/share/homer-4.9.1-5/configureHomer.pl -install human-o
+// 
+// perl /path-to-homer/configureHomer.pl -list
+// 
+// homer:4.11--pl5321h9f5acd7_7  
+// // singularity pull https://depot.galaxyproject.org/singularity/homer:4.11--pl5321h9f5acd7_7
+//  mv homer\:4.11--pl5321h9f5acd7_7 /home/jersal/workspace/singularity_containers/depot.galaxyproject.org-singularity--homer-4.11--pl5321h9f5acd7_7.img
+// 
+//  singularity shell -B /home/jersal/workspace/cactus -B "$PWD" --containall --cleanenv --home $PWD --workdir /home/jersal/workspace/cactus/tmp              /home/jersal/workspace/singularity_containers/depot.galaxyproject.org-singularity--homer-4.11--pl5321h9f5acd7_7.img
+// 
+//  cat /usr/local/share/homer/update/ucsc.txt
+//  echo -e "mm39\tmouse\tv5.9" > update_genome.txt
+//  /usr/local/share/homer/update/updateUCSCGenomeAnnotations.pl update_genome.txt
+// 
+//  fasta=/home/jersal/workspace/cactus/data/mouse/genome/sequence/genome.fa
+//  gff3=/home/jersal/workspace/cactus/data/mouse/genome/annotation/annotation.gff3
+//  /usr/local/share/homer/bin/loadGenome.pl -name mm39 -org mouse -fasta $fasta -gtf $gff3
+//  perl /usr/local/share/homer/configureHomer.pl -list | grep mouse
+//  perl /usr/local/share/homer/configureHomer.pl -install mouse-o
+//  perl /usr/local/share/homer/configureHomer.pl -install mm10
+//  perl /usr/local/share/homer/configureHomer.pl -install human-o
+// 
+// cd /usr/local/share/homer
+// 
+// /usr/local/share/homer/
+// 
+// cd /usr/local/share/homer/update/
+// ./updateUCSCGenomeAnnotations.pl ~/workspace/cactus/data/work/7c/33dcc98004829ed21ccf1a881ac02a/update_genome.txt
+// 
+// // cp -r /usr/local/share/homer/* . 
+// ./configureHomer.pl -install mouse-o
+// 
+// fasta=/home/jersal/workspace/cactus/data/mouse/genome/sequence/genome.fa
+// gff3=/home/jersal/workspace/cactus/data/mouse/genome/annotation/annotation.gff3
+// bin/loadGenome.pl -name mm39 -org mouse -fasta $fasta -gtf $gff3
+// 
+// updateUCSCGenomeAnnotations.pl
+// 
+// echo -e "mm39\tmouse\tv5.9" > update_genome.txt
+// ./update/updateUCSCGenomeAnnotations.pl update_genome.txt
+// 
+// 
+// // 2022-08-02 12:29:52 (493 KB/s) - ‘cpgIslandExt.txt.gz’ saved [366791/366791]
+// // Can't exec "./UCSC/makeRepeatGroups.pl": No such file or directory at ./updateUCSCGenomeAnnotations.pl line 320.
+// // cat: can't open 'mm39.raw.annotation': No such file or directory
+// 
+// fasta=/home/jersal/workspace/cactus/data/mouse/genome/sequence/genome.fa
+// gff3=/home/jersal/workspace/cactus/data/mouse/genome/annotation/annotation.gff3
+// cd bin
+// ./loadGenome.pl -name mm39 -org mouse -fasta $fasta -gtf $gff3
 
 
 process get_pwms {
@@ -381,6 +443,7 @@ process get_blacklisted_regions {
 
 
 process get_chip_metadata {
+	tag "${specie}"
 
 	container = params.encodeexplorer
 
@@ -655,11 +718,13 @@ process make_chip_ontology_groups {
 
 
 process get_chip_data {
-tag "${specie}"
+tag "${specie}/${dt_rds}"
 
 container = params.encodeexplorer
 
-publishDir path: "${specie}/CHIP", mode: 'link', enabled = encode_assembly == target_assembly
+// publishDir path: "${specie}/CHIP", mode: 'link', enabled: encode_assembly == target_assembly? true : false
+// publishDir path: "${specie}/CHIP", mode: 'link', enabled: "${encode_assembly}" == "${target_assembly}"? true : false
+publishDir path: "${specie}/CHIP", mode: 'link', saveAs: {encode_assembly == target_assembly? it : null}
 
 input:
 	set specie, encode_assembly, target_assembly, file(dt_rds) from Encode_chip_split_dt
@@ -707,7 +772,7 @@ process get_encode_chromatin_state_metadata {
 		#!/usr/bin/env Rscript
 		
 		source('!{params.cactus_dir}/software/get_data/bin/encode_chip_functions.R')
-		assembly = '!{assembly}'
+		assembly = '!{encode_assembly}'
 		
 		library(data.table)
 		library(magrittr)
@@ -815,10 +880,12 @@ process get_encode_chromatin_state_data {
 
 	container = params.encodeexplorer
 
-	publishDir path: "${specie}/chromatin_states", mode: 'link', enabled = encode_assembly == target_assembly
+	// publishDir path: "${specie}/chromatin_states", mode: 'link', enabled = encode_assembly == target_assembly
+	publishDir path: "${specie}/chromatin_states", mode: 'link', saveAs: {encode_assembly == target_assembly? it : null}
+	
 
 	input:
-		set specie, encode_assembly, target_assembly file(dt_rds) from Encode_chromatin_state_split_dt
+		set specie, encode_assembly, target_assembly, file(dt_rds) from Encode_chromatin_state_split_dt
 
 	output:
 		set specie, 'chromatin_states', encode_assembly, target_assembly, file("*bed") into Encode_chromatin_state_bed
@@ -913,7 +980,9 @@ Encode_chromatin_state_bed
 process convert_bed_coordinates_to_latest_assembly {
 	tag "${specie}/${out_folder}"
 
-	publishDir path: "${specie}/{out_folder}", mode: 'link', enabled: out_folder == 'CHIP'
+	// publishDir path: "${specie}/{out_folder}", mode: 'link', enabled: out_folder == 'CHIP'
+	publishDir path: "${specie}/{out_folder}", mode: 'link', saveAs: {out_folder == 'CHIP'? it : null}
+	
 
 	container = params.liftover
 
@@ -949,10 +1018,11 @@ process splitting_encode_chromatin_state_data {
 
 	container = params.encodeexplorer
 
-	publishDir path: "${specie}/chromatin_states", mode: 'link', enabled = encode_assembly == target_assembly
+	// publishDir path: "${specie}/chromatin_states", mode: 'link', enabled = encode_assembly == target_assembly
+	publishDir path: "${specie}/chromatin_states", mode: 'link', saveAs: {encode_assembly == target_assembly? it : null}
 
 	input:
-		set species, out_folder, file(bed_file) from Bed_files_for_splitting_chromatin_states
+		set species, out_folder, file(bed_file) from Bed_files_for_splitting_chromatin_states_1
 
 	output:
 		file("*")
