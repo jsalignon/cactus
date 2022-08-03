@@ -41,8 +41,15 @@ make_samples_info_file (){
   cut -d"," -f5,6,15,17,20,28 ${1}/samplesheet/samplesheet.csv | sed 's/\"//g' | sed 's/ /_/g' | awk 'BEGIN { FS = ","; OFS = "\t"} {print $2, $1, $3, $4, $5, $6}'| column -t > ${1}/samplesheet/samples_info.tsv
 }
 
-# $1 = ${prepro_dir}   => cat ${prepro_dir}/samplesheet/samples_info.csv 
 make_fastq_info_file (){
+  specie=$1
+  n_reads_atac=$2
+  n_reads_mrna=$3
+  
+  prepro_dir="preprocessing/${specie}"
+  design_dir="${specie}/design"
+  fastq_info_file="${prepro_dir}/samplesheet/fastq_info.tsv"
+  
   awk 'BEGIN {OFS=""} { \
     library_strategy = tolower($5) ; \
     gsub(/-seq/, "", library_strategy) ; \
@@ -51,9 +58,17 @@ make_fastq_info_file (){
     gsub(/SINGLE/, "", library_layout) ; \
     gsub(/PAIRED/, "_R1", library_layout) ; \
     if (NR != 1) print $7, " data/", library_strategy, "/sample_100K_reads_", library_strategy, "_", $1, "_", $2, library_layout, ".fastq.gz" \
-  }' ${1}/samplesheet/samples_info_1.tsv > ${1}/samplesheet/fastq_info.tsv
+  }' ${prepro_dir}/samplesheet/samples_info_1.tsv > ${fastq_info_file}
+  
+  sed -i -e "s/_100K_reads_atac/_${n_reads_atac}K_reads_atac/g" ${fastq_info_file}
+  sed -i -e "s/_100K_reads_mrna/_${n_reads_mrna}K_reads_mrna/g" ${fastq_info_file}
+  
+  grep atac ${fastq_info_file} > "${design_dir}/atac_fastq.tsv"
+  grep mrna ${fastq_info_file} > "${design_dir}/mrna_fastq.tsv"
+
 }
 
+# note : in awk, $7 corresponds to the sample_id column that indicate the sample name used throughout the pipeline, and that is made manually
 
 
 
@@ -115,24 +130,24 @@ cat $specie/conf/run.config
 
 
 # downloading our fastq samples of interest and subsampling them
-nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 --force_sratools_download 
+nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 
+# --force_sratools_download # => using this options results in files of the format "SRR7101009_R1.fastq.gz" instead of "SRX2794538_SRR5521297_R1.fastq.gz" which crash my parsing script
 
 # creating the sample_info file
 make_samples_info_file ${prepro_dir}
 cat ${prepro_dir}/samplesheet/samples_info.tsv
 
 # renaming files
-rename -v 's/SRX2794/atac_SRX2794/' ${prepro_dir}/fastq/*
-rename -v 's/SRX4029/mrna_SRX4029/' ${prepro_dir}/fastq/*
+rename -v 's/SRR5521/atac_SRR5521/' ${prepro_dir}/fastq/*
+rename -v 's/SRR7101/mrna_SRR7101/' ${prepro_dir}/fastq/*
 rename -v 's/_1.fastq.gz/_R1.fastq.gz/' ${prepro_dir}/fastq/*
 rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 
 # subsampling reads
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 100 -resume
-
-# moving data to appropriate folders
-mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
-mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
+n_reads_atac=200
+n_reads_mrna=100
+nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_atac --experiment atac
+nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_mrna --experiment mrna
 
 # adding the sample_id column (to edit manually)
 awk 'BEGIN {OFS = "\t"} { \
@@ -148,13 +163,8 @@ awk 'BEGIN {OFS = "\t"} { \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
 cat ${prepro_dir}/samplesheet/samples_info_1.tsv
 
-# making the fastq_info file
-make_fastq_info_file ${prepro_dir}
-cat ${prepro_dir}/samplesheet/fastq_info.tsv
-
 # making the fastq design files
-grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/atac_fastq.tsv
-grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/mrna_fastq.tsv
+make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
 cat ${specie}/design/atac_fastq.tsv
 cat ${specie}/design/mrna_fastq.tsv
 
@@ -212,11 +222,10 @@ rename -v 's/_1.fastq.gz/_R1.fastq.gz/' ${prepro_dir}/fastq/*
 rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 
 # subsampling reads
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 100 -resume
-
-# moving data to appropriate folders
-mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
-mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
+n_reads_atac=200
+n_reads_mrna=100
+nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_atac --experiment atac
+nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_mrna --experiment mrna
 
 # adding the sample_id column (to edit manually)
 awk 'BEGIN {OFS = "\t"} { \
@@ -227,13 +236,10 @@ awk 'BEGIN {OFS = "\t"} { \
   print $1, $2, $3, $4, $5, $6, sample_id \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
 
-# making the fastq_info file
-make_fastq_info_file ${prepro_dir}
-cat ${prepro_dir}/samplesheet/fastq_info.tsv
-
 # making the fastq design files
-grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/atac_fastq.tsv
-grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/mrna_fastq.tsv
+make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
+cat ${specie}/design/atac_fastq.tsv
+cat ${specie}/design/mrna_fastq.tsv
 
 cp ${specie}/design/atac_fastq.tsv ${specie}/design/atac_fastq__with_input.tsv
 grep -v input ${specie}/design/atac_fastq__with_input.tsv > ${specie}/design/atac_fastq__without_input.tsv
@@ -293,11 +299,13 @@ rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 ls ${prepro_dir}/fastq
 
 # subsampling reads
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 400 --experiment atac
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq --thousand_reads 100 --experiment mrna
+n_reads_atac=2000
+n_reads_mrna=100
+nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_atac --experiment atac
+nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_mrna --experiment mrna
 
 # moving data to appropriate folders
-mv ${prepro_dir}/fastq_200K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
+mv ${prepro_dir}/fastq_800K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
 mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
 
 # adding the sample_id column (to edit manually)
@@ -310,14 +318,10 @@ awk 'BEGIN {OFS = "\t"} { \
   print $1, $2, $3, $4, $5, $6, sample_id \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
 
-# making the fastq_info file
-make_fastq_info_file ${prepro_dir}
-sed -i -e 's/_100K_reads_atac/_200K_reads_atac/g' ${prepro_dir}/samplesheet/fastq_info.tsv
-cat ${prepro_dir}/samplesheet/fastq_info.tsv
-
 # making the fastq design files
-grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/atac_fastq.tsv
-grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/mrna_fastq.tsv
+make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
+cat ${specie}/design/atac_fastq.tsv
+cat ${specie}/design/mrna_fastq.tsv
 
 # making the comparison design file
 cat > ${specie}/design/comparisons.tsv <<EOL
@@ -370,11 +374,10 @@ rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 ls ${prepro_dir}/fastq
 
 # subsampling reads
-nextflow $get_test_datasets_dir/subsample_fastq.nf --indir ${prepro_dir}/fastq  --thousand_reads 100 -resume
-
-# moving data to appropriate folders
-mv ${prepro_dir}/fastq_100K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
-mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
+n_reads_atac=200
+n_reads_mrna=100
+nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_atac --experiment atac
+nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_mrna --experiment mrna
 
 # adding the sample_id column (to edit manually)
 awk 'BEGIN {OFS = "\t"} { \
@@ -386,13 +389,10 @@ awk 'BEGIN {OFS = "\t"} { \
   print $1, $2, $3, $4, $5, $6, sample_id \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
 
-# making the fastq_info file
-make_fastq_info_file ${prepro_dir}
-cat ${prepro_dir}/samplesheet/fastq_info.tsv
-
 # making the fastq design files
-grep atac ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/atac_fastq.tsv
-grep mrna ${prepro_dir}/samplesheet/fastq_info.tsv > ${specie}/design/mrna_fastq.tsv
+make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
+cat ${specie}/design/atac_fastq.tsv
+cat ${specie}/design/mrna_fastq.tsv
 
 # making the comparison design file
 cat > ${specie}/design/comparisons.tsv <<EOL
