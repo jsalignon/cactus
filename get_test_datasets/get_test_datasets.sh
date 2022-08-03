@@ -23,53 +23,12 @@ export NXF_SINGULARITY_CACHEDIR=${singularity_dir}
 cd $singularity_dir
 singularity pull https://depot.galaxyproject.org/singularity/entrez-direct:16.2--he881be0_1
 
-gsm_to_srr (){
-  specie=$1
-  my_gsm_ids="$(cat gsm_accession/gsm_$specie.txt | awk '{print}' ORS=' OR ' RS='\r\n' )"
-  singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 esearch -db sra -query "$my_gsm_ids" | singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 efetch -format runinfo | cut -d ',' -f 1 - | grep -v 'Run' - > "srr_accession/srr_$specie.txt"
-}
-
 cd $samples_ids_dir
+source $get_test_datasets_dir/get_test_datasets_functions.sh
 gsm_to_srr worm
 gsm_to_srr human
 gsm_to_srr mouse
 gsm_to_srr fly
-
-
-# $1 = ${prepro_dir}   => head -3 ${prepro_dir}/samplesheet/samplesheet.csv 
-make_samples_info_file (){
-  cut -d"," -f5,6,15,17,20,28 ${1}/samplesheet/samplesheet.csv | sed 's/\"//g' | sed 's/ /_/g' | awk 'BEGIN { FS = ","; OFS = "\t"} {print $2, $1, $3, $4, $5, $6}'| column -t > ${1}/samplesheet/samples_info.tsv
-}
-
-make_fastq_info_file (){
-  specie=$1
-  n_reads_atac=$2
-  n_reads_mrna=$3
-  
-  prepro_dir="preprocessing/${specie}"
-  design_dir="${specie}/design"
-  fastq_info_file="${prepro_dir}/samplesheet/fastq_info.tsv"
-  
-  awk 'BEGIN {OFS=""} { \
-    library_strategy = tolower($5) ; \
-    gsub(/-seq/, "", library_strategy) ; \
-    gsub(/rna/, "mrna", library_strategy) ; \
-    library_layout = $4
-    gsub(/SINGLE/, "", library_layout) ; \
-    gsub(/PAIRED/, "_R1", library_layout) ; \
-    if (NR != 1) print $7, " data/", library_strategy, "/sample_100K_reads_", library_strategy, "_", $1, "_", $2, library_layout, ".fastq.gz" \
-  }' ${prepro_dir}/samplesheet/samples_info_1.tsv > ${fastq_info_file}
-  
-  sed -i -e "s/_100K_reads_atac/_${n_reads_atac}K_reads_atac/g" ${fastq_info_file}
-  sed -i -e "s/_100K_reads_mrna/_${n_reads_mrna}K_reads_mrna/g" ${fastq_info_file}
-  
-  grep atac ${fastq_info_file} > "${design_dir}/atac_fastq.tsv"
-  grep mrna ${fastq_info_file} > "${design_dir}/mrna_fastq.tsv"
-
-}
-
-# note : in awk, $7 corresponds to the sample_id column that indicate the sample name used throughout the pipeline, and that is made manually
-
 
 
 ## making the run configuration file
@@ -102,6 +61,7 @@ cd $test_datasets_dir
 
 specie="human"
 prepro_dir="preprocessing/${specie}"
+source $get_test_datasets_dir/get_test_datasets_functions.sh
 
 mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
 
@@ -135,16 +95,15 @@ nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${spec
 
 # creating the sample_info file
 make_samples_info_file ${prepro_dir}
-cat ${prepro_dir}/samplesheet/samples_info.tsv
 
 # renaming files
-rename -v 's/SRR5521/atac_SRR5521/' ${prepro_dir}/fastq/*
-rename -v 's/SRR7101/mrna_SRR7101/' ${prepro_dir}/fastq/*
+rename -v 's/SRX/atac_SRX/' ${prepro_dir}/fastq/SRX2794*
+rename -v 's/SRX/mrna_SRX/' ${prepro_dir}/fastq/SRX4029*
 rename -v 's/_1.fastq.gz/_R1.fastq.gz/' ${prepro_dir}/fastq/*
 rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 
 # subsampling reads
-n_reads_atac=200
+n_reads_atac=2000
 n_reads_mrna=100
 nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_atac --experiment atac
 nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_mrna --experiment mrna
@@ -165,8 +124,6 @@ cat ${prepro_dir}/samplesheet/samples_info_1.tsv
 
 # making the fastq design files
 make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
-cat ${specie}/design/atac_fastq.tsv
-cat ${specie}/design/mrna_fastq.tsv
 
 # making the comparison design file
 cat > ${specie}/design/comparisons.tsv <<EOL
@@ -195,6 +152,7 @@ EOL
 
 specie="worm"
 prepro_dir="preprocessing/${specie}"
+source $get_test_datasets_dir/get_test_datasets_functions.sh
 
 mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
 
@@ -238,8 +196,6 @@ awk 'BEGIN {OFS = "\t"} { \
 
 # making the fastq design files
 make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
-cat ${specie}/design/atac_fastq.tsv
-cat ${specie}/design/mrna_fastq.tsv
 
 cp ${specie}/design/atac_fastq.tsv ${specie}/design/atac_fastq__with_input.tsv
 grep -v input ${specie}/design/atac_fastq__with_input.tsv > ${specie}/design/atac_fastq__without_input.tsv
@@ -271,6 +227,7 @@ EOL
 
 specie="mouse"
 prepro_dir="preprocessing/${specie}"
+source $get_test_datasets_dir/get_test_datasets_functions.sh
 
 mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
 
@@ -288,7 +245,6 @@ nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${spec
 
 # creating a simple reference file
 make_samples_info_file ${prepro_dir}
-cat ${prepro_dir}/samplesheet/samples_info.tsv
 
 # renaming files
 cat ${prepro_dir}/samplesheet/samples_info.csv
@@ -299,43 +255,39 @@ rename -v 's/_2.fastq.gz/_R2.fastq.gz/' ${prepro_dir}/fastq/*
 ls ${prepro_dir}/fastq
 
 # subsampling reads
-n_reads_atac=2000
+n_reads_atac=4000
 n_reads_mrna=100
 nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_atac --experiment atac
 nextflow $get_test_datasets_dir/subsample_fastq.nf --specie $specie --thousand_reads $n_reads_mrna --experiment mrna
-
-# moving data to appropriate folders
-mv ${prepro_dir}/fastq_800K_reads/*_atac_*.fastq.gz ${specie}/data/atac/
-mv ${prepro_dir}/fastq_100K_reads/*_mrna_*.fastq.gz ${specie}/data/mrna/
 
 # adding the sample_id column (to edit manually)
 awk 'BEGIN {OFS = "\t"} { \
   sample_id = tolower($6) ; \
   gsub(/(mrna_|atac_|rep)/, "", sample_id); \
-  gsub(/young/, "yng", sample_id); \
-  gsub(/kidney/, "kid", sample_id); \
-  gsub(/liver/, "liv", sample_id); \
+  gsub(/old_/, "Old", sample_id); \
+  gsub(/young_/, "Yng", sample_id); \
+  gsub(/kidney/, "Kid", sample_id); \
+  gsub(/liver/, "Liv", sample_id); \
   print $1, $2, $3, $4, $5, $6, sample_id \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
+cat ${prepro_dir}/samplesheet/samples_info_1.tsv
 
 # making the fastq design files
 make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
-cat ${specie}/design/atac_fastq.tsv
-cat ${specie}/design/mrna_fastq.tsv
 
 # making the comparison design file
 cat > ${specie}/design/comparisons.tsv <<EOL
-yng_kid old_kid
-yng_liv old_liv
-yng_kid yng_liv
-old_kid old_liv
+YngKid OldKid
+YngLiv OldLiv
+YngKid YngLiv
+OldKid OldLiv
 EOL
 
 # making the groups design file
 cat > ${specie}/design/groups.tsv << EOL
-all yng_kid_vs_old_kid yng_liv_vs_old_liv yng_kid_vs_yng_liv old_kid_vs_old_liv
-age yng_kid_vs_old_kid yng_liv_vs_old_liv 
-tissue yng_kid_vs_yng_liv old_kid_vs_old_liv
+all YngKid_vs_OldKid YngLiv_vs_OldLiv YngKid_vs_YngLiv OldKid_vs_OldLiv
+age YngKid_vs_OldKid YngLiv_vs_OldLiv 
+tissue YngKid_vs_YngLiv OldKid_vs_OldLiv
 EOL
 
 # regions to remove
@@ -391,8 +343,6 @@ awk 'BEGIN {OFS = "\t"} { \
 
 # making the fastq design files
 make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
-cat ${specie}/design/atac_fastq.tsv
-cat ${specie}/design/mrna_fastq.tsv
 
 # making the comparison design file
 cat > ${specie}/design/comparisons.tsv <<EOL

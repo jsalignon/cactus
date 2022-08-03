@@ -1518,10 +1518,10 @@ process ATAC__annotating_individual_peaks {
   when: do_atac
 
   input:
-    set id, file(peaks) from Raw_peaks_for_annotations_in_R
+    set id, file(peaks_bed_file) from Raw_peaks_for_annotations_in_R
 
   output:
-    set id, file("*.rds") into Annotated_peaks_for_individual_plots, Annotated_peaks_for_collecting_as_lists
+    set id, file("*.rds") into Annotated_peaks_for_individual_plots, Annotated_peaks_for_collecting_as_lists optional true
 
   when: params.do_raw_peak_annotation
 
@@ -1535,7 +1535,10 @@ process ATAC__annotating_individual_peaks {
       upstream = !{params.promoter_up_macs2_peaks}
       downstream = !{params.promoter_down_macs2_peaks}
       tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
-      peaks = readPeakFile('!{peaks}')
+      if(gsub(' .*', '', system('wc -l yng_liv_2_peaks_kept_after_blacklist_removal.bed')) == 0) {quit('no')}
+      peaks_bed_file = '!{peaks_bed_file}'
+      if(gsub(' .*', '', system(paste('wc -l', peaks_bed_file))) == 0) {quit('no')}
+      peaks = readPeakFile('!{peaks_bed_file}')
 
       promoter <- getPromoters(TxDb = tx_db, upstream = upstream, downstream = downstream)
 
@@ -2417,8 +2420,8 @@ Kallisto_out_for_sleuth
 Kallisto_out_for_sleuth1
   .combine(Kallisto_out_for_sleuth2)
   .map { it[0,2,1,3]}
-  .dump(tag:'kalisto_sleuth') {"${it}"}
   .join(comparisons_files_for_mRNA_Seq, by: [0,1])
+  .dump(tag:'kalisto_sleuth') {"${it}"}
   .map{
     def list = []
     list.add( it[0,1].join('_vs_') )
