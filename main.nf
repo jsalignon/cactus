@@ -3834,7 +3834,7 @@ process compute_enrichment_pvalue {
 
         # renaming chromatin states
         if(data_type == 'chrom_states'){
-          vec = get_chrom_states_names_vec()
+          vec = get_chrom_states_names_vec(df$tgt)
           df$tgt %<>% vec[.]
         }
 
@@ -3863,6 +3863,8 @@ process compute_enrichment_pvalue {
   '''
 }
 
+// df$tgt %>% .[. %in% names(vec)]
+// df$tgt %>% .[!. %in% names(vec)]
 
 Formatting_tables_Channel = Formatting_tables_Channel.mix(Enrichment_for_formatting_table)
 
@@ -4122,7 +4124,9 @@ process plot_enrichment_heatmap {
       terms_levels = select_y_axis_terms_grouped_plot(mat, nshared = nshared, nunique = nunique, ntotal = ntotal, threshold_type = threshold_type, threshold_value = threshold_value, remove_similar = remove_similar, remove_similar_n = 2, seed = 38)
     }
     if(data_type == 'chrom_states') {
-      terms_levels = get_chrom_states_names_vec() %>% .[. %in% df$tgt] %>% unname  %>% rev
+      vec = unique(df$tgt)
+      vec_order = vec %>% gsub('.', '', ., fixed = T) %>% gsub(' .*', '', .) %>% as.integer %>% order
+      terms_levels = vec[vec_order]
     }
 
     # clustering y-axis terms and adding final matrix indexes to the df
@@ -4143,6 +4147,8 @@ process plot_enrichment_heatmap {
   '''
 
 }
+
+// note that: gtools::mixedsort(df$tgt) would be simpler for chromatin states if gtools was in the container
 
 // signed_padj = data_type %in% c('CHIP', 'chrom_states')
 
