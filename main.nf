@@ -1713,7 +1713,6 @@ Channel
 Reads_for_diffbind
   .tap{ Reads_input_control }
   .join( Peaks_for_removing_specific_regions_1, remainder: true )
-  .tap { channel_test }
   .map { [ it[0].split("_")[0], it[0..-1]] }
   .groupTuple()
   // .join(regions_to_remove_for_merging, remainder: true)
@@ -1758,30 +1757,46 @@ process ATAC__removing_specific_regions {
   shell:
   '''
 
-      COMP="!{COMP}"
-      RTR="!{regions_to_remove}"
+      COMP=!{COMP}
+      RTR=!{regions_to_remove}
       BED_FILES="!{bed_files}"
 
-      COMP1="${COMP/_vs_/|}"
-      echo $COMP1 | grep -E -f - $RTR > rtr_filtered.txt
-
-      cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
-
-      for FILE in ${BED_FILES}
-      do
-        CUR_NAME=`basename $FILE ".bed"`
-        intersectBed -v -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_filtered.bed"
-      done
+      COMP1=${COMP/_vs_/|}
+      echo $COMP1 | grep -E -f - $RTR || true > rtr_filtered.txt
+      
+      if [ ! -s rtr_filtered.txt ]; then
+        for FILE in ${BED_FILES}
+        do
+          CUR_NAME=`basename $FILE ".bed"`
+          cp $FILE "${CUR_NAME}_filtered.bed"
+        done
+      else
+        cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
+      
+        for FILE in ${BED_FILES}
+        do
+          CUR_NAME=`basename $FILE ".bed"`
+          intersectBed -v -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_filtered.bed"
+        done
+      fi
+      
 
   '''
 
 }
 
+// really weird nextflow bug: this command makes all commands below ignored when the rtr file is empty:
+// echo $COMP1 | grep -E -f - $RTR > rtr_filtered.txt
+// https://github.com/nextflow-io/nextflow/issues/1149
+// => solution: grep pattern || true
+// or: process.shell = ['/bin/bash','-u']
+
+
 // cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
 // echo $COMP2 | grep -f - $RTR >> rtr_filtered.txt
 
 
-// note: the reason why this process is here and not upstread is because we want to remove in all bed files the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider all peaks for his analysis, so if we remove one such peak in just one of the two samples to compare, then it will likely be found as differential bound during the DBA 
+// note: the reason why this process is here and not upstread is because we want to remove in all bed files the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider all peaks for his analysis, so if we remove one such peak in just one of the two samples to compare, if it is still present in the other sample then it will be included in the analysis and it will likely be found as differential bound during the DBA. I.e. we compare daf-16RNAi vs control. if there is a macs2 peak at daf-16 in the control condition, then even if we remove this peak in the daf-16RNAi condition, it will be included in the final analysis.
 
 
 Reads_input_control
@@ -1837,9 +1852,9 @@ process ATAC__differential_abundance_analysis {
       set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
 
   output:
-      set COMP, file('*__diffbind_peaks_dbo.rds') into Diffbind_object_for_plotting
-      set COMP, file('*__diffbind_peaks_gr.rds'), file('*__diffbind_peaks_dbo.rds') into All_peaks_for_peak_annotation
-      set COMP, file('*__all_peaks.bed') into All_detected_ATAC_peaks_for_background
+      set COMP, file('*__diffbind_peaks_dbo.rds') into Diffbind_object_for_plotting optional true
+      set COMP, file('*__diffbind_peaks_gr.rds'), file('*__diffbind_peaks_dbo.rds') into All_peaks_for_peak_annotation optional true
+      set COMP, file('*__all_peaks.bed') into All_detected_ATAC_peaks_for_background optional true
 
   shell:
   '''
@@ -1899,6 +1914,10 @@ process ATAC__differential_abundance_analysis {
             df1$bamControl <- NULL
           }
         }
+        
+        empty_peaks = which(sapply(df1$Peaks, file.size) == 0)
+        if(length(empty_peaks) > 0) df1$Peaks[empty_peaks] = ''
+        if(length(empty_peaks) == nrow(df1)) { quit('no') }
 
 
         ##### Running DiffBind
@@ -2950,6 +2969,12 @@ if(params.experiment_types == 'both'){
   // // format: COMP, res_detailed_atac, res_detailed_mRNA
   .groupTuple()
   // format: COMP, [ res_detailed_atac, res_detailed_mRNA ]
+  // .filter{ comp, res_files -> res_files.size() == 2}
+  .filter{ comp, res_files -> 
+    ( do_atac && !do_mRNA  && res_files.size() == 1) ||
+    (!do_atac &&  do_mRNA  && res_files.size() == 1) ||
+    ( do_atac &&  do_mRNA  && res_files.size() == 2)
+  }
   .dump(tag: 'both_data')
   .set{ Diff_abundance_res_tables_for_splitting_in_subsets }
 }
