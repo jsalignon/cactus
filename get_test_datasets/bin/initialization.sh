@@ -27,7 +27,9 @@ gsm_to_srr fly
 
 cd $test_datasets_dir
 
-cat > run.config << EOL
+run_config_file=preprocessing/run.config
+
+cat > $run_config_file << EOL
 
 params {
 
@@ -40,5 +42,43 @@ params {
 }
 
 EOL
+
+cat $run_config_file
+
+
+
+##############################################
+### Get genomes and transcriptome sizes
+##############################################
+
+
+get_genome_and_transcriptome_size () {
+  
+  get_fasta_size_in_Mb (){ grep -v ">" "/home/jersal/workspace/cactus/data/${1}/genome/sequence/${2}.fa" | wc | awk '{print ($3-$1) / 10^6}' ; }
+  
+  get_genome_and_transcriptome () { echo "$1 $(get_fasta_size_in_Mb $1 genome) $(get_fasta_size_in_Mb $1 transcriptome)" ; }
+
+  get_genome_and_transcriptome_file () {
+    cat | column -t > $1 << EOL
+specie genome transcriptome
+$(get_genome_and_transcriptome worm)
+$(get_genome_and_transcriptome fly)
+$(get_genome_and_transcriptome mouse)
+$(get_genome_and_transcriptome human)
+EOL
+  }
+  
+  report_dir=preprocessing/report
+  mkdir -p $report_dir
+  report_file=$report_dir/genome_and_transcriptome_size.txt
+  get_genome_and_transcriptome_file $report_file
+  
+  cat $report_file
+
+}
+
+get_genome_and_transcriptome_size
+
+
 
 
