@@ -4467,7 +4467,6 @@ process merge_pdfs {
 
 
 
-// on completion
  workflow.onComplete
  {
   println ""
