@@ -1,22 +1,10 @@
 
-# Test
-* [Cactus](./README.md#Cactus)
-
-# test 2
-[Install](./docs/usage.md#Install)
-
-# test 3
-* [Usage](/docs/usage.md) [Run](./usage.md#Run)
-* [Usage](/docs/usage.md) [Run](/docs/usage.md#Run)
-* [Usage](/docs/usage.md) [Run](./docs/usage.md#Run)
-*                         [Run](./docs/usage.md#Run)
-
-# Test 4
 * Introduction: [Cactus](./README.md#Cactus), [Quick Start](./README.md#Quick-Start), [Citation](./README.md#Citation)
-* Overview: [Short summary](./docs/overview./overview.md#Short-Summary), [Graph](./docs/overview./overview.md#Graph)
+* Overview: [Short summary](./docs/overview.md#Short-Summary), [Graph](./docs/overview.md#Graph)
 * Usage: [Install](./docs/usage.md#Install), [Run](./docs/usage.md#Run), [Reproducibility](./docs/usage.md#Reproducibility), [Troubleshooting](./docs/usage.md#Troubleshooting)
-* Input: [Fastq](./docs/input.md#Fastq), [Design](./docs/input.md#Design), [Config](./docs/input.md#Config, [Troubleshooting](./docs/input.md#Troubleshooting)
+* Input: [Fastq](./docs/input.md#Fastq), [Design](./docs/input.md#Design), [Config](./docs/input.md#Config), [Troubleshooting](./docs/input.md#Troubleshooting)
 * Output: [Types](./docs/output.md#Types), [Structure](./docs/output.md#Structure)
+
 
 
 # Cactus
