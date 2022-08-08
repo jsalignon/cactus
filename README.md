@@ -1,9 +1,12 @@
 
+[Cactus] (./README.md#Cactus)
+[Install] (./docs/usage.md#Install)
+
 * Introduction: [Cactus] (./README.md#Cactus), [Quick Start] (./README.md#Quick-Start), [Citation] (./README.md#Citation)
-* Overview: [Short summary] (./docs./pipeline_overview./overview.md#Short-Summary), [Graph] (./docs./pipeline_overview./overview.md#Graph)
-* Usage: [Install] (./docs./usage.md#Install), [Run] (./docs./usage.md#Run), [Reproducibility] (./docs./usage.md#Reproducibility), [Troubleshooting] (./docs./usage.md#Troubleshooting)
-* Input: [Fastq] (./docs./input.md#Fastq), [Design] (./docs./input.md#Design), [Config] (./docs./input.md#Config, [Troubleshooting] (./docs./input.md#Troubleshooting)
-* Output: [Types] (./docs./output.md#Types), [Structure] (./docs./output.md#Structure)
+* Overview: [Short summary] (./docs/overview./overview.md#Short-Summary), [Graph] (./docs/overview./overview.md#Graph)
+* Usage: [Install] (./docs/usage.md#Install), [Run] (./docs/usage.md#Run), [Reproducibility] (./docs/usage.md#Reproducibility), [Troubleshooting] (./docs/usage.md#Troubleshooting)
+* Input: [Fastq] (./docs/input.md#Fastq), [Design] (./docs/input.md#Design), [Config] (./docs/input.md#Config, [Troubleshooting] (./docs/input.md#Troubleshooting)
+* Output: [Types] (./docs/output.md#Types), [Structure] (./docs/output.md#Structure)
 
 
 # Cactus
