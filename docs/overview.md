@@ -1,9 +1,9 @@
 
-* Introduction: [Cactus](./README.md#Cactus), [Quick Start](./README.md#Quick-Start), [Citation](./README.md#Citation)
-* Overview: [Short summary](./docs/overview.md#Short-Summary), [Graph](./docs/overview.md#Graph)
-* Usage: [Install](./docs/usage.md#Install), [Run](./docs/usage.md#Run), [Reproducibility](./docs/usage.md#Reproducibility), [Troubleshooting](./docs/usage.md#Troubleshooting)
-* Input: [Fastq](./docs/input.md#Fastq), [Design](./docs/input.md#Design), [Config](./docs/input.md#Config), [Troubleshooting](./docs/input.md#Troubleshooting)
-* Output: [Types](./docs/output.md#Types), [Structure](./docs/output.md#Structure)
+* Introduction: [Cactus](../README.md#Cactus), [Quick Start](../README.md#Quick-Start), [Citation](../README.md#Citation)
+* Overview: [Short summary](./overview.md#Short-Summary), [Graph](./overview.md#Graph)
+* Usage: [Install](./usage.md#Install), [Run](./usage.md#Run), [Reproducibility](./usage.md#Reproducibility), [Troubleshooting](./usage.md#Troubleshooting)
+* Input: [Fastq](./input.md#Fastq), [Design](./input.md#Design), [Config](./input.md#Config), [Troubleshooting](./input.md#Troubleshooting)
+* Output: [Types](./output.md#Types), [Structure](./output.md#Structure)
 
 
 
@@ -17,7 +17,7 @@ Split and filtered DA results are then used as input for various enrichment anal
 
 # Graph
 
-![Cactus all steps](/docs/images/cactus_all_steps.png "Cactus all steps")
+![Cactus all steps](/images/cactus_all_steps.png "Cactus all steps")
 
 
 
