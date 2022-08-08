@@ -5,7 +5,10 @@
 # test 2
 [Install] (./docs/usage.md#Install)
 
-# Test 3
+# test 3
+* [Usage](/docs/usage.md) [Usage](./usage.md#Run)
+
+# Test 4
 * Introduction: [Cactus] (./README.md#Cactus), [Quick Start] (./README.md#Quick-Start), [Citation] (./README.md#Citation)
 * Overview: [Short summary] (./docs/overview./overview.md#Short-Summary), [Graph] (./docs/overview./overview.md#Graph)
 * Usage: [Install] (./docs/usage.md#Install), [Run] (./docs/usage.md#Run), [Reproducibility] (./docs/usage.md#Reproducibility), [Troubleshooting] (./docs/usage.md#Troubleshooting)
