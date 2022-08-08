@@ -1,6 +1,6 @@
 
 * Introduction: [Cactus](../README.md#Cactus), [Quick Start](../README.md#Quick-Start), [Citation](../README.md#Citation)
-* Overview: [Short summary](./overview.md#Short-Summary), [Graph](./overview.md#Graph)
+* Overview: [Short summary](/overview.md#Short-Summary), [Graph](./overview.md#Graph)
 * Usage: [Install](./usage.md#Install), [Run](./usage.md#Run), [Reproducibility](./usage.md#Reproducibility), [Troubleshooting](./usage.md#Troubleshooting)
 * Input: [Fastq](./input.md#Fastq), [Design](./input.md#Design), [Config](./input.md#Config), [Troubleshooting](./input.md#Troubleshooting)
 * Output: [Types](./output.md#Types), [Structure](./output.md#Structure)
