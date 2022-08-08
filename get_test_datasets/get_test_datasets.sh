@@ -57,7 +57,7 @@ source $get_test_datasets_bin_dir/0__initialization.sh
 ##############################################
 
 specie="worm"
-n_reads_atac=1000
+n_reads_atac=200
 n_reads_mrna=50
 
 source $get_test_datasets_bin_dir/1__get_fastq.sh $specie
@@ -81,7 +81,7 @@ n_reads_mrna=100
 source $get_test_datasets_bin_dir/1__get_fastq.sh $specie
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX81740{44..53}*
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX81740{34..43}*
-ls $fastq_dir
+ls "preprocessing/${specie}/fastq"
 
 source $get_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
 source $get_test_datasets_bin_dir/3__make_design_files__fly.sh $n_reads_atac $n_reads_mrna
@@ -98,7 +98,8 @@ n_reads_mrna=150
 source $get_test_datasets_bin_dir/1__get_fastq.sh $specie
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX117086{63..78}*
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX117086{79..90}*
-ls $fastq_dir
+ls "preprocessing/${specie}/fastq"
+ls "${specie}/data"
 
 source $get_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
 source $get_test_datasets_bin_dir/3__make_design_files__mouse.sh $n_reads_atac $n_reads_mrna
@@ -115,7 +116,7 @@ n_reads_mrna=250
 source $get_test_datasets_bin_dir/1__get_fastq.sh $specie
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX2794*
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX4029*
-ls $fastq_dir
+ls "preprocessing/${specie}/fastq"
 
 source $get_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
 source $get_test_datasets_bin_dir/3__make_design_files__human.sh $n_reads_atac $n_reads_mrna

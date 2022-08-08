@@ -9,11 +9,17 @@ source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
 
 
 # run.config
-cp preprocessing/run.config $run_config_file
-sed -i "3s/^/\n  specie = 'worm'\n/" $run_config_file
-sed -i "5s/^/\n  chromatin_state = 'iHMM.M1K16.worm_L3'\n/" $run_config_file
-sed -i "5s/^/\n  chip_ontology = 'all'\n/" $run_config_file
-cat $run_config_file
+cat > ${specie}/conf/run.config <<EOL
+params {
+  specie            = 'worm'
+  use_input_control = false
+  save_bed_type     = 'all'
+  chip_ontology     = 'all'
+  chromatin_state   = 'iHMM.M1K16.worm_L3'
+  threshold_type_for_splitting_subsets   = 'rank' 
+  threshold_values_for_splitting_subsets = [ 200, 1000 ]
+}
+EOL
 
 # atac_fastq.tsv and mrna_fastq.tsv
 make_samples_info_file ${prepro_dir}

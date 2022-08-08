@@ -26,8 +26,6 @@ plot_venn_diagrams <- function(lgenes, prefix){
     rotation_degree = 0
     euler_d = F 
     scaled = F
-    # somehow the fill and col arguments do not refer to the same circles. col goes from left to right, while fill does left, right, middle-right, middle-left. So we correct for that here.
-    col = col[c(1, 4, 3, 2)]
     tl = 15
     filename = paste0(prefix, '__venn_up_and_down.pdf')
   }

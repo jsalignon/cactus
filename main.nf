@@ -2609,7 +2609,7 @@ process plotting_differential_gene_expression_results {
       cond2 = conditions[2]
       test_cond = paste0('condition', cond2)
 
-      FDR_threshold = !{params.fdr_threshold_sleuth_plots}
+      fdr_threshold = !{params.fdr_threshold_sleuth_plots}
 
 
 
@@ -2622,7 +2622,7 @@ process plotting_differential_gene_expression_results {
       res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
 
       pdf(paste0(COMP, '__mRNA_volcano.pdf'))
-        plot_volcano_custom(res_volcano, sig_level = FDR_threshold, label_column = 'gene_name', title = paste(COMP, 'mRNA'))
+        plot_volcano_custom(res_volcano, sig_level = fdr_threshold, label_column = 'gene_name', title = paste(COMP, 'mRNA'))
       dev.off()
 
 
@@ -2649,7 +2649,7 @@ process plotting_differential_gene_expression_results {
       ##### other plots
 
       pdf(paste0(COMP, '__mRNA_other_plots.pdf'))
-        plot_ma(sleo, test = test_cond, sig_level = FDR_threshold) + ggtitle(paste('MA:', COMP))
+        plot_ma(sleo, test = test_cond, sig_level = fdr_threshold) + ggtitle(paste('MA:', COMP))
         plot_group_density(sleo, use_filtered = TRUE, units = "scaled_reads_per_base", trans = "log", grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
         # plot_scatter(sleo) + ggtitle(paste('Scatter:', COMP))
         # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', COMP))
@@ -2714,8 +2714,8 @@ process plotting_differential_accessibility_results {
       COMP = '!{COMP}'
 
       dbo = readRDS('!{diffbind_object_rds}')
-      FDR_threshold = !{params.fdr_threshold_diffbind_plots}
-      dbo$config$th = FDR_threshold
+      fdr_threshold = !{params.fdr_threshold_diffbind_plots}
+      dbo$config$th = fdr_threshold
       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
       df_annotated_peaks = readRDS('!{annotated_peaks}')
 
@@ -2728,7 +2728,7 @@ process plotting_differential_accessibility_results {
       res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
 
       pdf(paste0(COMP, '__ATAC_volcano.pdf'))
-        plot_volcano_custom(res, sig_level = FDR_threshold, label_column = 'gene_name', title = paste(COMP, 'ATAC'))
+        plot_volcano_custom(res, sig_level = fdr_threshold, label_column = 'gene_name', title = paste(COMP, 'ATAC'))
       dev.off()
 
 
@@ -2881,8 +2881,6 @@ process ATAC__saving_detailed_results_tables {
       df_annotated_peaks = readRDS('!{annotated_peaks}')
       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
 
-      source('!{projectDir}/bin/get_merged_columns.R')
-
 
       # setting up parameters
       conditions = tolower(strsplit(COMP, '_vs_')[[1]])
@@ -3018,27 +3016,27 @@ process splitting_differential_abundance_results_in_subsets {
       ##### loading data and libraries
       library(magrittr)
       library(purrr)
+      library(data.table)
 
-      source('!{projectDir}/bin/read_from_nextflow.R')
+      source('!{projectDir}/bin/splitting_DAR_in_subsets_functions.R')
       source('!{projectDir}/bin/export_df_to_bed.R')
       source('!{projectDir}/bin/get_prom_bed_df_table.R')
-      source('!{projectDir}/bin/get_merged_columns.R')
+      source('!{projectDir}/bin/read_from_nextflow.R')
 
       COMP = '!{COMP}'
 
       do_mRNA = !{do_mRNA_lgl}
       do_atac = !{do_atac_lgl}
-      do_both = do_mRNA & do_atac
 
       lf = list.files()
 
       promoters_df = readRDS('!{params.promoters_df}')
 
-      FDR_split = read_from_nextflow('!{params.fdr_for_splitting_subsets}') %>% as.numeric
+      TT       = '!{params.threshold_type_for_splitting_subsets}'
+      TV_split = read_from_nextflow('!{params.threshold_values_for_splitting_subsets}') %>% as.numeric
       FC_split = read_from_nextflow('!{params.fold_changes_for_splitting_subsets}')
       PF_split = read_from_nextflow('!{params.peak_assignment_for_splitting_subsets}')
-
-
+      
 
       ################################
       # creating the res_simple table
@@ -3053,6 +3051,18 @@ process splitting_differential_abundance_results_in_subsets {
         res_detailed_atac$PF = get_merged_columns(res_detailed_atac, paste0('PF_', PF_split), 'PF')
 
         res_simple_atac = res_detailed_atac %>% dplyr::mutate(transcript_id = NA, ET = 'ATAC') %>% dplyr::select(COMP, peak_id, chr, gene_name, gene_id, pval, padj, L2FC, PF, ET)
+        
+        # adding the rank column
+        res_simple_atac %<>% dplyr::arrange(padj, desc(abs(L2FC)))
+        dt = data.table(res_simple_atac)
+        dt[, FC := ifelse(L2FC > 0, 'up', 'down')]
+        dt[L2FC == 0, FC := 'NA']
+        dt$rank = 0
+        dt[(!duplicated(dt[, c('gene_id', 'FC')])), rank := 1:.N]
+        dt[, rank := rank[1], .(cumsum(rank != 0))]
+        dt[, FC := NULL]
+        res_simple_atac = dt %>% copy %>% setDF
+        
         res_simple = res_simple_atac
       }
 
@@ -3061,22 +3071,27 @@ process splitting_differential_abundance_results_in_subsets {
         res_simple_mRNA = res_detailed_mRNA %>% dplyr::select(COMP, chr, gene_name, gene_id, pval, padj, L2FC)
         res_simple_mRNA = cbind(peak_id = 'Null', res_simple_mRNA, ET = 'mRNA', PF = 'Null', stringsAsFactors = F)
         res_simple_mRNA %<>% dplyr::select(COMP, peak_id, chr, gene_name, gene_id, pval, padj, L2FC, PF, ET)
+        
+        # adding the rank column
+        res_simple_mRNA %<>% dplyr::arrange(padj, desc(abs(L2FC)))
+        res_simple_mRNA$rank = 1:nrow(res_simple_mRNA)
+        
         res_simple = res_simple_mRNA
       }
 
-      if(do_both) res_simple = rbind(res_simple_atac, res_simple_mRNA)
+      if(do_mRNA & do_atac) res_simple = rbind(res_simple_atac, res_simple_mRNA)
 
       # adding the aggregated FC filter column
       res_simple %<>% dplyr::mutate(FC_all = T, FC_up = L2FC > 0, FC_down = L2FC < 0)
       res_simple$FC = get_merged_columns(res_simple, paste0('FC_', FC_split), 'FC')
 
-      # adding the aggregated FDR filter column
-      for(fdr in FDR_split) res_simple[[paste0('FDR_', fdr)]] = res_simple$padj < 10^-fdr
-      res_simple$FDR = get_merged_columns(res_simple, paste0('FDR_', FDR_split), 'FDR')
-      res_simple$FDR %<>% gsub('^$', 'NS', .)  # NS: None Significant
+      # adding the aggregated TV filter column
+      for(TV in TV_split) res_simple[[paste0('TV_', TV)]] = filter_entries_by_threshold(res_simple, TT, TV)
+      res_simple$TV = get_merged_columns(res_simple, paste0('TV_', TV_split), 'TV')
+      res_simple$TV %<>% gsub('^$', 'NS', .)  # NS: None Significant
 
       # filtering and reordering columns
-      res_simple %<>% dplyr::select(ET, PF, FC, FDR, COMP, peak_id, chr, gene_name, gene_id, pval, padj, L2FC)
+      res_simple %<>% dplyr::select(ET, PF, FC, TV, COMP, peak_id, chr, gene_name, gene_id, pval, padj, L2FC)
 
       saveRDS(res_simple, paste0(COMP, '__res_simple.rds'))
 
@@ -3084,16 +3099,16 @@ process splitting_differential_abundance_results_in_subsets {
       ################################
       ## creating the res_filter table
 
-      df_split = expand.grid(FDR = FDR_split, FC = FC_split, PF = PF_split, stringsAsFactors = F)
+      df_split = expand.grid(TV = TV_split, FC = FC_split, PF = PF_split, stringsAsFactors = F)
       lres_filter = list()
 
       for(c1 in 1:nrow(df_split)){
-        FDR1 = df_split$FDR[c1]
+        TV1 = df_split$TV[c1]
         FC1 = df_split$FC[c1]
         PF1 = df_split$PF[c1]
 
-        res_filter_atac = res_simple %>% dplyr::filter(grepl(FDR1, FDR) & grepl(FC1, FC) & grepl(PF1, PF) & ET == 'ATAC')
-        res_filter_mRNA = res_simple %>% dplyr::filter(grepl(FDR1, FDR) & grepl(FC1, FC) & ET == 'mRNA')
+        res_filter_atac = res_simple %>% dplyr::filter(grepl(TV1, TV) & grepl(FC1, FC) & grepl(PF1, PF) & ET == 'ATAC')
+        res_filter_mRNA = res_simple %>% dplyr::filter(grepl(TV1, TV) & grepl(FC1, FC) & ET == 'mRNA')
 
         # adding the Experiment Type "both"
         ATAC_genes = res_filter_atac$gene_id
@@ -3104,7 +3119,7 @@ process splitting_differential_abundance_results_in_subsets {
         res_filter_mRNA_both = res_filter_mRNA %>% dplyr::filter(gene_id %in% both_genes) %>% dplyr::mutate(ET = 'both_mRNA')
 
         res_filter_tmp = rbind(res_filter_atac_both, res_filter_mRNA_both, res_filter_atac, res_filter_mRNA)
-        res_filter_tmp %<>% dplyr::mutate(FDR = FDR1, FC = FC1, PF = PF1)
+        res_filter_tmp %<>% dplyr::mutate(TV = TV1, FC = FC1, PF = PF1)
         res_filter_tmp$PF[res_filter_tmp$ET == 'mRNA'] = 'Null'
 
         lres_filter[[c1]] = res_filter_tmp
@@ -3133,20 +3148,20 @@ process splitting_differential_abundance_results_in_subsets {
 
       res_filter$gene_peak = apply(res_filter[, c('gene_name', 'peak_id')], 1, paste, collapse = '_')
 
-      df_split1 = res_filter %>% dplyr::select(ET:FDR) %>% .[!duplicated(.),]
+      df_split1 = res_filter %>% dplyr::select(ET:TV) %>% .[!duplicated(.),]
 
       for(c1 in 1:nrow(df_split1)){
         ET1  = df_split1$ET[c1]
         PF1  = df_split1$PF[c1]
         FC1  = df_split1$FC[c1]
-        FDR1 = df_split1$FDR[c1]
+        TV1 = df_split1$TV[c1]
 
-        df = subset(res_filter, ET == ET1 & PF == PF1 & FC == FC1 & FDR == FDR1)
+        df = subset(res_filter, ET == ET1 & PF == PF1 & FC == FC1 & TV == TV1)
         DA_genes = unique(df$gene_id)
         NDA_genes = subset(res_simple, ET == ET1 & !gene_id %in% DA_genes, 'gene_id')$gene_id
         lgenes = list(DA = DA_genes, NDA = NDA_genes)
 
-        key = paste(ET1, PF1, FC1, FDR1, COMP, sep = '__')
+        key = paste(ET1, PF1, FC1, TV1, COMP, sep = '__')
 
         # exporting bed files
         if(do_mRNA && ET1 %in% c('mRNA', 'both_mRNA')) {
@@ -3174,6 +3189,23 @@ process splitting_differential_abundance_results_in_subsets {
 // bed_name = paste0(key, '__diff_expr_genes_prom.bed')
 // bed_name = paste0(key, '__diff_ab_peaks.bed')
 
+// note that the rank column for atac increase for each peak that is assigned to a new gene. This way as many genes are assigned in ATAC-Seq and mRNA-Seq
+
+// commands to check venn diagrams sizes:
+// dt[rank < 1001][L2FC > 0]$gene_id %>% unique %>% length
+// dt[rank < 1001][L2FC < 0]$gene_id %>% unique %>% length
+
+
+// a=      res_simple %>% .[.$ET == 'ATAC', ] %>% .[.$rank < 1001 & .$FC > 0, ] %>% .$gene_id %>% unique
+// c = a %>% .[!. %in% b]
+// dt[gene_id == c[1]]
+
+
+// res_simple[, c('ET', 'FC', 'TV_1000')] %>% table
+// to run after this line:    for(TV in TV_split) res_simple[[paste0('TV_', ...
+
+// res_simple_atac %>% .[.$rank < 1000] %>%  .[.$L2FC < 0 ,]  %>% .[!duplicated(.$gene_id),] %>% nrow
+// res_simple_atac %>%  .[.$L2FC > 0 ,]  %>% .[!duplicated(.$gene_id),] %>% nrow
 
 // Merging_tables_Channel = Merging_tables_Channel.mix(ATAC_detailed_tables_for_merging_tables.groupTuple())
 
@@ -3206,7 +3238,7 @@ Formatting_tables_Channel = Formatting_tables_Channel.mix(Both_filter_table_for_
 
 
 DA_genes_split_for_enrichment_analysis
-  // COMP, [ multiple_rds_files ] (files format: path/ET__PF__FC__FDR__COMP__genes.rds)
+  // COMP, [ multiple_rds_files ] (files format: path/ET__PF__FC__TV__COMP__genes.rds)
   .tap{ DA_genes_for_venn_diagrams }
   .map{ it[1] }.flatten().toList()
   // [ all_rds_files ]
@@ -3216,16 +3248,16 @@ DA_genes_for_self_overlap0
   .flatten()
   // one rds_file per line
   .map{ [ it.name.replaceFirst(~/__genes.*/, ''), it ] }
-  // key (ET__PF__FC__FDR__COMP), rds_file
+  // key (ET__PF__FC__TV__COMP), rds_file
   .into{ DA_genes_for_self_overlap ; DA_genes_for_func_anno_overlap }
 
 
 DA_genes_for_self_overlap
-  // format: key (ET__PF__FC__FDR__COMP), rds_file (lgenes = list(DA, NDA))
+  // format: key (ET__PF__FC__TV__COMP), rds_file (lgenes = list(DA, NDA))
   .combine(DA_genes_list_for_self_overlap)
   // format: key, rds_file, rds_files
   .map{ [ "${it[0]}__genes_self", 'genes_self', it[1], it[2..-1] ] }
-  // format: key (ET__PF__FC__FDR__COMP__DT), DT, rds_file, [ rds_files ]
+  // format: key (ET__PF__FC__TV__COMP__DT), DT, rds_file, [ rds_files ]
   .dump(tag: 'genes_self')
   .set{ DA_genes_for_self_overlap1 }
 
@@ -3236,11 +3268,11 @@ DA_genes_for_self_overlap
 // A background is needed for downstream analysis to compare DEG or DBP to all genes or all peaks. This background is all_peaks found by DiffBind for the ATAC and both_ATAC entries. And it is the promoters of genes detected by sleuth for mRNA and both_mRNA entries.
 
 DA_regions_split_for_enrichment_analysis
-  // COMP, multiple_bed_files (files format: path/ET__PF__FC__FDR__COMP__peaks.bed)
+  // COMP, multiple_bed_files (files format: path/ET__PF__FC__TV__COMP__peaks.bed)
   .map{ it[1] }.flatten()
   // bed_file
   .map{ [ it.name.replaceFirst(~/__regions.bed/, ''), it ] }
-  // key (ET__PF__FC__FDR__COMP), bed_file
+  // key (ET__PF__FC__TV__COMP), bed_file
   .dump(tag:'DA_regions')
   .into{ DA_regions_split_ATAC ; DA_regions_split_mRNA }
 
@@ -3310,25 +3342,26 @@ process plotting_venn_diagrams {
 
       all_files = list.files(pattern = '*.rds')
 
+
       df = data.frame(do.call(rbind, lapply(all_files, function(x) strsplit(x, '__')[[1]][-6])), stringsAsFactors = F)
-      colnames(df) = c('ET', 'PF', 'FC', 'FDR', 'COMP')
+      colnames(df) = c('ET', 'PF', 'FC', 'TV', 'COMP')
 
       PFs = unique(df$PF)
       PFs = PFs[PFs != 'Null']
-      FDRs = unique(df$FDR)
+      TVs = unique(df$TV)
       COMP = df$COMP[1]
 
-      get_file_name <- function(ET, PF, FC, FDR){
-        paste(ET, PF, FC, FDR, COMP, 'genes.rds', sep = '__')
+      get_file_name <- function(ET, PF, FC, TV){
+        paste(ET, PF, FC, TV, COMP, 'genes.rds', sep = '__')
       }
 
       for(PF1 in PFs){
-        for(FDR1 in FDRs){
+        for(TV1 in TVs){
 
-          atac_up = get_file_name('ATAC', PF1, 'up', FDR1)
-          atac_down = get_file_name('ATAC', PF1, 'down', FDR1)
-          mrna_up = get_file_name('mRNA', 'Null', 'up', FDR1)
-          mrna_down = get_file_name('mRNA', 'Null', 'down', FDR1)
+          atac_up = get_file_name('ATAC', PF1, 'up', TV1)
+          atac_down = get_file_name('ATAC', PF1, 'down', TV1)
+          mrna_up = get_file_name('mRNA', 'Null', 'up', TV1)
+          mrna_down = get_file_name('mRNA', 'Null', 'down', TV1)
 
           a_u = file.exists(atac_up)
           a_d = file.exists(atac_down)
@@ -3337,19 +3370,19 @@ process plotting_venn_diagrams {
 
           if(a_u & m_u) {
             lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = readRDS(mrna_up)$DA)
-            prefix = paste(PF1, 'up', FDR1, COMP, sep = '__')
+            prefix = paste(PF1, 'up', TV1, COMP, sep = '__')
             plot_venn_diagrams(lgenes, prefix)
           }
 
           if(a_d & m_d) {
             lgenes = list(atac_down = readRDS(atac_down)$DA, mrna_down = readRDS(mrna_down)$DA)
-            prefix = paste(PF1, 'down', FDR1, COMP, sep = '__')
+            prefix = paste(PF1, 'down', TV1, COMP, sep = '__')
             plot_venn_diagrams(lgenes, prefix)
           }
 
           if(a_u & a_d & m_u & m_d) {
             lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = readRDS(mrna_up)$DA, atac_down = readRDS(atac_down)$DA, mrna_down = readRDS(mrna_down)$DA)
-            prefix = paste(PF1, FDR1, COMP, sep = '__')
+            prefix = paste(PF1, TV1, COMP, sep = '__')
             plot_venn_diagrams(lgenes, prefix)
           }
 
@@ -3391,15 +3424,15 @@ Channel
 
 
 DA_genes_for_func_anno_overlap
-  // key (ET__PF__FC__FDR__COMP), rds_file
+  // key (ET__PF__FC__TV__COMP), rds_file
   .combine(params.func_anno_databases)
-  // key (ET__PF__FC__FDR__COMP), rds_file, func_anno
+  // key (ET__PF__FC__TV__COMP), rds_file, func_anno
   .map{ key, rds_file, func_anno -> 
     data_type = "func_anno_" + func_anno
     new_key = key + "__" + data_type
     [ new_key, data_type, func_anno, rds_file ]
   }
-  // key (ET__PF__FC__FDR__COMP__DT), data_type, func_anno, rds_file 
+  // key (ET__PF__FC__TV__COMP__DT), data_type, func_anno, rds_file 
   .dump(tag: 'func_anno')
   .set{ DA_genes_for_func_anno_overlap1 }
 
@@ -3539,6 +3572,7 @@ process compute_genes_self_overlap {
         write.csv(df, paste0(key, '__genes_self__counts.csv'), row.names = F)
 
 
+
   '''
 }
 
@@ -3592,16 +3626,16 @@ if( ! params.do_chromatin_state ) Chrom_states_channel.close()
 Bed_regions_to_overlap_with = CHIP_channel.mix(Chrom_states_channel).mix(DA_regions_channel)
 
 DA_regions_with_bg_for_bed_overlap2
-  // format: key (ET__PF__FC__FDR__COMP), DA_regions, all_regions
+  // format: key (ET__PF__FC__TV__COMP), DA_regions, all_regions
   .combine(Bed_regions_to_overlap_with)
   // format: key, DA_regions, all_regions, data_type, bed_files
   .map{ [ it[0,3].join('__'), it[3], it[1], it[2], it[4] ] }
   .dump(tag:'bed_overlap')
-  // format: key (ET__PF__FC__FDR__COMP__DT), data_type, DA_regions, all_regions, bed_files
+  // format: key (ET__PF__FC__TV__COMP__DT), data_type, DA_regions, all_regions, bed_files
   .set{ DA_regions_with_bg_and_bed_for_overlap }
 
 
-process compute_peaks_self_overlap {
+process compute_peaks_overlap {
   tag "${key}"
 
   container = params.samtools_bedtools_perl
@@ -3662,10 +3696,10 @@ Counts_tables_Channel = Counts_tables_Channel.mix(Peaks_self_overlap_for_computi
 
 
 DA_regions_with_bg_for_motifs_overlap
-  // key (ET__PF__FC__FDR__COMP), DA_regions, all_regions
+  // key (ET__PF__FC__TV__COMP), DA_regions, all_regions
   .map{ [ "${it[0]}__motifs", "motifs", it[1], it[2] ] }
   .dump(tag:'peaks_for_homer')
-  // format: key (ET__PF__FC__FDR__COMP__DT), data_type, DA_regions, all_regions
+  // format: key (ET__PF__FC__TV__COMP__DT), data_type, DA_regions, all_regions
   .set{ DA_regions_with_bg_for_motifs_overlap1 }
 
 
@@ -3764,9 +3798,9 @@ Counts_tables_Channel = Counts_tables_Channel.mix(Motifs_counts_for_computing_pv
 //   .mix(peaks_self_overlap_for_computing_pvalue)
 //   .mix(Genes_func_anno_count_for_computing_pvalue)
 //   .mix(Motifs_counts_for_computing_pvalue)
-//   // format: key (ET__PF__FC__FDR__COMP__DT), DT, csv_counts
+//   // format: key (ET__PF__FC__TV__COMP__DT), DT, csv_counts
 //   // .map{ [ it.name.replaceFirst(~/__counts.csv/, ''), it ] }
-//   // // format:  key (ET__PF__FC__FDR__COMP), csv_counts
+//   // // format:  key (ET__PF__FC__TV__COMP), csv_counts
 //   .dump(tag: 'count_tables')
 //   .set{ Counts_tables_Channel }
 // Counts_tables_Channel = Counts_tables_Channel.mix(genes_self_overlap_for_computing_pvalue)
@@ -3853,7 +3887,7 @@ process compute_enrichment_pvalue {
         # adding the key and saving for plots
         key_split = strsplit(key, '__')[[1]]
         key_df = as.data.frame(t(key_split[-length(key_split)]), stringsAsFactors = F)
-        cln = c('ET', 'PF', 'FC', 'FDR', 'COMP')
+        cln = c('ET', 'PF', 'FC', 'TV', 'COMP')
         key_df %<>% set_colnames(cln)
         if(data_type1 == 'func_anno') key_df %<>% cbind(GE = GE, .)
         df2 = cbind(key_df, df)
@@ -3887,7 +3921,7 @@ Enrichment_for_plot
   .flatten()
   // we need to flatten since the genes_sets
   .map{ [ it.name.replaceFirst(~/__enrich.rds/, ''), it ] }
-  // format: key (ET__PF__FC__FDR__COMP__DT), rds_file
+  // format: key (ET__PF__FC__TV__COMP__DT), rds_file
   .tap{ Enrich_results_for_barplot }
   .combine(comparisons_grouped_for_heatmap)
   // format: key, rds_file, GRP, comp_order
@@ -3897,11 +3931,11 @@ Enrichment_for_plot
   .filter{ it[0] in it[4].split('\\|') }
   // keeping only COMP that are in the group
   .map{ [ it[1].split('__'), it[2..4] ].flatten() }
-  // format: ET, PF, FC, FDR, COMP, DT, rds_file, GRP, comp_order
+  // format: ET, PF, FC, TV, COMP, DT, rds_file, GRP, comp_order
   .map{ [ it[0, 1, 3, 7, 5].join('__'), it[5, 8, 3, 6] ].flatten() }
-  // format: key (ET__PF__FDR__GRP__DT), DT, comp_order, FDR, rds_file
+  // format: key (ET__PF__TV__GRP__DT), DT, comp_order, TV, rds_file
   .groupTuple(by: [0, 1, 2, 3])
-  // format: key, DT, comp_order, FDR, rds_files
+  // format: key, DT, comp_order, TV, rds_files
   .filter{ it[4].size() > 1 }
   // .map{ it[0, 1, 2, 4] }
   .dump(tag:'heatmap')
@@ -3911,9 +3945,9 @@ Enrichment_for_plot
 
 
 Enrich_results_for_barplot
-  // format: key (ET__PF__FC__FDR__COMP__DT), rds_file
+  // format: key (ET__PF__FC__TV__COMP__DT), rds_file
   .map{ [ it[0], it[0].split('__')[5], it[1] ]  }
-  // format: key (ET__PF__FC__FDR__COMP__DT), DT, rds_file
+  // format: key (ET__PF__FC__TV__COMP__DT), DT, rds_file
   .dump(tag: 'barplot')
   .set{ Enrich_results_for_barplot1 }
 
@@ -4017,7 +4051,7 @@ process plot_enrichment_heatmap {
   publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", mode: "${pub_mode}"
 
   input:
-    set key, data_type, comp_order, fdr, file('*') from Enrich_results_for_heatmap
+    set key, data_type, comp_order, tv, file('*') from Enrich_results_for_heatmap
 
   output:
     // set val("3" + data_type "_heatmaps_genes_sets"), val("Figures_Merged/3_Enrichment"), file("*.pdf") optional true into Heatmap_for_merging_pdfs
@@ -4059,7 +4093,7 @@ process plot_enrichment_heatmap {
 
     # filtering table
     if(data_type %in% c('genes_self', 'peaks_self')){
-      key1 = paste(df[1, c('ET', 'PF', 'FDR')], collapse = '__')
+      key1 = paste(df[1, c('ET', 'PF', 'TV')], collapse = '__')
       df$tgt_key = sapply(strsplit(df$tgt, '__'), function(x) paste(x[c(1,2,4)], collapse = '__'))
       df %<>% .[.$tgt_key %in% key1, ]
       df$tgt_key <- NULL
@@ -4103,11 +4137,11 @@ process plot_enrichment_heatmap {
       tgt_ET = purrr__map_chr(strs, 1)
       tgt_PF = purrr__map_chr(strs, 2)
       tgt_FC = purrr__map_chr(strs, 3)
-      tgt_FDR = purrr__map_chr(strs, 4)
+      tgt_TV = purrr__map_chr(strs, 4)
       tgt_COMP = purrr__map_chr(strs, 5)
       ET = unique(df$ET)
       PF = unique(df$PF)
-      FDR = unique(df$FDR)
+      TV = unique(df$TV)
       df$tgt_comp_FC = paste0(tgt_COMP, '_', tgt_FC) %>% gsub('_vs_', '_', .)
       df = subset(df, tgt_comp_FC %in% comp_FC & tgt_ET == ET & tgt_PF == PF)
       df$yaxis_terms = df$tgt_comp_FC
@@ -4215,6 +4249,7 @@ process formatting_individual_tables {
 
 
         library(magrittr)
+        
         source('!{projectDir}/bin/read_from_nextflow.R')
         source('!{projectDir}/bin/get_formatted_table.R')
 
@@ -4360,7 +4395,7 @@ process save_excel_tables {
         nms_coordinates = c('chr','start', 'end',	'width', 'strand')
         nms_coordinates = c(nms_coordinates, paste0('gene_', nms_coordinates))
 
-        if(nms %in% c('GE', 'ET', 'PF', 'FC', 'FDR', 'COMP')) return('filter') else
+        if(nms %in% c('GE', 'ET', 'PF', 'FC', 'TV', 'COMP')) return('filter') else
         if(nms %in% c('gene_name', 'gene_id', 'entrez_id'))   return('gene') else
         if(nms %in% c('pval', 'padj'))                        return('pvalue') else
         if(nms %in% c('L2FC', 'L2OR'))                        return('fold') else

@@ -9,11 +9,17 @@ source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
 
 
 # run.config
-cp preprocessing/run.config $run_config_file
-sed -i "3s/^/\n  specie = 'human'\n/" $run_config_file
-sed -i "5s/^/\n  chromatin_state = 'ENCFF941SVR'\n/" $run_config_file
-sed -i "5s/^/\n  chip_ontology = 'cell_type.fibroblast'\n/" $run_config_file
-cat $run_config_file
+cat > ${specie}/conf/run.config <<EOL
+params {
+  specie            = 'human'
+  use_input_control = false
+  save_bed_type     = 'all'
+  chip_ontology     = 'cell_type.fibroblast'
+  chromatin_state   = 'ENCFF941SVR'
+  threshold_type_for_splitting_subsets   = 'rank' 
+  threshold_values_for_splitting_subsets = [ 200, 1000 ]
+}
+EOL
 
 ## details on the cell line:
 # https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE98758
@@ -27,8 +33,8 @@ cat $run_config_file
 # ENCFF941SVR: ChromHMM 18-state model of BSS00066: AG09309 from donor(s) ENCDO002AAA, cell line,	fibroblast,	skin of body, connective tissue
 
 ## alternative parameters if the cell are considered more like stem cell:
-# sed -i "5s/^/\n  chip_ontology = 'cell_type.stem_cell'\n/" $specie/conf/run.config
-# sed -i "5s/^/\n  chromatin_state = 'ENCFF676VUR'\n/" $specie/conf/run.config
+# chip_ontology = 'cell_type.stem_cell'
+# chromatin_state = 'ENCFF676VUR'
 # details on the chromatin state file: ENCFF676VUR, ChromHMM 18-state model of BSS00735: iPS-11a male adult (36 years) from donor(s) ENCDO632AGT,iPS-11a	cell line,	stem cell, induced pluripotent stem cell, skin of body
 
 # atac_fastq.tsv and mrna_fastq.tsv
