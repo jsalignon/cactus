@@ -6,7 +6,9 @@
 [Install] (./docs/usage.md#Install)
 
 # test 3
-* [Usage](/docs/usage.md) [Usage](./usage.md#Run)
+* [Usage](/docs/usage.md) [Run](./usage.md#Run)
+* [Usage](/docs/usage.md) [Run](/docs/usage.md#Run)
+* [Usage](/docs/usage.md) [Run](./docs/usage.md#Run)
 
 # Test 4
 * Introduction: [Cactus] (./README.md#Cactus), [Quick Start] (./README.md#Quick-Start), [Citation] (./README.md#Citation)
