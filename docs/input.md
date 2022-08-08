@@ -1,14 +1,18 @@
 
-# General Menu
-* [Introduction](/README.md)
-* [Pipeline overview](/docs/pipeline_overview.md)
-* [Usage](/docs/usage.md)
-* [Output](/docs/output.md)
+
+* Introduction: [Cactus] (/README.md#Cactus), [Quick Start] (/README.md#Quick-Start), [Citation] (/README.md#Citation)
+* Overview: [Short summary] (/docs/pipeline_overview/overview.md#Short-Summary), [Graph] (/docs/pipeline_overview/overview.md#Graph)
+* Usage: [Install] (/docs/usage.md#Install), [Run] (/docs/usage.md#Run), [Reproducibility] (/docs/usage.md#Reproducibility, [Troubleshooting] (/docs/usage.md#Troubleshooting)
+* Input: [Fastq] (/docs/input.md#Fastq), [Design] (/docs/input.md#Design), [Config] (/docs/input.md#Config, [Troubleshooting] (/docs/input.md#Troubleshooting)
+* Output: [Types] (/docs/output.md#Types), [Structure] (/docs/output.md#Structure)
 
 
-# Input Menu
+# Fastq
 
-# Configuration files
+ - describe fastq files names
+
+
+# Design
 
 Inputs of the program are raw ATAC-Seq or mRNA-Seq fastq.gz files. If there are multiple files for the same conditions, the read do not necessarily need to be merged as this can be done within cactus. 
 The configuration files are expected by Cactus are: atac_seq.config, mRNA_Seq.config, comparisons.config, regions_to_remove.config, grouped_conditions_for_plots.config, base.config. All are tab separated files. Below are instructions and examples on how to write these files [note: add an example per type of file]:
@@ -20,6 +24,5 @@ The configuration files are expected by Cactus are: atac_seq.config, mRNA_Seq.co
 -	**base.config** (optional): this file allows to overwrite Cactus default settings with custom settings. All parameters from the run.config file can be set changed here to determine how a given experiment is analyzed. See the parameters section below for more details.
 
 
-# Data files
+# Config
 
- - describe fastq files names

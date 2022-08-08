@@ -1,18 +1,21 @@
 
-# General Menu
-* [Introduction](/README.md)
-* [Pipeline overview](/docs/pipeline_overview.md)
-* [Usage](/docs/usage.md)
-* [Output](/docs/output.md)
+
+* Introduction: [Cactus] (/README.md#Cactus), [Quick Start] (/README.md#Quick-Start), [Citation] (/README.md#Citation)
+* Overview: [Short summary] (/docs/pipeline_overview/overview.md#Short-Summary), [Graph] (/docs/pipeline_overview/overview.md#Graph)
+* Usage: [Install] (/docs/usage.md#Install), [Run] (/docs/usage.md#Run), [Reproducibility] (/docs/usage.md#Reproducibility, [Troubleshooting] (/docs/usage.md#Troubleshooting)
+* Input: [Fastq] (/docs/input.md#Fastq), [Design] (/docs/input.md#Design), [Config] (/docs/input.md#Config, [Troubleshooting] (/docs/input.md#Troubleshooting)
+* Output: [Types] (/docs/output.md#Types), [Structure] (/docs/output.md#Structure)
 
 
-# Output Menu
+# Types
 
 [Note: There should be one example Figure for each output]
 There are three main types of outputs: processed data, figures and tables. Both figures and tables are available either merged (for easier scrolling) and separated (for lower memory usage). Tables can be either csv files or formatted Excel files.
 Here is the structure of the output file with a short description of each output file and examples when relevant: 
 TO DO. [add the tree of output as clickable and with a submenu, and description and image for each item]
 
+
+# Structure
 
 <!-- Tree structure obtained with this command in the results folder: tree -I Run_Info -d -L 3 -->
 
