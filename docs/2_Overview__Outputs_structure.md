@@ -27,9 +27,10 @@ TO DO. [add the tree of output as clickable and with a submenu, and description 
 
 # Structure
 
-<!-- Tree structure obtained with this command in the results folder: tree -I Run_Info -d -L 3 -->
+<!-- tree -I Run_Info -d -L 3 /home/jersal/workspace/cactus/test_datasets/human/results/25.07.22/ -->
 
 ```
+.
 ├── Figures_Individual
 │   ├── 1_Preprocessing
 │   │   ├── ATAC__peaks__average_profile

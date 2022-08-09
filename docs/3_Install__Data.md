@@ -13,6 +13,10 @@
 
 ## Introduction
 
+## Folder size
+
+<!--  du -h -d0 human mouse fly worm -->
+
 data folder sizes
 containers sizes
 
@@ -28,6 +32,9 @@ The pipeline download the data from various sources and process it to produce al
 
 ## Structure of the data folders
 
+```
+
+<!-- tree -d -L 3 --filelimit 5 human -->
 .
 ├── bowtie2_indexes_conta
 ├── CHIP
@@ -45,4 +52,4 @@ The pipeline download the data from various sources and process it to produce al
     │   └── /nickname/
     ├── GO
     └── promoters
-
+```

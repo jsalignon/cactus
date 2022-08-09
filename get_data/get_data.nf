@@ -835,6 +835,8 @@ process get_encode_chromatin_state_data {
 			write.table(df1, paste0(accession, '/', state, '.bed'), col.names = F, row.names = F, quote = F, sep = get_tab())
 		}
 		
+		file.remove(bed_file)
+		
 	'''
 }
 
