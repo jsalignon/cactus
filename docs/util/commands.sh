@@ -1,4 +1,10 @@
 
+
+###################################################
+### Menus
+###################################################
+
+
 rename -v 's/Intro/1_Intro/' *.md
 rename -v 's/Overview/2_Overview/' *.md
 rename -v 's/Install/3_Install/' *.md
@@ -50,6 +56,13 @@ ls -1 *.md
 # 9_Enrich__Motifs.md
 # 9_Enrich__Tables.md
 
+
+
+
+
+###################################################
+### Get test datasets
+###################################################
 
 ## could not find a bash way to get markdown tables from tsv. Done in R in the end
 # # markdown_table.sh comes from here:
@@ -118,6 +131,42 @@ get_test_dataset_size <- function(specie){
 df = do.call(rbind, lapply(c('fly', 'worm', 'mouse', 'human'), get_test_dataset_size))
 
 knitr::kable(df, 'pipe', align = 'c')
+
+
+
+
+
+###################################################
+### Get data
+###################################################
+
+cd /home/jersal/workspace/cactus/data/human
+
+tree -d -L 3 --filelimit 5
+.
+├── bowtie2_indexes_conta
+├── CHIP
+├── chromatin_states [835 entries exceeds filelimit, not opening dir]
+├── genome
+│   ├── annotation
+│   │   ├── bed_regions
+│   │   ├── filtered
+│   │   └── R
+│   └── sequence
+│       └── bowtie2_indexes
+└── homer_data
+    ├── accession
+    ├── genomes
+    │   └── hg38
+    ├── GO
+    └── promoters
+
+
+
+
+
+
+
 
 
 

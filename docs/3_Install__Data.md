@@ -13,7 +13,36 @@
 
 ## Introduction
 
-![DAG](/docs/images/dag_get_data.svg)
+data folder sizes
+containers sizes
+
 
 
 ## Pipeline to get data
+
+![DAG](/docs/images/dag_get_data.svg)
+
+The pipeline download the data from various sources and process it to produce all the files required by cactus. 
+
+
+
+## Structure of the data folders
+
+.
+├── bowtie2_indexes_conta
+├── CHIP
+├── chromatin_states
+├── genome
+│   ├── annotation
+│   │   ├── bed_regions
+│   │   ├── filtered
+│   │   └── R
+│   └── sequence
+│       └── bowtie2_indexes
+└── homer_data
+    ├── accession
+    ├── genomes
+    │   └── /nickname/
+    ├── GO
+    └── promoters
+
