@@ -13,3 +13,8 @@
 
 
 # Fastq
+
+Replicates are needed.
+File names. 
+...
+
