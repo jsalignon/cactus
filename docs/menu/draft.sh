@@ -49,3 +49,34 @@ ls -1 *.md
 # 9_Enrich__Functional_annotations.md
 # 9_Enrich__Motifs.md
 # 9_Enrich__Tables.md
+
+
+## could not find a bash way to get markdown tables from tsv. Done in R in the end
+# # markdown_table.sh comes from here:
+# # https://josh.fail/2022/pure-bash-markdown-table-generator/
+# 
+# input_file=~/workspace/cactus/test_datasets/preprocessing/fly/samplesheet/samples_info_1.tsv
+# cat $input_file | paste -d, - - | pandoc -f csv -t markdown_phpextra
+# cat $input_file | pandoc --metadata-file -t markdown_phpextra
+# cat $input_file | pandoc  -t markdown_phpextra
+# 
+# pandoc --filter pandoc-csv2table -o test.html input_file
+
+
+get_markdown_table <- function(specie){
+  tmp = read.table(paste0('~/workspace/cactus/test_datasets/preprocessing/', specie, '/samplesheet/samples_info_1.tsv'), header = T)
+  knitr::kable(tmp, 'pipe', align = 'c')
+}
+
+get_markdown_table('worm')
+get_markdown_table('fly')
+get_markdown_table('human')
+get_markdown_table('mouse')
+
+
+
+
+
+
+
+

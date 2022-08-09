@@ -47,7 +47,7 @@ awk 'BEGIN {OFS = "\t"} { \
   gsub(/.*ssrp1.*/, "ssrp1", condition); \
   gsub(/.*supt16h.*/, "supt16h", condition); \
   sample_id = condition "_" replicate ; \
-  gsub(/sample_title_sample_title/, "sample_id", sample_id)
+  if (NR == 1) sample_id = "sample_id"; \
   print $1, $2, $3, $4, $5, $6, sample_id \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
 make_fastq_info_file $specie $n_reads_atac $n_reads_mrna

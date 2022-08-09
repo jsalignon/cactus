@@ -29,6 +29,7 @@ awk 'BEGIN {OFS = "\t"} { \
   gsub(/bap170/, "b170", sample_id); \
   gsub(/nurf301/, "n301", sample_id); \
   gsub(/lacz/, "ctl", sample_id); \
+  if (NR == 1) sample_id = "sample_id"; \
   print $1, $2, $3, $4, $5, $6, sample_id \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
 make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
