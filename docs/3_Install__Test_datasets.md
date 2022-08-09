@@ -45,7 +45,7 @@ And below are details on the test datasets origins and labels.
     - hmg-4, hmg-3  -> SSRP1
     -        spt-16 -> SUPT16H
 
-  **Samples worm**:
+  **Worm samples**:
 
 | experiment_accession | run_accession | sample_alias | library_layout | library_strategy | sample_title  | sample_id |
 |:--------------------:|:-------------:|:------------:|:--------------:|:----------------:|:-------------:|:---------:|
@@ -69,7 +69,7 @@ And below are details on the test datasets origins and labels.
 |      SRX3029134      |  SRR5860434   |  GSM2715424  |     PAIRED     |     ATAC-seq     |  hmg-4_rep2   |  hmg4_2   |
   |      SRX3029135      |  SRR5860435   |  GSM2715425  |     PAIRED     |     ATAC-seq     |  hmg-4_rep3   |  hmg4_3   |
 
-  **Samples human**:
+  **Human samples**:
   
 | experiment_accession | run_accession | sample_alias | library_layout | library_strategy |                   sample_title                    | sample_id |
 |:--------------------:|:-------------:|:------------:|:--------------:|:----------------:|:-------------------------------------------------:|:---------:|
@@ -106,7 +106,7 @@ And below are details on the test datasets origins and labels.
   **Abstract**: Transcriptionally silent genes must be activated throughout development. This requires nucleosomes be removed from promoters and enhancers to allow transcription factor (TF) binding and recruitment of coactivators and RNA polymerase II (Pol II). Specialized pioneer TFs bind nucleosome-wrapped DNA to perform this chromatin opening by mechanisms that remain incompletely understood. Here, we show that GAGA factor (GAF), a Drosophila pioneer-like factor, functions with both SWI/SNF and ISWI family chromatin remodelers to allow recruitment of Pol II and entry to a promoter-proximal paused state, and also to promote Pol II's transition to productive elongation. We found that GAF interacts with PBAP (SWI/SNF) to open chromatin and allow Pol II to be recruited. Importantly, this activity is not dependent on NURF as previously proposed; however, GAF also synergizes with NURF downstream from this process to ensure efficient Pol II pause release and transition to productive elongation, apparently through its role in precisely positioning the +1 nucleosome. These results demonstrate how a single sequence-specific pioneer TF can synergize with remodelers to activate sets of genes. Furthermore, this behavior of remodelers is consistent with findings in yeast and mice, and likely represents general, conserved mechanisms found throughout eukarya. 
   
   **Samples**:
-  | experiment_accession | run_accession | sample_alias | library_layout | library_strategy |        sample_title        | sample_id  |
+| experiment_accession | run_accession | sample_alias | library_layout | library_strategy |        sample_title        | sample_id  |
 |:--------------------:|:-------------:|:------------:|:--------------:|:----------------:|:--------------------------:|:----------:|
 |      SRX8174034      |  SRR11607688  |  GSM4498282  |     PAIRED     |     ATAC-seq     |     LACZ_ATACseq_Rep1      |   ctl_1    |
 |      SRX8174034      |  SRR11607689  |  GSM4498282  |     PAIRED     |     ATAC-seq     |     LACZ_ATACseq_Rep1      |   ctl_1    |
@@ -141,16 +141,48 @@ And below are details on the test datasets origins and labels.
 
 
 
-## Mouse ([GSE149339](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149336))
+## Mouse ([GSE181797](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE181797))
 
-=> not sure if I keep the current dataset or not
-=> use this paper instead!
-https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE162048
 
-# => no publication yet!
+  **GEO Status**: Public on Oct 01, 2021
 
-Title 	Revealing regulatory transcription factors of aging in the kidney and kidney through multi-omics analysis
-
-Summary 	Aging is accompanied by a gradual loss of systemic metabolic homeostasis, which is maintained by multiple-organs, especially the kidney and kidney. However, a systematic study of the regulatory networks and regulatory transcription factors (TFs) of aging in the kidney and kidney remains lacking. Here, we performed an integrated analysis of multi-omics datasets in the kidney and kidney from young and aged mice, including RNA-seq, reduced representation bisulfite sequencing (RRBS) and ATAC-seq datasets, which indicated that enhanced inflammation and dysregulated metabolism were conserved signatures in aged kidney and kidney in both the transcriptome and epigenome. Transcription factor and regulatory network analysis indicated that activation of AP-1 and SPI1 was responsible for enhanced inflammation, and down-regulation of HNFs and PPARs contributed to dysregulated metabolism in aged kidney and kidney. Importantly, we found that the activation of AP-1 was cellular autonomous in aged hepatic and renal cells. However, enhanced SPI1 was caused by elevated infiltration of macrophages. Importantly, inhibition of AP-1 with small molecule combination attenuated inflammation phenotypes of aging in vivo and in vitro. Taken together, our analysis revealed common signatures and regulatory TFs of aging in the kidney and kidney, providing novel targets for the development of anti-aging interventions.
-
+  **GEO Title**: Revealing regulatory transcription factors of aging in the kidney and kidney through multi-omics analysis
+  
+  **GEO Summary**: Aging is accompanied by a gradual loss of systemic metabolic homeostasis, which is maintained by multiple-organs, especially the kidney and kidney. However, a systematic study of the regulatory networks and regulatory transcription factors (TFs) of aging in the kidney and kidney remains lacking. Here, we performed an integrated analysis of multi-omics datasets in the kidney and kidney from young and aged mice, including RNA-seq, reduced representation bisulfite sequencing (RRBS) and ATAC-seq datasets, which indicated that enhanced inflammation and dysregulated metabolism were conserved signatures in aged kidney and kidney in both the transcriptome and epigenome. Transcription factor and regulatory network analysis indicated that activation of AP-1 and SPI1 was responsible for enhanced inflammation, and down-regulation of HNFs and PPARs contributed to dysregulated metabolism in aged kidney and kidney. Importantly, we found that the activation of AP-1 was cellular autonomous in aged hepatic and renal cells. However, enhanced SPI1 was caused by elevated infiltration of macrophages. Importantly, inhibition of AP-1 with small molecule combination attenuated inflammation phenotypes of aging in vivo and in vitro. Taken together, our analysis revealed common signatures and regulatory TFs of aging in the kidney and kidney, providing novel targets for the development of anti-aging interventions.
+  
+  **GEO Design**: mRNA and ATAC-seq profiles of young and old kidney and kidney.
+  
+  **Citation**:  *Citation missing*
+  
+  **Samples**:
+| experiment_accession | run_accession | sample_alias | library_layout | library_strategy |      sample_title      | sample_id |
+|:--------------------:|:-------------:|:------------:|:--------------:|:----------------:|:----------------------:|:---------:|
+|     SRX11708663      |  SRR15406500  |  GSM5511490  |     PAIRED     |     RNA-Seq      | Young_kidney_mRNA_rep1 | YngKid_1  |
+|     SRX11708664      |  SRR15406501  |  GSM5511491  |     PAIRED     |     RNA-Seq      | Young_kidney_mRNA_rep2 | YngKid_2  |
+|     SRX11708665      |  SRR15406502  |  GSM5511492  |     PAIRED     |     RNA-Seq      | Young_kidney_mRNA_rep3 | YngKid_3  |
+|     SRX11708666      |  SRR15406503  |  GSM5511493  |     PAIRED     |     RNA-Seq      | Young_kidney_mRNA_rep4 | YngKid_4  |
+|     SRX11708667      |  SRR15406504  |  GSM5511494  |     PAIRED     |     RNA-Seq      |  Old_kidney_mRNA_rep1  | OldKid_1  |
+|     SRX11708668      |  SRR15406505  |  GSM5511495  |     PAIRED     |     RNA-Seq      |  Old_kidney_mRNA_rep2  | OldKid_2  |
+|     SRX11708669      |  SRR15406506  |  GSM5511496  |     PAIRED     |     RNA-Seq      |  Old_kidney_mRNA_rep3  | OldKid_3  |
+|     SRX11708670      |  SRR15406507  |  GSM5511497  |     PAIRED     |     RNA-Seq      |  Old_kidney_mRNA_rep4  | OldKid_4  |
+|     SRX11708671      |  SRR15406508  |  GSM5511498  |     PAIRED     |     RNA-Seq      | Young_liver_mRNA_rep1  | YngLiv_1  |
+|     SRX11708672      |  SRR15406509  |  GSM5511499  |     PAIRED     |     RNA-Seq      | Young_liver_mRNA_rep2  | YngLiv_2  |
+|     SRX11708673      |  SRR15406510  |  GSM5511500  |     PAIRED     |     RNA-Seq      | Young_liver_mRNA_rep3  | YngLiv_3  |
+|     SRX11708674      |  SRR15406511  |  GSM5511501  |     PAIRED     |     RNA-Seq      | Young_liver_mRNA_rep4  | YngLiv_4  |
+|     SRX11708675      |  SRR15406512  |  GSM5511502  |     PAIRED     |     RNA-Seq      |  Old_liver_mRNA_rep1   | OldLiv_1  |
+|     SRX11708676      |  SRR15406513  |  GSM5511503  |     PAIRED     |     RNA-Seq      |  Old_liver_mRNA_rep2   | OldLiv_2  |
+|     SRX11708677      |  SRR15406514  |  GSM5511504  |     PAIRED     |     RNA-Seq      |  Old_liver_mRNA_rep3   | OldLiv_3  |
+|     SRX11708678      |  SRR15406515  |  GSM5511505  |     PAIRED     |     RNA-Seq      |  Old_liver_mRNA_rep4   | OldLiv_4  |
+|     SRX11708679      |  SRR15406516  |  GSM5511506  |     PAIRED     |     ATAC-seq     | Young_kidney_ATAC_rep1 | YngKid_1  |
+|     SRX11708680      |  SRR15406517  |  GSM5511507  |     PAIRED     |     ATAC-seq     | Young_kidney_ATAC_rep2 | YngKid_2  |
+|     SRX11708681      |  SRR15406518  |  GSM5511508  |     PAIRED     |     ATAC-seq     | Young_kidney_ATAC_rep3 | YngKid_3  |
+|     SRX11708682      |  SRR15406519  |  GSM5511509  |     PAIRED     |     ATAC-seq     |  Old_kidney_ATAC_rep1  | OldKid_1  |
+|     SRX11708683      |  SRR15406520  |  GSM5511510  |     PAIRED     |     ATAC-seq     |  Old_kidney_ATAC_rep2  | OldKid_2  |
+|     SRX11708684      |  SRR15406521  |  GSM5511511  |     PAIRED     |     ATAC-seq     |  Old_kidney_ATAC_rep3  | OldKid_3  |
+|     SRX11708685      |  SRR15406522  |  GSM5511512  |     PAIRED     |     ATAC-seq     | Young_liver_ATAC_rep1  | YngLiv_1  |
+|     SRX11708686      |  SRR15406523  |  GSM5511513  |     PAIRED     |     ATAC-seq     | Young_liver_ATAC_rep2  | YngLiv_2  |
+|     SRX11708687      |  SRR15406524  |  GSM5511514  |     PAIRED     |     ATAC-seq     | Young_liver_ATAC_rep3  | YngLiv_3  |
+|     SRX11708688      |  SRR15406525  |  GSM5511515  |     PAIRED     |     ATAC-seq     |  Old_liver_ATAC_rep1   | OldLiv_1  |
+|     SRX11708689      |  SRR15406526  |  GSM5511516  |     PAIRED     |     ATAC-seq     |  Old_liver_ATAC_rep2   | OldLiv_2  |
+|     SRX11708690      |  SRR15406527  |  GSM5511517  |     PAIRED     |     ATAC-seq     |  Old_liver_ATAC_rep3   | OldLiv_3  |
 
