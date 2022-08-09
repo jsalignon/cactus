@@ -13,5 +13,7 @@
 
 ## Introduction
 
+![DAG](/docs/images/dag_get_data.svg)
+
 
 ## Pipeline to get data
