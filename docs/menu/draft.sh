@@ -73,9 +73,51 @@ get_markdown_table('fly')
 get_markdown_table('human')
 get_markdown_table('mouse')
 
+setwd('~/workspace/cactus/test_datasets')
+
+# specie = 'worm'
+# df = data.frame(
+#   raw_files = system(paste0('du -h -d0 ', 'preprocessing/', specie, '/fastq')),
+#   sampled_files = system(paste0('du -h -d0 ', specie, '/data')),
+#   sampled_atac = system(paste0('du -h -d1 ', specie, '/data/atac')),
+#   sampled_mrna = system(paste0('du -h -d1 ', specie, '/data/mrna')),
+#   stringsAsFactors = F
+# )
+# 
+#  => issue: cannot capture the printed output from du:
+# du -h -d1 **/data/ > preprocessing/report/test_datasets_sizes.txt
+# du -h -d1 preprocessing/**/fastq >> preprocessing/report/test_datasets_sizes.txt
+#  a <- capture.output(a <- system(paste0('du -h -d0 ', 'preprocessing/', specie, '/fastq')))
+# system('powershell -noprofile -command "ls -r|measure -s Length"')
+# a = system(paste0('du -h -d0 ', 'preprocessing/', specie, '/fastq'), stdout=TRUE, stderr=TRUE)
 
 
+dir_size <- function(path, recursive = TRUE) {
+  stopifnot(is.character(path))
+  files <- list.files(path, full.names = T, recursive = recursive)
+  vect_size <- sapply(files, function(x) file.size(x))
+  size_files <- sum(vect_size)
+  order = ifelse(size_files > 10^9, 'GB', 'MB')
+  if(order == 'MB') size_files = paste0(format(size_files/10^6, digits = 2), ' MB')
+  if(order == 'GB') size_files = paste0(format(size_files/10^9, digits = 2), ' GB')
+  size_files
+}
 
+get_test_dataset_size <- function(specie){
+  df = data.frame(
+    specie = specie,
+    raw_files = dir_size(paste0('preprocessing/', specie, '/fastq')),
+    sampled_files =dir_size(paste0(specie, '/data')),
+    sampled_atac = dir_size(paste0(specie, '/data/atac')),
+    sampled_mrna = dir_size(paste0(specie, '/data/mrna')),
+    stringsAsFactors = F
+  )
+  return(df)
+}
+
+df = do.call(rbind, lapply(c('fly', 'worm', 'mouse', 'human'), get_test_dataset_size))
+
+knitr::kable(df, 'pipe', align = 'c')
 
 
 

@@ -11,6 +11,21 @@
 
 [](END_OF_MENU)
 
+## Introduction
+
+Tests datasets have beed generated for each of the 4 species supported by Cactus. This allows to make sure the pipeline works equally well for each species. Downloading the smallest dataset (fly) should be sufficient for users to get a sense on how the pipeline works. Here are the sizes of the test datasets:
+
+| specie | raw_files | sampled_files | sampled_atac | sampled_mrna |
+|:------:|:---------:|:-------------:|:------------:|:------------:|
+|  fly   |   17 GB   |    377 MB     |    329 MB    |    48 MB     |
+|  worm  |   68 GB   |    1.4 GB     |    1.3 GB    |    41 MB     |
+| human  |  118 GB   |    3.7 GB     |    3.6 GB    |    190 MB    |
+| mouse  |  104 GB   |     12 GB     |    11 GB     |    395 MB    |
+
+And below are details on the test datasets origins and labels.
+
+
+
 
 ## Worm and human ([GSE98758](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE98758))
 

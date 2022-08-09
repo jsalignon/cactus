@@ -128,7 +128,10 @@ source $get_test_datasets_bin_dir/3__make_design_files__human.sh $n_reads_atac $
 ##############################################
 
 # saving compressed objects and their sizes
-du -h -d1 > preprocessing/report/test_datasets_sizes.txt
-# tar --use-compress-program="pigz -p 15 -k -r" -cf worm.tar.gz worm
+du -h -d1 **/data/ > preprocessing/report/test_datasets_sizes.txt
+du -h -d1 preprocessing/**/fastq >> preprocessing/report/test_datasets_sizes.txt
+grep -v md5 preprocessing/report/test_datasets_sizes.txt
+
+
 
 
