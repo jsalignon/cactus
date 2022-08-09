@@ -27,7 +27,7 @@ Split and filtered DA results are then used as input for various enrichment anal
 
 # Graph
 
-![Cactus all steps](/images/cactus_all_steps.png "Cactus all steps")
+![Cactus all steps](/docs/images/cactus_all_steps.png "Cactus all steps")
 
 
 
