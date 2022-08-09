@@ -39,7 +39,7 @@ source $get_test_datasets_bin_dir/0__initialization.sh
 #  worm    4.6        0.4        ?
 #   fly    1.2          ?        ?
 #  mouse  33m38s    14m47s       ?
-#  human  29m59s    15m45s       ?
+#  human   55.1    15m45s       ?
 
 
 

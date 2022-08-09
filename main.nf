@@ -1922,15 +1922,22 @@ process ATAC__differential_abundance_analysis {
 
         ##### Running DiffBind
 
-        dbo <- dba(sampleSheet = df1, minOverlap = 1)
-        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
-        dbo$config$RunParallel = F
-        dbo$config$singleEnd = T
-        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 1, score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, summits = 75)
-        dbo$config$AnalysisMethod = DBA_DESEQ2 
-        dbo <- dba.normalize(dbo, normalize = DBA_NORM_RLE, library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
-        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
-        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
+        dbo = tryCatch(
+          expr = {
+            dbo <- dba(sampleSheet = df1, minOverlap = 1)
+            if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
+            dbo$config$RunParallel = F
+            dbo$config$singleEnd = T
+            dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 1, score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, summits = 75)
+            dbo$config$AnalysisMethod = DBA_DESEQ2 
+            dbo <- dba.normalize(dbo, normalize = DBA_NORM_RLE, library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
+            dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
+            dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
+          }, error = function(e) {
+            print(e$message)
+            quit('no')
+          }
+        )
 
         saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
 
