@@ -1323,6 +1323,8 @@ process getting_transcriptome {
 
 }
 
+// the -C argument tells gffread to filter the gff3 to keep only protein coding genes
+
 
 
 
@@ -1421,6 +1423,7 @@ process get_bed_files_of_annotated_regions {
 	'''
 	
 			gff3=!{gff3}
+			
 			# generating a gff3 file without chromosomes 
 			awk -v FS="\t" -v OFS="\t" '{if (substr($1, 1, 1) != "#" && $3 != "chromosome" && $3 != "scaffold" && $3 != "region" && $3 != "biological_region") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
 			gff2bed < annotation_clean.gff3 > annotation_clean.bed
@@ -1640,16 +1643,19 @@ process getting_orgdb {
   shell:
   '''
 		#!/usr/bin/env Rscript
+		
 		library(AnnotationHub)
 		specie = '!{specie}'
 		specie_long = '!{specie_long}'
 		ncbi_orgdb_version = '!{ncbi_orgdb_version}'
 		annotationhub_cache = '!{params.annotationhub_cache}'
+		
 		specie_initial =  sapply(strsplit(specie_long, '_')[[1]], substr, 1, 1) %>% {paste0(toupper(.[1]), .[2])}
 		
 		ah = AnnotationHub(cache = annotationhub_cache)
 		orgdb = query(ah, paste0('ncbi/standard/', ncbi_orgdb_version, '/org.', specie_initial, '.eg.db.sqlite'))[[1]]
 		AnnotationDbi::saveDb(orgdb, 'orgdb.sqlite')
+		
   '''
 
 }
@@ -1669,7 +1675,7 @@ process getting_R_annotation_files {
   publishDir path: "${specie}/genome/annotation/R", mode: 'link'
 
   input:
-		set specie, specie_long, orgdb, file(chr_size), file(gff3_raw), file(gff3_genes_only), file(gff3_without_pseudogenes_and_ncRNA) from GFF3_filtered_for_R_1
+		set specie, specie_long, orgdb, file(chr_size), file(gff3_raw), file(gff3_genes_only), file(gff3_filtered_regions_and_pseudogenes) from GFF3_filtered_for_R_1
 
   output:
     file('*')
@@ -1677,17 +1683,21 @@ process getting_R_annotation_files {
   shell:
   '''
 		#!/usr/bin/env Rscript
+		
 		library(magrittr)
 		library(AnnotationDbi)
+		
 		source('!{params.cactus_dir}/software/bin/export_df_to_bed.R')
+		
 		gff3_raw = '!{gff3_raw}'
 		gff3_genes_only = '!{gff3_genes_only}'
-		gff3_without_pseudogenes_and_ncRNA = '!{gff3_without_pseudogenes_and_ncRNA}'
+		gff3_filtered_regions_and_pseudogenes = '!{gff3_filtered_regions_and_pseudogenes}'
 		specie = '!{specie}'
 		orgdb = AnnotationDbi::loadDb('!{orgdb}')
 		df_chr_size = read.table('!{chr_size}', sep = '\t')
 		specie_long = '!{specie_long}'
-		# export annotation dataframe
+		
+		# exporting annotation dataframe
 		anno_df = rtracklayer::readGFF(gff3_genes_only) 
 		entrez_id = mapIds(orgdb, keys = anno_df$gene_id,  column = 'ENTREZID', keytype = 'ENSEMBL', multiVals = 'first')
 		anno_df %<>% dplyr::rename(gene_name = Name)
@@ -1696,21 +1706,25 @@ process getting_R_annotation_files {
 		anno_df$chr = as.character(anno_df$seqid)
 		anno_df %<>% dplyr::select(chr, start, end, width, strand, gene_name, gene_id, entrez_id)
 		saveRDS(anno_df, 'df_genes_metadata.rds')
-		# create the seqinfo object
+		
+		# creating the seqinfo object
 		nr = nrow(df_chr_size)
 		seqinfo = GenomeInfoDb::Seqinfo(seqnames = df_chr_size[,1], seqlengths = df_chr_size[,2], isCircular = rep(F, nr) , genome = rep(specie_long, nr))
 		saveRDS(seqinfo, 'seqinfo.rds')
-		# export txdb
-		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_without_pseudogenes_and_ncRNA, chrominfo = seqinfo)
+		
+		# exporting txdb
+		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_filtered_regions_and_pseudogenes, chrominfo = seqinfo)
 		AnnotationDbi::saveDb(txdb, file="txdb.sqlite")
 		
-		# export gene vs transcripts
+		# exporting gene vs transcripts
 		txdb1 = GenomicFeatures::makeTxDbFromGFF(gff3_raw)
 		df_genes_transcripts = select(txdb1, keys = keys(txdb1), columns = c('GENEID', 'TXNAME', 'TXCHROM'), keytype = 'GENEID')
 		saveRDS(df_genes_transcripts, 'df_genes_transcripts.rds')
-		# extract promoters
+		
+		# extracting promoters
 		promoters = GenomicFeatures::promoters(GenomicFeatures::genes(txdb), upstream = 1500, downstream = 500)
-		# export promoters as dataframe
+		
+		# exporting promoters as dataframe
 		promoters_df = as.data.frame(promoters, stringsAsFactors = F)
 		promoters_df$start[promoters_df$start < 0] = 0
 		promoters_df$end[promoters_df$end < 0] = 0
@@ -1720,11 +1734,13 @@ process getting_R_annotation_files {
 		promoters_df %<>% dplyr::arrange(seqnames, start)
 		promoters_df %<>% dplyr::rename(chr = seqnames)
 		saveRDS(promoters_df, file = 'promoters_df.rds')
-		# export promoters as bed file
+		
+		# exporting promoters as bed file
 		promoters_df1 = promoters_df
 		promoters_df1$score = 0
 		promoters_df1 %<>% dplyr::select(chr, start, end, gene_name, score, strand, gene_id)
 		export_df_to_bed(promoters_df1, 'promoters.bed')
+		
   '''
 
 }
@@ -1733,6 +1749,69 @@ process getting_R_annotation_files {
 
 // cur_seq_info = rtracklayer::SeqinfoForUCSCGenome('ce11')
 // cur_seq_info@seqnames %<>% gsub('chr', '', .)
+
+
+
+///// Checking if the -C option of gffread really did filter non-coding transcripts, and if we have the same set of genes as in my manually filtered gff3 files
+
+//// in the appropriate worm work folders
+// library(magrittr)
+// pnrow <- function(x) print(nrow(x))
+// df_genes_transcripts = readRDS('df_genes_transcripts.rds') %T>% pnrow # 44264
+// df_genes_metadata = readRDS('df_genes_metadata.rds') %T>% pnrow # 19985
+// length(unique(df_genes_transcripts$GENEID)) # 31571
+// lw(df_genes_metadata$gene_id %in% df_genes_transcripts$GENEID)
+// 
+// fastaFiles  = Biostrings::readDNAStringSet("~/workspace/cactus/data/worm/genome/sequence/transcriptome.fa")
+// seq_name = names(fastaFile)
+// sequence = paste(fastaFile)
+// df <- data.frame(seq_name, sequence)
+// df1 = df[,1]
+// v_genes_in_transcriptome =  df1 %>% gsub('.*gene=', '', .) %>% gsub(' .*', '', .)
+// v_genes_in_transcriptome %>% length # 31768
+// v_genes_in_transcriptome %>% unique %>% length # 19997
+// 
+// v_missing = unique(v_genes_in_transcriptome) %>% .[!. %in% df_genes_metadata$gene_name]
+//  <!-- [1] "WBGene00022116" "WBGene00021837" "WBGene00019083" "WBGene00023413"
+//  [5] "WBGene00010654" "WBGene00010164" "WBGene00021985" "WBGene00021822"
+//  [9] "WBGene00021250" "WBGene00021916" "WBGene00021803" "nduo-6"
+// [13] "WBGene00010958" "WBGene00010959" "atp-6"          "nduo-2"
+// [17] "ctb-1"          "ctc-3"          "nduo-4"         "ctc-1"
+// [21] "ctc-2"          "nduo-3"         "nduo-5" -->
+// 
+// 
+// => there are minor differences. So the -C option of gff3 does a good job. However, it is good to still make our own gff3-derived gene table to make sure we work on the same genes in ATAC-Seq and mRNA-Seq (since for instead mitochondrial reads are removed)
+// 
+// 
+// df_gff3 = rtracklayer::readGFF('annotation.gff3') %>% data.frame
+// df_gff3[df_gff3$Name %in% v_missing, ][, c('seqid', 'Name')]
+//        <!-- seqid   Name
+// 407022 MtDNA nduo-6
+// 407054 MtDNA  atp-6
+// 407068 MtDNA nduo-2
+// 407086 MtDNA  ctb-1
+// 407094 MtDNA  ctc-3
+// 407102 MtDNA nduo-4
+// 407107 MtDNA  ctc-1
+// 407125 MtDNA  ctc-2
+// 407136 MtDNA nduo-3
+// 407141 MtDNA nduo-5
+// df_gff3[df_gff3$ID %in% v_missing, ][, c('seqid', 'Name')]
+//        seqid Name
+// 12852      I <NA>
+// 13596      I <NA>
+// 30397      I <NA>
+// 49362      I <NA>
+// 70404      I <NA>
+// 75048      I <NA>
+// 99904     II <NA>
+// 110505    II <NA>
+// 189304   III <NA>
+// 194351   III <NA>
+// 195562   III <NA>
+// 407027 MtDNA <NA>
+// 407050 MtDNA <NA>
+
 
 
 

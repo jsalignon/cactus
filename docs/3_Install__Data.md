@@ -61,29 +61,16 @@ The pipeline download the data from various sources and process it to produce al
 
     - [ChromHMM](https://doi.org/10.1038/nmeth.1906): ChromHMM-derived 18 states chromatin state profiles have been generated for [833 human samples reference](https://doi.org/10.1038/s41586-020-03145-z) and  66 [mouse samples reference](https://www.nature.com/articles/s42003-021-01756-4). These were downloaded using the [ENCODE API](https://www.encodeproject.org/help/rest-api/) using this filter: *annotation_type = chromatin state* and a custom filter to keep only the 18 states model, and md5sum were checked. Details on the chromatin states can be found in [Figure 1 for mouse](https://www.nature.com/articles/s42003-021-01756-4/figures/1) and [Extended Data Fig. 3 for human](https://www.nature.com/articles/s41586-020-03145-z/figures/7). A detailed metadata file describing each available ChromHMM chromatin state profile can be found in the root specie folder with name *encode_chromatin_states_metadata.csv*. For internal reasons, a new folder is created for each chromatin state profile that contains each state in a separate bed file.
 
-    - [HiHMM](https://www.nature.com/articles/nature13415): HiHMM-derived 17 states chromatin state profiles have been generated for worm (EE, L3), fly (EE, L3) and human (H1-hESC, GM12878). Using eight histone marks mapped in common accross the 3 species, the author of the paper made chromatin state profiles that are comparable accross species. This can be useful when working on different species (i.e. checking if enrichment in enhancers found in worm is conserved in humans). Details on the chromatin states can be found in [Figure 2](https://www.nature.com/articles/nature13415/figures/2). HiHMM profiles were downloaded from http://compbio.med.harvard.edu/modencode/webpage/hihmm. The [liftover software](https://genome.ucsc.edu/goldenPath/help/hgTracksHelp.html#Liftover) was used 
-    https://github.com/kasohn/hiHMM/blob/9fc58ee80b67f9e718c6e17a9d6af42f367bd770/R_scripts/hiHMM_Pre1.r
-
-
-    ... TO FINISH!
+    - [HiHMM](https://www.nature.com/articles/nature13415): HiHMM-derived 17 states chromatin state profiles have been generated for worm (EE, L3), fly (EE, L3) and human (H1-hESC, GM12878). Using eight histone marks mapped in common accross the 3 species, the author of the paper made chromatin state profiles that are comparable accross species. This can be useful when working on different species (i.e. checking if enrichment in enhancers found in worm is conserved in humans). Details on the chromatin states can be found in [Figure 2](https://www.nature.com/articles/nature13415/figures/2). HiHMM profiles were downloaded from http://compbio.med.harvard.edu/modencode/webpage/hihmm. The [liftover software](https://genome.ucsc.edu/goldenPath/help/hgTracksHelp.html#Liftover) was used to convert genomic coordinates since older genomic assemblies were used (hg19 for human; dm3 for fly; and ce10 for worm).
+    <!-- The genome version used in HiHMM is confirmed in the Supplementary Information file of the paper: "Raw sequences were aligned to their respective genomes (hg19 for human; dm3 for fly; and ce10 for worm) using bowtie" -->
     
-    - http://compbio.med.harvard.edu/modencode/webpage/hihmm
-
-     https://www.encodeproject.org/comparative/chromatin/#hiHMM
+  - [Bowtie 2](https://www.nature.com/articles/nmeth.1923) indexes of contaminant genome: Cactus checks for potential contamination of samples with genetic material of another specie. As a default the contaminant genome is an *E. coli* strain, OP50. with genome assembly [ASM949659v1](https://www.ncbi.nlm.nih.gov/assembly/GCF_009496595.1/). Genomic sequence was downloaded from the NCBI FTP server and bowtie2 was used to build indexes. OP50 is usually given as a food source to *C. elegans* cultures and is hence a common contaminant in worm experiments. However, user can replace the contaminant genome bowtie2 indexes by another one if they suspect contamination from another specie.
+  
+  - Genome
     
-  -  
-
-
-  <!-- The genome version used in HiHMM is confirmed in the Supplementary Information file of the paper: "Raw sequences were aligned to their respective genomes (hg19 for human; dm3 for fly; and ce10 for worm) using bowtie" -->
-
-
-  
-  1554
-    - 2,716
-  
-  - genome: 
-    - Sequence:
-    - Annotations:
+    - Sequences: Fasta files were downloaded from the [Ensembl FTP server](https://www.ensembl.org/info/data/ftp/index.html) and checksums were checked.  [Bowtie2]((https://www.nature.com/articles/nmeth.1923)) indexes are built. Genomic fasta sequences was indexed with [SAMtools](https://doi.org/10.1093/gigascience/giab008). The transcriptome was obtained with [gffread](https://doi.org/10.12688/f1000research.23297.1), using the *-C* argument to keep only mRNAs with a complete CDS (from coding genes). Then, [Kallisto](https://doi.org/10.1038/nbt.3519) indexes were built.
+    
+    - Annotations: GFF3 files were downloaded from the [Ensembl FTP server](https://www.ensembl.org/info/data/ftp/index.html) and checksums were checked. A table mapping all transcripts to all genes was extracted in R from the raw GFF3 file. Then, a filtered GFF3 file was created by keeping only regions (contigs and chromosomes) with at least 5 genes, and by excluding the mitochondrial chromosome. The first filter is necessary since ATAC-Seq peaks are annotated to the closest gene by [ChIPseeker](https://doi.org/10.1093/bioinformatics/btv145), and thus we limit misannotation of peaks by removing smaller contigs. Excluding mitochondrial is useful in ATAC-Seq since the mitochondrial genome is not packaged in chromatin and is therefore very accessible, resulting in [very high coverage](https://doi.org/10.1186/s13059-020-1929-3) of ATAC-Seq data. Chromosomes sizes were extracted from this filtered GFF3 file and a seqinfo object was made (needed to make greylists in DiffBind) via with the Seqinfo function of [GenomeInfoDb package](https://doi.org/doi:10.18129/B9.bioc.GenomeInfoDb). A txtbd object was made from the filtered GFF3 file using the makeTxDbFromGFF function from the [GenomicFeatures package](https://doi.org/doi:10.18129/B9.bioc.GenomicFeatures). This txdb object is used to annotate peaks with [ChIPseeker](https://doi.org/10.1093/bioinformatics/btv145). The filtered GFF3 file was filtered further to keep only protein coding genes. This allow to make sure we work on the same genes in ATAC-Seq and mRNA-Seq downstream analysis by extracting a gene info table in R, and it allows to extract gene promoters as bed files and R objects. OrgDb packages were obtained using the [AnnotationHub package](https://doi.org/doi:10.18129/B9.bioc.AnnotationHub) using [Bioconductor release](https://www.bioconductor.org/about/release-announcements/) 3.14 (Oct. 2021), and saved via the [AnnotationDbi](https://doi.org/doi:10.18129/B9.bioc.AnnotationDbi) function saveDb. 
 
 
 ## CHIP-Seq

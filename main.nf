@@ -2296,7 +2296,6 @@ process ATAC__annotating_all_peaks {
 
       COMP = '!{COMP}'
       tx_db <- loadDb('!{params.txdb}')
-      df_genes_metadata = readRDS('!{params.df_genes_metadata}')
       upstream = !{params.promoter_up_diffbind_peaks}
       downstream = !{params.promoter_down_diffbind_peaks}
       diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
