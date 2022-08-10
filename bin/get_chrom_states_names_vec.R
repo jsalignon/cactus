@@ -17,7 +17,7 @@
 
 
 # HiHMM
-chrom_state_worm <- function(){
+chrom_state_hihmm <- function(){
   c(
     '1_Pro'    = '1. Promoter',
     '2_Enh1'   = '2. Enhancer 1',
@@ -39,7 +39,7 @@ chrom_state_worm <- function(){
   )
 }
 
-chrom_state_human <- function(){
+chrom_state_chromhmm_human <- function(){
   c(
     TssA     = '1. Active TSS',
     TssFlnk  = '2. Flanking TSS',
@@ -62,7 +62,7 @@ chrom_state_human <- function(){
   )
 }
 
-chrom_state_mouse <- function(){
+chrom_state_chromhmm_mouse <- function(){
   c(
     Tss      = '1. Active TSS',
     TssFlnk  = '2. Flanking TSS',
@@ -89,9 +89,9 @@ chrom_state_mouse <- function(){
 
 get_chrom_states_names_vec <- function(raw_names){
   
-  if('1_Pro'    %in% raw_names) vec = chrom_state_worm()
-  if('TssFlnkU' %in% raw_names) vec = chrom_state_human()
-  if('Quies4'   %in% raw_names) vec = chrom_state_mouse()
+  if('1_Pro'    %in% raw_names) vec = chrom_state_hihmm()
+  if('TssFlnkU' %in% raw_names) vec = chrom_state_chromhmm_human()
+  if('Quies4'   %in% raw_names) vec = chrom_state_chromhmm_mouse()
     
   return(vec)
   

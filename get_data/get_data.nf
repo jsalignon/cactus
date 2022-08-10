@@ -523,7 +523,8 @@ process get_chip_metadata {
 		dt = dt[, c('chip_name', 'target_symbol', 'target_symbol_1', 'stage_cell', 'target_id', 'life_stage_age', 'ontology', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'biosample_summary', 'organism', 'assembly', 'file', 'href', 'md5sum', 'local_file')]
 		
 		# saving tables
-		write.csv(dt, 'encode_chip_metadata.csv', row.names = F)
+		dt1 = dt[, 1:(ncol(dt)-4)]
+		write.csv(dt1, 'encode_chip_metadata.csv', row.names = F)
 		saveRDS(dt, 'dt_encode_chip.rds')
 		ldt = split(dt, dt$chip_name)
 		walk(ldt, ~saveRDS(.x, paste0(.x$chip_name, '__split_dt.rds')))
