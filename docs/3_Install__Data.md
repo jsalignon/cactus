@@ -42,6 +42,31 @@ The latest Ensembl release has been used for worm, fly and mouse (July 2022). Fo
 Note that in order to save space, on can download the specie dataset, and then keep only the chromatin states of interests. Indeed, only one chromatin state file is used by Cactus, but several are available for users to chose depending on their conditions under study. For mouse and humans this should reduce the size of the dataset by respectively about 8 Gb and 1 Gb.
 
 
+## Structure of the data folders
+<!-- tree -d -L 3 --filelimit 5 human -->
+
+```
+.
+├── bowtie2_indexes_conta
+├── CHIP
+├── chromatin_states
+│   ├── ~one folder per state
+├── genome
+│   ├── annotation
+│   │   ├── bed_regions
+│   │   ├── filtered
+│   │   └── R
+│   └── sequence
+│       └── bowtie2_indexes
+└── homer_data
+    ├── accession
+    ├── genomes
+    │   └── ~nickname
+    ├── GO
+    └── promoters
+```
+
+
 ## Pipeline to get data
 
 ![DAG](/docs/images/dag_get_data.svg)
@@ -264,28 +289,3 @@ sapply(v_species, print_ontology_table)
 |         cell_line.IMR90          |       12       |
 |    system.circulatory_system     |       11       |
 
-
-
-## Structure of the data folders
-<!-- tree -d -L 3 --filelimit 5 human -->
-
-```
-.
-├── bowtie2_indexes_conta
-├── CHIP
-├── chromatin_states
-│   ├── ~one folder per state
-├── genome
-│   ├── annotation
-│   │   ├── bed_regions
-│   │   ├── filtered
-│   │   └── R
-│   └── sequence
-│       └── bowtie2_indexes
-└── homer_data
-    ├── accession
-    ├── genomes
-    │   └── ~nickname
-    ├── GO
-    └── promoters
-```
