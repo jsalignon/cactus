@@ -408,13 +408,17 @@ process get_chip_metadata {
 
 	container = params.encodeexplorer
 
+	publishDir path: "${specie}", mode: 'link', saveAs: {
+    if (it.equals("encode_chip_metadata.csv")) "${it}"
+  }
+	
 	input:
 		set specie, assembly from Encode_Assembly_for_CHIP
 
 	output:
 		set specie, file("dt_encode_chip.rds") into Encode_chip_metadata		
 		set specie, file("*__split_dt.rds") into Encode_chip_split_dt mode flatten
-		
+		file("encode_chip_metadata.csv")
 
 	shell:
 	'''
@@ -506,9 +510,9 @@ process get_chip_metadata {
 		dt[organism == 'mouse', stage_cell := stage_cell %>% gsub('.', '', ., fixed = T) %>% gsub('-', '', .) %>% gsub('Ishikawa', 'Ishikaw', .)]
 		dt[organism == 'mouse', ]$stage_cell %>% table %>% sort %>% rev
 		# creating a simplified target symbol with max 7 characters
-		dt[, target_symbol_1 := target_symbol %>% gsub('-', '', .) %>% gsub('.', '', ., fixed = T) %>% gsub(')', '', ., fixed = T) %>% gsub('(', '', ., fixed = T) %>% substr(., 1, 7)]
 		
 		# creating final unique CHIP names
+		dt[, target_symbol_1 := target_symbol %>% gsub('-', '', .) %>% gsub('.', '', ., fixed = T) %>% gsub(')', '', ., fixed = T) %>% gsub('(', '', ., fixed = T) %>% substr(., 1, 7)]
 		dt[, chip_name := paste0(target_symbol_1, '_', stage_cell)]
 		# most entries are unique. We add an identifyier for the duplicated entries
 		dt$chip_name %>% table %>% as.integer %>% summary 
@@ -518,9 +522,12 @@ process get_chip_metadata {
 		# reordering columns
 		dt = dt[, c('chip_name', 'target_symbol', 'target_symbol_1', 'stage_cell', 'target_id', 'life_stage_age', 'ontology', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'biosample_summary', 'organism', 'assembly', 'file', 'href', 'md5sum', 'local_file')]
 		
+		# saving tables
+		write.csv(dt, 'encode_chip_metadata.csv', row.names = F)
 		saveRDS(dt, 'dt_encode_chip.rds')
 		ldt = split(dt, dt$chip_name)
 		walk(ldt, ~saveRDS(.x, paste0(.x$chip_name, '__split_dt.rds')))
+		
 	'''
 }
 
@@ -656,7 +663,7 @@ process make_chip_ontology_groups {
 		
 		dt_n_chip_by_ontology = data.table(ontology = names(l_ontology_chip_names), number_of_chip = map_int(l_ontology_chip_names, length))
 		
-		sink('available_chip_ontology_groups.txt')
+		sink('chip_ontology_groups_sizes.txt')
 			 print(dt_n_chip_by_ontology)
 		sink()
 		
@@ -711,7 +718,7 @@ process get_encode_chromatin_state_metadata {
 
 	output:
 		set specie, assembly, file("*.rds") into Encode_chromatin_state_split_dt mode flatten
-		file('encode_chromatin_states.csv')
+		file('encode_chromatin_states_metadata.csv')
 
 	shell:
 	'''
@@ -765,7 +772,7 @@ process get_encode_chromatin_state_metadata {
 		if(assembly == 'mm10') dt = dt[grep('18states', dt$alias)]
 		
 		dt1 = dt[, 1:(ncol(dt)-4)]
-		write.csv(dt1, 'encode_chromatin_states.csv')
+		write.csv(dt1, 'encode_chromatin_states_metadata.csv')
 		
 		ldt = split(dt, dt$accession)
 		walk(ldt, ~saveRDS(.x, paste0(.x$accession, '.rds')))

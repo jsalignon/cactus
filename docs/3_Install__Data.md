@@ -17,24 +17,25 @@
 # print table (in R):
 
 tb = tibble::tribble(
-  ~Specie, ~Size,  ~Assembly, ~Nickname, ~Ensembl_Release,
+  ~Specie, ~Size,  ~Assembly, ~Nickname, ~Ensembl Release,
    'worm',   1.3, 'WBcel235',    'ce11',    '107',
     'fly',   1.5,    'BDGP6',     'dm6',    '107',
   'mouse',    12,   'GRCm38',    'mm10',    '102',
   'human',    20,   'GRCh38',    'hg38',    '107'
 )
-knitr::kable(tb, 'pipe', align = c('c', 'r', 'c', 'c', 'c'))
+colnames(tb)[c(2,5)] = c('Size (Gb)', 'Ensembl Release')
+knitr::kable(tb, 'pipe', align = 'c')
 
 -->
 
 Cactus uses a set of preparsed references that are used throughout the scripts. These are automatically downloaded the first time the pipeline is run for the given specie under investigation. The size of the Cactus data for each specie is:
 
-| Specie | Size| Assembly | Nickname | Ensembl_Release |
-|:------:|----:|:--------:|:--------:|:---------------:|
-|  worm  |  1.3| WBcel235 |   ce11   |       107       |
-|  fly   |  1.5|  BDGP6   |   dm6    |       107       |
-| mouse  | 12.0|  GRCm38  |   mm10   |       102       |
-| human  | 20.0|  GRCh38  |   hg38   |       107       |
+| Specie | Size (Gb) | Assembly | Nickname | Ensembl Release |
+|:------:|:---------:|:--------:|:--------:|:---------------:|
+|  worm  |    1.3    | WBcel235 |   ce11   |       107       |
+|  fly   |    1.5    |  BDGP6   |   dm6    |       107       |
+| mouse  |   12.0    |  GRCm38  |   mm10   |       102       |
+| human  |   20.0    |  GRCh38  |   hg38   |       107       |
 
 The latest Ensembl release has been used for worm, fly and mouse (July 2022). For mouse, the older Ensembl release 102 (Nov. 2020) has been used together with the genome assembly mm10, since mm39 is not yet available in Homer and in the Encode bed files.
 
@@ -45,7 +46,7 @@ Note that in order to save space, on can download the specie dataset, and then k
 
 ![DAG](/docs/images/dag_get_data.svg)
 
-The pipeline download the data from various sources and process it to produce all the files required by cactus. These can be grouped in 6 broad categories: parsed genome sequences, parsed genome annotations, CHIP-Seq files, chromatin states files, parsed motifs files and software (Homer data), bowtie2 indexes of a contaminant genome. In order to maxime reproducibility, all processes (excepting the one to download HiHMM files) are encapsulated within containers. Here are some details on what the parsing pipeline does:
+The pipeline download the data from various sources and process it to produce all the files required by cactus. These can be grouped in 6 broad categories: parsed genome sequences, parsed genome annotations, CHIP-Seq files, chromatin states files, parsed motifs files and software (Homer data), bowtie2 indexes of a contaminant genome. To increase reproducibility, all processes (excepting the one to download HiHMM files) are encapsulated within containers. Here are some details on what the parsing pipeline does:
   
   - Motifs:
     - [Homer data](https://doi.org/10.1016/j.molcel.2010.05.004): The latest genome (6.4), organism (6.3) and promoters (5.5) versions were downloaded from http://homer.ucsd.edu/homer.
@@ -53,8 +54,8 @@ The pipeline download the data from various sources and process it to produce al
    
   - [Blacklisted regions](https://doi.org/10.1038/s41598-019-45839-z): Blacklisted regions were donwloaded from https://github.com/Boyle-Lab/Blacklist/tree/master/lists. Contig names were shifted from NCBI to Ensembl names using the UpdateContigNames function from [cvbio](https://github.com/clintval/cvbio).
   
-  <!--  head -2 **/available_chip_ontology_groups.txt -->
-  - CHIP-Seq: The [ENCODE API](https://www.encodeproject.org/help/rest-api/) was used to get data and metadata. 2,714 CHIP-Seq bed files were selected and downloaded (worm: 473, fly: 531, mouse: 156, human: 1,554) using these filters: assay_title = "TF ChIP-seq" and output_type = "optimal IDR thresholded peaks". The slim annotations (cell, organ, development and system) were parsed and used to create groups of CHIP-Seq that share the same annotations and can be used for more detailled analysis (see [CHIP-Seq](/docs/3_Install__Data.md##CHIP-Seq) and [Parameters](/docs/4_Run__Parameters.md))
+  - CHIP-Seq: The [ENCODE API](https://www.encodeproject.org/help/rest-api/) was used to get data and metadata. 2,714 CHIP-Seq bed files were selected and downloaded (worm: 473, fly: 531, mouse: 156, human: 1,554) using these filters: assay_title = "TF ChIP-seq" and output_type = "optimal IDR thresholded peaks". The slim annotations (cell, organ, development and system) were parsed and used to create groups of CHIP-Seq that share the same annotations and can be used for more detailled analysis (see [Ontology groups sections](/docs/3_Install__Data.md#CHIP-Seq) and [Parameters](/docs/4_Run__Parameters.md)). The details of CHIP present in each group can be found in the files CHIP/chip_ontology_groups.tsv. The biosample_summary column (for fly and worm) or the term_name column (=ontology, for human and mouse) was parsed to create a cell/stage id column (see [Legend sections](/docs/3_Install__Data.md#CHIP-Seq). An identifier was added to distinguish duplicate target gene symbols (most are unique). Finally, each chip was assigned a name combining its unique target gene symbol and its cell/stage id (format: TargetGene_CellStage). A detailed metadata file describing each CHIP can be found in the root specie folder with name *encode_chip_metadata.csv*. Files were donwloaded and md5 sum checked.
+  
   -  profiles that can be used 
   -  
 
