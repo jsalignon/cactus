@@ -101,8 +101,10 @@ sapply(v_species, print_ontology_table)
 -  Da: Dauer
 
 #### Distribution
+```
 	L1 YA L4 LE L3 L2 MS EE ME Da
 	93 86 77 67 50 50 35 12  2  1
+```
 
 #### Ontology groups
 
@@ -129,8 +131,10 @@ sapply(v_species, print_ontology_table)
 - La: larva (48 days)
 
 #### Distribution
+```
 	 Em  PP  WT  Pu  FA  WP  MA  Kc  SO  MS  OF  La
 	372  57  46  14  10   8   8   7   3   3   1   1
+```
 
 #### Ontology groups
 
@@ -149,8 +153,10 @@ sapply(v_species, print_ontology_table)
 -  ESE14: ES-E14
 
 #### Distribution
+```
    MEL CH12LX  Other  liver   lung  heart G1EER4    G1E  ESE14
     49     39     36      7      5      5      5      5      5
+```
 
 #### Ontology groups
 
@@ -186,10 +192,13 @@ sapply(v_species, print_ontology_table)
 - SKNSH: SK-N-SH
 
 #### Distribution
+```
    K562   HepG2  HEK293 GM12878   Other    MCF7    A549      H1   liver Ishikaw
     432     249     193     156     137     106      55      54      35      24
+
   SKNSH  HeLaS3 HEK293T   IMR90  MCF10A  HCT116    T47D GM12891      NC GM23338
      19      19      17      12      10      10       7       7       6       6
+ ```
 
 #### Ontology groups
 
