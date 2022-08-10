@@ -1653,7 +1653,8 @@ process getting_orgdb {
 		specie_initial =  sapply(strsplit(specie_long, '_')[[1]], substr, 1, 1) %>% {paste0(toupper(.[1]), .[2])}
 		
 		ah = AnnotationHub(cache = annotationhub_cache)
-		orgdb = query(ah, paste0('ncbi/standard/', ncbi_orgdb_version, '/org.', specie_initial, '.eg.db.sqlite'))[[1]]
+		pattern = paste0('ncbi/standard/', ncbi_orgdb_version, '/org.', specie_initial, '.eg.db.sqlite')
+		orgdb = query(ah, pattern)[[1]]
 		AnnotationDbi::saveDb(orgdb, 'orgdb.sqlite')
 		
   '''
