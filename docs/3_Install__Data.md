@@ -59,9 +59,13 @@ The pipeline download the data from various sources and process it to produce al
   
   - Chromatin States
 
-    - [ChromHMM](https://doi.org/10.1038/nmeth.1906): ChromHMM-derived 18 states chromatin state profiles have been generated for [833 human samples reference](https://doi.org/10.1038/s41586-020-03145-z) and  66 [mouse samples reference](https://www.nature.com/articles/s42003-021-01756-4). These were downloaded using the [ENCODE API](https://www.encodeproject.org/help/rest-api/) using this filter: *annotation_type = chromatin state* and a custom filter to keep only the 18 states model, and md5sum were checked. Details on the chromatin states can be found in [Figure 1 for human](https://www.nature.com/articles/s42003-021-01756-4/figures/1) and [Extended Data Fig. 3 for mouse](https://www.nature.com/articles/s41586-020-03145-z/figures/7). A detailed metadata file describing each available ChromHMM chromatin state profile can be found in the root specie folder with name *encode_chromatin_states_metadata.csv*. For internal reasons, a new folder is created for each chromatin state profile that contains each state in a separate bed file.
+    - [ChromHMM](https://doi.org/10.1038/nmeth.1906): ChromHMM-derived 18 states chromatin state profiles have been generated for [833 human samples reference](https://doi.org/10.1038/s41586-020-03145-z) and  66 [mouse samples reference](https://www.nature.com/articles/s42003-021-01756-4). These were downloaded using the [ENCODE API](https://www.encodeproject.org/help/rest-api/) using this filter: *annotation_type = chromatin state* and a custom filter to keep only the 18 states model, and md5sum were checked. Details on the chromatin states can be found in [Figure 1 for mouse](https://www.nature.com/articles/s42003-021-01756-4/figures/1) and [Extended Data Fig. 3 for human](https://www.nature.com/articles/s41586-020-03145-z/figures/7). A detailed metadata file describing each available ChromHMM chromatin state profile can be found in the root specie folder with name *encode_chromatin_states_metadata.csv*. For internal reasons, a new folder is created for each chromatin state profile that contains each state in a separate bed file.
 
-    - [HiHMM](https://www.nature.com/articles/nature13415): HiHMM-derived 17 states chromatin state profiles have been generated for 
+    - [HiHMM](https://www.nature.com/articles/nature13415): HiHMM-derived 17 states chromatin state profiles have been generated for worm (EE, L3), fly (EE, L3) and human (H1-hESC, GM12878). Using eight histone marks mapped in common accross the 3 species, the author of the paper made chromatin state profiles that are comparable accross species. This can be useful when working on different species (i.e. checking if enrichment in enhancers found in worm is conserved in humans). Details on the chromatin states can be found in [Figure 2](https://www.nature.com/articles/nature13415/figures/2). HiHMM profiles were downloaded from http://compbio.med.harvard.edu/modencode/webpage/hihmm. The [liftover software](https://genome.ucsc.edu/goldenPath/help/hgTracksHelp.html#Liftover) was used 
+    https://github.com/kasohn/hiHMM/blob/9fc58ee80b67f9e718c6e17a9d6af42f367bd770/R_scripts/hiHMM_Pre1.r
+
+
+    ... TO FINISH!
     
     - http://compbio.med.harvard.edu/modencode/webpage/hihmm
 
@@ -70,6 +74,7 @@ The pipeline download the data from various sources and process it to produce al
   -  
 
 
+  <!-- The genome version used in HiHMM is confirmed in the Supplementary Information file of the paper: "Raw sequences were aligned to their respective genomes (hg19 for human; dm3 for fly; and ce10 for worm) using bowtie" -->
 
 
   
@@ -282,6 +287,7 @@ sapply(v_species, print_ontology_table)
 ├── bowtie2_indexes_conta
 ├── CHIP
 ├── chromatin_states
+│   ├── ~one folder per state
 ├── genome
 │   ├── annotation
 │   │   ├── bed_regions
@@ -292,7 +298,7 @@ sapply(v_species, print_ontology_table)
 └── homer_data
     ├── accession
     ├── genomes
-    │   └── /nickname/
+    │   └── ~nickname
     ├── GO
     └── promoters
 ```
