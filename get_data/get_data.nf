@@ -526,11 +526,11 @@ process get_chip_metadata {
 
 
 // Legend for the stage_cell column:
-
+// 
 // Worm:
-	// L1 YA L4 LE L3 L2 MS EE ME Da
-	// 93 86 77 67 50 50 35 12  2  1
-
+// 	L1 YA L4 LE L3 L2 MS EE ME Da
+// 	93 86 77 67 50 50 35 12  2  1
+// 
 //  -  L1: L1 stage
 //  -  YA: Young Adult
 //  -  L4: L4 stage
@@ -541,12 +541,12 @@ process get_chip_metadata {
 //  -  EE: Early Embryo
 //  -  ME: Mid-Embryo
 //  -  Da: Dauer
-
-
+// 
+// 
 // Fly:
-	//  Em  PP  WT  Pu  FA  WP  MA  Kc  SO  MS  OF  La
-	// 372  57  46  14  10   8   8   7   3   3   1   1
-//
+// 	 Em  PP  WT  Pu  FA  WP  MA  Kc  SO  MS  OF  La
+// 	372  57  46  14  10   8   8   7   3   3   1   1
+// 
 //  - Em: Embryo
 //  - PP: Prepupa
 //  - WT: Wandering third instar larval stage
@@ -559,22 +559,22 @@ process get_chip_metadata {
 //  - MS: Mixed Sex Adult
 //  - OF: Ovary female
 //  - La: larva (48 days)
-
+// 
 // Human:
-  //  K562   HepG2  HEK293 GM12878   Other    MCF7    A549      H1   liver Ishikaw
-  //   432     249     193     156     137     106      55      54      35      24
-  // SKNSH  HeLaS3 HEK293T   IMR90  MCF10A  HCT116    T47D GM12891      NC GM23338
-  //    19      19      17      12      10      10       7       7       6       6
-
+//    K562   HepG2  HEK293 GM12878   Other    MCF7    A549      H1   liver Ishikaw
+//     432     249     193     156     137     106      55      54      35      24
+//   SKNSH  HeLaS3 HEK293T   IMR90  MCF10A  HCT116    T47D GM12891      NC GM23338
+//      19      19      17      12      10      10       7       7       6       6
+// 
 //  - NC: Neural Cell
 //  - Other: Any ontology present less than 5 times
 //  - Ishikaw: Ishikawa
 //  - SKNSH: SK-N-SH
-
+// 
 // Mouse:
-   // MEL CH12LX  Other  liver   lung  heart G1EER4    G1E  ESE14
-   //  49     39     36      7      5      5      5      5      5
-
+//    MEL CH12LX  Other  liver   lung  heart G1EER4    G1E  ESE14
+//     49     39     36      7      5      5      5      5      5
+// 
 //  - Other: Any ontology present less than 4 times
 //  - CH12LX: CH12.LX
 //  - G1EER4: G1E-ER4
