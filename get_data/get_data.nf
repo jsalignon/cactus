@@ -178,18 +178,19 @@ process get_pwms {
 		library(data.table)
 		library(magrittr)
 		library(purrr)
+		pnrow <- function(x) print(nrow(x))
 	
-		dt_all = fread('TF_Information.txt')
+		dt_all = fread('TF_Information.txt') %T>% pnrow # 399265
 		
 		encode_species = c('Caenorhabditis_elegans', 'Drosophila_melanogaster', 'Mus_musculus', 'Homo_sapiens')
-		dt_cisbp = dt_all[TF_Species %in% encode_species]
-		dt_cisbp = dt_cisbp[Motif_ID != '.']
-		dt_cisbp = dt_cisbp[!duplicated(TF_ID)]
+		dt_cisbp = dt_all[TF_Species %in% encode_species] %T>% pnrow # 10329
+		dt_cisbp = dt_cisbp[Motif_ID != '.'] %T>% pnrow # 8628
+		dt_cisbp = dt_cisbp[!duplicated(TF_ID)] %T>% pnrow # 2936
+		
 		# removing emtpy motifs
-		nrow(dt_cisbp) # 2936
 		nrows = sapply(dt_cisbp$Motif_ID, function(x) nrow(read.table(paste0('pwms/', x, '.txt'), sep = '\t')))
-		dt_cisbp = dt_cisbp[nrows != 1]
-		nrow(dt_cisbp) # 2779
+		dt_cisbp = dt_cisbp[nrows != 1] %T>% pnrow # 2779
+
 		# loading motifs and determining odd scores, thresholds and consensus sequences
 		dt_cisbp$motif = lapply(dt_cisbp$Motif_ID, function(x) read.table(paste0('pwms/', x,'.txt'), sep = '\t', header = T, stringsAsFactors = F)[, -1])
 		dt_cisbp[, log2_odd_score := sapply(motif, function(motif1) sum(apply(motif1, 1, function(cur_row) log2(max(cur_row)/0.25))))]
@@ -201,6 +202,36 @@ process get_pwms {
 	'''
 	
 }
+
+// # filtering the cisbp database
+// nice explanations about the cisbp files here:
+// https://github.com/Danko-Lab/rtfbs_db/blob/a29f73b24e8984aad8bcd1227b06446ebef44b08/rtfbsdb/man/CisBP.getTFinformation.Rd
+// Three TF information files in CisBP dataset.\cr\cr
+// 1: TF_Information.txt : (direct motifs) or (no direct but inferred motifs with 90\%)\cr
+// 2: TF_Information_all_motifs.txt: (direct motifs) and (inferred motifs above the threshold)\cr
+// 3: F_Information_all_motifs_plus.txt: All motifs\cr
+// 
+// 'TF_Information_all_motifs.txt' is a superset of 'TF_Information.txt'.  It also includes any motif that can be inferred for a given TF, given the TF family-specific threshold.  For example, if a TF has a directly determined motif, and two TFs with motifs with 90% and 80% identical DBDs to it, TF_Information.txt will only include the direct motif, but 
+// TF_Information_all_motifs.txt will include all three motifs.  Likewise, if a TF does not have a direct motif, but has two TFs with 90% and 80% identical DBDs to it, TF_Information.txt will only include the motif from the 90% indentical TF, while TF_Information_all_motifs.txt would include both.\cr\cr
+// 
+// 
+// However, there are still multiple entries per TF
+// dt_encode[TF_Species == 'Caenorhabditis_elegans']$TF_Name %>% table %>% sort %>% rev %>% head(10)
+//   hlh-1   skn-1  snpc-4   pha-4   efl-1   tra-1 nhr-182   mab-3  lin-39   eor-1
+//       7       4       3       3       3       2       2       2       2       2
+// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'skn-1']
+// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'hlh-1']
+// 
+// I think I understand what happened: the entries that are duplicated are all from the similarity regression method. And they all have the same score. So instead of picking one arbitrarily, CISBP kept all of these entries with the same score.
+// Conclusions: these are probably exactly the same motifs (or very very similar). So we can just keep the first of them!
+
+// dt_cisbp[, TF_Species] %>% table %>% t %>% t
+// .                         [,1]
+//   Caenorhabditis_elegans   372
+//   Drosophila_melanogaster  424
+//   Homo_sapiens            1111
+//   Mus_musculus             872
+
 
 Ensembl_Assembly_1.pwms
 	.combine(cisbp_motifs_all_species)
@@ -232,13 +263,13 @@ process split_pwms {
 		specie_long_1 = paste0(toupper(substr(specie_long, 1, 1)), substr(specie_long, 2, nchar(specie_long)))
 		dt_cisbp = dt_cisbp_encode[TF_Species == specie_long_1]
 		
-		
 		sink('homer_motifs.txt')
 		
 			apply(dt_cisbp, 1, function(x) {
 					cat(paste0('>', x$consensus_sequence, '\t', x$TF_Name, '\t', x$homer_threshold, '\n'))
 					cat(paste0(apply(x$motif, 1, paste0, collapse = '\t'), '\n'))
-				})
+			})
+			
 		sink()
 		
 	'''

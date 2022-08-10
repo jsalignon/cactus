@@ -61,7 +61,7 @@ ls -1 *.md
 
 
 ###################################################
-### Get test datasets
+### Test datasets
 ###################################################
 
 ## could not find a bash way to get markdown tables from tsv. Done in R in the end
@@ -137,7 +137,7 @@ knitr::kable(df, 'pipe', align = 'c')
 
 
 ###################################################
-### Get data
+### Data
 ###################################################
 
 cd /home/jersal/workspace/cactus/data/human
