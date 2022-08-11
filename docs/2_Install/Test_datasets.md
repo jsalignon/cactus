@@ -20,17 +20,17 @@ Tests datasets have beed generated for each of the 4 species supported by Cactus
 | mouse  |  104 GB   |     12 GB     |    11 GB     |    395 MB    |
 
 
-> **_NOTE:_**  Sampled mRNA-Seq datasets are similar between the 4 species, however, sampled ATAC-Seq datasets are much larger for human and mice than for worm and fly. This is due to large difference in genome sizes but not in transcriptome size between these species. See the table below:
+> **_NOTE:_**  Sampled mRNA-Seq datasets are similar between the 4 species, however, sampled ATAC-Seq datasets are much larger for human and mice than for worm and fly. This is due to large difference in genome sizes but not in transcriptome size between these species; as shown here:
 
-| specie | genome | transcriptome | 
-|:------:|:------:|:-------------:|
-|  fly   | 100 MB |     53 MB     |
-|  worm  | 144 MB |     89 MB     |
-| human  |  27 GB |    158 MB     |
-| mouse  |  31 GB |    261 MB     |   
+| specie |  genome | transcriptome | 
+|:------:|:-------:|:-------------:|
+|  fly   |  100 MB |     53 MB     |
+|  worm  |  144 MB |     89 MB     |
+| human  | 2731 MB |    158 MB     |
+| mouse  | 3100 MB |    261 MB     |   
 
 
-The sections below contain details on the test datasets origins and labels.
+The following sections contain details on the test datasets origins and labels.
 
 
 ## Worm and human ([GSE98758](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE98758))
