@@ -10,11 +10,11 @@
 
 ![Cactus all steps](/docs/images/cactus_all_steps.png "Cactus all steps")
 
- - **ATAC-Seq preprocessing**: Reads are merged, trimmed and aligned to the genome via [bowtie2]. Aligned reads are filtered (low quality, duplicates, mitochondrial, small contigs) and shifted (to account for the [9 base pair offset](https://doi.org/10.1038/nmeth.2688)). Narrow peaks are then called using [MACS2]. These are further split, filtered (blacklist, gDNA) and annotated via [ChIPseeker]. Finally, Differentially Accessible Regions are determined using [DiffBind].
+ - **ATAC-Seq preprocessing**: Reads are merged, trimmed and aligned to the genome via [bowtie2]. Aligned reads are filtered (low quality, duplicates, mitochondrial, small contigs) and shifted (to account for the [9 base pair offset](https://doi.org/10.1038/nmeth.2688)). Narrow peaks are then called using [MACS2]. These are further split, filtered (blacklist, gDNA) and annotated via [ChIPseeker]. 
  
- - **mRNA-Seq preprocessing**: Transcripts are quantified using [Kallisto], and Differential Gene Expression Analysis is carried via the [Sleuth] R package.
+ - **mRNA-Seq preprocessing**: Transcripts are quantified using [Kallisto].
  
- - **Differential Abundance (DA) analysis**: DA refers to both Differentially Accessibility Analysis and Differential Gene Expression Analysis. Standardized outputs are produced for all DA results. This include Volcano plots and PCA plots, and DA results tables. DA results are subsequently filtered with user defined filters (False Discovery Rate, peak annotation, Fold Change). Split and filtered DA results are saved as tables. For both ATAC-Seq and mRNA-Seq genes (DA peaks’ closest gene and DA genes) and genomic regions (DA peaks and DA genes’ promoter) are exported.
+ - **Differential Abundance (DA) analysis**: DA refers to both Differentially Accessibility Analysis done with [DiffBind] and to Differential Gene Expression Analysis done with [Sleuth]. Standardized outputs are produced for all DA results. This include Volcano plots and PCA plots, and DA results tables. DA results are subsequently filtered with user defined filters (False Discovery Rate, peak annotation, Fold Change). Split and filtered DA results are saved as tables. For both ATAC-Seq and mRNA-Seq genes (DA peaks’ closest gene and DA genes) and genomic regions (DA peaks and DA genes’ promoter) are exported.
  
  - **Enrichment analysis**: Genes are used for ontologies and pathway enrichment analysis, and Venn diagrams. Genomic regions are used for chromatin state, Transcription Factor known motifs and ENCODE CHIP enrichment analysis. Additionally, self-overlap enrichment analysis of genes and peaks is performed. Results are saved as tables, and displayed via Venn Diagrams, Barplots and Heatmaps.
 
