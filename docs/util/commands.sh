@@ -4,6 +4,12 @@
 ### Menus
 ###################################################
 
+# add menu:
+cd /home/jersal/workspace/cactus/software
+docs/menu/add_menu.sh
+
+
+rename -v 's/1_Intro__//' *.md
 
 
 rename -v 's/3_Install/2_Install/' *.md
