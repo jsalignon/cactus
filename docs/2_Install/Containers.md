@@ -6,8 +6,12 @@
 
 [](END_OF_MENU)
 
+Almost all packages have been downloaded from the [Galaxy singularity repository](https://depot.galaxyproject.org/singularity/) (excpting those with a "/" in their id in the table below). 
 
-Downloading all containers uses 4 Gb of disk space. The largest containers are so-called "mulled containers". These are [Biocontainers](https://biocontainers-edu.readthedocs.io/en/latest/introduction.html) created via the [multi-package-containers tool](https://github.com/BioContainers/multi-package-containers). These are useful in processes were multiple tools are required. Here is the detail of the containers used and their size:
+The largest containers are so-called "mulled containers". These are [Biocontainers](https://biocontainers-edu.readthedocs.io/en/latest/introduction.html) created via the [multi-package-containers tool](https://github.com/BioContainers/multi-package-containers). These are useful in processes were multiple tools are required. 
+
+Downloading all containers uses 4 Gb of disk space in total. 
+Here is the detail of the containers used and their size:
 
 
 |          name          |  size|id                                                                                            |
@@ -35,15 +39,16 @@ Downloading all containers uses 4 Gb of disk space. The largest containers are s
 |         Total:         | 4081M|-                                                                                             |
 
 
-And here are more details on the tools in each mulled container:
-  - **bowtie2_samtools**: bowtie2=2.4.4,samtools=1.13    
-  - **r_basic**: r-base=4.1.3,r-magrittr=2.0.3,r-dplyr=1.0.9,r-purrr=0.3.4,r-ggplot2=3.3.5,r-data.table=1.14.2
-  - **samtools_bedtools_perl**: samtools=1.15.1,bedtools=2.30.0,perl=5.32.1
-  - **skewer_pigz**: skewer=0.2.2,pigz=2.6
-  - **bioconductor**: r-base=4.1.3,bioconductor-chipseeker=1.30.0,r-magrittr=2.0.3,bioconductor-genomicfeatures=1.46.1,bioconductor-clusterprofiler=4.2.0,bioconductor-annotationdbi=1.56.1,r-purrr=0.3.4,r-ggplot2=3.3.5
-  - **diffbind**: bioconductor-diffbind=3.4.0,bioconductor-csaw=1.28.0,bioconductor-edger=3.36.0,r-optparse=1.7.1
-  - **figures**: r-base=4.1.3,r-ggplot2=3.3.5,r-magrittr=2.0.3,r-gridextra=2.3,r-rcolorbrewer=1.1_3,r-data.table=1.14.2
-  - **differential_abundance**: r-base=4.1.3,bioconductor-diffbind=3.4.11,r-sleuth=0.30.0,r-ggplot2=3.3.5,r-magrittr=2.0.3,r-openxlsx=4.2.5
+
+Here are more details on the tools in each mulled container:
+  - **bowtie2_samtools**: bowtie2=2.4.4, samtools=1.13    
+  - **r_basic**: r-base=4.1.3, r-magrittr=2.0.3, r-dplyr=1.0.9, r-purrr=0.3.4, r-ggplot2=3.3.5, r-data.table=1.14.2
+  - **samtools_bedtools_perl**: samtools=1.15.1, bedtools=2.30.0, perl=5.32.1
+  - **skewer_pigz**: skewer=0.2.2, pigz=2.6
+  - **bioconductor**: r-base=4.1.3, bioconductor-chipseeker=1.30.0, r-magrittr=2.0.3, bioconductor-genomicfeatures=1.46.1, bioconductor-clusterprofiler=4.2.0, bioconductor-annotationdbi=1.56.1, r-purrr=0.3.4, r-ggplot2=3.3.5
+  - **diffbind**: bioconductor-diffbind=3.4.0, bioconductor-csaw=1.28.0, bioconductor-edger=3.36.0, r-optparse=1.7.1
+  - **figures**: r-base=4.1.3, r-ggplot2=3.3.5, r-magrittr=2.0.3, r-gridextra=2.3, r-rcolorbrewer=1.1_3, r-data.table=1.14.2
+  - **differential_abundance**: r-base=4.1.3, bioconductor-diffbind=3.4.11, r-sleuth=0.30.0, r-ggplot2=3.3.5, r-magrittr=2.0.3, r-openxlsx=4.2.5
 
 
 <!--
