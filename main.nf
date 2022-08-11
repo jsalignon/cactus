@@ -787,6 +787,8 @@ process ATAC__bamToBed_and_atacShift {
   """
 }
 
+// input are bam files (aligned reads) that have been filtered out of reads that are low quality, duplicates, and in mitochondria or small contigs
+// output are bed files in which the reads have been converted to 1 base pair (by keeping only the 5' end) and that have been shifted to take into account the transposase shift
 
 // Example of a read pair:
 
@@ -842,6 +844,10 @@ process ATAC__extend_bed_before_peak_calling {
   """
 
 }
+
+// inputs are bed files of 1 base pair reads
+// outputs are bed files of 1 base-pair reads shifted by 75 base pair on the 5' direction
+
 
 // Example of a read pair:
 
@@ -958,6 +964,9 @@ process ATAC__calling_peaks {
 // https://www.biostars.org/p/209592/
 // https://hbctraining.github.io/In-depth-NGS-Data-Analysis-Course/sessionV/lessons/04_peak_calling_macs.html
 // https://hbctraining.github.io/Intro-to-ChIPseq/lessons/05_peak_calling_macs.html
+
+
+// macs2 manual: https://github.com/jsh58/MACS
 
 //// Here are details for the macs2 parameters (the macs2 website is broken)
 // https://www.biostars.org/p/207318/

@@ -1,4 +1,17 @@
 
+###################################################
+### All reference-style links (used in more than 1 place)
+###################################################
+
+
+[Bowtie2]: https://www.nature.com/articles/nmeth.1923
+[ChIPseeker]: https://doi.org/10.1093/bioinformatics/btv145
+[Kallisto]: https://doi.org/10.1038/nbt.3519
+[Sleuth]: https://doi.org/10.1038/nmeth.4324
+[MACS2]: https://doi.org/10.1101/496521 
+[DiffBind]: https://doi.org/10.1038/nature10730)
+
+
 
 ###################################################
 ### Menus
