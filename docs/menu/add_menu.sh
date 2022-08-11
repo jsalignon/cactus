@@ -5,8 +5,15 @@
 
 menu_file=docs/menu/menu.md
 # doc_files=$(ls docs/*.md)
-doc_files=$(find docs -name "*.md")
-doc_files+=("README.md")
+# doc_files=$(find docs -name "*.md")
+# readarray -d '' doc_files < <(find docs -name "*.md" -not -path "docs/menu/*" -print0)
+# doc_files+=("README.md")
+# echo ${doc_files[@]} | grep READ
+IFS=$'\n'
+doc_files=($(find docs -name "*.md" -not -path "docs/menu/*"))
+unset IFS
+# echo ${doc_files[@]} | grep READ
+# doc_file=${doc_files[11]}
 
 for doc_file in ${doc_files[@]}
 do
