@@ -9,7 +9,7 @@
 [Kallisto]: https://doi.org/10.1038/nbt.3519
 [Sleuth]: https://doi.org/10.1038/nmeth.4324
 [MACS2]: https://doi.org/10.1101/496521 
-[DiffBind]: https://doi.org/10.1038/nature10730)
+[DiffBind]: https://doi.org/10.1038/nature10730
 
 
 
