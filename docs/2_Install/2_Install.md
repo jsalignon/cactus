@@ -6,3 +6,7 @@
 
 
 [](END_OF_MENU)
+
+
+![](/docs/images/2_Install.png "Installation")
+
