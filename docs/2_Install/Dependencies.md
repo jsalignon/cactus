@@ -11,6 +11,7 @@
 
 
 
+
 Cactus was built with the goal to make the installation as pain-free as possible. This was achieved by using only tools within containers for all analysis. Thereby, installation of most tools is done simply by downloading containers. However, two key dependencies are still necessary. These are Nextflow (the pipeline tool) and SingularityCE (the container tool).
 
 In case of issue with the pipeline and/or for reproducibility purporsess, it might be useful to try to run Cactus with the version of these tools that was used when developing the current Cactus release. These are:

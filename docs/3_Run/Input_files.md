@@ -12,6 +12,7 @@
 
 
 
+
 # Design
 
 Inputs of the program are raw ATAC-Seq or mRNA-Seq fastq.gz files. If there are multiple files for the same conditions, the read do not necessarily need to be merged as this can be done within cactus. 
