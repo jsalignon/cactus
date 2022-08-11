@@ -18,6 +18,6 @@ doc_files+=("README.md")
 for doc_file in ${doc_files[@]}
 do
   awk -i inplace 'x==1 {print} /END_OF_MENU/ {x=1}' $doc_file
-  echo "$(cat $menu_file <(echo) <(echo) $doc_file)" > $doc_file
+  echo "$(cat $menu_file <(echo) $doc_file)" > $doc_file
 done
 
