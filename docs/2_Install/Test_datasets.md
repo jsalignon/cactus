@@ -24,6 +24,7 @@ Tests datasets have beed generated for each of the 4 species supported by Cactus
 
 And below are details on the test datasets origins and labels.
 
+... add a table and a not on genome and transcriptome size here to explain the differences!
 
 
 
