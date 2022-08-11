@@ -7,8 +7,6 @@
 [](END_OF_MENU)
 
 
-There are three main types of outputs: processed data, figures and tables. Both figures and tables are available either merged (for easier scrolling) and separated (for lower memory usage). Tables can be either csv files or formatted Excel files.
-
 <!-- tree -I Run_Info -d -L 3 /home/jersal/workspace/cactus/test_datasets/human/results/25.07.22/ -->
 
 ```
@@ -97,3 +95,7 @@ There are three main types of outputs: processed data, figures and tables. Both 
     ├── 2_Differential_Abundance
     └── 3_Enrichment
 ```
+
+
+Cactus produces three main types of outputs: processed data, figures and tables. Both figures and tables are available as merged files (for easier scrolling) or as individual files (for lower memory usage). Tables can be either csv files or formatted Excel files.
+
