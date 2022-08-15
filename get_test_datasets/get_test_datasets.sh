@@ -122,6 +122,17 @@ source $get_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n
 source $get_test_datasets_bin_dir/3__make_design_files__human.sh $n_reads_atac $n_reads_mrna
 
 
+##############################################
+### Application note: Human and Worms (GSE98758)
+##############################################
+
+source $get_test_datasets_bin_dir/make_application_note_dirs.sh
+
+dataset_name=application_notes
+
+find worm -name conf
+cp -r worm/design 
+mkdir -p $dataset_name/data/mrna $dataset_name/data/atac $dataset_name/conf $dataset_name/design
 
 ##############################################
 ### The end

@@ -99,7 +99,7 @@ The pipeline download the data from various sources and process it to produce al
 [ChIPseeker]: https://doi.org/10.1093/bioinformatics/btv145
 [Kallisto]: https://doi.org/10.1038/nbt.3519
 [Sleuth]: https://doi.org/10.1038/nmeth.4324
-[DiffBind]: https://doi.org/10.1038/nature10730)
+[DiffBind]: https://doi.org/10.1038/nature10730
 
 
 ## CHIP-Seq

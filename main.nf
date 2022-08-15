@@ -740,7 +740,7 @@ process ATAC__plot_insert_size_distribution {
   script:
   """
 
-    picard -Xmx${params.workMem} CollectInsertSizeMetrics \
+    picard -Xmx${params.memory_picard} CollectInsertSizeMetrics \
       -INPUT "${bam}" \
       -OUTPUT "${id}.insertSizes.txt" \
       -METRIC_ACCUMULATION_LEVEL ALL_READS \
@@ -1243,7 +1243,7 @@ process ATAC__reads_stat_2_library_complexity {
   script:
   """
 
-    picard -Xmx${params.workMem} \
+    picard -Xmx${params.memory_picard} \
     EstimateLibraryComplexity \
     -INPUT ${sam} \
     -OUTPUT ${id}_library_complexity.txt
