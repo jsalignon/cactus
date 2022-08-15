@@ -11,8 +11,4 @@
 
 
 
-# Fastq
-
-Replicates are needed.
-File names. 
-...
+![](/docs/images/3_Inputs.png "Inputs")
