@@ -39,10 +39,18 @@ Number of CPUs to allocate by task for various steps in the analysis (kallisto, 
  - **memory_picard**: *20G*.  
 Memory allocation for picard tools.
 
-## Outputs
- - **out_dir**: *results/${cactus_version}*. Name of the directory where results will be saved.
- - **pub_mode**: *link, symlink, rellink, link, copy, copyNoFollow,move*. Type of [publication mode](https://www.nextflow.io/docs/latest/process.html#publishdir).
- 
+## Output Files
+ - **out_dir**: *results/${cactus_version}*.  
+Name of the directory where results will be saved.
+ - **pub_mode**: *link, symlink, rellink, link, copy, copyNoFollow,move*.  
+Type of [publication mode](https://www.nextflow.io/docs/latest/process.html#publishdir).
+- **save_fastq_type**: *'none', 'last', 'all'*  
+Saving only the last, none or all fastq files.
+- **save_bam_type**: *'last', 'none', 'all'*  
+Saving only the last, none or all bam files.
+- **save_bed_type**: *'last', 'none', 'all'*  
+Saving only the last, none or all bed files.
+
 ## Do or skip analysis
 Boolean that indicates if certain parts of the pipeline should be run or not.
  - **do_motif_enrichment**: *true, false*
@@ -58,35 +66,21 @@ Boolean that indicates if certain parts of the pipeline should be run or not.
  - **specie**: *worm, fly, mouse or human*
  - **experiment_types**: *both, atac or mRNA*.  
 To indicate if the run should analyze ATAC data only, mRNA data only, or both kind of data.
- - 
+- **use_input_control**: *false, true*.  
+Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind.
 
-
-//// use a gDNA input control for ATAC-Seq analysis
-use_input_control = false
-
-//// doing or skipping analysis types
-
-
-
-//// saving big files or not. Options are: 'none', 'all', or 'last'
-save_fastq_type = 'none'
-save_bam_type   = 'last'
-save_bed_type   = 'last'
-
-//// deepTools 
-binsize_bigwig_creation            = 10 // suggested parameters: 10000 for fast analysis
-binsize_bigwig_correlation         = 10000
-nb_1bp_site_to_sample_for_coverage = 10000
-
-//// resampling analysis
-nb_sampled_reads     = 1000000
-
-//// alignment and duplicates
-sam_MAPQ_threshold = 30
+## ATAC reads analysis
+- **sam_MAPQ_threshold**: *30*. MAPQ threshold for filtering low quality reads.
+- **binsize_bigwig_creation**: *10*. Size of the bins for the creation of the bigwig files with DeepTools. Larger numbers will make the analysis faster but the resolution smaller. Bins of 10000 can be used for a fast analysis.
+- **binsize_bigwig_correlation**: *10000*. Size of the bins for the correlation analysis with DeepTools.
+- **nb_1bp_site_to_sample_for_coverage**: *10000*. Number of sites to sample for the coverage plots with DeepTools.
+- **nb_sampled_reads**: *1000000*. Number of reads to sample for the resampling analysis.
+- **macs2_qvalue**: *5e-2*. Number of reads to sample for the resampling analysis.
+- **macs2_mappable_genome_size**: *9e7*. Number of reads to sample for the resampling analysis.
 
 //// peaks calling
 macs2_qvalue               = "5e-2"
-macs2_mappable_genome_size = "9e7"
+ = ""
 
 //// genes quantification
 fragment_len  = '180'

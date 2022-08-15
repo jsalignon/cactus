@@ -904,7 +904,7 @@ process ATAC__saturation_curve {
         macs2 callpeak -t \${BED_FILE} \
           -f BED \
           --name \${BED_FILE}_macs2 \
-          --gsize "${params.macs2_mappable_genome_size}" \
+          --gsize "${params.effective_genome_size}" \
           --qvalue "${params.macs2_qvalue}" \
           --nomodel \
           --extsize 150 \
@@ -946,7 +946,7 @@ process ATAC__calling_peaks {
         -t "${bed}" \
         -f BED \
         -n "${id}_macs2" \
-        -g "${params.macs2_mappable_genome_size}" \
+        -g "${params.effective_genome_size}" \
         -q "${params.macs2_qvalue}" \
         --nomodel \
         --extsize 150 \
