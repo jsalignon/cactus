@@ -12,3 +12,38 @@
 
 
 ![](/docs/images/3_Inputs.png "Inputs")
+
+There are 3 kind of inputs: 
+ - data: raw *.fastq.gz* sequencing output files
+ - design: a set of *.tsv* files to indicates how fastq files relate to conditions, comparisons to perform and groups of comparisons to plot together in heatmaps
+ - configuration: two *.config* that indicates the custom parameters of cactus to use for the current analysis run
+ 
+Here is an overview of the input files:
+<!-- tree -I "results|work"  (worm folder; then editing the output manually)-->
+```
+.
+├── conf
+│   └── run.config
+├── data
+│   ├── atac
+│   │   ├── sample_1000K_reads_atac_SRX2333004_SRR5000684_R1.fastq.gz
+│   │   ├── sample_1000K_reads_atac_SRX2333004_SRR5000684_R2.fastq.gz
+│   │   ├── sample_1000K_reads_atac_SRX3029124_SRR5860424_R1.fastq.gz
+│   │   ├── ...
+│   └── mrna
+│       ├── sample_50K_reads_mrna_SRX3029112_SRR5860412.fastq.gz
+│       ├── sample_50K_reads_mrna_SRX3029113_SRR5860413.fastq.gz
+│       ├── ...
+└── design
+    ├── atac_fastq.tsv
+    ├── comparisons.tsv
+    ├── groups.tsv
+    ├── mrna_fastq.tsv
+    └── regions_to_remove.tsv
+```
+
+>**_Note_:** There is an additional and optional global.config file that is located in the cactus folder and indicate the global configuration of cactus for all runs of the user.
+
+>**_Note_:** Input data files do not necessarily be located at the same place as the analysis directory as shown in this directory tree.
+
+
