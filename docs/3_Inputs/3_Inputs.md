@@ -15,10 +15,10 @@
 
 There are 3 kind of inputs: 
  - data: raw *.fastq.gz* sequencing output files
- - design: a set of *.tsv* files to indicates how fastq files relate to conditions, comparisons to perform and groups of comparisons to plot together in heatmaps
+ - design: a set of *.tsv* files to indicates how fastq files relate to samples, conditions, comparisons to perform and groups of comparisons to plot together in heatmaps
  - configuration: two *.config* that indicates the custom parameters of cactus to use for the current analysis run
  
-Here is an overview of the input files:
+Here is an overview of the input files at the run directory folder:
 <!-- tree -I "results|work"  (worm folder; then editing the output manually)-->
 ```
 .
@@ -46,4 +46,5 @@ Here is an overview of the input files:
 
 >**_Note_:** Input data files do not necessarily be located at the same place as the analysis directory as shown in this directory tree.
 
+>**_Note_:** The Cactus run will create two additional directories: the results directory and the work directory (a temporary directory created by Nextflow)
 

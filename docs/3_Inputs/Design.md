@@ -42,7 +42,7 @@ spt16_2 data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
 
 ## mrna_fastq.tsv
 
-**Description:** fastq files for mRNA-Seq. Same formatting as for atac_fastq.tsv
+**Description:** fastq files for mRNA-Seq. Same formatting as for atac_fastq.tsv.
 
 
 
