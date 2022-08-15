@@ -10,16 +10,16 @@
 [](END_OF_MENU)
 
 
-**__Note__:** Fields in all tsv design files should be separated by a space or a tab.
+**__Note__:** Fields in all tsv design files should be separated by a space or a tab. And all design files are in long format (one entry per line).
 
 
-## atac_fastq.tsv: fastq files for ATAC-Seq
-**Description:** Each line referes to one fastq file. If two files have the same sample_id they will be considered to be different sequencing runs of the same sample and will be merged by Cactus.  
 
+## atac_fastq.tsv
+**Description:** fastq files for ATAC-Seq. If two files have the same sample_id they will be considered to be different sequencing runs of the same sample and will be merged by Cactus.  
 
 **Fields:**
  - *sample_id*: The sample_id is a combination of a condition_id and a replicate_number, united with an underscore. Note that condition_ids can only contain alphanumerical characters (A-Z, a-z and 0-9), and cannot contain special characters (such as underscore). 
- - *fastq_file_path*: can be either an absolute path or a relative path (recommended) from the directory where Cactus is run
+ - *fastq_file_path*: can be either an absolute path or a relative path (recommended) from the directory where Cactus is run. In case of paired-end data, only the path of the R1 file should be indicated.
 
 **Example:**
 ```
@@ -33,15 +33,21 @@ spt16_2 data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
 ```
 
 
+
 ## mrna_fastq.tsv: fastq files for mRNA-Seq
-Format: Same formatting as for atac_fastq.tsv
+ => Same formatting as for atac_fastq.tsv
+
+
 
 ## regions_to_remove.tsv: regions to filter out during ATAC-Seq peaks preprocessing
-Format: *condition_id, Locus_name->genomic_coordinates (chromosome:start-end)*
+**Description:** Peaks that overlap with regions defined in this file will be excluded from the analysis. This is particularly useful in experiments involving RNA interference, as this is known to induce a very strong sequencing signal at the repressed locus. Multiple regions can be removed for the same condition by adding multiple lines.
 
-Peaks that overlap with regions defined in this file will be excluded from the analysis. This is particularly useful in experiments involving RNA interference, as this is known to induce a very strong sequencing signal at the repressed locus. The first field indicates in which sample the region should be removed and the second is the coordinates of the region to remove. Multiple regions can be removed for the same sample by adding multiple lines.
 
-Example:
+**Fields:**
+ - *condition_id*: condition for which the region should be removed
+ - *Locus_name->genomic_coordinates (chromosome:start-end)*: coordinates of the region to remove
+
+**Example:**
 ```
 gaf gaf->3L:14,747,929-14,761,049
 b170 bap170->2R:6,636,512-6,642,358
@@ -52,7 +58,9 @@ n301b170 nurf301->3L:233,926-246,912
 
 **__Note__:** this file can be empty if no region needs to be removed
 
-## comparisons.tsv: pairs of conditions to compare during Differential Abundance Analysis
+
+
+## comparisons.tsv: 
 This file is formatted with one comparison per line with one entry per condition. 
 second sample is the "control"
 Example:
@@ -61,6 +69,24 @@ hmg4 ctl
 spt16 ctl
 hmg4 spt16
 ```
+
+**Description:** pairs of conditions to compare during Differential Abundance Analysis. One comparison per line.
+
+
+**Fields:**
+ - *condition_id*: condition for which the region should be removed
+ - *Locus_name->genomic_coordinates (chromosome:start-end)*: coordinates of the region to remove
+
+**Example:**
+```
+gaf gaf->3L:14,747,929-14,761,049
+b170 bap170->2R:6,636,512-6,642,358
+n301 nurf301->3L:233,926-246,912
+n301b170 bap170->2R:6,636,512-6,642,358
+n301b170 nurf301->3L:233,926-246,912
+```
+
+
 
 ## groups.tsv: groups of comparisons to plot together on the heatmaps plots. 
 The format is one line per group with the group ID as first entry and the comparisons as the remaining entries. The comparisons are named this way: condition1_vs_condition2. 
