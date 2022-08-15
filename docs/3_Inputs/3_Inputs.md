@@ -13,7 +13,7 @@
 
 ![](/docs/images/3_Inputs.png "Inputs")
 
-There are 3 kind of inputs: 
+There are 3 kind of inputs files: 
  - data: raw *.fastq.gz* sequencing output files
  - design: a set of *.tsv* files to indicates how fastq files relate to samples, conditions, comparisons to perform and groups of comparisons to plot together in heatmaps
  - configuration: two *.config* that indicates the custom parameters of cactus to use for the current analysis run
