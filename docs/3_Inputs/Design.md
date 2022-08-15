@@ -25,7 +25,7 @@ In this section, we describe how users can define the design of their experiment
  - *sample_id*: The sample_id is a combination of a condition_id and a replicate_number, united with an underscore. Note that condition_ids can only contain alphanumerical characters (A-Z, a-z and 0-9), and cannot contain special characters (such as underscore). 
  - *fastq_file_path*: can be either an absolute path or a relative path (recommended) from the directory where Cactus is run. In case of paired-end data, only the path of the R1 file should be indicated.
 
->**__Note__:** If two files have the same sample_id, they will be considered to be different sequencing runs of the same sample and will be merged by Cactus. 
+>**_Note_:** If two files have the same sample_id, they will be considered to be different sequencing runs of the same sample and will be merged by Cactus. 
 
 **Example:**
 ```
@@ -54,7 +54,7 @@ spt16_2 data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
  - *condition_id*: condition for which the region should be removed
  - *Locus_name->genomic_coordinates (chromosome:start-end)*: coordinates of the region to remove
 
->**__Note__:** This file can be empty if no region needs to be removed.
+> **_Note_:** This file can be empty if no region needs to be removed.  
 >**__Note__:** Multiple regions can be removed for the same condition by adding multiple lines.
 
 **Example:**
@@ -85,7 +85,7 @@ hmg4 spt16
 
 
 
-## groups.tsv. 
+## groups.tsv
 **Description:** groups of comparisons to plot together on the heatmaps plots.
 
 **Fields:**
