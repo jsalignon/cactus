@@ -11,16 +11,63 @@
 
 
 
-# Design
+### atac_fastq.tsv: fastq files for ATAC-Seq
+**Format:** *sample_id fastq_file_path*
+**Description:** Each line referes to one fastq file. If two files have the same sample_id they will be considered to be different sequencing runs of the same sample and will be merged by Cactus. 
+**Fields details:**
+ - *sample_id*: The sample_id is a combination of a condition_id and a replicate_number, united with an underscore. Note that condition_ids can only contain alphanumerical characters (A-Z, a-z and 0-9), and cannot contain special characters (such as underscore). 
+ - *fastq_file_path*: can be either an absolute path or a relative path (recommended) from the directory where Cactus is run
 
-Inputs of the program are raw ATAC-Seq or mRNA-Seq fastq.gz files. If there are multiple files for the same conditions, the read do not necessarily need to be merged as this can be done within cactus. 
-The configuration files are expected by Cactus are: atac_seq.config, mRNA_Seq.config, comparisons.config, regions_to_remove.config, grouped_conditions_for_plots.config, base.config. All are tab separated files. Below are instructions and examples on how to write these files [note: add an example per type of file]:
--	**atac_seq.config**: one line per ATAC-Seq sample. The first entry is the sample ID, and the second is the path were the files is stored. There can be multiple paths, for multiple files, in which cases these files will be merged by Cactus.
--	**mRNA_Seq.config**: one line per mRNA-Seq sample. Same formatting as for atac_seq.config
--	**regions_to_remove.config**: This file allows to remove all reads that map to the specified regions. This is useful in particular for experiments involving RNA interference, as this is known to induce a very strong sequencing signal for the locus that is repressed. The file is configurated this way:
--	**comparisons.config**: this file allows to determine which pairs of conditions will be compared to one another for Differential Abundance Analysis. It is formatted with one comparison per line with one entry per condition. 
--	**grouped_conditions_for_plots.config**: This file allows to define groups of comparisons to plot together on the heatmaps. The format is one line per group with the group ID as first entry and the comparisons as the remaining entries. The comparisons are named this way: comparison1_vs_comparison2.
--	**base.config** (optional): this file allows to overwrite Cactus default settings with custom settings. All parameters from the run.config file can be set changed here to determine how a given experiment is analyzed. See the parameters section below for more details.
+**Example:**
+```
+ctl_1 data/atac/sample_200K_reads_atac_SRX3029124_SRR5860424_R1.fastq.gz
+ctl_2 data/atac/sample_200K_reads_atac_SRX3029125_SRR5860425_R1.fastq.gz
+ctl_2 data/atac/sample_200K_reads_atac_SRX3029125_SRR5860426_R1.fastq.gz
+hmg4_1 data/atac/sample_200K_reads_atac_SRX3029133_SRR5860433_R1.fastq.gz
+hmg4_2 data/atac/sample_200K_reads_atac_SRX3029134_SRR5860434_R1.fastq.gz
+spt16_1 data/atac/sample_200K_reads_atac_SRX3029130_SRR5860430_R1.fastq.gz
+spt16_2 data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
+```
 
 
-# Config
+### mrna_fastq.tsv: fastq files for mRNA-Seq
+Format: Same formatting as for atac_fastq.tsv
+
+### regions_to_remove.tsv: regions to filter out during ATAC-Seq peaks preprocessing
+Format: *condition_id, Locus_name->genomic_coordinates (chromosome:start-end)*
+
+Peaks that overlap with regions defined in this file will be excluded from the analysis. This is particularly useful in experiments involving RNA interference, as this is known to induce a very strong sequencing signal at the repressed locus. The first field indicates in which sample the region should be removed and the second is the coordinates of the region to remove. Multiple regions can be removed for the same sample by adding multiple lines.
+
+Example:
+```
+gaf gaf->3L:14,747,929-14,761,049
+b170 bap170->2R:6,636,512-6,642,358
+n301 nurf301->3L:233,926-246,912
+n301b170 bap170->2R:6,636,512-6,642,358
+n301b170 nurf301->3L:233,926-246,912
+```
+
+**__Note__:** this file can be empty if no region needs to be removed
+
+### comparisons.tsv: pairs of conditions to compare during Differential Abundance Analysis
+This file is formatted with one comparison per line with one entry per condition. 
+second sample is the "control"
+Example:
+```
+hmg4 ctl
+spt16 ctl
+hmg4 spt16
+```
+
+### groups.tsv: groups of comparisons to plot together on the heatmaps plots. 
+The format is one line per group with the group ID as first entry and the comparisons as the remaining entries. The comparisons are named this way: condition1_vs_condition2. 
+
+Example:
+```
+all hmg4_vs_ctl spt16_vs_ctl hmg4_vs_spt16
+ctl hmg4_vs_ctl spt16_vs_ctl
+spt16 spt16_vs_ctl hmg4_vs_spt16
+```
+
+
+**__Final Note__:** Fields in tsv design files should be separated by space or tabs.

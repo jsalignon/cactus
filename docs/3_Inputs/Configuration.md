@@ -8,3 +8,13 @@
 * [Enrichment](/docs/6_Enrich/6_Enrich.md): [Overlap](/docs/6_Enrich/Overlap.md), [Outputs](/docs/6_Enrich/Outputs.md)
 
 [](END_OF_MENU)
+
+
+# Configuration files
+
+-	**global.config** (optional): global profile that applies to all runs
+	
+-	**run.config** (optional): this file allows to overwrite Cactus default settings with custom settings. All parameters from the run.config file can be set changed here to determine how a given experiment is analyzed. See the parameters section below for more details.
+
+
+# List of all parameters# List of all parameters
