@@ -10,11 +10,12 @@
 [](END_OF_MENU)
 
 
+**__Note__:** Fields in all tsv design files should be separated by a space or a tab.
+
 
 ### atac_fastq.tsv: fastq files for ATAC-Seq
-**Format:** *sample_id fastq_file_path*
-**Description:** Each line referes to one fastq file. If two files have the same sample_id they will be considered to be different sequencing runs of the same sample and will be merged by Cactus. 
-**Fields details:**
+**Description:** Each line referes to one fastq file. If two files have the same sample_id they will be considered to be different sequencing runs of the same sample and will be merged by Cactus.  
+**Fields:**  
  - *sample_id*: The sample_id is a combination of a condition_id and a replicate_number, united with an underscore. Note that condition_ids can only contain alphanumerical characters (A-Z, a-z and 0-9), and cannot contain special characters (such as underscore). 
  - *fastq_file_path*: can be either an absolute path or a relative path (recommended) from the directory where Cactus is run
 
@@ -70,4 +71,3 @@ spt16 spt16_vs_ctl hmg4_vs_spt16
 ```
 
 
-**__Final Note__:** Fields in tsv design files should be separated by space or tabs.
