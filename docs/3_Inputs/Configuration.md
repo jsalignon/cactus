@@ -22,34 +22,42 @@
 Below are all parameters that can be set in the *.config* files. The different options are listed in italic, with the first one being the default parameter.
 
 ## Tools
- - **cactus_version**: *latest*. Indicates which version of cactus to use.
- - **cactus_dir**: *~/workspace/cactus*. Directory where cactus is installed.
- - **singularity_containers_path**: *~/workspace/cactus*. Directory where containers are downloaded.
+ - **cactus_version**: *latest*.  
+Indicates which version of cactus to use.
+ - **cactus_dir**: *~/workspace/cactus*.  
+Directory where cactus is installed.
+ - **singularity_containers_path**: *~/workspace/singularity_containers*.  
+Directory where containers are downloaded.
 
 ## Ressources
-- **executor.queueSize**: *50*. Maximum total number of CPUs that will be used on the server (or local machine) during the run.
-- **executor.$local.memory**: *80 GB*s. Maximum total memory that will be used on the server (or local machine) during the run.
- - **nb_threads**: *6*. Number of CPUs to allocate by task for various steps in the analysis (kallisto, bowtie2, homer, pigz and Deeptools).
- - **memory_picard**: *20G*. Memory allocation for picard tools.
+- **executor.queueSize**: *50*.  
+Maximum total number of CPUs that will be used on the server (or local machine) during the run.
+- **executor.$local.memory**: *80 GB*s.  
+Maximum total memory that will be used on the server (or local machine) during the run.
+ - **nb_threads**: *6*.  
+Number of CPUs to allocate by task for various steps in the analysis (kallisto, bowtie2, homer, pigz and Deeptools).
+ - **memory_picard**: *20G*.  
+Memory allocation for picard tools.
 
 ## Outputs
  - **out_dir**: *results/${cactus_version}*. Name of the directory where results will be saved.
  - **pub_mode**: *link, symlink, rellink, link, copy, copyNoFollow,move*. Type of [publication mode](https://www.nextflow.io/docs/latest/process.html#publishdir).
  
 ## Do or skip analysis
-All these parameters are boolean that indicates if certain parts of the pipeline should be run or not. The default is true for all these parameters: 
- - **do_motif_enrichment**
- - **do_chip_enrichment**
- - **do_saturation_curve**
- - **do_raw_peak_annotation**
- - **do_diffbind_peak_annotatio**
- - **do_gene_set_enrichment**
- - **do_bigwig**
- - **do_chromatin_state**
+Boolean that indicates if certain parts of the pipeline should be run or not.
+ - **do_motif_enrichment**: *true, false*
+ - **do_chip_enrichment**: *true, false*
+ - **do_saturation_curve**: *true, false*
+ - **do_raw_peak_annotation**: *true, false*
+ - **do_diffbind_peak_annotatio**: *true, false*
+ - **do_gene_set_enrichment**: *true, false*
+ - **do_bigwig**: *true, false*
+ - **do_chromatin_state**: *true, false*
 
 ## Experiment
  - **specie**: *worm, fly, mouse or human*
- - **experiment_types**: *both, atac or mRNA*. To indicate if the run should analyze ATAC data only, mRNA data only, or both kind of data.
+ - **experiment_types**: *both, atac or mRNA*.  
+To indicate if the run should analyze ATAC data only, mRNA data only, or both kind of data.
  - 
 
 
