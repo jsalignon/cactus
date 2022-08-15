@@ -15,7 +15,9 @@
 
 ## atac_fastq.tsv: fastq files for ATAC-Seq
 **Description:** Each line referes to one fastq file. If two files have the same sample_id they will be considered to be different sequencing runs of the same sample and will be merged by Cactus.  
-**Fields:**  
+
+
+**Fields:**
  - *sample_id*: The sample_id is a combination of a condition_id and a replicate_number, united with an underscore. Note that condition_ids can only contain alphanumerical characters (A-Z, a-z and 0-9), and cannot contain special characters (such as underscore). 
  - *fastq_file_path*: can be either an absolute path or a relative path (recommended) from the directory where Cactus is run
 
