@@ -52,7 +52,7 @@ Saving only the last, none or all bam files.
 Saving only the last, none or all bed files.
 
 ## Do or skip analysis
-Boolean that indicates if certain parts of the pipeline should be run or not.
+Booleans that indicates if certain parts of the pipeline should be run or not.
  - **do_motif_enrichment**: *true, false*
  - **do_chip_enrichment**: *true, false*
  - **do_saturation_curve**: *true, false*
@@ -78,9 +78,6 @@ Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist re
 - **macs2_qvalue**: *5e-2*. Number of reads to sample for the resampling analysis.
 - **macs2_mappable_genome_size**: *9e7*. Number of reads to sample for the resampling analysis.
 
-//// peaks calling
-macs2_qvalue               = "5e-2"
- = ""
 
 //// genes quantification
 fragment_len  = '180'
