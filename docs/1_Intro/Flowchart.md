@@ -13,9 +13,9 @@
 
 ![Cactus all steps](/docs/images/cactus_all_steps.png "Cactus all steps")
 
- - **ATAC-Seq preprocessing**: Reads are merged, trimmed and aligned to the genome with [bowtie2]. Aligned reads are filtered (low quality, duplicates, mitochondrial, small contigs) and shifted (to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688)). Narrow peaks are then called using [MACS2]. These are further split, filtered (blacklist, gDNA) and annotated with [ChIPseeker]. 
- 
- - **mRNA-Seq preprocessing**: Transcripts are quantified using [Kallisto].
+ - **Preprocessing**: 
+   - **ATAC-Seq**: Reads are merged, trimmed and aligned to the genome with [bowtie2]. Aligned reads are filtered (low quality, duplicates, mitochondrial, small contigs) and shifted (to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688)). Narrow peaks are then called using [MACS2]. These are further split, filtered (blacklist, gDNA) and annotated with [ChIPseeker]. 
+   - **mRNA-Seq**: Transcripts are quantified using [Kallisto].
  
  - **Differential Abundance (DA) analysis**: DA refers to both Differentially Accessibility Analysis done with [DiffBind] and to Differential Gene Expression Analysis done with [Sleuth]. Standardized plots (Volcano and PCA) and tables are produced. DA results are then filtered (significance/rank threshold) and split in subsets (experiment type (ATAC, mRNA or both), peak annotation type (promoter, gene body, distal non coding, ...), fold change type (up or down)). Tables and Venn Diagrams are made for each subset. For both ATAC-Seq and mRNA-Seq: genes (DA peaks’ closest gene and DA genes) and genomic regions (DA peaks and DA genes’ promoter) are exported. 
  

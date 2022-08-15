@@ -15,13 +15,13 @@
 
 Here are some considerations: 
 
- - **File format:** Input data files should be fastq.gz files.  
+ - **File format:** Input data files should be *.fastq.gz* files.  
 
- - **Replication:** There should be at least 2 replicates by conditions.  
+ - **Replication:** There should be at least 2 replicates per conditions.  
 
  - **Library type:** 
    - Data must be paired-end for ATAC-Seq.  
    - Data can be either paired-end or single-end for mRNA-Seq.  
    - Paired-end data files should end with "R1.fastq.gz" or "R2.fastq.gz".  
 
- - **Merging samples:** Difference sequencing runs of the same sample/replicate can be automatically merged by cactus (see the [Design](/docs/3_Inputs/Design.md) section to see how).
+ - **Merging samples:** Different sequencing runs of the same sample/replicate can be automatically merged by cactus (see the [Design](/docs/3_Inputs/Design.md) section to see how).
