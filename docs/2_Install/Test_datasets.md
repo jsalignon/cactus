@@ -50,10 +50,11 @@ The following sections contain details on the test datasets origins and labels.
 
   **Abstract**: The chromatin regulator FACT (facilitates chromatin transcription) is essential for ensuring stable gene expression by promoting transcription. In a genetic screen using Caenorhabditis elegans, we identified that FACT maintains cell identities and acts as a barrier for transcription factor-mediated cell fate reprogramming. Strikingly, FACT’s role as a barrier to cell fate conversion is conserved in humans as we show that FACT depletion enhances reprogramming of fibroblasts. Such activity is unexpected because FACT is known as a positive regulator of gene expression, and previously described reprogramming barriers typically repress gene expression. While FACT depletion in human fibroblasts results in decreased expression of many genes, a number of FACT-occupied genes, including reprogramming-promoting factors, show increased expression upon FACT depletion, suggesting a repressive function of FACT. Our findings identify FACT as a cellular reprogramming barrier in C. elegans and humans, revealing an evolutionarily conserved mechanism for cell fate protection.
   
-  **Homologs: 
-            Worm | Humans  
-    hmg-4, hmg-3 | SSRP1  
-          spt-16 | SUPT16H
+  **Homologs**: 
+   |        Worm | Humans      |
+   | ----------- | ----------- |
+   |hmg-4, hmg-3 | SSRP1       |
+   |      spt-16 | SUPT16H     |
 
   **Worm samples**:
 
