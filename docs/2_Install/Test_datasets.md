@@ -52,7 +52,7 @@ The following sections contain details on the test datasets origins and labels.
   
   **Homologs**: 
    |        Worm | Humans      |
-   | ----------- | ----------- |
+   |   :----:    |   :----:    |
    |hmg-4, hmg-3 | SSRP1       |
    |      spt-16 | SUPT16H     |
 
