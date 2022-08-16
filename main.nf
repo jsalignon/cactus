@@ -4073,8 +4073,6 @@ process plot_enrichment_heatmap {
     set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") optional true into Heatmap_for_merging_pdfs
 
 
-  // when: params.do_motif_enrichment
-
   shell:
   '''
     #!/usr/bin/env Rscript
@@ -4175,7 +4173,7 @@ process plot_enrichment_heatmap {
     if(data_type == 'chrom_states') {
       vec = unique(df$tgt)
       vec_order = vec %>% gsub('.', '', ., fixed = T) %>% gsub(' .*', '', .) %>% as.integer %>% order
-      terms_levels = vec[vec_order]
+      terms_levels = vec[vec_order] %>% rev
     }
 
     # clustering y-axis terms and adding final matrix indexes to the df
@@ -4304,12 +4302,12 @@ Exporting_to_Excel_Channel = Exporting_to_Excel_Channel.mix(Formatted_tables_for
 Formatted_tables_for_merging
   .groupTuple(by: [0, 1])
   .dump(tag: 'merge_tables')
-  .set{ Formatted_tables_grouped_for_merging }
+  .set{ Formatted_tables_grouped_for_merging_tables }
 
 // Merging_tables_Channel = Merging_tables_Channel.mix(Formatted_tables_for_merging.groupTuple())
 // Merging_tables_Channel = Merging_tables_Channel.dump(tag: 'merge_tables')
 
-process formatting_merged_tables {
+process merging_tables {
   tag "${out_folder}__${data_type}"
 
   container = params.r_basic
@@ -4317,12 +4315,10 @@ process formatting_merged_tables {
   publishDir path: "${out_dir}/Tables_Merged/${out_folder}", mode: "${pub_mode}", enabled: params.save_tables_as_csv
 
   input:
-    set data_type, out_folder, file(csv_file) from Formatted_tables_grouped_for_merging
+    set data_type, out_folder, file(csv_file) from Formatted_tables_grouped_for_merging_tables
 
   output:
     set val("Tables_Merged/${out_folder}"), file("*.csv") into Merged_table_for_Excel optional true
-
-  when: params.do_motif_enrichment
 
   shell:
   '''
@@ -4365,8 +4361,6 @@ process save_excel_tables {
 
   output:
     file("*.xlsx")
-
-  when: params.do_motif_enrichment
 
   shell:
   '''
