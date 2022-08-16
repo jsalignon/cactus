@@ -18,7 +18,7 @@ params {
   save_bed_type     = 'last'
   chip_ontology     = 'all'
   chromatin_state   = 'iHMM.M1K16.worm_L3'
-  threshold_type_for_splitting_subsets   = 'fdr' 
+  threshold_type_for_splitting_subsets   = 'FDR' 
   threshold_values_for_splitting_subsets = [ 1.3, 3 ]
   
   memory_picard     = '20G'
@@ -39,14 +39,22 @@ sed -i 's/data.*K_reads_atac/..\/..\/preprocessing\/human\/fastq\/atac/' applica
 sed -i 's/data.*K_reads_mrna/..\/..\/preprocessing\/human\/fastq\/mrna/' application_note/human/design/mrna_fastq.tsv
 
 # run.config
-cat > ${specie}/conf/run.config <<EOL
+cat > $AN_human/conf/run.config <<EOL
 params {
   specie            = 'human'
   use_input_control = false
   save_bed_type     = 'all'
   chip_ontology     = 'cell_type.fibroblast'
   chromatin_state   = 'ENCFF941SVR'
-  threshold_type_for_splitting_subsets   = 'fdr'  
+  threshold_type_for_splitting_subsets   = 'FDR'  
   threshold_values_for_splitting_subsets = [ 1.3, 3 ]
+  
+  memory_picard     = '20G'
+  executor {
+    queueSize = 50
+    \$local { 
+      memory  = '100 GB'
+    }
+  }
 }
 EOL
