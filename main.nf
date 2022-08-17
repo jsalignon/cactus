@@ -388,7 +388,7 @@ process ATAC__trimming_adaptors {
 
 
 
-process ATAC__reads_fastqc_before_trimming {
+process ATAC__running_fastqc_before_trimming {
   tag "${id}"
 
   container = params.fastqc
@@ -414,7 +414,7 @@ process ATAC__reads_fastqc_before_trimming {
 
 
 
-process ATAC__reads_fastqc_after_trimming {
+process ATAC__running_fastqc_after_trimming {
   tag "${id}"
 
   container = params.fastqc
@@ -438,7 +438,7 @@ process ATAC__reads_fastqc_after_trimming {
 }
 
 
-process ATAC__alignment_with_bowtie2 {
+process ATAC__aligning_reads {
   tag "${id}"
 
   container = params.bowtie2_samtools
@@ -569,7 +569,7 @@ process ATAC__removing_duplicates {
 }
 
 
-process ATAC__creation_of_raw_bigwig_tracks {
+process ATAC__making_bigwig_tracks {
   tag "${id}"
 
   container = params.deeptools
@@ -633,7 +633,7 @@ bw_with_input_control
     .set{ Bigwig_for_correlation1 }
 
 
-process ATAC__correlation_between_raw_bigwig_tracks {
+process ATAC__computing_correlation_between_bigwig_tracks {
 
   tag "${input_control_present}"
 
@@ -671,7 +671,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Reads_Correl_for_merging_pdfs
 
 
 
-process ATAC__removing_reads_in_mitochondria_and_contigs {
+process ATAC__removing_reads_in_mitochondria_and_small_contigs {
   tag "${id}"
 
   container = params.bowtie2_samtools
@@ -721,7 +721,7 @@ process ATAC__removing_reads_in_mitochondria_and_contigs {
 
 
 
-process ATAC__plot_insert_size_distribution {
+process ATAC__plotting_insert_size_distribution {
   tag "${id}"
 
   container = params.picard
@@ -763,7 +763,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_Reads_InsertSize_for_merging_
 
 // this process converts the bam to bed, adjusts for the shift of the transposase (atac seq) and keeps only a bed format compatible with macs2
 
-process ATAC__bamToBed_and_atacShift {
+process ATAC__converting_bam_to_bed_and_adjusting_for_Tn5 {
   tag "${id}"
 
   container = params.samtools_bedtools_perl
@@ -819,9 +819,12 @@ process ATAC__bamToBed_and_atacShift {
 // Note: here the 1 base pair long (5') transposase-shifted peaks are sent to DiffBind directly for Differential Accessibility Analysis.
 // However, for macs2, they are previously extended by 75 bp (Alternatively, this shift could be done in macs with this option: --shift -75 in macs2)
 
+// https://www.nature.com/articles/nmeth.2688
+// https://www.nature.com/articles/s42003-020-01403-4
+// The Tn5 insertion positions were determined as the start sites of reads adjusted by the rule of “forward strand +4 bp, negative strand −5 bp”4.
 
 
-process ATAC__extend_bed_before_peak_calling {
+process ATAC__extending_bed {
   tag "${id}"
 
   container = params.samtools_bedtools_perl
@@ -866,7 +869,7 @@ process ATAC__extend_bed_before_peak_calling {
 // 439 + 75 = 514
 
 
-process ATAC__saturation_curve {
+process ATAC__computing_and_plotting_saturation_curve {
   tag "${id}"
 
   container = params.macs2
@@ -1126,7 +1129,7 @@ Peaks_for_removing_specific_regions_1 =
 //////////////////////////////////////////////////////////////////////////////
 //// READS STATISTICS
 
-process ATAC__sampling_aligned_reads_for_statistics {
+process ATAC__reads_stat__1_sampling_aligned_reads {
   tag "${id}"
 
   container = params.samtools_bedtools_perl
@@ -1168,7 +1171,7 @@ process ATAC__sampling_aligned_reads_for_statistics {
 
 // this process prepares ATAC-Seq related statistics on aligned reads
 
-process ATAC__reads_stat_1_features_enrichment {
+process ATAC__reads_stat__2_computing_features_enrichment {
   tag "${id}"
 
   container = params.samtools_bedtools_perl
@@ -1225,7 +1228,7 @@ process ATAC__reads_stat_1_features_enrichment {
 
 
 
-process ATAC__reads_stat_2_library_complexity {
+process ATAC__reads_stat__3_computing_library_complexity {
   tag "${id}"
 
   container = params.picard
@@ -1255,7 +1258,7 @@ process ATAC__reads_stat_2_library_complexity {
 
 // this process samples reads from fastq files
 
-process ATAC__reads_stat_3_subsample_trimmed_reads {
+process ATAC__reads_stat__4_sampling_trimmed_reads {
   tag "${id}"
 
   container = params.bbmap
@@ -1279,7 +1282,7 @@ process ATAC__reads_stat_3_subsample_trimmed_reads {
 }
 
 
-process ATAC__reads_stat_3_alignment_sampled_reads {
+process ATAC__reads_stat__5_aligning_sampled_reads {
   tag "${id}"
 
   container = params.bowtie2_samtools
@@ -1333,7 +1336,9 @@ Stats_results = Features_enrichment_for_statistics
     .join(Reads_bed_format_for_bam_stats)
 
 
-process ATAC__statistics_on_aligned_reads {
+
+
+process ATAC__reads_stat__6_gathering_all_stat {
   tag "${id}"
 
   container = params.samtools_bedtools_perl
@@ -1402,7 +1407,7 @@ process ATAC__statistics_on_aligned_reads {
 
 // this process gather all individual statistics files and make a merged table 
 
-process ATAC__gathering_statistics_on_aligned_reads {
+process ATAC__reads_stat__7_gathering_all_samples {
 
   container = params.samtools_bedtools_perl
 
@@ -1429,7 +1434,7 @@ process ATAC__gathering_statistics_on_aligned_reads {
 }
 
 
-process ATAC__splitting_statistics_for_multiqc {
+process ATAC__reads_stat__8_splitting_statistics_for_multiqc {
 
   container = params.r_basic
 
@@ -1470,7 +1475,7 @@ process ATAC__splitting_statistics_for_multiqc {
 
 
 
-process ATAC__multiQC {
+process ATAC__running_multiQC {
 
   container = params.multiqc
 
@@ -1516,7 +1521,7 @@ process ATAC__multiQC {
 //////////////////////////////////////////////////////////////////////////////
 //// PEAKS ANNOTATION AND VISUALISATION
 
-process ATAC__annotating_individual_peaks {
+process ATAC__annotating_macs2_peaks {
 
   tag "${id}"
 
@@ -1541,12 +1546,11 @@ process ATAC__annotating_individual_peaks {
 
       library(ChIPseeker)
       id = '!{id}'
+      peaks_bed_file = '!{peaks_bed_file}'
       upstream = !{params.promoter_up_macs2_peaks}
       downstream = !{params.promoter_down_macs2_peaks}
       tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
-      if(gsub(' .*', '', system('wc -l yng_liv_2_peaks_kept_after_blacklist_removal.bed')) == 0) {quit('no')}
-      peaks_bed_file = '!{peaks_bed_file}'
-      if(gsub(' .*', '', system(paste('wc -l', peaks_bed_file))) == 0) {quit('no')}
+      if(gsub(' .*', '', system(paste('wc -l', peaks_bed_file), intern = T)) == 0) {quit('no')}
       peaks = readPeakFile('!{peaks_bed_file}')
 
       promoter <- getPromoters(TxDb = tx_db, upstream = upstream, downstream = downstream)
@@ -1589,7 +1593,9 @@ Annotated_peaks_for_collecting_as_lists
   .set { Annotated_peaks_for_collecting_as_lists1 }
 
 
-process ATAC__plotting_individual_peak_files {
+
+
+process ATAC__plotting_annotated_macs2_peaks_for_each_sample {
   tag "${id}"
 
   container = params.bioconductor
@@ -1638,7 +1644,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_peaks_average_profile_for_mer
 
 
 
-process ATAC__plotting_grouped_peak_files {
+process ATAC__plotting_annotated_macs2_peaks_for_all_samples_grouped {
 
   container = params.bioconductor
 
@@ -1841,7 +1847,7 @@ Reads_and_peaks_for_diffbind_1.without_input_control
 
 // This process generates the set of all peaks found in all replicates, and the set of differentially abundant/accessible peaks (can also be called differentially bound regions)
 
-process ATAC__differential_abundance_analysis {
+process ATAC__doing_differential_abundance_analysis {
   tag "${COMP}"
 
   container = params.diffbind
@@ -2270,7 +2276,7 @@ process ATAC__differential_abundance_analysis {
 // note: diffbind_peaks: means the peaks from diffbind, not that these peaks are diffbound (differentially bound). This set is in fact all the peaks that diffbind found in all replicates. The corresponding bed file will be used as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
 
 
-process ATAC__annotating_all_peaks {
+process ATAC__annotating_diffbind_peaks {
   tag "${COMP}"
 
   container = params.bioconductor
@@ -2345,7 +2351,7 @@ process ATAC__annotating_all_peaks {
 //////////////////////////////////////////////////////////////////////////////
 //// MRNA SEQ
 
-process mRNA__fastqc {
+process mRNA__running_fastqc {
   tag "${id}"
 
   container = params.fastqc
@@ -2370,7 +2376,7 @@ process mRNA__fastqc {
 }
 
 
-process mRNA__MultiQC {
+process mRNA__running_MultiQC {
 
   container = params.multiqc
 
@@ -2408,7 +2414,7 @@ MRNA_reads_for_kallisto
 
 
 
-process mRNA__mapping_with_kallisto {
+process mRNA__quantifying_transcripts_abundances {
     tag "${id}"
 
     container = params.kallisto
@@ -2467,7 +2473,7 @@ Kallisto_out_for_sleuth1
 
 // estimate differential gene expression
 
-process mRNA__differential_abundance_analysis {
+process mRNA__doing_differential_abundance_analysis {
     tag "${COMP}"
 
     container = params.sleuth
@@ -2578,7 +2584,7 @@ process mRNA__differential_abundance_analysis {
 //// PLOTTING DA RESULTS (VOLCANO, PCA)
 
 
-process plotting_differential_gene_expression_results {
+process mRNA__plotting_differential_abundance_results {
     tag "${COMP}"
 
     publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: { 
@@ -2682,7 +2688,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(MRNA_Other_plot_for_merging_pdfs.g
 
 
 
-process plotting_differential_accessibility_results {
+process ATAC__plotting_differential_abundance_results {
   tag "${COMP}"
 
   container = params.diffbind
@@ -2996,7 +3002,7 @@ do_mRNA_lgl = do_mRNA.toString().toUpperCase()
 do_atac_lgl = do_atac.toString().toUpperCase()
 
 
-process splitting_differential_abundance_results_in_subsets {
+process both__splitting_differential_abundance_results_in_subsets {
   tag "${COMP}"
 
   container = params.r_basic
@@ -3326,7 +3332,7 @@ DA_regions_split_ATAC1
 
 
 
-process plotting_venn_diagrams {
+process both__plotting_venn_diagrams {
   tag "${COMP}"
 
   container = params.venndiagram
@@ -3452,7 +3458,7 @@ DA_genes_for_func_anno_overlap
   .set{ DA_genes_for_func_anno_overlap1 }
 
 
-process compute_functional_annotations_overlap {
+process both__computing_functional_annotations_overlaps {
   tag "${key}"
 
   container = params.bioconductor
@@ -3545,7 +3551,7 @@ Counts_tables_Channel = Counts_tables_Channel.mix(Genes_func_anno_count_for_comp
 // universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL) # => this fails: "error replacement has length zero"
 
 
-process compute_genes_self_overlap {
+process both__computing_genes_self_overlaps {
   tag "${key}"
 
   container = params.r_basic
@@ -3650,10 +3656,13 @@ DA_regions_with_bg_for_bed_overlap2
   .set{ DA_regions_with_bg_and_bed_for_overlap }
 
 
-process compute_peaks_overlap {
+process both__computing_peaks_overlaps {
   tag "${key}"
 
   container = params.samtools_bedtools_perl
+
+  errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+  maxRetries 3
 
   input:
     set key, data_type, file(DA_regions), file(all_regions), file("BED_FILES/*") from DA_regions_with_bg_and_bed_for_overlap
@@ -3719,7 +3728,7 @@ DA_regions_with_bg_for_motifs_overlap
 
 
 
-process compute_motif_overlap {
+process both__computing_motifs_overlaps {
   tag "${key}"
 
   container = params.homer
@@ -3755,7 +3764,7 @@ process compute_motif_overlap {
 
 
 
-process reformat_motifs_results {
+process both__reformatting_motifs_results {
   tag "${key}"
 
   container = params.r_basic
@@ -3788,8 +3797,11 @@ process reformat_motifs_results {
       df$tot_da  = total[1]
       df$tot_nda = total[2]
       df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, consensus)
-      wrong_entries = which(df$ov_nda > df$tot_nda)
-      if(length(wrong_entries) > 0) { df$ov_nda[wrong_entries] = df$tot_nda[wrong_entries] }
+      
+      ov_da_too_high = which(df$ov_da > df$tot_da)
+      if(length(ov_da_too_high) > 0) df$ov_da[ov_da_too_high] = df$tot_da[ov_da_too_high]
+      ov_nda_too_high = which(df$ov_nda > df$tot_nda)
+      if(length(ov_nda_too_high) > 0) df$ov_nda[ov_nda_too_high] = df$tot_nda[ov_nda_too_high]
 
       write.csv(df, paste0(key, '__motifs__counts.csv'), row.names = F)
 
@@ -3800,7 +3812,7 @@ Counts_tables_Channel = Counts_tables_Channel.mix(Motifs_counts_for_computing_pv
 
 // Counts_tables_Channel = Counts_tables_Channel.view()
 
-// note : the "wrong_entries" command is used because ov_nda is sometimes slightly higher (by a decimal) than tot_nda; i.e.: tot_nda = 4374 and ov_nda = 4374.6. This makes the Fischer test crash later on. This change is minimal so we just fix it like that.
+// note : the "wrong_entries" variable is used because ov_nda is sometimes slightly higher (by a decimal) than tot_nda; i.e.: tot_nda = 4374 and ov_nda = 4374.6. This makes the Fischer test crash later on. This change is minimal so we just fix it like that.
 
 // This one liner works and is cleaner but it fails in nextflow due to the double escape string
 // total = as.integer(stringr::str_extract_all(paste0(names(df), collapse = ' '),"\\(?[0-9]+\\)?")[[1]])
@@ -3828,7 +3840,7 @@ Counts_tables_Channel = Counts_tables_Channel.mix(Motifs_counts_for_computing_pv
 
 // data_types can be either of: func_anno(BP|CC|MF|KEGG), genes_self, peaks_self, chrom_states, CHIP, motifs
 
-process compute_enrichment_pvalue {
+process both__computing_enrichment_pvalues {
   tag "${key}"
 
   container = params.r_basic
@@ -3968,7 +3980,7 @@ Enrich_results_for_barplot
 
 
 
-process plot_enrichment_barplot {
+process both__plotting_enrichment_barplots {
   tag "${key}"
 
   container = params.figures
@@ -4058,7 +4070,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(Barplot_for_merging_pdfs.groupTupl
 
 
 
-process plot_enrichment_heatmap {
+process both__plotting_enrichment_heatmap {
   tag "${key}"
 
   container = params.figures
@@ -4234,7 +4246,7 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(Heatmap_for_merging_pdfs.groupTupl
 
 // Formatting_tables_Channel = Formatting_tables_Channel.dump(tag: 'format_tables')
 
-process formatting_individual_tables {
+process both__formatting_csv_tables {
   tag "${out_folder}__${data_type}"
 
   container = params.r_basic
@@ -4307,7 +4319,7 @@ Formatted_tables_for_merging
 // Merging_tables_Channel = Merging_tables_Channel.mix(Formatted_tables_for_merging.groupTuple())
 // Merging_tables_Channel = Merging_tables_Channel.dump(tag: 'merge_tables')
 
-process merging_tables {
+process both__merging_csv_tables {
   tag "${out_folder}__${data_type}"
 
   container = params.r_basic
@@ -4348,19 +4360,21 @@ Exporting_to_Excel_Channel = Exporting_to_Excel_Channel.mix(Merged_table_for_Exc
 
 
 
-process save_excel_tables {
+process both__saving_excel_tables {
   tag "${csv_file}"
 
   // container = params.openxlsx => sh: : Permission denied ; Error: zipping up workbook failed. Please make sure Rtools is installed or a zip application is available to R.
   container = params.differential_abundance
 
-  publishDir path: "${out_dir}/${out_path}", mode: "${pub_mode}", enabled: params.save_tables_as_excel
+  publishDir path: "${out_dir}/${out_path}", mode: "${pub_mode}" //, enabled: params.save_tables_as_excel
 
   input:
     set out_path, file(csv_file) from Exporting_to_Excel_Channel
 
   output:
     file("*.xlsx")
+
+  when: params.save_tables_as_excel
 
   shell:
   '''
@@ -4479,7 +4493,7 @@ process save_excel_tables {
 
 // Merging_pdf_Channel = Merging_pdf_Channel.dump(tag: 'merging_pdf')
 
-process merge_pdfs {
+process both__merging_pdfs {
   tag "${file_name}"
 
   container = params.pdftk
