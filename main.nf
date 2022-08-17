@@ -216,9 +216,8 @@ do_mRNA = params.experiment_types in ['mRNA', 'both']
 //// initializing channels
 
 // tables
-Counts_tables_Channel = Channel.empty()
+Count_tables_Channel = Channel.empty()
 Formatting_tables_Channel = Channel.empty()
-// Merging_tables_Channel = Channel.empty()
 Exporting_to_Excel_Channel = Channel.empty()
 
 // pdfs
@@ -248,7 +247,7 @@ Channel
   .map{ [ it[0], file(it[1]), file(it[1].replace("_R1", "_R2") ) ] }
   .map{ [ it[0], returnR2ifExists(it[1, 2]) ] }
   .dump(tag:'mrna_fastq')
-  .into{ MRNA_reads_for_fastqc ; MRNA_reads_for_kallisto }
+  .into{ MRNA_reads_for_running_fastqc ; MRNA_reads_for_kallisto }
 
 
 
@@ -270,16 +269,12 @@ Channel
   .map{ [ it[0], it[1..-1] ] }
   .transpose()
   .map{ [ it[0], file(it[1]), file(it[1].replace("_R1", "_R2")) ] }
-  .tap{ ATAC_reads_for_fastqc }
+  .tap{ Raw_ATAC_reads_for_running_fastqc }
   .map{ [ it[0], [ it[1], it[2] ] ] }
   .transpose()
   .groupTuple()
-  .dump(tag:'atac_fastq') {"ATAC peaks for fastqc: ${it}"}
-  .choice(ATAC_reads_for_trimming, ATAC_reads_for_merging) { it[1].size() == 2 ? 0 : 1 }
-
-ATAC_reads_for_merging
-  .dump(tag:'atac_merging') {"ATAC peaks for merging: ${it}"}
-  .set{ ATAC_reads_for_merging1 }
+  .dump(tag:'atac_raw') {"ATAC raw reads: ${it}"}
+  .choice(ATAC_reads_for_trimming_1, ATAC_reads_for_merging) { it[1].size() == 2 ? 0 : 1 }
 
 
 
@@ -297,10 +292,10 @@ process ATAC__merging_reads {
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_merged", mode: "${pub_mode}", enabled: save_all_fastq
 
   input:
-    set id, file(files_R1_R2) from ATAC_reads_for_merging1
+    set id, file(files_R1_R2) from ATAC_reads_for_merging
 
   output:
-    set id, file('*R1_merged.fastq.gz'), file('*R2_merged.fastq.gz') into ATAC_reads_for_trimming1
+    set id, file('*R1_merged.fastq.gz'), file('*R2_merged.fastq.gz') into ATAC_reads_for_trimming_2
 
   script:
   """
@@ -311,15 +306,15 @@ process ATAC__merging_reads {
 }
 
 
-ATAC_reads_for_trimming
+ATAC_reads_for_trimming_1
   .map{ it.flatten() }
-  .mix( ATAC_reads_for_trimming1 )
-  .dump(tag:'atac_trimming') {"ATAC peaks for trimming: ${it}"}
-  .set { ATAC_reads_for_trimming2 }
+  .mix( ATAC_reads_for_trimming_2 )
+  .dump(tag:'atac_trimming') {"ATAC reads for trimming: ${it}"}
+  .set { ATAC_reads_for_trimming_3 }
 
 
 
-process ATAC__trimming_adaptors {
+process ATAC__trimming_reads {
   tag "${id}"
 
   container = params.skewer_pigz
@@ -329,10 +324,11 @@ process ATAC__trimming_adaptors {
   when: do_atac
 
   input:
-    set id, file(read1), file(read2) from ATAC_reads_for_trimming2
+    set id, file(read1), file(read2) from ATAC_reads_for_trimming_3
 
   output:
-    set id, file("*_R1_trim.fastq.gz"), file("*_R2_trim.fastq.gz") into Trimmed_ATAC_reads_for_fastqc, Trimmed_reads_for_alignment, Trimmed_reads_for_subsampling
+    set id, file("*_R1_trim.fastq.gz"), file("*_R2_trim.fastq.gz") into Trimmed_reads_for_aligning, Trimmed_reads_for_sampling
+    set val('trimmed'), id, file("*_R1_trim.fastq.gz"), file("*_R2_trim.fastq.gz") into Trimmed_ATAC_reads_for_running_fastqc
     file("*.log")
 
   shell:
@@ -359,6 +355,8 @@ process ATAC__trimming_adaptors {
       
   '''
 }
+
+// trimming adaptors
 
 // this line crashed the script somehow. I don't really get the grep fast here anyway so I changed it
 // pigz -l $R2TRIM.gz | grep fastq - >> !{id}_pigz_compression.log
@@ -388,46 +386,30 @@ process ATAC__trimming_adaptors {
 
 
 
-process ATAC__running_fastqc_before_trimming {
+Raw_ATAC_reads_for_running_fastqc
+  .map{ [ 'raw', it[0], it[1], it[2] ] }
+  .mix(Trimmed_ATAC_reads_for_running_fastqc)
+  .dump(tag:'atac_fastqc') {"ATAC reads for fastqc: ${it}"}
+  .set{ All_ATAC_reads_for_running_fastqc}
+
+
+process ATAC__running_fastqc {
   tag "${id}"
 
   container = params.fastqc
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastqc_raw", mode: "${pub_mode}"
+  publishDir path: "${out_processed}/1_Preprocessing", mode: "${pub_mode}", saveAs: {
+    if      (reads_type == 'raw')     "ATAC__reads__fastqc_raw/${it}"
+    else if (reads_type == 'trimmed') "ATAC__reads__fastqc_trimmed/${it}"
+  }
 
   when: do_atac
 
   input:
-    set id, file(read1), file(read2) from ATAC_reads_for_fastqc
+    set val(reads_type), id, file(read1), file(read2) from All_ATAC_reads_for_running_fastqc
 
   output:
-    file("*.{zip, html}") into FastQC_reports_before_trimming_for_multiQC
-
-  script:
-  """
-
-  fastqc -t 2 ${read1} ${read2}
-
-  """
-
-}
-
-
-
-process ATAC__running_fastqc_after_trimming {
-  tag "${id}"
-
-  container = params.fastqc
-
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastqc_trimmed", mode: "${pub_mode}"
-
-  when: do_atac
-
-  input:
-    set id, file(read1), file(read2) from Trimmed_ATAC_reads_for_fastqc
-
-  output:
-    file("*.{zip, html}") into FastQC_reports_after_trimming_for_multiQC
+    file("*.{zip, html}") into ATAC_fastqc_reports_for_multiqc
 
   script:
   """
@@ -436,6 +418,8 @@ process ATAC__running_fastqc_after_trimming {
 
   """
 }
+
+
 
 
 process ATAC__aligning_reads {
@@ -448,10 +432,10 @@ process ATAC__aligning_reads {
   when: do_atac
 
   input:
-    set id, file(read1), file(read2) from Trimmed_reads_for_alignment
+    set id, file(read1), file(read2) from Trimmed_reads_for_aligning
 
   output:
-    set id, file("*.bam") into Bam_for_filtering_LQ_reads, Bam_for_sampling
+    set id, file("*.bam") into Bam_for_removing_low_quality_reads, Bam_for_sampling_aligned_reads
     file("*.txt")
     file("*.qc")
 
@@ -476,7 +460,7 @@ process ATAC__aligning_reads {
 
 // this process filter bad quality reads: unmapped, mate unmapped, no primary alignment, low MAPQ
 
-process ATAC__filtering_low_quality_reads {
+process ATAC__removing_low_quality_reads {
   tag "${id}"
 
   container = params.bowtie2_samtools
@@ -486,7 +470,7 @@ process ATAC__filtering_low_quality_reads {
   when: do_atac
 
   input:
-    set id, file(bam) from Bam_for_filtering_LQ_reads
+    set id, file(bam) from Bam_for_removing_low_quality_reads
 
   output:
     set id, file("*_filter_LQ.bam") into Bam_for_marking_duplicates
@@ -507,7 +491,7 @@ process ATAC__filtering_low_quality_reads {
 }
 
 
-process ATAC__marking_duplicates {
+process ATAC__marking_duplicated_reads {
   tag "${id}"
 
   container = params.picard
@@ -517,10 +501,10 @@ process ATAC__marking_duplicates {
   when: do_atac
 
   input:
-    set id, file(bam) from Bam_for_marking_duplicates
+    set id, file(bam) from Bam_for_marking_duplicated_reads
 
   output:
-    set id, file("*_dup_marked.bam") into Bam_for_removing_duplicates
+    set id, file("*_dup_marked.bam") into Bam_for_removing_duplicated_reads
     file("*_dup.qc")
 
   script:
@@ -542,7 +526,7 @@ process ATAC__marking_duplicates {
 
 // this process remove duplicates, index bam files and generates final stat file
 
-process ATAC__removing_duplicates {
+process ATAC__removing_duplicated_reads {
   tag "${id}"
 
   container = params.bowtie2_samtools
@@ -569,7 +553,7 @@ process ATAC__removing_duplicates {
 }
 
 
-process ATAC__making_bigwig_tracks {
+process ATAC__computing_bigwig_tracks_and_plotting_coverage {
   tag "${id}"
 
   container = params.deeptools
@@ -588,7 +572,7 @@ process ATAC__making_bigwig_tracks {
   output:
     set val("ATAC__reads__coverage"), val('1_Preprocessing'), file("*.pdf") into ATAC_reads_coverage_for_merging_pdfs
     file("*_raw.bw")
-    file("*_RPGC_norm.bw") into Bigwig_for_correlation optional true
+    file("*_RPGC_norm.bw") into Bigwigs_for_correlation_1 optional true
 
   script:
   """
@@ -615,25 +599,25 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(ATAC_reads_coverage_for_merging_pd
 
 
 
-Bigwig_for_correlation
+Bigwigs_for_correlation_1
     .collect()
-    .into{ bw_with_input_control; bw_without_input_control }
+    .into{ Bigwigs_with_input_control; Bigwigs_with_input_control }
 
-bw_without_input_control
+Bigwigs_with_input_control
     .flatten()
     .filter{ !(it =~ /input/) }
     .collect()
     .map{ [ 'without_control', it ] }
-    .set{ bw_without_input_control1 }
+    .set{ Bigwigs_with_input_control1 }
 
-bw_with_input_control
+Bigwigs_with_input_control
     .map{ [ 'with_control', it ] }
-    .concat(bw_without_input_control1)
+    .concat(Bigwigs_with_input_control1)
     .dump(tag:'bigwigs') {"bigwigs for cor and PCA: ${it}"}
-    .set{ Bigwig_for_correlation1 }
+    .set{ Bigwigs_for_correlation_2 }
 
 
-process ATAC__computing_correlation_between_bigwig_tracks {
+process ATAC__computing_and_plotting_correlation_between_bigwig_tracks {
 
   tag "${input_control_present}"
 
@@ -648,7 +632,7 @@ process ATAC__computing_correlation_between_bigwig_tracks {
 
   input:
     val out_path from Channel.value('1_Preprocessing') 
-    set input_control_present, file("*") from Bigwig_for_correlation1
+    set input_control_present, file("*") from Bigwigs_for_correlation_2
 
   output:
     file("*.npz")
@@ -1137,7 +1121,7 @@ process ATAC__reads_stat__1_sampling_aligned_reads {
   when: do_atac
 
   input:
-    set id, file(bam) from Bam_for_sampling
+    set id, file(bam) from Bam_for_sampling_aligned_reads
 
   output:
     set id, file("*.sam") into Bam_for_stats_library_complexity
@@ -1268,7 +1252,7 @@ process ATAC__reads_stat__4_sampling_trimmed_reads {
   when: do_atac
 
   input:
-    set id, file(read1), file(read2) from Trimmed_reads_for_subsampling
+    set id, file(read1), file(read2) from Trimmed_reads_for_sampling
 
   output:
     set id, file("*R1.fastq"), file("*R2.fastq") into Sampled_reads_for_alignment
@@ -1434,7 +1418,7 @@ process ATAC__reads_stat__7_gathering_all_samples {
 }
 
 
-process ATAC__reads_stat__8_splitting_statistics_for_multiqc {
+process ATAC__reads_stat__8_splitting_stat_for_multiqc {
 
   container = params.r_basic
 
@@ -1492,8 +1476,7 @@ process ATAC__running_multiQC {
 
   input:
     // val out_path from Channel.value('1_Preprocessing/ATAC/1_reads') 
-    file ('fastqc/*') from FastQC_reports_before_trimming_for_multiQC.flatten().toList()
-    file ('fastqc/*') from FastQC_reports_after_trimming_for_multiQC.flatten().toList()
+    file ('fastqc/*') from ATAC_fastqc_reports_for_multiqc.flatten().toList()
     file(csv_files) from Bam_stat_for_multiqc
 
   output:
@@ -2361,10 +2344,10 @@ process mRNA__running_fastqc {
   when: do_mRNA
 
   input:
-    set id, file(reads) from MRNA_reads_for_fastqc
+    set id, file(reads) from MRNA_reads_for_running_fastqc
 
   output:
-    file("*.{zip, html}") into FastQC_reports_for_multiQC
+    file("*.{zip, html}") into MRNA_fastqc_reports_for_multiqc
 
   script:
   """
@@ -2392,7 +2375,7 @@ process mRNA__running_MultiQC {
 
   input:
     // val out_path from Channel.value('1_Preprocessing/mRNA') 
-    file ('fastqc/*') from FastQC_reports_for_multiQC.flatten().toList()
+    file ('fastqc/*') from MRNA_fastqc_reports_for_multiqc.flatten().toList()
 
   output:
     set "mRNA__multiQC.html", "*multiqc_data" optional true
@@ -2410,7 +2393,7 @@ MRNA_reads_for_kallisto
   .map{ it.flatten() }
   .map{ [it[0], it[1..-1] ] }
   .dump(tag:'atac_kallisto') {"ATAC peaks for kallisto: ${it}"}
-  .set { MRNA_reads_for_kallisto2 }
+  .set { MRNA_reads_for_kallisto_1 }
 
 
 
@@ -2424,10 +2407,10 @@ process mRNA__quantifying_transcripts_abundances {
     when: do_mRNA
 
     input:
-    set id, file(reads) from MRNA_reads_for_kallisto2
+    set id, file(reads) from MRNA_reads_for_kallisto_1
 
     output:
-    set id, file("kallisto_${id}") into Kallisto_out_for_sleuth
+    set id, file("kallisto_${id}") into Kallisto_results_for_sleuth
 
     script:
 
@@ -2452,13 +2435,13 @@ process mRNA__quantifying_transcripts_abundances {
 
 // making the groups for differential gene expression
 
-Kallisto_out_for_sleuth
+Kallisto_results_for_sleuth
   .map{ [ it[0].split('_')[0], it[1] ] }
   .groupTuple()
-  .into{ Kallisto_out_for_sleuth1; Kallisto_out_for_sleuth2 }
+  .into{ Kallisto_results_for_sleuth_1; Kallisto_results_for_sleuth_2 }
 
-Kallisto_out_for_sleuth1
-  .combine(Kallisto_out_for_sleuth2)
+Kallisto_results_for_sleuth_1
+  .combine(Kallisto_results_for_sleuth_2)
   .map { it[0,2,1,3]}
   .join(comparisons_files_for_mRNA_Seq, by: [0,1])
   .dump(tag:'kalisto_sleuth') {"${it}"}
@@ -2468,7 +2451,7 @@ Kallisto_out_for_sleuth1
     list.addAll( it[0..3] )
     return(list)
     }
-  .set { Kallisto_out_for_sleuth3 }
+  .set { Kallisto_results_for_sleuth_3 }
 
 
 // estimate differential gene expression
@@ -2487,7 +2470,7 @@ process mRNA__doing_differential_abundance_analysis {
     when: do_mRNA
 
     input:
-      set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) from Kallisto_out_for_sleuth3
+      set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) from Kallisto_results_for_sleuth_3
 
     output:
       set COMP, file('*__mRNA_DEG_rsleuth.rds') into Rsleuth_object_for_plotting
@@ -3546,7 +3529,7 @@ process both__computing_functional_annotations_overlaps {
   '''
 }
 
-Counts_tables_Channel = Counts_tables_Channel.mix(Genes_func_anno_count_for_computing_pvalue)
+Count_tables_Channel = Count_tables_Channel.mix(Genes_func_anno_count_for_computing_pvalue)
 
 // universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL) # => this fails: "error replacement has length zero"
 
@@ -3597,7 +3580,7 @@ process both__computing_genes_self_overlaps {
   '''
 }
 
-Counts_tables_Channel = Counts_tables_Channel.mix(Genes_self_overlap_for_computing_pvalue)
+Count_tables_Channel = Count_tables_Channel.mix(Genes_self_overlap_for_computing_pvalue)
 
 
 
@@ -3708,7 +3691,7 @@ process both__computing_peaks_overlaps {
   '''
 }
 
-Counts_tables_Channel = Counts_tables_Channel.mix(Peaks_self_overlap_for_computing_pvalue)
+Count_tables_Channel = Count_tables_Channel.mix(Peaks_self_overlap_for_computing_pvalue)
 
 
 // note: we need to save tmp files (overlap_DB.tmp and overlap_NDB.tmp, otherwise it crashes when there is zero overlap)
@@ -3808,9 +3791,9 @@ process both__reformatting_motifs_results {
   '''
 }
 
-Counts_tables_Channel = Counts_tables_Channel.mix(Motifs_counts_for_computing_pvalue)
+Count_tables_Channel = Count_tables_Channel.mix(Motifs_counts_for_computing_pvalue)
 
-// Counts_tables_Channel = Counts_tables_Channel.view()
+// Count_tables_Channel = Count_tables_Channel.view()
 
 // note : the "wrong_entries" variable is used because ov_nda is sometimes slightly higher (by a decimal) than tot_nda; i.e.: tot_nda = 4374 and ov_nda = 4374.6. This makes the Fischer test crash later on. This change is minimal so we just fix it like that.
 
@@ -3829,11 +3812,11 @@ Counts_tables_Channel = Counts_tables_Channel.mix(Motifs_counts_for_computing_pv
 //   // .map{ [ it.name.replaceFirst(~/__counts.csv/, ''), it ] }
 //   // // format:  key (ET__PF__FC__TV__COMP), csv_counts
 //   .dump(tag: 'count_tables')
-//   .set{ Counts_tables_Channel }
-// Counts_tables_Channel = Counts_tables_Channel.mix(genes_self_overlap_for_computing_pvalue)
+//   .set{ Count_tables_Channel }
+// Count_tables_Channel = Count_tables_Channel.mix(genes_self_overlap_for_computing_pvalue)
 
 
-// Counts_tables_Channel = Counts_tables_Channel.dump(tag: 'counts_pval')
+// Count_tables_Channel = Count_tables_Channel.dump(tag: 'counts_pval')
 
 // the input to this process should be a df with these columns: tgt tot_da ov_da tot_nda ov_nda
 // other extra columns are facultatory. These are: tot_tgt for bed_overlap, consensus for motifs, geneIds for ontologies/pathways
@@ -3846,7 +3829,7 @@ process both__computing_enrichment_pvalues {
   container = params.r_basic
 
   input:
-    set key, data_type, file(df_count_csv) from Counts_tables_Channel
+    set key, data_type, file(df_count_csv) from Count_tables_Channel
 
   output:
     file("*.rds") into Enrichment_for_plot optional true
@@ -4072,8 +4055,11 @@ Merging_pdf_Channel = Merging_pdf_Channel.mix(Barplot_for_merging_pdfs.groupTupl
 
 process both__plotting_enrichment_heatmap {
   tag "${key}"
-
+  
   container = params.figures
+  
+  errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+  maxRetries 3
 
   publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", mode: "${pub_mode}"
 
@@ -4521,7 +4507,7 @@ process both__merging_pdfs {
 
 // Merging_pdf_Channel.close()
 // Formatting_tables_Channel.close()
-// Counts_tables_Channel.close()
+// Count_tables_Channel.close()
 
 
 
