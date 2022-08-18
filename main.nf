@@ -146,9 +146,12 @@ Channel
   .transpose()
   .groupTuple()
   .dump(tag:'atac_raw') {"ATAC raw reads: ${it}"}
-  .choice(ATAC_reads_for_trimming_1, ATAC_reads_for_merging) { 
-    it[1].size() == 2 ? 0 : 1
+  .branch{
+       ATAC_reads_for_merging: it[1].size() > 2
+    ATAC_reads_for_trimming_1: it[1].size() == 2
   }
+  .set{ atac_raw }
+  // => if it[1] has 2 elements it means there is just the R1 and R2 files and thus no other file has the same sample_id, so we don't need to merge, if more it means there are different runs so we merge them, if less it is not an option since we need paired end reads
 
 
 
@@ -166,7 +169,7 @@ process ATAC_reads__merging_reads {
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_merged", mode: "${pub_mode}", enabled: save_all_fastq
 
   input:
-    set id, file(files_R1_R2) from ATAC_reads_for_merging
+    set id, file(files_R1_R2) from atac_raw.ATAC_reads_for_merging
 
   output:
     set id, file('*R1_merged.fastq.gz'), file('*R2_merged.fastq.gz') into ATAC_reads_for_trimming_2
@@ -180,7 +183,7 @@ process ATAC_reads__merging_reads {
 }
 
 
-ATAC_reads_for_trimming_1
+atac_raw.ATAC_reads_for_trimming_1
   .map{ it.flatten() }
   .mix( ATAC_reads_for_trimming_2 )
   .dump(tag:'atac_trimming') {"ATAC reads for trimming: ${it}"}
