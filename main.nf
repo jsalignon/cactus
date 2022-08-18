@@ -1,6 +1,75 @@
 #!/usr/bin/env nextflow
 
 
+//// List of all processes in order
+
+// ATAC_reads__merging_reads
+// ATAC_reads__trimming_reads
+// ATAC_reads__aligning_reads
+// ATAC_reads__removing_low_quality_reads
+// ATAC_reads__marking_duplicated_reads
+// ATAC_reads__removing_duplicated_reads
+// ATAC_reads__removing_reads_in_mitochondria_and_small_contigs
+// ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5
+
+// ATAC_QC_reads__running_fastqc
+// ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage
+// ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations
+// ATAC_QC_reads__plotting_insert_size_distribution
+// ATAC_QC_reads__sampling_aligned_reads
+// ATAC_QC_reads__computing_features_enrichment
+// ATAC_QC_reads__computing_library_complexity
+// ATAC_QC_reads__sampling_trimmed_reads
+// ATAC_QC_reads__aligning_sampled_reads
+// ATAC_QC_reads__gathering_all_stat
+// ATAC_QC_reads__gathering_all_samples
+// ATAC_QC_reads__splitting_stat_for_multiqc
+// ATAC_QC_reads__running_multiQC
+
+// ATAC_peaks__calling_peaks
+// ATAC_peaks__splitting_multi_summits_peaks
+// ATAC_peaks__removing_blacklisted_regions
+// ATAC_peaks__removing_input_control_peaks
+// ATAC_peaks__removing_specific_regions
+
+// ATAC_QC_peaks__computing_and_plotting_saturation_curve
+// ATAC_QC_peaks__annotating_macs2_peaks
+// ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample
+// ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped
+
+// MRNA__quantifying_transcripts_abundances
+
+// MRNA_QC__running_fastqc
+// MRNA_QC__running_MultiQC
+
+// DA_ATAC__doing_differential_abundance_analysis
+// DA_ATAC__annotating_diffbind_peaks
+// DA_ATAC__plotting_differential_abundance_results
+// DA_ATAC__saving_detailed_results_tables
+
+// DA_mRNA__doing_differential_abundance_analysis
+// DA_mRNA__plotting_differential_abundance_results
+// DA_mRNA__saving_detailed_results_tables
+
+// DA__splitting_differential_abundance_results_in_subsets
+// DA__plotting_venn_diagrams
+
+// Overlap__computing_functional_annotations_overlaps
+// Overlap__computing_genes_self_overlaps
+// Overlap__computing_peaks_overlaps
+// Overlap__computing_motifs_overlaps
+// Overlap__reformatting_motifs_results
+
+// Enrichment__computing_enrichment_pvalues
+// Enrichment__plotting_enrichment_barplots
+// Enrichment__plotting_enrichment_heatmap
+
+// Finalization__formatting_csv_tables
+// Finalization__merging_csv_tables
+// Finalization__saving_excel_tables
+// Finalization__merging_pdfs
+
+
 //// shortening certain oftenly used parameters
 
 out_dir = params.out_dir
@@ -533,8 +602,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
 
   output:
     set val("ATAC__reads__coverage"), val('1_Preprocessing'), file("*.pdf") into ATAC_reads_coverage_plots_for_merging_pdfs
-    file("*_raw.bw")
-    file("*_RPGC_norm.bw") into Bigwigs_for_correlation_1 optional true
+    file("*_raw.bw") into Bigwigs_for_correlation_1 optional true
 
   script:
   """
@@ -565,11 +633,11 @@ Bigwigs_without_input_control_1
     .filter{ !(it =~ /input/) }
     .collect()
     .map{ [ 'without_control', it ] }
-    .set{ Bigwigs_with_input_control_2 }
+    .set{ Bigwigs_without_input_control_1 }
 
 Bigwigs_with_input_control
     .map{ [ 'with_control', it ] }
-    .concat(Bigwigs_with_input_control_2)
+    .concat(Bigwigs_without_input_control_1)
     .dump(tag:'bigwigs') {"bigwigs for cor and PCA: ${it}"}
     .set{ Bigwigs_for_correlation_2 }
 
@@ -592,7 +660,6 @@ process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
     set input_control_present, file("*") from Bigwigs_for_correlation_2
 
   output:
-    file("*.npz")
     set val("ATAC__reads__PCA"),          out_path, file("*_pca.pdf") into ATAC_reads_PCA_plots_for_merging_pdfs
     set val("ATAC__reads__correlations"), out_path, file("*_cor.pdf") into ATAC_reads_correlation_plots_for_merging_pdfs
 
@@ -606,8 +673,8 @@ process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
   """
 }
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_PCA_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_correlation_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_PCA_plots_for_merging_pdfs.groupTuple(by: [0, 1]).map{ it.flatten() }.map{ [ it[0], it[1], it[2..-1] ] })
+Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_correlation_plots_for_merging_pdfs.groupTuple(by: [0, 1]).map{ it.flatten() }.map{ [ it[0], it[1], it[2..-1] ] })
 
 
 
@@ -2816,8 +2883,6 @@ process DA__splitting_differential_abundance_results_in_subsets {
   output:
     set val('res_simple'), val('2_Differential_Abundance'), file("*__res_simple.rds") into Res_simple_table_for_formatting_table optional true
     set val('res_filter'), val('2_Differential_Abundance'), file("*__res_filter.rds") into Res_filter_table_for_formatting_table optional true
-    // set val('2_DA__both_simple_table'), file("*__res_simple.rds") into Both_simple_table_for_merging_tables optional true
-    // set val('2_DA__both_filter_table'), file("*__res_filter.rds") into Both_filter_table_for_merging_tables optional true
     set COMP, file("*__genes.rds") into DA_genes_split_for_doing_enrichment_analysis optional true
     set COMP, file("*__regions.bed") into DA_regions_split_for_doing_enrichment_analysis optional true
 
@@ -3262,10 +3327,9 @@ process Overlap__computing_functional_annotations_overlaps {
       org_db = AnnotationDbi::loadDb('!{params.org_db}')
       specie = '!{params.specie}'
       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+      kegg_environment = readRDS('!{params.kegg_environment}')
       min_entries_DA_genes_sets = '!{params.min_entries_DA_genes_sets}'
       use_nda_as_bg_for_func_anno = !{params.use_nda_as_bg_for_func_anno}
-
-      organism_key = switch(specie, worm = 'cel', fly = 'dme', mouse = 'mmu', human = 'hsa')
 
 
       gene_set_enrich <- function(lgenes, type){
@@ -3278,7 +3342,8 @@ process Overlap__computing_functional_annotations_overlaps {
           vec = df_genes_metadata$entrez_id %>% setNames(., df_genes_metadata$gene_id)
           gene_set_entrez = vec[DA_genes]
 
-          res = enrichKEGG( gene = gene_set_entrez, pvalueCutoff = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', organism = organism_key, keyType = 'ncbi-geneid', universe = universe)
+          res <- clusterProfiler:::enricher_internal(gene_set_entrez, pvalueCutoff  = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', universe = universe, USER_DATA = kegg_environment)
+          
           if(is.null(res)) error('NULL output')
           res
         }
@@ -3325,6 +3390,68 @@ Overlap_tables_channel = Overlap_tables_channel.mix(Functional_annotations_overl
 
 // universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL) # => this fails: "error replacement has length zero"
 
+// https://yulab-smu.top/biomedical-knowledge-mining-book/clusterprofiler-kegg.html
+// hacking the enrichKEGG function to get it to work offline and inside the containers; otherwise I get the error 
+// In utils::download.file(url, quiet = TRUE, method = method, ...) :
+//   URL 'https://rest.kegg.jp/link/cel/pathway': status was 'Failure when receiving data from the peer'
+// source code: https://rdrr.io/bioc/clusterProfiler/src/R/enrichKEGG.R
+// KEGG_DATA <- prepare_KEGG(species, "KEGG", keyType)
+// search_kegg_organism('cel', by='kegg_code')
+// my_kegg_data = clusterProfiler:::prepare_KEGG('cel', "KEGG")
+// 
+// gene_set_entrez = c("176003", "178531", "175223", "177619", "180999", "3565479",
+// "174059", "180862", "189649", "173657", "185570", "181697", "188978",
+// "180929", "36805029", "186080", "179225", "179595", "179712",
+// "179425", "181325", "171788", "178203", "173301", "175423", "178130",
+// "183903", "179990", "187830", "176278", "176155", "3565939",
+// "177051", "180901", "174198", "177074", "178191", "188458", "175469",
+// "182932")
+// organism_key = 'cel'
+// universe = NULL
+// res = enrichKEGG( gene = gene_set_entrez, pvalueCutoff = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', organism = organism_key, keyType = 'ncbi-geneid', universe = universe)
+// res = enrichKEGG( gene = gene_set_entrez, pvalueCutoff = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', organism = organism_key, keyType = 'ncbi-geneid', universe = universe, use_internal_data = T)
+// 
+
+// For enrichGO, the go terms are stored into a package and accessed liked that:  goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
+// so everything is run in local within the clusterProfiler:::get_GO_data function
+
+// for enrichKEGG, the KEGG database is fetched online. We use a preparsed one here instead
+
+
+// res <- clusterProfiler:::enricher_internal(gene_set_entrez,
+//                          pvalueCutoff  = 1,
+//                          pAdjustMethod = 'BH',
+//                          universe      = universe,
+//                          qvalueCutoff  = 1,
+//                          USER_DATA = my_kegg_data1)
+// 
+//  R.utils::setOption("clusterProfiler.download.method",'auto')
+// 
+// specie_long = 'caenorhabditis_elegans'
+// 
+// 
+// 
+// 
+// options("clusterProfiler.download.method")
+// 
+// my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', "KEGG", 'kegg')
+// 
+// 
+// my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', "KEGG", 'kegg')
+// my_kegg_data1$EXTID2PATHID %>% head
+// my_kegg_data$EXTID2PATHID %>% head
+// 
+// my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', "KEGG")
+//  my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', 'KEGG', "ENTREZID")
+// 
+// res <- clusterProfiler:::enricher_internal(gene_set_entrez,
+//                           pvalueCutoff  = 1,
+//                           pAdjustMethod = 'BH',
+//                           universe      = universe,
+//                           qvalueCutoff  = 1,
+//                           USER_DATA = my_kegg_data1)
+// detach("package:clusterProfiler", unload=TRUE)
+// library(clusterProfiler)
 
 process Overlap__computing_genes_self_overlaps {
   tag "${key}"

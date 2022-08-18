@@ -405,6 +405,7 @@ process get_blacklisted_regions {
 
 
 process get_chip_metadata {
+	tag "${specie}"
 
 	container = params.encodeexplorer
 
@@ -1698,6 +1699,7 @@ process getting_R_annotation_files {
 		df_chr_size = read.table('!{chr_size}', sep = '\t')
 		specie_long = '!{specie_long}'
 		
+
 		# exporting annotation dataframe
 		anno_df = rtracklayer::readGFF(gff3_genes_only) 
 		entrez_id = mapIds(orgdb, keys = anno_df$gene_id,  column = 'ENTREZID', keytype = 'ENSEMBL', multiVals = 'first')
@@ -1741,6 +1743,15 @@ process getting_R_annotation_files {
 		promoters_df1$score = 0
 		promoters_df1 %<>% dplyr::select(chr, start, end, gene_name, score, strand, gene_id)
 		export_df_to_bed(promoters_df1, 'promoters.bed')
+
+		# exporting kegg data
+		library(clusterProfiler)
+		specie_split = strsplit(specie_long, '_')[[1]]
+		kegg_code = paste0(substr(specie_split[[1]], 1, 1), substr(specie_split[[2]], 1, 2))
+		options(clusterProfiler.download.method = 'wget')
+		kegg_environment = clusterProfiler:::prepare_KEGG('cel', 'KEGG', "ncbi-geneid")
+		saveRDS(kegg_environment, 'kegg_environment.rds')
+		
 		
   '''
 
@@ -1751,6 +1762,10 @@ process getting_R_annotation_files {
 // cur_seq_info = rtracklayer::SeqinfoForUCSCGenome('ce11')
 // cur_seq_info@seqnames %<>% gsub('chr', '', .)
 
+// For enrichGO, the go terms are stored into a package and accessed liked that:  goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
+// so everything is run in local within the clusterProfiler:::get_GO_data function
+// for enrichKEGG, the KEGG database is fetched online. We use a preparsed one here instead
+// using download.method = 'wget' is necessary as curl is not in the container. Loading the clusterProfiler at the end is necessary otherwise it interfere with some AnnotationDbi functions
 
 
 ///// Checking if the -C option of gffread really did filter non-coding transcripts, and if we have the same set of genes as in my manually filtered gff3 files
