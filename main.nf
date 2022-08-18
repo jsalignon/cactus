@@ -17,8 +17,8 @@
 // ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations
 // ATAC_QC_reads__plotting_insert_size_distribution
 // ATAC_QC_reads__sampling_aligned_reads
-// ATAC_QC_reads__computing_features_enrichment
-// ATAC_QC_reads__computing_library_complexity
+// ATAC_QC_reads__measuring_overlap_with_genomic_regions
+// ATAC_QC_reads__estimating_library_complexity
 // ATAC_QC_reads__sampling_trimmed_reads
 // ATAC_QC_reads__aligning_sampled_reads
 // ATAC_QC_reads__gathering_all_stat
@@ -725,8 +725,8 @@ process ATAC_QC_reads__sampling_aligned_reads {
     set id, file(bam) from Bam_for_sampling
 
   output:
-    set id, file("*.sam") into Bam_for_stats_library_complexity
-    set id, file("*_sorted.bam"), file("*.bai") into Bam_for_stats_features_enrichment, Sampled_aligned_reads_for_gathering_reads_stat
+    set id, file("*.sam") into Bam_for_estimating_library_complexity
+    set id, file("*_sorted.bam"), file("*.bai") into Bam_for_measuring_overlap_with_genomic_regions, Sampled_aligned_reads_for_gathering_reads_stat
     set id, file("*.NB_ALIGNED_PAIRS*"), file("*.RAW_PAIRS*") into Number_of_aligned_pairs_for_gathering_reads_stat
 
   script:
@@ -755,7 +755,7 @@ process ATAC_QC_reads__sampling_aligned_reads {
 
 
 
-process ATAC_QC_reads__computing_features_enrichment {
+process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
   tag "${id}"
 
   container = params.samtools_bedtools_perl
@@ -763,10 +763,10 @@ process ATAC_QC_reads__computing_features_enrichment {
   when: do_atac
 
   input:
-  set id, file(bam), file(bai) from Bam_for_stats_features_enrichment
+  set id, file(bam), file(bai) from Bam_for_measuring_overlap_with_genomic_regions
 
   output:
-  set id, file("*_reads_features_enrichment.txt") into Features_Enrichment_results_for_gathering_reads_stat
+  set id, file("*_reads_overlap_with_genomic_regions.txt") into Overlap_with_genomic_regions_results_for_gathering_reads_stat
 
   shell:
   '''
@@ -786,8 +786,8 @@ process ATAC_QC_reads__computing_features_enrichment {
     GENES=`getTotalReadsMappedToBedFile $BED_PATH/genes.bed ${bam}`
     BAM_NB_READS=`samtools view -c ${bam}`
 
-    echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" > ${id}_reads_features_enrichment.txt
-    echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" >> ${id}_reads_features_enrichment.txt
+    echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" > ${id}_reads_overlap_with_genomic_regions.txt
+    echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" >> ${id}_reads_overlap_with_genomic_regions.txt
 
     awkDecimalDivision () { awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }' ; }
 
@@ -798,7 +798,7 @@ process ATAC_QC_reads__computing_features_enrichment {
     P_GENES=$(awkDecimalDivision $GENES $BAM_NB_READS)
     P_READS=$(awkDecimalDivision $BAM_NB_READS $BAM_NB_READS)
 
-    echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" >> ${id}_reads_features_enrichment.txt
+    echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" >> ${id}_reads_overlap_with_genomic_regions.txt
 
   '''
 
@@ -812,7 +812,7 @@ process ATAC_QC_reads__computing_features_enrichment {
 
 
 
-process ATAC_QC_reads__computing_library_complexity {
+process ATAC_QC_reads__estimating_library_complexity {
   tag "${id}"
 
   container = params.picard
@@ -820,7 +820,7 @@ process ATAC_QC_reads__computing_library_complexity {
   when: do_atac
 
   input:
-  set id, file(sam) from Bam_for_stats_library_complexity
+  set id, file(sam) from Bam_for_estimating_library_complexity
 
   output:
   set id, file("*_library_complexity.txt") into Library_complexity_for_gathering_reads_stat
@@ -906,7 +906,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
 }
 
 
-Features_Enrichment_results_for_gathering_reads_stat
+Overlap_with_genomic_regions_results_for_gathering_reads_stat
     .join(Library_complexity_for_gathering_reads_stat)
     .join(Aligned_sampled_reads_for_gathering_reads_stat)
     .join(Sampled_aligned_reads_for_gathering_reads_stat)
@@ -924,7 +924,7 @@ process ATAC_QC_reads__gathering_all_stat {
   when: do_atac
 
   input:
-    set id, file(features_enrichment), file(library_complexity), file(cel_flagstat), file(op50_flagstat), file(bam), file(bai), file(nb_aligned_pairs), file(nb_total_pairs), file(final_bed) from All_stat_for_gathering_reads_stat
+    set id, file(overlap_with_genomic_regions), file(library_complexity), file(cel_flagstat), file(op50_flagstat), file(bam), file(bai), file(nb_aligned_pairs), file(nb_total_pairs), file(final_bed) from All_stat_for_gathering_reads_stat
 
   output:
   file("*_bam_stats.txt") into Stats_on_aligned_reads_for_gathering
@@ -933,7 +933,7 @@ process ATAC_QC_reads__gathering_all_stat {
   '''
 
     id=!{id}
-    features_enrichment=!{features_enrichment}
+    overlap_with_genomic_regions=!{overlap_with_genomic_regions}
     library_complexity=!{library_complexity}
     cel_flagstat=!{cel_flagstat}
     op50_flagstat=!{op50_flagstat}
@@ -955,11 +955,11 @@ process ATAC_QC_reads__gathering_all_stat {
     PERCENT_MITO=$(awk "BEGIN { print 100 * $(samtools view -c ${bam} MtDNA) / $(samtools view -c ${bam}) }" )
 
     # percentage of reads mapping to various annotated regions
-    PERCENT_PROMOTERS=$(sed '3q;d' ${features_enrichment} | cut -f 1 -d ' ')
-    PERCENT_EXONS=$(sed '3q;d' ${features_enrichment} | cut -f 2 -d ' ')
-    PERCENT_INTRONS=$(sed '3q;d' ${features_enrichment} | cut -f 3 -d ' ')
-    PERCENT_INTERGENIC=$(sed '3q;d' ${features_enrichment} | cut -f 4 -d ' ')
-    PERCENT_GENIC=$(sed '3q;d' ${features_enrichment} | cut -f 5 -d ' ')
+    PERCENT_PROMOTERS=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 1 -d ' ')
+    PERCENT_EXONS=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 2 -d ' ')
+    PERCENT_INTRONS=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 3 -d ' ')
+    PERCENT_INTERGENIC=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 4 -d ' ')
+    PERCENT_GENIC=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 5 -d ' ')
 
     # library size and percentage of duplicated reads 
     LIBRARY_SIZE=0
