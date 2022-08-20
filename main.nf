@@ -72,13 +72,13 @@
 
 //// shortening certain oftenly used parameters
 
-out_dir = params.out_dir
+res_dir = params.res_dir
 pub_mode = params.pub_mode
-out_processed = "${out_dir}/Processed_Data"
-out_fig_indiv = "${out_dir}/Figures_Individual"
-out_fig_merge = "${out_dir}/Figures_Merged"
-out_tab_merge = "${out_dir}/Tables_Merged"
-out_tab_indiv = "${out_dir}/Tables_Individual"
+out_processed = "${res_dir}/Processed_Data"
+out_fig_indiv = "${res_dir}/Figures_Individual"
+out_fig_merge = "${res_dir}/Figures_Merged"
+out_tab_merge = "${res_dir}/Tables_Merged"
+out_tab_indiv = "${res_dir}/Tables_Individual"
 
 
 //// setting up parameters
@@ -592,7 +592,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
 
   container = params.deeptools
 
-  publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
+  publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
     if (it.indexOf(".pdf") > 0) "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
     else if (it.indexOf("_raw.bw") > 0) "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
     else if (it.indexOf("_RPGC_norm.bw") > 0) "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_norm/${it}"
@@ -1056,12 +1056,12 @@ process ATAC_QC_reads__running_multiQC {
 
   container = params.multiqc
 
-  publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
+  publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
       if (it.indexOf(".html") > 0) "Figures_Individual/1_Preprocessing/${it}"
       else "Processed_Data/1_Preprocessing/ATAC__reads__multiQC/${it}"
   }
 
-  publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
+  publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
       if (it.indexOf(".html") > 0) "Figures_Merged/1_Preprocessing/${it}"
   }
 
@@ -1823,7 +1823,7 @@ process MRNA_QC__running_fastqc {
 
   container = params.fastqc
 
-  publishDir path: "${out_dir}/Processed_Data/1_Preprocessing/mRNA__fastqc", mode: "${pub_mode}"
+  publishDir path: "${res_dir}/Processed_Data/1_Preprocessing/mRNA__fastqc", mode: "${pub_mode}"
 
   when: do_mRNA
 
@@ -1848,11 +1848,11 @@ process MRNA_QC__running_MultiQC {
 
   container = params.multiqc
 
-  publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
+  publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
     if (it.indexOf(".html") > 0) "Figures_Individual/1_Preprocessing/${it}"
     else "Processed_Data/1_Preprocessing/mRNA__multiQC/${it}"
   }
-  publishDir path: "${out_dir}", mode: "${pub_mode}", saveAs: {
+  publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
     if (it.indexOf(".html") > 0) "Figures_Merged/1_Preprocessing/${it}"
   }
 
@@ -4218,7 +4218,7 @@ process Finalization__saving_excel_tables {
   // container = params.openxlsx => sh: : Permission denied ; Error: zipping up workbook failed. Please make sure Rtools is installed or a zip application is available to R.
   container = params.differential_abundance
 
-  publishDir path: "${out_dir}/${out_path}", mode: "${pub_mode}" 
+  publishDir path: "${res_dir}/${out_path}", mode: "${pub_mode}" 
 
   input:
     set out_path, file(csv_file) from Exporting_to_Excel_channel
