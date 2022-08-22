@@ -1,9 +1,11 @@
 TODOs.plain
 .nextflow*
 work/
-data/
 results/
 bin/conda_recipes
-containers_old_scripts/
 debug.plain
 tmp/
+data/
+test_datasets/
+figshare/
+old_code_archive/
