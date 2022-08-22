@@ -1,0 +1,10 @@
+gaf_2 data/mrna/sample_100K_reads_mrna_SRX8174044_SRR11607698.fastq.gz
+b170_1 data/mrna/sample_100K_reads_mrna_SRX8174045_SRR11607699.fastq.gz
+b170_2 data/mrna/sample_100K_reads_mrna_SRX8174046_SRR11607700.fastq.gz
+n301_1 data/mrna/sample_100K_reads_mrna_SRX8174047_SRR11607701.fastq.gz
+n301_2 data/mrna/sample_100K_reads_mrna_SRX8174048_SRR11607702.fastq.gz
+n301b170_1 data/mrna/sample_100K_reads_mrna_SRX8174049_SRR11607703.fastq.gz
+n301b170_2 data/mrna/sample_100K_reads_mrna_SRX8174050_SRR11607704.fastq.gz
+ctl_1 data/mrna/sample_100K_reads_mrna_SRX8174051_SRR11607695.fastq.gz
+ctl_2 data/mrna/sample_100K_reads_mrna_SRX8174052_SRR11607696.fastq.gz
+gaf_1 data/mrna/sample_100K_reads_mrna_SRX8174053_SRR11607697.fastq.gz

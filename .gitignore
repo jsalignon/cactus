@@ -8,15 +8,8 @@ bin/conda_recipes
 debug.plain
 tmp/
 data/
-test_datasets/**/*
 figshare/
 
-# Allow
-!test_datasets/worm/conf/
-!test_datasets/worm/design/
-!test_datasets/fly/conf/
-!test_datasets/fly/design/
-!test_datasets/mouse/conf/
-!test_datasets/mouse/design/
-!test_datasets/human/conf/
-!test_datasets/human/design/
+/test_datasets/*/*
+!/test_datasets/*/conf
+!/test_datasets/*/design

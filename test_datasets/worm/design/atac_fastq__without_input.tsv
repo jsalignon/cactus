@@ -1,0 +1,9 @@
+ctl_1 data/atac/sample_200K_reads_atac_SRX3029124_SRR5860424_R1.fastq.gz
+ctl_2 data/atac/sample_200K_reads_atac_SRX3029125_SRR5860425_R1.fastq.gz
+ctl_3 data/atac/sample_200K_reads_atac_SRX3029126_SRR5860426_R1.fastq.gz
+spt16_1 data/atac/sample_200K_reads_atac_SRX3029130_SRR5860430_R1.fastq.gz
+spt16_2 data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
+spt16_3 data/atac/sample_200K_reads_atac_SRX3029132_SRR5860432_R1.fastq.gz
+hmg4_1 data/atac/sample_200K_reads_atac_SRX3029133_SRR5860433_R1.fastq.gz
+hmg4_2 data/atac/sample_200K_reads_atac_SRX3029134_SRR5860434_R1.fastq.gz
+hmg4_3 data/atac/sample_200K_reads_atac_SRX3029135_SRR5860435_R1.fastq.gz
