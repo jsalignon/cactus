@@ -3328,7 +3328,6 @@ process Overlap__computing_functional_annotations_overlaps {
       lgenes = readRDS('!{gene_set_rds}')
       func_anno = '!{func_anno}'
       org_db = AnnotationDbi::loadDb('!{params.org_db}')
-      specie = '!{params.specie}'
       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
       kegg_environment = readRDS('!{params.kegg_environment}')
       min_entries_DA_genes_sets = '!{params.min_entries_DA_genes_sets}'
