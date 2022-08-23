@@ -83,26 +83,26 @@ process get_test_datasets {
   input:
 
   output:
-    file("*")
+    file("*") into Test_datasets_donwloaded
     // val('true') into Test_datasets_donwloaded
 
   script:
   """
     
     figshare_path="https://ndownloader.figshare.com/files"
-    wget -q -O- $figshare_path/${params.test_datasets_file}?access_token=${params.figshare_token} | tar -xz
+    wget -q -O- ${figshare_path}/${params.test_datasets_file}?access_token=${params.figshare_token} | tar -xz
     
-    ${params.test_datasets_md5sum }
-     test_datasets_donwloaded = true
 
   """
   // test_datasets_donwloaded = true
 }
 
+// ${params.test_datasets_md5sum }
+// test_datasets_donwloaded = true
 
 
-println params.download_test_datasets
-println test_datasets_donwloaded
+// println params.download_test_datasets
+// println test_datasets_donwloaded
 // println Test_datasets_donwloaded
 
 
@@ -129,8 +129,7 @@ println test_datasets_donwloaded
 // 
 //   container = params.skewer_pigz
 // 
-// 
-//   when: do_atac
+//   when: params.download_test_datasets 
 // 
 //   publishDir path: "${cactus_dir}/data", mode: "${pub_mode}"
 // 
@@ -138,23 +137,21 @@ println test_datasets_donwloaded
 //     set specie, file, md5sum from Get_data_channel
 // 
 //   output:
-//     file("*")
+//     file("*") into 
 // 
 //   script:
 //   """
 //       figshare_path="https://ndownloader.figshare.com/files"
 //       wget ${figshare_path}/${data_file}?access_token=${figshare_token} -O ${data_dir}/${specie}_data.tar.gz"
-//       wget -q -O- https://ndownloader.figshare.com/files/36088543 | tar -xz
 // 
 // 
-//       cat `ls *R1* | sort` > ${id}_R1_merged.fastq.gz
-//       cat `ls *R2* | sort` > ${id}_R2_merged.fastq.gz
 //   """
 // 
 // }
-
-
-start_pipeline = !params.download_test_datasets || test_datasets_donwloaded
+// 
+// // wget -q -O- https://ndownloader.figshare.com/files/36088543 | tar -xz
+// 
+// start_pipeline = !params.download_test_datasets || test_datasets_donwloaded
 
 
 
