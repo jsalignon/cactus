@@ -42,15 +42,15 @@ cd data/cactus
 # put worm_test.tar.gz
 # put fly_data.tar.gz
 # put fly_test.tar.gz
-put mouse_data.tar.gz
+# put mouse_data.tar.gz
 put mouse_test.tar.gz
 put human_data.tar.gz
-put human_test.tar.gz
+# put human_test.tar.gz
 # put README.txt
 # put manifest.txt
 cat debug_log.txt 
-## => this last commands allows to check if the put command worked. The upload often fail (i.e. " Incomplete upload, skipping...") Need to repeat it sometimes. It should be written: "started" and then on the line below "finished"
-## => commentting files that are already on the server
+## => this last commands allows to check if the put command worked. The upload often fails (i.e. " Incomplete upload, skipping..."). In this case, the command should be repeated. It should be written: "started" and then on the line below "finished" with a file_id.
+## => commentting files that are already on the server and do not need re-uploading
 
 
 
