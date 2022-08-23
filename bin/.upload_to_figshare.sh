@@ -43,8 +43,11 @@ cd data/cactus
 # put fly_data.tar.gz
 # put fly_test.tar.gz
 # put mouse_data.tar.gz
-put mouse_test.tar.gz
+# put mouse_test.tar.gz
 put human_data.tar.gz
+put -c human_data.tar.gz
+reput human_data.tar.gz
+
 # put human_test.tar.gz
 # put README.txt
 # put manifest.txt
@@ -54,8 +57,9 @@ cat debug_log.txt
 
 
 
-
-
+# resume upload
+# https://unix.stackexchange.com/questions/91602/is-there-any-ftp-command-to-resume-upload
+# => reput command!
 
 
 
