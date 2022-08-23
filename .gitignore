@@ -9,6 +9,7 @@ debug.plain
 tmp/
 data/
 figshare/
+reference/
 
 /test_datasets/*/*
 !/test_datasets/*/conf
