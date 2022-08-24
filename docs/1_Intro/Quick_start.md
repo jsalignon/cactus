@@ -20,15 +20,21 @@ singularity_containers_path = '/home/user/workspace/singularity_containers'
 ```
 
 Downloading references and test datasets:
->nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --specie worm -r main -latest
+```
+nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --specie worm -r main -latest
+```
 
 Running Cactus (and downloading containers):
->nextflow run jsalignon/cactus -r main -latest
+```
+nextflow run jsalignon/cactus -r main -latest
+```
 
 >**_Note_:** Test datasets are also available for species fly, human and mouse. They can be tested by changing the *--specie* argument.  
 
 One can update the pipeline using this command:
->nextflow pull salignon/cactus
+```
+nextflow pull salignon/cactus
+```
 
 Results are stored in the folder *results/Cactus_v{version}*.
 
@@ -40,7 +46,9 @@ It is highly recommended to use the [Nextflow Tower tool](https://tower.nf/) to 
 Nextflow handles job submissions on SLURM or other environments, and supervises running the jobs. Thus the Nextflow process must run until the pipeline is finished. We recommend that you put the process running in the background through screen / tmux or similar tool. Alternatively you can run nextflow within a cluster job submitted your job scheduler.
 
 It is recommended to limit the Nextflow Java virtual machines memory. We recommend adding the following line to your environment (typically in ~/.bashrc or ~./bash_profile):
+```
 NXF_OPTS='-Xms1g -Xmx4g'
+```
 
 
 # Parameters
@@ -54,7 +62,9 @@ Analysis parameters can be changed in the run.config file. See the [Configuratio
 # Reproducibility
 
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since [text stolen from Maxime/Sarek]. On can specify the version of the pipeline using the –version argument this way:
->nextflow run jsalignon/cactus -r commit_id
+```
+nextflow run jsalignon/cactus -r commit_id
+```
 
 
 # Troubleshooting
