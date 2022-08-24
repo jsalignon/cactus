@@ -14,23 +14,23 @@ process download_references {
   input:
 
   output:
-    file("${params.specie}")  
+    file(params.specie)
     
   script:
   def figshare_path = "https://ndownloader.figshare.com/files"
-  def local_file    = "{params.specie}_test_dataset.tar.gz"
+  def local_file    = "${params.specie}_test_dataset.tar.gz"
   
   """
-      local_file=${params.specie}_references.tar.gz
+  
       wget ${figshare_path}/${params.reference_file}?access_token=${params.figshare_token} -O ${local_file}
       local_md5sum=\$(md5sum ${local_file} | awk '{print \$1}')
       
       if [[ "\$local_md5sum" == "${params.reference_md5sum}" ]] ; then
-        pigz --decompress --keep --recursive --stdout --processes ${params.threads} ${local_file} | tar -xvf
+        pigz --decompress --keep --recursive --stdout --processes ${params.threads} ${local_file} | tar -xvf -
       else
         echo "md5sum is wrong for file ${local_file}"
     	fi
-       
+      
   """
 
 }
