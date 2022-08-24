@@ -1,9 +1,11 @@
 
 
+// nextflow run jsalignon/cactus/download/download_test_datasets.nf --specie worm  -latest -r main
+// nextflow run $cactus/download/download_test_datasets.nf --specie worm
 
-// nextflow run /home/jersal/workspace/cactus/download/download_test_datasets.nf --specie worm
 
 process download_test_datasets {
+  tag params.specie
 
   container = params.skewer_pigz
 
@@ -12,61 +14,28 @@ process download_test_datasets {
   input:
 
   output:
-    file("*")  
+    set file('data/'), file('conf/'), file('design/')
     
   script:
   def figshare_path = "https://ndownloader.figshare.com/files"
+  def local_file    = "{params.specie}_test_dataset.tar.gz"
   
   """
-      local_file=${params.specie}_test_dataset.tar.gz
-      wget ${figshare_path}/${params.test_dataset_file}?access_token=${params.figshare_token} -O \$local_file
-      local_md5sum=\$(md5sum \$local_file | awk '{print \$1}')
       
-      if [[ "\$local_md5sum" == "$params.test_dataset_md5sum" ]] ; then
-        tar -xvf \$local_file
-        rm \$local_file
+      wget ${figshare_path}/${params.test_dataset_file}?access_token=${params.figshare_token} -O ${local_file}
+      local_md5sum=\$(md5sum ${local_file} | awk '{print \$1}')
+      
+      if [[ "\$local_md5sum" == "${params.test_dataset_md5sum}" ]] ; then
+        pigz --decompress --keep --recursive --stdout --processes ${params.threads} ${local_file} | tar -xvf -
       else
-        echo "md5sum is wrong for file \$local_file"
-        rm \$local_file
+        echo "md5sum is wrong for file ${local_file}"
     	fi
        
   """
 
 }
 
-// wget -q -O- ${figshare_path}/${params.test_dataset_file}?access_token=${params.figshare_token} | tar -xz
-
-
-
-
-
-
-// process download_test_datasets {
-//   tag "${id}"
-// 
-//   container = params.skewer_pigz
-// 
-//   when: params.download_test_datasets
-// 
-//   publishDir path: "${launchDir}", mode: "${pub_mode}"
-// 
-//   input:
-// 
-//   output:
-//     file("*") into Test_datasets_donwloaded
-//     // val('true') into Test_datasets_donwloaded
-// 
-//   script:
-//   """
-// 
-//     figshare_path="https://ndownloader.figshare.com/files"
-//     wget -q -O- ${figshare_path}/${params.test_datasets_file}?access_token=${params.figshare_token} | tar -xz
-// 
-// 
-//   """
-//   // test_datasets_donwloaded = true
-// }
-// // wget ${figshare_path}/${data_file}?access_token=${figshare_token} -O ${data_dir}/${specie}_data.tar.gz"
-
+// tar --use-compress-program="pigz -p ${params.threads} -k -r" -xvf ${local_file} => the pigz option is not avaialble in busybox's tar
+// pigz -d -k -r -c -p 3 $local_file | tar -xvf - // same command with abbreviations
 
 
