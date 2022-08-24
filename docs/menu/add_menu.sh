@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# cd /home/jersal/workspace/cactus/software
+# cd $cactus
 # docs/menu/add_menu.sh
 
 menu_file=docs/menu/menu.md

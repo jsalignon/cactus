@@ -10,6 +10,7 @@ tmp/
 data/
 figshare/
 reference/
+test/
 
 /test_datasets/*/*
 !/test_datasets/*/conf
