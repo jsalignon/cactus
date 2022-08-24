@@ -13,7 +13,7 @@ Almost all packages have been downloaded from the [Galaxy singularity repository
 
 The largest containers are so-called "mulled containers". These are [Biocontainers](https://biocontainers-edu.readthedocs.io/en/latest/introduction.html) created via the [multi-package-containers tool](https://github.com/BioContainers/multi-package-containers). These are useful in processes were multiple tools are required. 
 
-Downloading all containers uses 4 Gb of disk space in total. The download of all containers happens automatically the first time Cactus is run. The parameter **//TO DO//** should be set to indicate in which directory the containers should be downlaoded.
+Downloading all containers uses 4 Gb of disk space in total. The download of all containers happens automatically the first time Cactus is run. The parameter *singularity_containers_path* set in the *./.cactus.config* file should be set to indicate in which directory the containers should be downlaoded.
 
 Here is the detail of the containers used and their size:
 
