@@ -1,6 +1,8 @@
 
 
-// nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --specie worm
+// nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --specie worm -r main -latest
+// nextflow run jsalignon/cactus -r main -latest
+
 // nextflow run $cactus/scripts/download/download.nf --references --test_datasets --specie worm
 // nextflow run $cactus/scripts/download/download.nf --test_datasets --specie worm
 // nextflow run $cactus/scripts/download/download.nf --references --specie worm
