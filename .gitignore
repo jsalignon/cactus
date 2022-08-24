@@ -9,7 +9,7 @@ debug.plain
 tmp/
 data/
 figshare/
-reference/
+references/
 test/
 
 /test_datasets/*/*
