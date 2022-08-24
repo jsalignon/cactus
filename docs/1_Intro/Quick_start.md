@@ -2,10 +2,10 @@
 
 * [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [Data](/docs/2_Install/Install_data.md), [Test_datasets](/docs/2_Install/Test_datasets.md)
-* [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/Inputs_data.md), [Design](/docs/3_Inputs/Design.md), [Configuration](/docs/3_Inputs/Configuration.md)
-* [Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [Input Files](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
-* [Differential Abundance](/docs/5_DA/5_DA.md): [DBA](/docs/5_DA/DBA.md), [DGEA](/docs/5_DA/DGEA.md), [Split](/docs/5_DA/Split.md), [Outputs](/docs/5_DA/Outputs.md)
-* [Enrichment](/docs/6_Enrich/6_Enrich.md): [Overlap](/docs/6_Enrich/Overlap.md), [Outputs](/docs/6_Enrich/Outputs.md)
+* [Inputs](/docs/3_Inputs/3_Inputs.md): [Fastq](/docs/3_Inputs/Fastq.md), [Design](/docs/3_Inputs/Design.md), [Configuration](/docs/3_Inputs/Configuration.md)
+* [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [Input Files](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
+* [2. Differential Abundance](/docs/5_DA/5_DA.md): [DBA](/docs/5_DA/DBA.md), [DGEA](/docs/5_DA/DGEA.md), [Split](/docs/5_DA/Split.md), [Outputs](/docs/5_DA/Outputs.md)
+* [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Overlap](/docs/6_Enrich/Overlap.md), [Outputs](/docs/6_Enrich/Outputs.md)
 
 [](END_OF_MENU)
 
@@ -24,12 +24,12 @@ Downloading references and test datasets:
 nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --specie worm -r main -latest
 ```
 
+>**_Note_:** Test datasets are also available for species fly, human and mouse. They can be tested by changing the *--specie* argument.  
+
 Running Cactus (and downloading containers):
 ```
 nextflow run jsalignon/cactus -r main -latest
 ```
-
->**_Note_:** Test datasets are also available for species fly, human and mouse. They can be tested by changing the *--specie* argument.  
 
 One can update the pipeline using this command:
 ```
@@ -56,7 +56,7 @@ NXF_OPTS='-Xms1g -Xmx4g'
 Global parameters can be changed in the nextflow.config file. This include output folder names, resources (memory and CPU usage), type of machine to run the script (local or cloud). This is up to the user to set up the optimal nextflow environment according to their analysis platform. Help can be found [here](https://www.nextflow.io/docs/latest/executor.html) for that.
 Note: by default, the analysis is cached and will resume were it was before stopping. This can be disabled by setting the parameter *resume* to *false*. 
 
-Analysis parameters can be changed in the run.config file. See the [Configuration](/docs/3_Inputs/Configuration.md section for more details on available parameters and configuration files. 
+Analysis parameters can be changed in the run.config file. See the [Configuration](/docs/3_Inputs/Configuration.md) section for more details on available parameters and configuration files. 
 
 
 # Reproducibility
@@ -71,7 +71,7 @@ nextflow run jsalignon/cactus -r commit_id
 
 In general, scrolling through [Nextflow’s documentation](https://www.nextflow.io/docs/latest/index.html) can help resolving most issues.
 
-The general process to resolve a crashing pipeline is to go to the folder indicated in the crash report, launch the appropriate container, and run the lines of codes indicated in the crash report. This way one can identify and perhaps solve the issue. Example:
+The general process to resolve a crashing pipeline is to go to the folder indicated in the crash report, launch the appropriate container, and run the lines of codes indicated in the crash report. This way one can try to identify and solve the issue. Example:
 
 ```
 cd work/59/8a6fb9*
@@ -80,7 +80,7 @@ singularity shell -B $cactus_dir -B "$PWD" --containall --cleanenv --home $PWD -
 cat .command.sh
 ```
 
-Then one can run each command and try to find the error. 
+Then each command can be run to try to find the error. 
 
 >**_Note_:** The first row of the *.command.sh* file indicates if the script should be run in bash or in R.
 
