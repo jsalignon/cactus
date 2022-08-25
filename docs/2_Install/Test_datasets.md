@@ -1,7 +1,7 @@
 
 
 * [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
-* [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test_datasets](/docs/2_Install/Test_datasets.md)
+* [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Fastq](/docs/3_Inputs/Fastq.md), [Design](/docs/3_Inputs/Design.md), [Configuration](/docs/3_Inputs/Configuration.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
 * [2. Differential Abundance](/docs/5_DA/5_DA.md): [DBA](/docs/5_DA/DBA.md), [DGEA](/docs/5_DA/DGEA.md), [Split](/docs/5_DA/Split.md), [Outputs](/docs/5_DA/Outputs.md)
@@ -33,8 +33,19 @@ Tests datasets have beed generated for each of the 4 species supported by Cactus
 | mouse  | 3100 MB |    261 MB     |   
 
 
-The following sections contain details on the test datasets origins and labels.
+## Downloading test datasets
 
+The test datasets can be downloaded with this command: 
+```
+nextflow run jsalignon/cactus/scripts/download/download.nf --test_datasets --specie worm -r main -latest
+```
+
+The parameters for this command are:
+ - *--specie*: can be any of the 4 species supported by Cactus (worm, fly, mouse or human)
+ - *--threads* can be set to determine the number of thread used by pigz for uncompressing the references archive files
+
+
+##  Details on the test datasets origins and labels
 
 ## Worm and human ([GSE98758](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE98758))
 
