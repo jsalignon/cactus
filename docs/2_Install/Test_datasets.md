@@ -44,6 +44,9 @@ The parameters for this command are:
  - *--specie*: can be any of the 4 species supported by Cactus (worm, fly, mouse or human)
  - *--threads* can be set to determine the number of thread used by pigz for uncompressing the references archive files
 
+ > **_NOTE:_**  The test datasets contain 3 folders: fastq, conf and design; as described in the [Inputs](/docs/3_Inputs/3_Inputs.md) section.
+ > **_NOTE:_**  The test datasets should not be downloaded in the main cactus directory, otherwise the conf test dataset conf folder will erase cactus' conf folder.
+
 
 ##  Details on the test datasets origins and labels
 
