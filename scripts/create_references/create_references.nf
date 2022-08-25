@@ -117,7 +117,7 @@ HiHMM_chromatin_states = Channel
 process get_homer_data {
 	tag "${specie}"
 
-	container = params.samtools_bedtools_perl
+	label "samtools_bedtools_perl"
 
 	publishDir path: "${specie}/homer_data", mode: 'link'
 	input:
@@ -152,7 +152,7 @@ process get_homer_data {
 
 process get_pwms {
 
-	container = params.r_basic
+	label "r_basic"
 
 	publishDir path: "util/motifs_PWMS", mode: 'link'
 
@@ -241,7 +241,7 @@ Ensembl_Assembly_1.pwms
 process split_pwms {
 	tag "${specie}"
 
-	container = params.r_basic
+	label "r_basic"
 
 	publishDir path: "${specie}/homer_data", mode: 'link'
 
@@ -346,7 +346,7 @@ process split_pwms {
 process get_blacklisted_regions {
 	tag "${specie}"
 
-	container = params.cvbio
+	label "cvbio"
 
 	publishDir path: "${specie}/genome/annotation", mode: 'link'
 
@@ -407,7 +407,7 @@ process get_blacklisted_regions {
 process get_chip_metadata {
 	tag "${specie}"
 
-	container = params.encodeexplorer
+	label "encodeexplorer"
 
 	publishDir path: "${specie}", mode: 'link', saveAs: {
     if (it.equals("encode_chip_metadata.csv")) "${it}"
@@ -623,7 +623,7 @@ process get_chip_metadata {
 process make_chip_ontology_groups {
 	tag "${specie}"
 
-	container = params.encodeexplorer
+	label "encodeexplorer"
 
 	publishDir path: "${specie}", mode: 'link', saveAs: {
     if (it.indexOf(".txt") > 0) "${it}"
@@ -681,7 +681,7 @@ process make_chip_ontology_groups {
 process get_chip_data {
 tag "${specie}"
 
-container = params.encodeexplorer
+label "encodeexplorer"
 
 publishDir path: "${specie}/CHIP", mode: 'link'
 
@@ -711,7 +711,7 @@ shell:
 process get_encode_chromatin_state_metadata {
 	tag "${specie}"
 
-	container = params.encodeexplorer
+	label "encodeexplorer"
 
 	publishDir path: "${specie}", mode: 'link', pattern: "*.csv"
 
@@ -833,7 +833,7 @@ process get_encode_chromatin_state_metadata {
 process get_encode_chromatin_state_data {
 	tag "${specie}, ${dt_rds}"
 
-	container = params.encodeexplorer
+	label "encodeexplorer"
 
 	publishDir path: "${specie}/chromatin_states", mode: 'link'
 
@@ -899,7 +899,7 @@ process get_encode_chromatin_state_data {
 // 
 // 	publishDir path: "util/liftover_files", mode: 'link'
 // 
-// 	container = params.liftover
+// 	label "liftover"
 // 
 // 	input:
 // 		set specie, original_assembly, target_assembly from liftover_files_to_get
@@ -944,7 +944,7 @@ process get_encode_chromatin_state_data {
 // 
 // 	publishDir path: "${specie}/{out_folder}", mode: 'link'
 // 
-// 	container = params.liftover
+// 	label "liftover"
 // 
 // 	input:
 // 		set specie, out_folder, original_assembly, target_assembly, file(bed_file) from channel_xx
@@ -992,7 +992,7 @@ process get_hihmm_chromatin_state_data_part_1 {
 	// container = "kernsuite-debian/singularity-container"
 	// container = "kernsuite-debian/singularity-container"
 	// container = "${params.depot_galaxy}/ucsc_tools:357--0"
-	// container = params.bioconductor
+	// label "bioconductor"
 	// container = 'ubuntu/library/ubuntu/22.10'
 	// container = 'debian/stable-slim.sif'
 
@@ -1028,7 +1028,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 	
 	publishDir path: "${specie}/chromatin_states", mode: 'link'
 
-	container = params.liftover
+	label "liftover"
 
 	input:
 		set specie, bed_name, file(bed_file), original_assembly, liftover_name from HiHMM_chromatin_states_2
@@ -1070,7 +1070,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 // process get_hihmm_chromatin_state_data {
 // 	publishDir path: "${specie}/chromatin_states", mode: 'link'
 // 
-// 	container = params.liftover
+// 	label "liftover"
 // 
 // 	input:
 // 		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
@@ -1113,7 +1113,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 // 
 // 	// container = "	kernsuite-debian/singularity-container"
 // 	container = "aws-cli_latest.sif"
-// 	// container = params.bioconductor
+// 	// label "bioconductor"
 // 
 // 	input:
 // 		// set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
@@ -1143,7 +1143,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 process get_contamination_bowtie2 {
 	tag "${specie}"
 
-	container = params.bowtie2_samtools
+	label "bowtie2_samtools"
 
 	publishDir path: "human/bowtie2_indexes_conta", mode: 'link'
 	publishDir path: "mouse/bowtie2_indexes_conta", mode: 'link'
@@ -1179,7 +1179,7 @@ process get_contamination_bowtie2 {
 process get_fasta_and_gff {
 	tag "${specie}"
 
-	container = params.samtools_bedtools_perl
+	label "samtools_bedtools_perl"
 
 	publishDir path: "${specie}/genome", mode: 'link', saveAs: {
     if (it.indexOf(".gff3") > 0) "annotation/${it}"
@@ -1256,7 +1256,7 @@ process get_fasta_and_gff {
 process generating_bowtie2_indexes {
   tag "${specie}"
 
-  container = params.bowtie2_samtools
+  label "bowtie2_samtools"
 
   publishDir path: "${"${specie}/genome/sequence"}/bowtie2_indexes", mode: 'link'
 
@@ -1277,7 +1277,7 @@ process generating_bowtie2_indexes {
 process indexing_genomes {
   tag "${specie}"
 
-  container = params.bowtie2_samtools
+  label "bowtie2_samtools"
 
   publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
 
@@ -1305,7 +1305,7 @@ Genome_and_annotation_3
 process getting_transcriptome {
   tag "${specie}"
 
-	container = params.gffread
+	label "gffread"
 
 	publishDir path: "${specie}/genome/sequence", mode: 'link'
 		
@@ -1332,7 +1332,7 @@ process getting_transcriptome {
 process filtering_annotation_file {
   tag "${specie}"
 
-	container = params.ubuntu
+	label "ubuntu"
 
 	publishDir path: "${specie}/genome/annotation/filtered", mode: 'link'
 		
@@ -1410,7 +1410,7 @@ process filtering_annotation_file {
 process get_bed_files_of_annotated_regions {
 	tag "${specie}"
 
-	container = params.bedops
+	label "bedops"
 
 	publishDir path: "${specie}/genome/annotation/bed_regions", mode: 'link'
 
@@ -1608,7 +1608,7 @@ process get_bed_files_of_annotated_regions {
 process getting_kallisto_indexes {
   tag "${specie}"
 
-  container = params.kallisto
+  label "kallisto"
 
   publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
 
@@ -1631,7 +1631,7 @@ process getting_kallisto_indexes {
 process getting_orgdb {
   tag "${specie}"
 
-  container = params.annotationhub
+  label "annotationhub"
 
   publishDir path: "${specie}/genome/annotation/R", mode: 'link'
 
@@ -1672,7 +1672,7 @@ Orgdb_for_annotation
 process getting_R_annotation_files {
   tag "${specie}"
 
-  container = params.bioconductor
+  label "bioconductor"
 
   publishDir path: "${specie}/genome/annotation/R", mode: 'link'
 

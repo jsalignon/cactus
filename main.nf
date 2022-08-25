@@ -167,8 +167,7 @@ Channel
 process ATAC_reads__merging_reads {
   tag "${id}"
 
-  container = params.fastqc
-
+  label "fastqc"
 
   when: do_atac
 
@@ -200,7 +199,7 @@ atac_raw.ATAC_reads_for_trimming_1
 process ATAC_reads__trimming_reads {
   tag "${id}"
 
-  container = params.skewer_pigz
+  label "skewer_pigz"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", enabled: save_last_fastq
 
@@ -280,7 +279,7 @@ Raw_ATAC_reads_for_running_fastqc
 process ATAC_reads__aligning_reads {
   tag "${id}"
 
-  container = params.bowtie2_samtools
+  label "bowtie2_samtools"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", enabled: save_all_bam
 
@@ -317,7 +316,7 @@ process ATAC_reads__aligning_reads {
 process ATAC_reads__removing_low_quality_reads {
   tag "${id}"
 
-  container = params.bowtie2_samtools
+  label "bowtie2_samtools"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", mode: "${pub_mode}", enabled: save_all_bam
 
@@ -351,7 +350,7 @@ process ATAC_reads__removing_low_quality_reads {
 process ATAC_reads__marking_duplicated_reads {
   tag "${id}"
 
-  container = params.picard
+  label "picard"
 
   when: do_atac
 
@@ -383,7 +382,7 @@ process ATAC_reads__marking_duplicated_reads {
 process ATAC_reads__removing_duplicated_reads {
   tag "${id}"
 
-  container = params.bowtie2_samtools
+  label "bowtie2_samtools"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", mode: "${pub_mode}", enabled: save_all_bam
 
@@ -415,7 +414,7 @@ process ATAC_reads__removing_duplicated_reads {
 process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
   tag "${id}"
 
-  container = params.bowtie2_samtools
+  label "bowtie2_samtools"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", mode: "${pub_mode}", enabled: save_last_bam
 
@@ -455,7 +454,7 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
 process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
   tag "${id}"
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", mode: "${pub_mode}", enabled: save_all_bam, saveAs: { if (it.indexOf(".bam") > 0) "$it" }
 
@@ -519,7 +518,7 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // process ATAC__extending_bed {
 //   tag "${id}"
 // 
-//   container = params.samtools_bedtools_perl
+//   label "samtools_bedtools_perl"
 // 
 //   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift_extendedBed", mode: "${pub_mode}", enabled: save_last_bam
 // 
@@ -568,7 +567,7 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 process ATAC_QC_reads__running_fastqc {
   tag "${id}"
 
-  container = params.fastqc
+  label "fastqc"
 
   publishDir path: "${out_processed}/1_Preprocessing", mode: "${pub_mode}", saveAs: {
     if      (reads_type == 'raw')     "ATAC__reads__fastqc_raw/${it}"
@@ -596,7 +595,7 @@ process ATAC_QC_reads__running_fastqc {
 process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
   tag "${id}"
 
-  container = params.deeptools
+  label "deeptools"
 
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
     if (it.indexOf(".pdf") > 0) "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
@@ -655,7 +654,7 @@ process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
 
   tag "${input_control_present}"
 
-  container = params.deeptools
+  label "deeptools"
 
   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: { 
          if (it.indexOf("_pca.pdf") > 0) "ATAC__reads__PCA/${it}" 
@@ -690,7 +689,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_correlation_plots_for
 process ATAC_QC_reads__plotting_insert_size_distribution {
   tag "${id}"
 
-  container = params.picard
+  label "picard"
 
   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__reads__insert_size", mode: "${pub_mode}"
 
@@ -723,7 +722,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_insert_size_plots_for
 process ATAC_QC_reads__sampling_aligned_reads {
   tag "${id}"
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   when: do_atac
 
@@ -764,7 +763,7 @@ process ATAC_QC_reads__sampling_aligned_reads {
 process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
   tag "${id}"
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   when: do_atac
 
@@ -821,7 +820,7 @@ process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
 process ATAC_QC_reads__estimating_library_complexity {
   tag "${id}"
 
-  container = params.picard
+  label "picard"
 
   when: do_atac
 
@@ -848,7 +847,7 @@ process ATAC_QC_reads__estimating_library_complexity {
 process ATAC_QC_reads__sampling_trimmed_reads {
   tag "${id}"
 
-  container = params.bbmap
+  label "bbmap"
 
   when: do_atac
 
@@ -871,7 +870,7 @@ process ATAC_QC_reads__sampling_trimmed_reads {
 process ATAC_QC_reads__aligning_sampled_reads {
   tag "${id}"
 
-  container = params.bowtie2_samtools
+  label "bowtie2_samtools"
 
   when: do_atac
 
@@ -925,7 +924,7 @@ Overlap_with_genomic_regions_results_for_gathering_reads_stat
 process ATAC_QC_reads__gathering_all_stat {
   tag "${id}"
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   when: do_atac
 
@@ -990,7 +989,7 @@ process ATAC_QC_reads__gathering_all_stat {
 
 process ATAC_QC_reads__gathering_all_samples {
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   publishDir path: "${out_tab_merge}/1_Preprocessing", mode: "${pub_mode}"
   publishDir path: "${out_tab_indiv}/1_Preprocessing", mode: "${pub_mode}"
@@ -1020,7 +1019,7 @@ process ATAC_QC_reads__gathering_all_samples {
 
 process ATAC_QC_reads__splitting_stat_for_multiqc {
 
-  container = params.r_basic
+  label "r_basic"
 
   when: do_atac
 
@@ -1060,7 +1059,7 @@ process ATAC_QC_reads__splitting_stat_for_multiqc {
 
 process ATAC_QC_reads__running_multiQC {
 
-  container = params.multiqc
+  label "multiqc"
 
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
       if (it.indexOf(".html") > 0) "Figures_Individual/1_Preprocessing/${it}"
@@ -1108,7 +1107,7 @@ process ATAC_QC_reads__running_multiQC {
 process ATAC_peaks__calling_peaks {
   tag "${id}"
 
-  container = params.macs2
+  label "macs2"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__raw", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -1267,7 +1266,7 @@ process ATAC_peaks__calling_peaks {
 process ATAC_peaks__splitting_multi_summits_peaks {
   tag "${id}"
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -1322,7 +1321,7 @@ process ATAC_peaks__splitting_multi_summits_peaks {
 process ATAC_peaks__removing_blacklisted_regions {
   tag "${id}"
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -1386,7 +1385,7 @@ Peaks_without_blacklist_3.treatment
 process ATAC_peaks__removing_input_control_peaks {
   tag "${id}"
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_control", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -1459,7 +1458,7 @@ comparisons_files_for_merging
 process ATAC_peaks__removing_specific_regions {
   tag "${COMP}"
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
 
@@ -1551,7 +1550,7 @@ Reads_and_peaks_for_diffbind_1.without_input_control
 process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
   tag "${id}"
 
-  container = params.macs2
+  label "macs2"
 
   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__saturation_curve", mode: "${pub_mode}"
 
@@ -1610,7 +1609,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 
   tag "${id}"
 
-  container = params.bioconductor
+  label "bioconductor"
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", mode: "${pub_mode}", enabled: save_all_bed
 
@@ -1683,7 +1682,7 @@ Annotated_macs2_peaks_for_plotting_all_samples_grouped
 process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample {
   tag "${id}"
 
-  container = params.bioconductor
+  label "bioconductor"
 
   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
            if (it.indexOf("_coverage.pdf") > 0)        "ATAC__peaks__coverage/${it}"
@@ -1731,7 +1730,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_peaks_average_profile_for_m
 
 process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
 
-  container = params.bioconductor
+  label "bioconductor"
 
   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__grouped_plots", mode: "${pub_mode}"
   publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
@@ -1791,7 +1790,7 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
 process MRNA__quantifying_transcripts_abundances {
     tag "${id}"
 
-    container = params.kallisto
+    label "kallisto"
 
     publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", mode: "${pub_mode}"
 
@@ -1827,7 +1826,7 @@ process MRNA__quantifying_transcripts_abundances {
 process MRNA_QC__running_fastqc {
   tag "${id}"
 
-  container = params.fastqc
+  label "fastqc"
 
   publishDir path: "${res_dir}/Processed_Data/1_Preprocessing/mRNA__fastqc", mode: "${pub_mode}"
 
@@ -1852,7 +1851,7 @@ process MRNA_QC__running_fastqc {
 
 process MRNA_QC__running_MultiQC {
 
-  container = params.multiqc
+  label "multiqc"
 
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
     if (it.indexOf(".html") > 0) "Figures_Individual/1_Preprocessing/${it}"
@@ -1909,8 +1908,8 @@ Kallisto_results_for_sleuth_2
 process DA_ATAC__doing_differential_abundance_analysis {
   tag "${COMP}"
 
-  container = params.diffbind
-  // container = params.differential_abundance
+  label "diffbind"
+  // label "differential_abundance"
   // Error in loadNamespace(x) : there is no package called ‘edgeR’
 
   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
@@ -2307,7 +2306,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
 process DA_ATAC__annotating_diffbind_peaks {
   tag "${COMP}"
 
-  container = params.bioconductor
+  label "bioconductor"
 
   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
      if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
@@ -2379,8 +2378,8 @@ process DA_ATAC__annotating_diffbind_peaks {
 process DA_ATAC__plotting_differential_abundance_results {
   tag "${COMP}"
 
-  container = params.diffbind
-  // container = params.differential_abundance
+  label "diffbind"
+  // label "differential_abundance"
 
   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
          if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
@@ -2493,7 +2492,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_Other_plot_for_merging_pdfs
 process DA_ATAC__saving_detailed_results_tables {
   tag "${COMP}"
 
-  container = params.r_basic
+  label "r_basic"
 
   when: do_atac
 
@@ -2584,7 +2583,7 @@ Formatting_csv_tables_channel = Formatting_csv_tables_channel.mix(ATAC_detailed_
 process DA_mRNA__doing_differential_abundance_analysis {
     tag "${COMP}"
 
-    container = params.sleuth
+    label "sleuth"
 
     publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
          if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) "mRNA__all_genes__rsleuth/${it}"
@@ -2703,7 +2702,7 @@ process DA_mRNA__plotting_differential_abundance_results {
     }
 
 
-    container = params.sleuth
+    label "sleuth"
 
     input:
       val out_path from Channel.value('2_Differential_Abundance')
@@ -2799,7 +2798,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(MRNA_Other_plot_for_merging_pdfs
 process DA_mRNA__saving_detailed_results_tables {
     tag "${COMP}"
 
-    container = params.r_basic
+    label "r_basic"
 
     publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", mode: pub_mode, enabled: params.save_tables_as_csv
 
@@ -2879,7 +2878,7 @@ do_atac_lgl = do_atac.toString().toUpperCase()
 process DA__splitting_differential_abundance_results_in_subsets {
   tag "${COMP}"
 
-  container = params.r_basic
+  label "r_basic"
 
   publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
     if (it.indexOf("__genes.rds") > 0) "DA_split__genes_rds/${it}"
@@ -3193,7 +3192,7 @@ DA_regions_split_ATAC1
 process DA__plotting_venn_diagrams {
   tag "${COMP}"
 
-  container = params.venndiagram
+  label "venndiagram"
 
   publishDir path: "${out_fig_indiv}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
       if (it.indexOf("__venn_up_or_down.pdf") > 0) "Venn_diagrams__two_ways/${it}"
@@ -3312,7 +3311,7 @@ DA_genes_for_computing_functional_annotations_overlaps_1
 process Overlap__computing_functional_annotations_overlaps {
   tag "${key}"
 
-  container = params.bioconductor
+  label "bioconductor"
 
   input:
     set key, data_type, func_anno, file(gene_set_rds) from DA_genes_for_computing_functional_annotations_overlaps_2
@@ -3464,7 +3463,7 @@ Overlap_tables_channel = Overlap_tables_channel.mix(Functional_annotations_overl
 process Overlap__computing_genes_self_overlaps {
   tag "${key}"
 
-  container = params.r_basic
+  label "r_basic"
 
   input:
     set key, data_type, file(lgenes), file('all_gene_sets/*') from DA_genes_for_computing_genes_self_overlaps_3
@@ -3560,7 +3559,7 @@ DA_regions_with_bg_for_computing_peaks_overlaps_3
 process Overlap__computing_peaks_overlaps {
   tag "${key}"
 
-  container = params.samtools_bedtools_perl
+  label "samtools_bedtools_perl"
 
   errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
   maxRetries 3
@@ -3630,7 +3629,7 @@ DA_regions_with_bg_for_computing_motifs_overlaps_1
 process Overlap__computing_motifs_overlaps {
   tag "${key}"
 
-  container = params.homer
+  label "homer"
 
   publishDir path: "${out_processed}/3_Enrichment/${data_type}/${key}", mode: "${pub_mode}"
 
@@ -3666,7 +3665,7 @@ process Overlap__computing_motifs_overlaps {
 process Overlap__reformatting_motifs_results {
   tag "${key}"
 
-  container = params.r_basic
+  label "r_basic"
 
   input:
     set key, data_type, file(motifs_results) from Motifs_overlaps_for_reformatting_results
@@ -3721,7 +3720,7 @@ Overlap_tables_channel = Overlap_tables_channel.dump(tag: 'overlap_tables')
 process Enrichment__computing_enrichment_pvalues {
   tag "${key}"
 
-  container = params.r_basic
+  label "r_basic"
 
   input:
     set key, data_type, file(df_count_csv) from Overlap_tables_channel
@@ -3859,7 +3858,7 @@ Enrichment_results_for_plotting_barplots_1
 process Enrichment__plotting_enrichment_barplots {
   tag "${key}"
 
-  container = params.figures
+  label "figures"
 
   publishDir path: "${out_fig_indiv}/3_Enrichment/Barplots__${data_type}", mode: "${pub_mode}"
 
@@ -3945,7 +3944,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Barplots_for_merging_pdfs.groupT
 process Enrichment__plotting_enrichment_heatmap {
   tag "${key}"
   
-  container = params.figures
+  label "figures"
   
   errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
   maxRetries 3
@@ -4110,7 +4109,7 @@ Formatting_csv_tables_channel = Formatting_csv_tables_channel.dump(tag: 'csv_tab
 process Finalization__formatting_csv_tables {
   tag "${out_folder}__${data_type}"
 
-  container = params.r_basic
+  label "r_basic"
 
   publishDir path: "${out_tab_indiv}/${out_folder}/${data_type}", mode: "${pub_mode}", enabled: params.save_tables_as_csv
 
@@ -4177,7 +4176,7 @@ Formatted_csv_tables_for_merging
 process Finalization__merging_csv_tables {
   tag "${out_folder}__${data_type}"
 
-  container = params.r_basic
+  label "r_basic"
 
   publishDir path: "${out_tab_merge}/${out_folder}", mode: "${pub_mode}", enabled: params.save_tables_as_csv
 
@@ -4220,8 +4219,8 @@ Exporting_to_Excel_channel = Exporting_to_Excel_channel.dump(tag: 'excel')
 process Finalization__saving_excel_tables {
   tag "${csv_file}"
 
-  // container = params.openxlsx => sh: : Permission denied ; Error: zipping up workbook failed. Please make sure Rtools is installed or a zip application is available to R.
-  container = params.differential_abundance
+  // label "openxlsx" => sh: : Permission denied ; Error: zipping up workbook failed. Please make sure Rtools is installed or a zip application is available to R.
+  label "differential_abundance"
 
   publishDir path: "${res_dir}/${out_path}", mode: "${pub_mode}" 
 
@@ -4353,7 +4352,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.dump(tag: 'merging_pdf')
 process Finalization__merging_pdfs {
   tag "${file_name}"
 
-  container = params.pdftk
+  label "pdftk"
 
   publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
 

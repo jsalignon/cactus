@@ -12,7 +12,7 @@
 process download_test_datasets {
   tag params.specie
 
-  container = params.skewer_pigz
+  label "skewer_pigz"
 
   publishDir path: "${launchDir}", mode: "link"
 
@@ -50,7 +50,7 @@ process download_test_datasets {
 process download_references {
   tag params.specie
 
-  container = params.skewer_pigz
+  label "skewer_pigz"
 
   publishDir path: "${params.references_dir}", mode: "link"
 
