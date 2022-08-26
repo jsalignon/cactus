@@ -60,15 +60,14 @@
 // Overlap__computing_motifs_overlaps
 // Overlap__reformatting_motifs_results
 
-// Enrichment__computing_enrichment_pvalues
-// Enrichment__plotting_enrichment_barplots
-// Enrichment__plotting_enrichment_heatmap
+// Plots__computing_enrichment_pvalues
+// Plots__making_enrichment_barplots
+// Plots__making_enrichment_heatmap
 
-// Finalization__formatting_csv_tables
-// Finalization__merging_csv_tables
-// Finalization__saving_excel_tables
-// Finalization__merging_pdfs
-
+// Reports__formatting_csv_tables
+// Reports__merging_csv_tables
+// Reports__saving_excel_tables
+// Reports__merging_pdfs
 
 
 
@@ -3717,7 +3716,7 @@ Overlap_tables_channel = Overlap_tables_channel.mix(Formatted_motifs_results_for
 
 Overlap_tables_channel = Overlap_tables_channel.dump(tag: 'overlap_tables')
 
-process Enrichment__computing_enrichment_pvalues {
+process Plots__computing_enrichment_pvalues {
   tag "${key}"
 
   label "r_basic"
@@ -3855,7 +3854,7 @@ Enrichment_results_for_plotting_barplots_1
 
 
 
-process Enrichment__plotting_enrichment_barplots {
+process Plots__plotting_enrichment_barplots {
   tag "${key}"
 
   label "figures"
@@ -3941,7 +3940,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Barplots_for_merging_pdfs.groupT
 
 
 
-process Enrichment__plotting_enrichment_heatmap {
+process Plots__plotting_enrichment_heatmap {
   tag "${key}"
   
   label "figures"
@@ -4106,7 +4105,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Heatmaps_for_merging_pdfs.groupT
 
 Formatting_csv_tables_channel = Formatting_csv_tables_channel.dump(tag: 'csv_tables')
 
-process Finalization__formatting_csv_tables {
+process Reports__formatting_csv_tables {
   tag "${out_folder}__${data_type}"
 
   label "r_basic"
@@ -4173,7 +4172,7 @@ Formatted_csv_tables_for_merging
   .dump(tag: 'merge_tables')
   .set{ Formatted_tables_grouped_for_merging_tables }
 
-process Finalization__merging_csv_tables {
+process Reports__merging_csv_tables {
   tag "${out_folder}__${data_type}"
 
   label "r_basic"
@@ -4216,7 +4215,7 @@ Exporting_to_Excel_channel = Exporting_to_Excel_channel.mix(Merged_csv_tables_fo
 
 Exporting_to_Excel_channel = Exporting_to_Excel_channel.dump(tag: 'excel')
 
-process Finalization__saving_excel_tables {
+process Reports__saving_excel_tables {
   tag "${csv_file}"
 
   // label "openxlsx" => sh: : Permission denied ; Error: zipping up workbook failed. Please make sure Rtools is installed or a zip application is available to R.
@@ -4349,7 +4348,7 @@ process Finalization__saving_excel_tables {
 
 Merging_pdfs_channel = Merging_pdfs_channel.dump(tag: 'merging_pdf')
 
-process Finalization__merging_pdfs {
+process Reports__merging_pdfs {
   tag "${file_name}"
 
   label "pdftk"
