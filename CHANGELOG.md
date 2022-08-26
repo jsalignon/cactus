@@ -28,15 +28,13 @@ Types of changes
 
 ## [Unreleased]
 
-### Added
- - an option to not have a genomic DNA control for ATAC-Seq analysis
-
-### Changed
- - input files for ATAC-Seq to account for the fact the gDNA is not mandatory anymore
-
 
 <!-- ## [2021.11.16](https://github.com/nf-core/sarek/releases/tag/2.7.1) - Pårtejekna
 
-Pårtejekna is one of glaciers of the Pårte Massif. -->
+Pårtejekna is one of glaciers of the Pårte Massif. 
+
+check out this Changelog for a formatting example.
+https://raw.githubusercontent.com/veeso/ATtila/main/CHANGELOG.md
+-->
 
 
