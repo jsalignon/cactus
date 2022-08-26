@@ -12,14 +12,14 @@
 
 # Configuration files
 
--	**~/.cactus.config (mandatory): global profile that applies to all runs
+-	**_~/.cactus.config_** (mandatory): global profile that applies to all runs
 	
--	**conf/run.config (optional): this file allows to overwrite Cactus default settings with custom settings. All parameters from the run.config file can be set here to determine how a given experiment is analyzed. 
+-	**_conf/run.config_** (optional): this file allows to overwrite Cactus default settings with custom settings. All parameters from the run.config file can be set here to determine how a given experiment is analyzed. 
 
 
 # Global parameters
 
-Any parameter listed below can be set in the **~/.cactus.config file. However, two parameters are mandatory to indicate the path where to download: the references (*params.references_dir*) and the singularity containers (*singularity_containers_path*). 
+Any parameter listed below can be set in the **_~/.cactus.config_** file. However, two parameters are mandatory to indicate the path where to download: the references (*params.references_dir*) and the singularity containers (*singularity_containers_path*). 
 
 In addition, it is recommended to set up a NextFlow Tower token here in order to monipor pipelines' execution here, using the [tower scope](https://www.nextflow.io/docs/latest/config.html#scope-tower). 
 
