@@ -52,3 +52,6 @@ cat > ${specie}/design/regions_to_remove.tsv << EOL
 hmg4 Hmg4->chrIII:7,379,143-7,381,596
 spt16 Spt16->chrI:10,789,130-10,793,152
 EOL
+
+
+replace_spaces_by_tabs_in_the_design_tsv_files $specie

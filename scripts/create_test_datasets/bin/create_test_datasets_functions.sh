@@ -45,3 +45,14 @@ make_fastq_info_file (){
 }
 
 # note : in awk, $7 corresponds to the sample_id column that indicate the sample name used throughout the pipeline, and that is made manually
+
+
+replace_spaces_by_tabs_in_the_design_tsv_files (){
+  specie=$1
+  tsv_files=$(ls ${specie}/design/*.tsv)
+  for tsv_file in ${tsv_files[@]}
+  do
+    awk -i inplace -v OFS="\t" '$1=$1' $tsv_file
+  done
+}
+

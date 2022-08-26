@@ -56,3 +56,15 @@ n301 nurf301->3L:233,926-246,912
 n301b170 bap170->2R:6,636,512-6,642,358
 n301b170 nurf301->3L:233,926-246,912
 EOL
+
+
+# replacing spaces by tabs in all tsv files
+tsv_files=$(ls ${specie}/design/*.tsv)
+for tsv_file in ${tsv_files[@]}
+do
+  awk -i inplace -v OFS="\t" '$1=$1' $tsv_file
+done
+
+
+replace_spaces_by_tabs_in_the_design_tsv_files $specie
+
