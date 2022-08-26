@@ -23,7 +23,7 @@ Any parameter listed below can be set in the **_~/.cactus.config_** file. Howeve
 
 In addition, it is recommended to set up a NextFlow Tower token here in order to monipor pipelines' execution here, using the [tower scope](https://www.nextflow.io/docs/latest/config.html#scope-tower). 
 
-Here is an example of a basic **.cactus.config file: 
+Here is an example of a basic **_.cactus.config_** file: 
 
 ```
 params.references_dir       = '/home/user/workspace/cactus/references'
@@ -38,7 +38,7 @@ tower {
 
 # List of all parameters
 
-Below are all parameters that can be set in the *.config* files. The different options are listed in italic, with the first one being the default parameter.
+Below are all parameters that can be set in the **_.config_** files. The different options are listed in italic, with the first one being the default parameter.
 
 ## Tools
  - **cactus_version**: *latest*.  
