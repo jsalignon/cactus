@@ -1,7 +1,8 @@
 
 
 cactus_dir=~/workspace/cactus
-get_test_datasets_bin_dir=$cactus_dir/software/get_test_datasets/bin
+create_test_datasets_bin_dir=$cactus_dir/scripts/create_test_datasets/bin
+source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 test_datasets_dir=$cactus_dir/test_datasets
 cd $test_datasets_dir
 
@@ -12,7 +13,7 @@ cd $test_datasets_dir
 
 # clean install: rm -r preprocessing worm fly mouse human work
 
-source $get_test_datasets_bin_dir/0__initialization.sh
+source $create_test_datasets_bin_dir/0__initialization.sh
 # note: one needs to press enter for the script to finish
 
 ## Genome and Transcriptome sizes (can help to (still empirically) determine how many reads should be sampled by specie)
@@ -60,14 +61,14 @@ specie="worm"
 n_reads_atac=200
 n_reads_mrna=50
 
-source $get_test_datasets_bin_dir/1__get_fastq.sh $specie
+source $create_test_datasets_bin_dir/1__get_fastq.sh $specie
 rename -v 's/SRX/mrna_SRX/' ${fastq_dir}/SRX30291{12..20}*
 rename -v 's/SRX/atac_SRX/' ${fastq_dir}/SRX30291{24..35}*
 rename -v 's/SRX/atac_SRX/' ${fastq_dir}/SRX2333004*
 ls "preprocessing/${specie}/fastq"
 
-source $get_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
-source $get_test_datasets_bin_dir/3__make_design_files__worm.sh $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/3__make_design_files__worm.sh $n_reads_atac $n_reads_mrna
 
 
 ##############################################
@@ -78,13 +79,13 @@ specie="fly"
 n_reads_atac=300
 n_reads_mrna=100
 
-source $get_test_datasets_bin_dir/1__get_fastq.sh $specie
+source $create_test_datasets_bin_dir/1__get_fastq.sh $specie
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX81740{44..53}*
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX81740{34..43}*
 ls "preprocessing/${specie}/fastq"
 
-source $get_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
-source $get_test_datasets_bin_dir/3__make_design_files__fly.sh $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/3__make_design_files__fly.sh $n_reads_atac $n_reads_mrna
 
 
 ##############################################
@@ -95,14 +96,14 @@ specie="mouse"
 n_reads_atac=6000
 n_reads_mrna=150
 
-source $get_test_datasets_bin_dir/1__get_fastq.sh $specie
+source $create_test_datasets_bin_dir/1__get_fastq.sh $specie
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX117086{63..78}*
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX117086{79..90}*
 ls "preprocessing/${specie}/fastq"
 ls "${specie}/data"
 
-source $get_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
-source $get_test_datasets_bin_dir/3__make_design_files__mouse.sh $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/3__make_design_files__mouse.sh $n_reads_atac $n_reads_mrna
 
 
 ##############################################
@@ -113,20 +114,20 @@ specie="human"
 n_reads_atac=6000
 n_reads_mrna=250
 
-source $get_test_datasets_bin_dir/1__get_fastq.sh $specie
+source $create_test_datasets_bin_dir/1__get_fastq.sh $specie
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX2794*
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX4029*
 ls "preprocessing/${specie}/fastq"
 
-source $get_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
-source $get_test_datasets_bin_dir/3__make_design_files__human.sh $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/3__make_design_files__human.sh $n_reads_atac $n_reads_mrna
 
 
 ##############################################
 ### Application note: Human and Worms (GSE98758)
 ##############################################
 
-source $get_test_datasets_bin_dir/make_application_note_dirs.sh
+source $create_test_datasets_bin_dir/make_application_note_dirs.sh
 
 dataset_name=application_notes
 

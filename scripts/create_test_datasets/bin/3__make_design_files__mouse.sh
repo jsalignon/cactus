@@ -12,9 +12,6 @@ source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
 cat > ${specie}/conf/run.config <<EOL
 params {
   specie            = 'mouse'
-  use_input_control = false
-  save_bed_type     = 'all'
-  chip_ontology     = 'all'
   chromatin_state   = 'ENCFF809HLK'
   threshold_type_for_splitting_subsets   = 'rank' 
   threshold_values_for_splitting_subsets = [ 200, 1000 ]

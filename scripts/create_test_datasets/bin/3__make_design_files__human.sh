@@ -12,8 +12,6 @@ source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
 cat > ${specie}/conf/run.config <<EOL
 params {
   specie            = 'human'
-  use_input_control = false
-  save_bed_type     = 'all'
   chip_ontology     = 'cell_type.fibroblast'
   chromatin_state   = 'ENCFF941SVR'
   threshold_type_for_splitting_subsets   = 'rank' 

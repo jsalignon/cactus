@@ -1,30 +1,6 @@
 
 
 ##############################################
-### Making the run configuration file
-##############################################
-
-cd $test_datasets_dir
-
-run_config_file=preprocessing/run.config
-
-cat > $run_config_file << EOL
-
-params {
-
-  use_input_control = false
-  
-  save_bed_type = 'all'
-
-  fdr_for_splitting_subsets = [ 0.2, 1.3 ] // setting -log10 FDR thresholds 
-
-}
-
-EOL
-
-cat $run_config_file
-
-##############################################
 ### Converting GSM ids to SRR ids
 ##############################################
 
