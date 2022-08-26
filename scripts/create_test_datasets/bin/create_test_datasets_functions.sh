@@ -30,7 +30,7 @@ make_fastq_info_file (){
     library_layout = $4
     gsub(/SINGLE/, "", library_layout) ; \
     gsub(/PAIRED/, "_R1", library_layout) ; \
-    if (NR != 1) print $7, " data/", library_strategy, "/sample_100K_reads_", library_strategy, "_", $1, "_", $2, library_layout, ".fastq.gz" \
+    if (NR != 1) print $7, " fastq/", library_strategy, "/sample_100K_reads_", library_strategy, "_", $1, "_", $2, library_layout, ".fastq.gz" \
   }' ${prepro_dir}/samplesheet/samples_info_1.tsv > ${fastq_info_file}
   
   sed -i -e "s/_100K_reads_atac/_${n_reads_atac}K_reads_atac/g" ${fastq_info_file}

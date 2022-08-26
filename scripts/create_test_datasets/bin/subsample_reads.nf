@@ -7,7 +7,7 @@ specie         = params.specie
 
 prepro_dir = "preprocessing/${specie}"
 in_dir     = "${prepro_dir}/fastq"
-out_dir    = "${specie}/data/${experiment}/"
+out_dir    = "${specie}/fastq/${experiment}/"
 
 n_K_reads = thousand_reads + 'K_reads'
 total_reads = thousand_reads * 1000
