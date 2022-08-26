@@ -48,103 +48,104 @@
 
 - [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 
-- [Homer](https://doi.org/10.1016/j.molcel.2010.05.004)
+- [HOMER](https://doi.org/10.1016/j.molcel.2010.05.004)
 
 > Heinz S, Benner C, Spann N, Bertolino E et al. Simple Combinations of Lineage-Determining Transcription Factors Prime cis-Regulatory Elements Required for Macrophage and B Cell Identities. Mol Cell 2010 May 28;38(4):576-589. PMID: 20513432
 
-- [Macs2]()
+- [MACS2](https://doi.org/10.1186/gb-2008-9-9-r137)
 
-> 
+> Zhang, Y., Liu, T., Meyer, C.A. et al. Model-based Analysis of ChIP-Seq (MACS). Genome Biol 9, R137 (2008).
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 
 > Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016 Oct 1;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411. PubMed Central PMCID: PMC5039924.
 
-- [Picard]()
+- [Picard](https://broadinstitute.github.io/picard/)
 
-> 
+> “Picard Toolkit.” 2019. Broad Institute, GitHub Repository.
 
 - [PIGZ](https://zlib.net/pigz/)
 
-> 
+- [pdftk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/)
 
-- [pdftk]()
+- [kallisto](https://doi.org/10.1038/nbt.3519)
 
-> 
+> Nicolas L Bray, Harold Pimentel, Páll Melsted and Lior Pachter, Near-optimal probabilistic RNA-seq quantification, Nature Biotechnology 34, 525–527 (2016).
 
-- [Kallisto]()
+- [r-sleuth](http://dx.doi.org/10.1038/nmeth.4324)
 
-> 
+> Harold J. Pimentel, Nicolas Bray, Suzette Puente, Páll Melsted and Lior Pachter, Differential analysis of RNA-Seq incorporating quantification uncertainty, Nature Methods (2017), advanced access.
 
-- [r-sleuth]()
+- [r-openxlsx](https://ycphs.github.io/openxlsx/index.html)
 
-> 
+> Schauberger P, Walker A (2022). openxlsx: Read, Write and Edit xlsx Files.
 
-- [r-openxlsx]()
+- [r-magrittr](https://magrittr.tidyverse.org)
 
-> 
+> Bache S, Wickham H (2022). magrittr: A Forward-Pipe Operator for R.
 
-- [r-magrittr]()
+- [r-dplyr](https://dplyr.tidyverse.org)
 
-> 
+> Wickham H, François R, Henry L, Müller K (2022). dplyr: A Grammar of Data Manipulation.
 
-- [r-dplyr]()
+- [r-purrr](http://purrr.tidyverse.org)
 
-> 
+> Henry L, Wickham H (2022). purrr: Functional Programming Tools.
 
-- [r-purrr]()
+- [r-ggplot2](https://ggplot2.tidyverse.org/)
 
-> 
+> H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016.
 
-- [r-ggplot2]()
+- [r-data.table](https://CRAN.R-project.org/package=data.table)
 
-> 
+> Matt Dowle and Arun Srinivasan (2021). data.table: Extension of `data.frame`. R package version 1.14.2.
+  
+- [r-gridExtra](https://CRAN.R-project.org/package=gridExtra)
 
-- [r-data.table]()
+> Baptiste Auguie (2017). gridExtra: Miscellaneous Functions for "Grid" Graphics. R package version 2.3.
+  
+- [r-ColorBrewer](https://CRAN.R-project.org/package=RColorBrewer)
 
-> 
+> Erich Neuwirth (2014). RColorBrewer: ColorBrewer Palettes. R package version 1.1-3. 
 
-- [r-gridextra]()
+- [r-VennDiagram](https://doi.org/10.1186/1471-2105-12-35)
 
-> 
-
-- [r-rcolorbrewer]()
-
-> 
-
-- [r-rcolorbrewer]()
-
-> 
+> Chen, H., Boutros, P.C. VennDiagram: a package for the generation of highly-customizable Venn and Euler diagrams in R. BMC Bioinformatics 12, 35 (2011). 
 
 - [SAMtools](https://pubmed.ncbi.nlm.nih.gov/19505943/)
 
 > Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R; 1000 Genome Project Data Processing Subgroup. The Sequence Alignment/Map format and SAMtools. Bioinformatics. 2009 Aug 15;25(16):2078-9. doi: 10.1093/bioinformatics/btp352. Epub 2009 Jun 8. PubMed PMID: 19505943; PubMed Central PMCID: PMC2723002.
 
-- [Skewer]()
+- [Skewer](https://doi.org/10.1186/1471-2105-15-182)
 
-> 
-
-- [venndiagram]()
-
-> 
-
-
+> Jiang, H., Lei, R., Ding, S.W. and Zhu, S. (2014) Skewer: a fast and accurate adapter trimmer for next-generation sequencing paired-end reads. BMC Bioinformatics, 15, 182.
 
 
 ## Create references tools
 
-- [Gffread]()
-- [Annotationhub]()
-- [cvbio]()
-- [liftover]()
-- [encodeexplorer]()
-<!-- Note: for encodeexplorer I didn't use the tool but only the container with this tool, since this container had the tools I needed to query the ENCODE API and parse json files. I am not sure if I should include the citation or not here. -->
-- [bedops]()
+- [GffRead](https://doi.org/10.12688/f1000research.23297.2)
+
+> How to cite: Pertea G and Pertea M. GFF Utilities: GffRead and GffCompare [version 2; peer review: 3 approved]. F1000Research 2020, 9:304.
+
+- [Annotationhub](10.18129/B9.bioc.AnnotationHub)
+
+> Morgan M, Shepherd L (2022). AnnotationHub: Client to access AnnotationHub resources. R package version 3.2.0.
+
+- [cvbio](https://github.com/clintval/cvbio#cvbio)
+
+- [LiftOver](https://doi.org/10.1093/nar/gkj144)
+
+> A. S. Hinrichs, D. Karolchik, R. Baertsch, G. P. Barber, G. Bejerano, H. Clawson, M. Diekhans, T. S. Furey, R. A. Harte, F. Hsu, J. Hillman-Jackson, R. M. Kuhn, J. S. Pedersen, A. Pohl, B. J. Raney, K. R. Rosenbloom, A. Siepel, K. E. Smith, C. W. Sugnet, A. Sultan-Qurraie, D. J. Thomas, H. Trumbower, R. J. Weber, M. Weirauch, A. S. Zweig, D. Haussler, W. J. Kent, The UCSC Genome Browser Database: update 2006, Nucleic Acids Research, Volume 34, Issue suppl_1, 1 January 2006, Pages D590–D598.
+
+- [BEDOPS](https://doi.org/10.1093/bioinformatics/bts277)
+
+> Shane Neph, M. Scott Kuehn, Alex P. Reynolds, Eric Haugen, Robert E. Thurman, Audra K. Johnson, Eric Rynes, Matthew T. Maurano, Jeff Vierstra, Sean Thomas, Richard Sandstrom, Richard Humbert, John A. Stamatoyannopoulos, BEDOPS: high-performance genomic feature operations, Bioinformatics, Volume 28, Issue 14, 15 July 2012, Pages 1919–1920.
+
 
 
 ## Create test datasets tools
 
-- [Seqtk]()
+- [seqtk](https://github.com/lh3/seqtk)
 
 
 ## R packages
