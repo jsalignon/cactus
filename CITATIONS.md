@@ -8,7 +8,7 @@
 
 > Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017 Apr 11;35(4):316-319. doi: 10.1038/nbt.3820. PubMed PMID: 28398311.
 
-## Pipeline tools
+## Pipeline
 
 - [BBMap](https://sourceforge.net/projects/bbmap/)
 
@@ -121,7 +121,7 @@
 > Jiang, H., Lei, R., Ding, S.W. and Zhu, S. (2014) Skewer: a fast and accurate adapter trimmer for next-generation sequencing paired-end reads. BMC Bioinformatics, 15, 182.
 
 
-## Create references tools
+## Create references
 
 - [GffRead](https://doi.org/10.12688/f1000research.23297.2)
 
@@ -143,22 +143,19 @@
 
 
 
-## Create test datasets tools
+## Create test datasets
 
 - [seqtk](https://github.com/lh3/seqtk)
 
 
-## R packages
+## R
 
 - [R](https://www.R-project.org/)
 
   > R Core Team (2017). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria.
 
-- [RColorBrewer](https://CRAN.R-project.org/package=RColorBrewer)
 
-  > Erich Neuwirth (2014). RColorBrewer: ColorBrewer Palettes.
-
-## Software packaging/containerisation tools
+## Software packaging/containerisation
 
 - [Anaconda](https://anaconda.com)
 
