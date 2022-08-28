@@ -118,7 +118,7 @@ static def returnR2ifExists(r2files) {
 // MRNA_reads_for_merging = Channel.create() // not yet implemented
 MRNA_reads_for_kallisto = Channel.create()
 
-fastq_files = file(params.design__mrna_fastq)
+fastq_files = file("design/mrna_fastq.tsv")
 Channel
   .from(fastq_files.readLines())
   .map{ it.split() }
@@ -139,7 +139,7 @@ Channel
 ATAC_reads_for_merging = Channel.create()
 ATAC_reads_for_trimming_1 = Channel.create()
 
-fastq_files = file(params.design__atac_fastq)
+fastq_files = file("design/atac_fastq.tsv")
 Channel
   .from(fastq_files.readLines())
   .map{ it.split() }
@@ -200,7 +200,8 @@ process ATAC_reads__trimming_reads {
 
   label "skewer_pigz"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", enabled: save_last_fastq
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", pattern: "*.fastq.gz", enabled: save_last_fastq
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", pattern: "*.log"
 
   when: do_atac
 
@@ -219,20 +220,20 @@ process ATAC_reads__trimming_reads {
       R1=!{read1}
       R2=!{read2}
       id=!{id}
-      Nb_of_threads=!{params.nb_threads}
+      nb_threads_pigz=!{params.nb_threads_pigz}
       
       R1TRIM=$(basename ${R1} .fastq.gz)_R1_trim.fastq
       R2TRIM=$(basename ${R2} .fastq.gz)_R2_trim.fastq
       
-      skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} -o !{id} > trimer_verbose.txt
-      mv !{id}-trimmed.log ${id}_skewer_trimming.log
-      mv !{id}-trimmed-pair1.fastq $R1TRIM
-      mv !{id}-trimmed-pair2.fastq $R2TRIM
-      pigz -p ${Nb_of_threads} $R1TRIM
-      pigz -p ${Nb_of_threads} $R2TRIM
+      skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} -o ${id} > trimer_verbose.txt
+      mv ${id}-trimmed.log ${id}_skewer_trimming.log
+      mv ${id}-trimmed-pair1.fastq $R1TRIM
+      mv ${id}-trimmed-pair2.fastq $R2TRIM
+      pigz -p ${nb_threads_pigz} $R1TRIM
+      pigz -p ${nb_threads_pigz} $R2TRIM
       
-      pigz -l $R1TRIM.gz > !{id}_pigz_compression.log
-      pigz -l $R2TRIM.gz >> !{id}_pigz_compression.log
+      pigz -l $R1TRIM.gz > ${id}_pigz_compression.log
+      pigz -l $R2TRIM.gz >> ${id}_pigz_compression.log
       
   '''
 }
@@ -280,7 +281,8 @@ process ATAC_reads__aligning_reads {
 
   label "bowtie2_samtools"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", enabled: save_all_bam
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", pattern: "*.{txt,qc}"
 
   when: do_atac
 
@@ -294,7 +296,7 @@ process ATAC_reads__aligning_reads {
 
   script:
   """
-    bowtie2 -p ${params.nb_threads} \
+    bowtie2 -p ${params.nb_threads_botwie2} \
       --very-sensitive \
       --end-to-end \
       --no-mixed \
@@ -614,9 +616,9 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
   script:
   """
 
-      bamCoverage --bam ${bam} --outFileName ${id}_raw.bw --binSize ${params.binsize_bigwig_creation} --numberOfProcessors ${params.nb_threads} --blackListFileName ${params.blacklisted_regions} --effectiveGenomeSize ${params.effective_genome_size}
+      bamCoverage --bam ${bam} --outFileName ${id}_raw.bw --binSize ${params.binsize_bigwig_creation} --numberOfProcessors ${params.nb_threads_deeptools} --blackListFileName ${params.blacklisted_regions} --effectiveGenomeSize ${params.effective_genome_size}
 
-      plotCoverage --bam ${bam} --blackListFileName ${params.blacklisted_regions} --numberOfProcessors ${params.nb_threads} --numberOfSamples ${params.nb_1bp_site_to_sample_for_coverage} --plotTitle ${id}_coverage --plotFile ${id}_coverage.pdf
+      plotCoverage --bam ${bam} --blackListFileName ${params.blacklisted_regions} --numberOfProcessors ${params.nb_threads_deeptools} --numberOfSamples ${params.nb_1bp_site_to_sample_for_coverage} --plotTitle ${id}_coverage --plotFile ${id}_coverage.pdf
 
   """
 }
@@ -882,7 +884,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
   script:
   """
 
-    bowtie2 -p ${params.nb_threads} \
+    bowtie2 -p ${params.nb_threads_botwie2} \
       --very-sensitive \
       --end-to-end \
       --no-mixed \
@@ -894,7 +896,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
 
       samtools flagstat "${id}_cel.bam" > "${id}_cel_flagstat.qc"
 
-    bowtie2 -p ${params.nb_threads} \
+    bowtie2 -p ${params.nb_threads_botwie2} \
       --very-sensitive \
       --end-to-end \
       --no-mixed \
@@ -1418,8 +1420,8 @@ Peaks_without_blacklist_2.without_input_control
 
 
 //// DIFFENRENTIAL BINDING
-
-comparisons_files = file(params.design__comparisons)
+ 
+comparisons_files = file("design/comparisons.tsv")
 Channel
   .from(comparisons_files.readLines())
   .map {
@@ -1427,7 +1429,7 @@ Channel
           condition1 = m[0]
           condition2 = m[1]
           [ condition1, condition2 ]
-        }
+       }
   .dump(tag:'comp_file') {"comparison file: ${it}"}
   .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
 
@@ -1439,7 +1441,7 @@ Reads_in_bam_files_for_diffbind
   .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
   .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
 
-regions_to_remove = Channel.fromPath(params.design__regions_to_remove)
+regions_to_remove = Channel.fromPath( 'design/regions_to_remove.tsv' )
 
 comparisons_files_for_merging
   .combine(reads_and_peaks_1)
@@ -1807,13 +1809,13 @@ process MRNA__quantifying_transcripts_abundances {
         if( single ) {
             """
               mkdir kallisto_${id}
-              kallisto quant --single -l ${params.fragment_len} -s ${params.fragment_sd} -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads} -o kallisto_${id} ${reads}
+              kallisto quant --single -l ${params.fragment_len} -s ${params.fragment_sd} -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads_kallisto} -o kallisto_${id} ${reads}
             """
         }
         else {
             """
               mkdir kallisto_${id}
-              kallisto quant -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads} -o kallisto_${id} ${reads}
+              kallisto quant -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads_kallisto} -o kallisto_${id} ${reads}
             """
         }
 }
@@ -3278,7 +3280,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_and_down_for_merging_pdf
 
 //// importing groups of comparisons to plot together on the overlap matrix and the heatmaps
 
-comparisons_grouped = file(params.design__groups)
+comparisons_grouped = file("design/groups.tsv")
 Channel
   .from( comparisons_grouped.readLines() )
   .map { it.split() }
@@ -3645,7 +3647,7 @@ process Overlap__computing_motifs_overlaps {
   '''
 
 
-    findMotifsGenome.pl !{DA_regions} !{params.homer_genome} "."  -size given  -p !{params.nb_threads}  -bg !{all_regions}  -mknown !{params.pwms_motifs}  -nomotif
+    findMotifsGenome.pl !{DA_regions} !{params.homer_genome} "."  -size given  -p !{params.nb_threads_homer}  -bg !{all_regions}  -mknown !{params.pwms_motifs}  -nomotif
 
 
     FILE="knownResults.txt"

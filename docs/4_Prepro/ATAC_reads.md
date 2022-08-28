@@ -14,150 +14,197 @@
 ## ATAC_reads__merging_reads
 
   ### Description
-Samples sequenced multiple times (that have the same id) are merged
+Samples sequenced multiple times (that have the same id) are merged.
   
-  ### parameters
-  
-  ### outputs
+  ### Outputs
+ - If *params.save_fastq_type = 'all'* then fasqt files after merging (${id}_R1_merged.fastq.gz and ${id}_R2_merged.fastq.gz) will be saved in the folder *Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged*
 
 
 ## ATAC_reads__trimming_reads
  
   ### Description
+ATAC-Seq adaptors are trimmed using (Skewer)[https://doi.org/10.1186/1471-2105-15-182], then they are compressed in parallel by 
+[PIGZ](https://zlib.net/pigz/)
 
-  ### parameters
+  ### Parameters
+  - *params.nb_threads_pigz* controls the number of threads used for parallel compression by pigz.
 
-  ### outputs
+  ### Outputs
+  - If *params.save_fastq_type = 'all'* then fasqt files after trimming (${id}_R1_trim.fastq.gz and ${id}_R2_trim.fastq.gz) and log files (${id}_skewer_trimming.log and ${id}_pigz_compression.log) will be saved in the folder *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
   
 
 ## ATAC_reads__aligning_reads
 
  ### Description
 
- ### parameters
+ ### Parameters
+ - Output folder is *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
- ### outputs
-
+ ### Outputs
+ #### Files
+ - Fasqt files after trimming (${id}_R1_trim.fastq.gz and ${id}_R2_trim.fastq.gz) if *params.save_bam_type = 'all'* 
+ - Log files (${id}_skewer_trimming.log and ${id}_pigz_compression.log) are saved
+ #### Folder: *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
 ## ATAC_reads__removing_low_quality_reads
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
 
 
 ## ATAC_reads__marking_duplicated_reads
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_reads__removing_duplicated_reads
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
 ## ATAC_reads__removing_reads_in_mitochondria_and_small_contigs
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_QC_reads__running_fastqc
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_QC_reads__plotting_insert_size_distribution
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_QC_reads__sampling_aligned_reads
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_QC_reads__measuring_overlap_with_genomic_regions
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_QC_reads__estimating_library_complexity
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
  
 ## ATAC_QC_reads__sampling_trimmed_reads
 
  ### Description
 
- ### parameters
+ ### Parameters
 
- ### outputs
+ ### Outputs
  
- ATAC_QC_reads__aligning_sampled_reads
- ATAC_QC_reads__gathering_all_stat
- ATAC_QC_reads__gathering_all_samples
- ATAC_QC_reads__splitting_stat_for_multiqc
- ATAC_QC_reads__running_multiQC
+
+## ATAC_QC_reads__aligning_sampled_reads
+
+ ### Description
+
+ ### Parameters
+
+ ### Outputs
+ 
+ 
+## ATAC_QC_reads__gathering_all_stat
+
+ ### Description
+
+ ### Parameters
+
+ ### Outputs
+ 
+
+## ATAC_QC_reads__gathering_all_samples
+
+ ### Description
+
+ ### Parameters
+
+ ### Outputs
+ 
+ 
+## ATAC_QC_reads__splitting_stat_for_multiqc
+
+ ### Description
+
+ ### Parameters
+
+ ### Outputs
+ 
+ 
+## ATAC_QC_reads__running_multiQC
+
+ ### Description
+
+ ### Parameters
+
+ ### Outputs
+ 
 
 
