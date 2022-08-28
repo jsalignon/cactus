@@ -148,3 +148,10 @@ params.save_tables_as_excel = true
 
 params.excel_add_conditional_formatting = 'T'
 params.excel_max_width = 40
+
+
+nb_threads_pigz       = 6
+nb_threads_botwie2    = 6
+nb_threads_deeptools  = 6
+nb_threads_kallisto   = 6
+nb_threads_homer      = 6

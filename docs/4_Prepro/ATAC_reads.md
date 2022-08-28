@@ -34,21 +34,24 @@ ATAC-Seq adaptors are trimmed using (Skewer)[https://doi.org/10.1186/1471-2105-1
 
   ### Outputs
   #### Files
-  - **Fasqt files after trimming** if *params.save_fastq_type = 'all'*
   - **Trimming and compression log files**
+  - **Fasqt files after trimming** if *params.save_fastq_type = 'all'*
   #### Folder
   *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
 ## ATAC_reads__aligning_reads
 
  ### Description
+Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/nmeth.1923) and the resulting SAM files are converted to BAM with [SAMtools](https://pubmed.ncbi.nlm.nih.gov/19505943/). SAMtools is also used to count the number of aligned reads.
 
  ### Parameters
+ - *params.nb_threads_bowtie2* controls the number of threads used for parallel compression.
 
  ### Outputs
  #### Files
- - **Bowt**: (${id}_skewer_trimming.log and ${id}_pigz_compression.log) 
- - **Fasqt files after trimming**: (${id}_R1_trim.fastq.gz and ${id}_R2_trim.fastq.gz) if *params.save_bam_type = 'all'* 
+ - **Bowtie 2 alignment metrics (.txt file)**
+ - **Number of aligned reads (.qc file)**
+ - **Aligned reads (.qc file)** if *params.save_bam_type = 'all'* 
  #### Folder
  *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
