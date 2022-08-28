@@ -200,8 +200,8 @@ process ATAC_reads__trimming_reads {
 
   label "skewer_pigz"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", pattern: "*.fastq.gz", enabled: save_last_fastq
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", pattern: "*.log"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", pattern: "*.fastq.gz", enabled: save_last_fastq
 
   when: do_atac
 
@@ -281,8 +281,8 @@ process ATAC_reads__aligning_reads {
 
   label "bowtie2_samtools"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", pattern: "*.{txt,qc}"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
   when: do_atac
 

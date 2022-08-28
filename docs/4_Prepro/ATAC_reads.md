@@ -17,21 +17,25 @@
 Samples sequenced multiple times (that have the same id) are merged.
   
   ### Outputs
- - If *params.save_fastq_type = 'all'* then fasqt files after merging (${id}_R1_merged.fastq.gz and ${id}_R2_merged.fastq.gz) will be saved in the folder *Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged*
+#### Files
+ - **Fasqt files after merging** if *params.save_fastq_type = 'all'*
+ #### Folder
+*Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged*
 
 
 ## ATAC_reads__trimming_reads
  
   ### Description
 ATAC-Seq adaptors are trimmed using (Skewer)[https://doi.org/10.1186/1471-2105-15-182], then they are compressed in parallel by 
-[PIGZ](https://zlib.net/pigz/)
+[PIGZ](https://zlib.net/pigz/).
 
   ### Parameters
-  - *params.nb_threads_pigz* controls the number of threads used for parallel compression by pigz.
+  - *params.nb_threads_pigz* controls the number of threads used for parallel compression.
 
   ### Outputs
   #### Files
-  - If *params.save_fastq_type = 'all'* then fasqt files after trimming (${id}_R1_trim.fastq.gz and ${id}_R2_trim.fastq.gz) and log files (*${id}_skewer_trimming.log* and *${id}_pigz_compression.log*) will be saved in the folder *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
+  - **Fasqt files after trimming** if *params.save_fastq_type = 'all'*
+  - **Trimming and compression log files**
   #### Folder
   *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
@@ -43,8 +47,8 @@ ATAC-Seq adaptors are trimmed using (Skewer)[https://doi.org/10.1186/1471-2105-1
 
  ### Outputs
  #### Files
- - Fasqt files after trimming (${id}_R1_trim.fastq.gz and ${id}_R2_trim.fastq.gz) if *params.save_bam_type = 'all'* 
- - Log files (${id}_skewer_trimming.log and ${id}_pigz_compression.log) are saved
+ - **Bowt**: (${id}_skewer_trimming.log and ${id}_pigz_compression.log) 
+ - **Fasqt files after trimming**: (${id}_R1_trim.fastq.gz and ${id}_R2_trim.fastq.gz) if *params.save_bam_type = 'all'* 
  #### Folder
  *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
