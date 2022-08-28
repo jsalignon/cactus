@@ -30,21 +30,23 @@ ATAC-Seq adaptors are trimmed using (Skewer)[https://doi.org/10.1186/1471-2105-1
   - *params.nb_threads_pigz* controls the number of threads used for parallel compression by pigz.
 
   ### Outputs
-  - If *params.save_fastq_type = 'all'* then fasqt files after trimming (${id}_R1_trim.fastq.gz and ${id}_R2_trim.fastq.gz) and log files (${id}_skewer_trimming.log and ${id}_pigz_compression.log) will be saved in the folder *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
-  
+  #### Files
+  - If *params.save_fastq_type = 'all'* then fasqt files after trimming (${id}_R1_trim.fastq.gz and ${id}_R2_trim.fastq.gz) and log files (*${id}_skewer_trimming.log* and *${id}_pigz_compression.log*) will be saved in the folder *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
+  #### Folder
+  *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
 ## ATAC_reads__aligning_reads
 
  ### Description
 
  ### Parameters
- - Output folder is *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
  ### Outputs
  #### Files
  - Fasqt files after trimming (${id}_R1_trim.fastq.gz and ${id}_R2_trim.fastq.gz) if *params.save_bam_type = 'all'* 
  - Log files (${id}_skewer_trimming.log and ${id}_pigz_compression.log) are saved
- #### Folder: *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
+ #### Folder
+ *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
 ## ATAC_reads__removing_low_quality_reads
 
