@@ -18,7 +18,7 @@ Samples sequenced multiple times (that have the same id) are merged.
   
   ### Outputs
 #### Files
- - **Fasqt files after merging** if *params.save_fastq_type = 'all'*
+ - **Merged reads (.fastq.gz files)** if *params.save_fastq_type = 'all'*
  #### Folder
 *Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged*
 
@@ -34,8 +34,8 @@ ATAC-Seq adaptors are trimmed using (Skewer)[https://doi.org/10.1186/1471-2105-1
 
   ### Outputs
   #### Files
-  - **Trimming and compression log files**
-  - **Fasqt files after trimming** if *params.save_fastq_type = 'all'*
+  - **Trimming and compression reports (.log files)**
+  - **Trimmed reads (.fasqt.gz files)** if *params.save_fastq_type = 'all'*
   #### Folder
   *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
@@ -51,19 +51,27 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
  #### Files
  - **Bowtie 2 alignment metrics (.txt file)**
  - **Number of aligned reads (.qc file)**
- - **Aligned reads (.qc file)** if *params.save_bam_type = 'all'* 
+ - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
  #### Folder
  *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
 
 ## ATAC_reads__removing_low_quality_reads
 
  ### Description
+ Low quality reads with these attributes are filtered: unmapped, mate unmapped, no primary alignment, low MAPQ
 
  ### Parameters
+ - *params.sam_MAPQ_threshold* defines the MAPQ threshold
 
  ### Outputs
+ #### Files
+ - **Number of aligned reads (.qc file)**
+ - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
+ #### Folder
+ *Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ*
 
 
+ATAC__reads__bam_no_lowQ
 ## ATAC_reads__marking_duplicated_reads
 
  ### Description

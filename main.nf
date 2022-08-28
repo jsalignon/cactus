@@ -319,7 +319,8 @@ process ATAC_reads__removing_low_quality_reads {
 
   label "bowtie2_samtools"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", mode: "${pub_mode}", enabled: save_all_bam
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", mode: "${pub_mode}", pattern: "*.qc"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
   when: do_atac
 
