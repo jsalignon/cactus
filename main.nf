@@ -1022,7 +1022,7 @@ process ATAC_QC_reads__running_multiQC {
 
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
       if (it.indexOf(".html") > 0) "Figures_Individual/1_Preprocessing/${it}"
-      else "Processed_Data/1_Preprocessing/ATAC__reads__multiQC/${it}"
+      // else "Processed_Data/1_Preprocessing/ATAC__reads__multiQC/${it}"
   }
 
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
@@ -1037,7 +1037,7 @@ process ATAC_QC_reads__running_multiQC {
 
   output:
     file "ATAC__multiQC.html"
-    file "*multiqc_data"
+    // file "*multiqc_data"
 
   script:
   """
@@ -1056,7 +1056,7 @@ process ATAC_QC_reads__running_multiQC {
 // cut -d "," -f 1-6 ${bam_stat} > \${FILENAME}_percentage_mqc.csv
 // cut -d "," -f 1,7-10 ${bam_stat} > \${FILENAME}_counts_mqc.csv
 
-
+// the raw multiqc_data folder is probably not useful to publish. Interested people may add it back though by uncommenting these 2 lines.
 
 
 
