@@ -123,7 +123,7 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
 ## ATAC_reads__removing_reads_in_mitochondria_and_small_contigs
 
  ### Description
-Samtools is used to remove reads mapping to the mitochondrial chromosome or to small contigs. This is defined as regions (contigs and chromosomes) with at least 5 genes (see [References](/docs/2_Install/References.md#Pipeline-to-get-references)). Number of aligned reads per chromosomes and per category are also computed with Samtools.
+Samtools is used to remove reads mapping to the mitochondrial chromosome or to small contigs. This is defined as regions (contigs and chromosomes) with less than 5 genes (see [References](/docs/2_Install/References.md#Pipeline-to-get-references)). Number of aligned reads per chromosomes and per category are also computed with SAMtools.
 
  ### Outputs
  #### Files
@@ -138,15 +138,13 @@ Samtools is used to remove reads mapping to the mitochondrial chromosome or to s
 ## ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5
 
  ### Description
-
- ### Parameters
+This process converts bam files to bed files, and use the insert length as the score. It then adjusts for the shift of the transposase to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688). This is done by shifting reads on the + strand by +4 base pairs and reads on the - strand by -5 base pairs. Finally, it keeps only the 5' end of each reads (and thus each read becomes 1 base pair long), and create a sorted and indexed bam file from the final adjusted bed file. The bam file is sent to [DiffBind](https://doi.org/10.1038/nature10730)] for Differential Binding analysis. The bed file is sent for custom quality controls processes (see below), for computing and plotting saturation curve, and for calling macs2 peaks.
 
  ### Outputs
  #### Files
-  - **Number of aligned reads per category (.qc file)**
-  - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
+  - **Aligned reads (.bam files)** if *params.save_1bp_bam = true* 
  #### Folder
- *Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli*
+ *Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift*
  
 
  

@@ -506,69 +506,20 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // reads on the - strand are shifted by - 5 base pair -1 (different coordinate system) (445 -5 - 1 = 439)
 
 // explanations for the input:
-// the fragment has a size of 88 bp from 
+// the read has a size of 37 bp and the insert has a size of 88 bp 
 // ranges: 
 // - read 1 [357-394 -> size: 37]
 // - read 2 [408-445 -> size: 37]
 // - insert [357-445 -> size: 88]
-// - fragment [345-457 -> size: 112] (not entirely sure for this. I just added 12 for the ATAC-Seq adapter length)
+// - fragment [345-457 -> size: 112] (not really sure for this. I just added 12 for the ATAC-Seq adapter length)
 // https://www.frontiersin.org/files/Articles/77572/fgene-05-00005-HTML/image_m/fgene-05-00005-g001.jpg
 // https://samtools-help.narkive.com/BpGYAdaT/isize-field-determining-insert-sizes-in-paired-end-data
 
 // Note: here the 1 base pair long (5') transposase-shifted peaks are sent to DiffBind directly for Differential Accessibility Analysis.
-// However, for macs2, they are previously extended by 75 bp (Alternatively, this shift could be done in macs with this option: --shift -75 in macs2)
 
 // https://www.nature.com/articles/nmeth.2688
 // https://www.nature.com/articles/s42003-020-01403-4
 // The Tn5 insertion positions were determined as the start sites of reads adjusted by the rule of “forward strand +4 bp, negative strand −5 bp”4.
-
-
-// process ATAC__extending_bed {
-//   tag "${id}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift_extendedBed", mode: "${pub_mode}", enabled: save_last_bam
-// 
-//   when: do_atac
-// 
-//   input:
-//     set id, file(bed) from Bed_for_extending_before_macs2
-// 
-//   output:
-//     set id, file("*.bed") into Reads_in_bed_files_for_gathering_reads_stat, Reads_in_bed_files_for_calling_peaks, Reads_in_bed_files_for_computing_and_plotting_saturation_curve
-// 
-//   script:
-//   """
-// 
-//       slopBed -i ${bed} -g "${params.chromosomes_sizes}" -l 75 -r -75 -s > "${id}_for_macs.bed"
-// 
-//   """
-// 
-// }
-// 
-// // inputs are bed files of 1 base pair reads
-// // outputs are bed files of 1 base-pair reads shifted by 75 base pair on the 5' direction
-// 
-// 
-// // Example of a read pair:
-// 
-// // input:
-// // grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_1bp_shifted_reads.bed
-// // 211000022278033 360     361     SRR11607686.9081238/2   88      +
-// // 211000022278033 438     439     SRR11607686.9081238/1   -88     -
-// 
-// // output:
-// // grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_for_macs.bed
-// // 211000022278033 285     286     SRR11607686.9081238/2   88      +
-// // 211000022278033 513     514     SRR11607686.9081238/1   -88     -
-// 
-// // reads are extended in opposite directions: -75bp on the + strand and +75 bp on the - strand
-// // 360 - 75 = 285
-// // 439 + 75 = 514
-
-//// Note: this process was disabled since now we use the option --shift -75 within macs2. It gives the same results (I checked for one sample)
-
 
 
 
