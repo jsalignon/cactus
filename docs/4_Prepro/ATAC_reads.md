@@ -45,7 +45,7 @@
 Samples sequenced multiple times (that have the same id) are merged.
   
   ### Outputs
-    - **Merged reads** (.fastq.gz files) if *params.save_fastq_type = 'all'* in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`
+    - **Merged reads** (.fastq.gz files) if **_params.save_fastq_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`
 
 
 ## ATAC_reads__trimming_reads
@@ -54,11 +54,11 @@ Samples sequenced multiple times (that have the same id) are merged.
 ATAC-Seq adaptors are trimmed using [Skewer](https://doi.org/10.1186/1471-2105-15-182), then they are compressed in parallel by [PIGZ](https://zlib.net/pigz/).
 
   ### Parameters
-  - *params.nb_threads_pigz*: number of threads used for parallel compression.
+  - **_params.nb_threads_pigz_**: number of threads used for parallel compression.
 
   ### Outputs
     - **Trimming and compression reports** (.log files)
-    - **Trimmed reads (.fasqt.gz files)** if *params.save_fastq_type = 'all'*
+    - **Trimmed reads (.fasqt.gz files)** if **_params.save_fastq_type = 'all'_**
       - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`
 
 ## ATAC_reads__aligning_reads
@@ -67,12 +67,12 @@ ATAC-Seq adaptors are trimmed using [Skewer](https://doi.org/10.1186/1471-2105-1
 Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/nmeth.1923) and the resulting SAM files are converted to BAM with [SAMtools](https://pubmed.ncbi.nlm.nih.gov/19505943/). SAMtools is also used to count the number of aligned reads per category.
 
  ### Parameters
- - *params.nb_threads_bowtie2*: number of threads used for parallel compression.
+ - **_params.nb_threads_bowtie2_**: number of threads used for parallel compression.
 
  ### Outputs
  - **Bowtie 2 alignment metrics** (.txt file)
  - **Number of aligned reads per category** (.qc file)
- - **Aligned reads** (.bam files) if *params.save_bam_type = 'all'* 
+ - **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
    - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`
 
 ## ATAC_reads__removing_low_quality_reads
@@ -81,11 +81,11 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
  Low quality reads with these attributes are filtered: unmapped, mate unmapped, no primary alignment, low MAPQ (quality score). Reads are sorted and the number of aligned reads per category is determined with SAMtools.
 
  ### Parameters
- - *params.sam_MAPQ_threshold*: MAPQ threshold
+ - **_params.sam_MAPQ_threshold_**: MAPQ threshold
 
  ### Outputs
  - **Number of aligned reads per category** (.qc file)
- - **Aligned reads** (.bam files) if *params.save_bam_type = 'all'* 
+ - **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`
 
 
@@ -95,7 +95,7 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
  [Picard](https://broadinstitute.github.io/picard/) is used to mark duplicated reads.
 
  ### Parameters
- - *params.memory_picard*: maximum memory used by Picard.
+ - **_params.memory_picard_**: maximum memory used by Picard.
 
  
 ## ATAC_reads__removing_duplicated_reads
@@ -105,7 +105,7 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
 
  ### Outputs
   - **Number of aligned reads per category** (.qc file)
-  - **Aligned reads** (.bam files) if *params.save_bam_type = 'all'* 
+  - **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
    - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`
  
 
@@ -117,7 +117,7 @@ Samtools is used to remove reads mapping to the mitochondrial chromosome or to s
  ### Outputs
   - **Number of aligned reads per category** (.qc file)
   - **Number of reads per chromosome before and after filtering** (.txt file)
-  - **Aligned reads** (.bam files) if *params.save_bam_type = 'last'* 
+  - **Aligned reads** (.bam files) if **_params.save_bam_type = 'last'_** 
     - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito`
  
 
@@ -128,7 +128,7 @@ Samtools is used to remove reads mapping to the mitochondrial chromosome or to s
 This process converts bam files to bed files, and use the insert length as the score. It then adjusts for the shift of the transposase to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688). This is done by shifting reads on the + strand by +4 base pairs and reads on the - strand by -5 base pairs. Finally, it keeps only the 5' end of each reads (and thus each read becomes 1 base pair long), and create a sorted and indexed bam file from the final adjusted bed file. The bam file is sent to [DiffBind](https://doi.org/10.1038/nature10730)] for Differential Binding analysis. The bed file is sent for custom quality controls processes (see below), for computing and plotting saturation curve, and for calling macs2 peaks.
 
  ### Outputs
-  - **Aligned reads** (.bam files) if *params.save_1bp_bam = true* in `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift`
+  - **Aligned reads** (.bam files) if **_params.save_1bp_bam = true_** in `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift`
 
  
  
@@ -141,10 +141,10 @@ This process converts bam files to bed files, and use the insert length as the s
 [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) is runned to perform standard quality controls check on sequenced data.
 
  ### Parameters
- - *params.nb_threads_fastqc*: number of threads used by FastQC
+ - **_params.nb_threads_fastqc_**: number of threads used by FastQC
 
  ### Outputs
-  - **Reads quality control reports** (.zip and .html files) if *params.save_1bp_bam = true* 
+  - **Reads quality control reports** (.zip and .html files) if **_params.save_1bp_bam = true_**
     - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw` for raw reads
     - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_trimmed` for trimmed reads
  
@@ -156,8 +156,8 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 
 ### Parameters
 - **_params.binsize_bigwig_creation_**: size of the bins in the bigwig file. Smaller values increase computation time.
-- *params.nb_threads_deeptools*: number of threads used by FastQC
-- *params.nb_1bp_site_to_sample_for_coverage*: number of 1 bp sites to sample for the coverage plots
+- **_params.nb_threads_deeptools_**: number of threads used by FastQC
+- **_params.nb_1bp_site_to_sample_for_coverage_**: number of 1 bp sites to sample for the coverage plots
 
 ### Outputs
 - **Coverage profiles** (.bw files) in `Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw`
@@ -169,7 +169,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO_**: 
 
 ### Outputs
 - **PCA plots** in `Figures_Individual/1_Preprocessing/ATAC__reads__PCA1`
@@ -181,7 +181,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
@@ -195,7 +195,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
@@ -209,7 +209,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
@@ -223,7 +223,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
@@ -237,7 +237,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
@@ -251,7 +251,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
@@ -265,7 +265,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
@@ -279,7 +279,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
@@ -293,7 +293,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
@@ -307,7 +307,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 ### Description
 
 ### Parameters
-- *params.OO*: 
+- **_params.OO*: 
 
 ### Outputs
 #### Files
