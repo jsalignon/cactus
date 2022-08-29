@@ -45,7 +45,7 @@
 Samples sequenced multiple times (that have the same id) are merged.
   
   ### Outputs
-    - **Merged reads (.fastq.gz files)** if *params.save_fastq_type = 'all'* in *Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged*
+    - **Merged reads** (.fastq.gz files) if *params.save_fastq_type = 'all'* in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`
 
 
 ## ATAC_reads__trimming_reads
@@ -57,9 +57,9 @@ ATAC-Seq adaptors are trimmed using [Skewer](https://doi.org/10.1186/1471-2105-1
   - *params.nb_threads_pigz*: number of threads used for parallel compression.
 
   ### Outputs
-    - **Trimming and compression reports (.log files)**
+    - **Trimming and compression reports** (.log files)
     - **Trimmed reads (.fasqt.gz files)** if *params.save_fastq_type = 'all'*
-      - in *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
+      - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`
 
 ## ATAC_reads__aligning_reads
 
@@ -70,10 +70,10 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
  - *params.nb_threads_bowtie2*: number of threads used for parallel compression.
 
  ### Outputs
- - **Bowtie 2 alignment metrics (.txt file)**
- - **Number of aligned reads per category (.qc file)**
- - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
-   - in *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
+ - **Bowtie 2 alignment metrics** (.txt file)
+ - **Number of aligned reads per category** (.qc file)
+ - **Aligned reads** (.bam files) if *params.save_bam_type = 'all'* 
+   - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`
 
 ## ATAC_reads__removing_low_quality_reads
 
@@ -84,9 +84,9 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
  - *params.sam_MAPQ_threshold*: MAPQ threshold
 
  ### Outputs
- - **Number of aligned reads per category (.qc file)**
- - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
-  - in *Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ*
+ - **Number of aligned reads per category** (.qc file)
+ - **Aligned reads** (.bam files) if *params.save_bam_type = 'all'* 
+  - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`
 
 
 ## ATAC_reads__marking_duplicated_reads
@@ -104,9 +104,9 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
  Duplicated reads are removed with SAMtools, an index is build, and the number of aligned reads per category is determined with SAMtools.
 
  ### Outputs
-  - **Number of aligned reads per category (.qc file)**
-  - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
-   - in *Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli*
+  - **Number of aligned reads per category** (.qc file)
+  - **Aligned reads** (.bam files) if *params.save_bam_type = 'all'* 
+   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`
  
 
 ## ATAC_reads__removing_reads_in_mitochondria_and_small_contigs
@@ -115,10 +115,10 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
 Samtools is used to remove reads mapping to the mitochondrial chromosome or to small contigs. This is defined as regions (contigs and chromosomes) with less than 5 genes (see [References](/docs/2_Install/References.md#Pipeline-to-get-references)). Number of aligned reads per chromosomes and per category are also computed with SAMtools.
 
  ### Outputs
-  - **Number of aligned reads per category (.qc file)**
-  - **Number of reads per chromosome before and after filtering (.txt file)**
-  - **Aligned reads (.bam files)** if *params.save_bam_type = 'last'* 
-    - in *Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito*
+  - **Number of aligned reads per category** (.qc file)
+  - **Number of reads per chromosome before and after filtering** (.txt file)
+  - **Aligned reads** (.bam files) if *params.save_bam_type = 'last'* 
+    - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito`
  
 
  
@@ -128,7 +128,7 @@ Samtools is used to remove reads mapping to the mitochondrial chromosome or to s
 This process converts bam files to bed files, and use the insert length as the score. It then adjusts for the shift of the transposase to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688). This is done by shifting reads on the + strand by +4 base pairs and reads on the - strand by -5 base pairs. Finally, it keeps only the 5' end of each reads (and thus each read becomes 1 base pair long), and create a sorted and indexed bam file from the final adjusted bed file. The bam file is sent to [DiffBind](https://doi.org/10.1038/nature10730)] for Differential Binding analysis. The bed file is sent for custom quality controls processes (see below), for computing and plotting saturation curve, and for calling macs2 peaks.
 
  ### Outputs
-  - **Aligned reads (.bam files)** if *params.save_1bp_bam = true* in *Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift*
+  - **Aligned reads** (.bam files) if *params.save_1bp_bam = true* in `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift`
 
  
  
@@ -144,9 +144,9 @@ This process converts bam files to bed files, and use the insert length as the s
  - *params.nb_threads_fastqc*: number of threads used by FastQC
 
  ### Outputs
-  - **Reads quality control reports (.zip and .html files)** if *params.save_1bp_bam = true* 
-    - in *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for raw reads
-    - in *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_trimmed* for trimmed reads
+  - **Reads quality control reports** (.zip and .html files) if *params.save_1bp_bam = true* 
+    - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw` for raw reads
+    - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_trimmed` for trimmed reads
  
  
 ## ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage
@@ -160,7 +160,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 - *params.nb_1bp_site_to_sample_for_coverage*: number of 1 bp sites to sample for the coverage plots
 
 ### Outputs
-- **Coverage profiles** (.bw files) in `*Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw*`
+- **Coverage profiles** (.bw files) in `Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw`
 - **Coverage plots** (.pdf files) in `Figures_Individual/1_Preprocessing/ATAC__reads__coverage`
 
  
@@ -172,8 +172,8 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 - *params.OO*: 
 
 ### Outputs
-- **PCA plots** in *Figures_Individual/1_Preprocessing/ATAC__reads__PCA*
-- **Correlation plots** in *Figures_Individual/1_Preprocessing/ATAC__reads__correlations*
+- **PCA plots** in `Figures_Individual/1_Preprocessing/ATAC__reads__PCA1`
+- **Correlation plots** in `Figures_Individual/1_Preprocessing/ATAC__reads__correlations`
 
  
 ## ATAC_QC_reads__plotting_insert_size_distribution
@@ -187,7 +187,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
 
  
 ## ATAC_QC_reads__sampling_aligned_reads
@@ -201,7 +201,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
  
  
 ## ATAC_QC_reads__measuring_overlap_with_genomic_regions
@@ -215,7 +215,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
  
  
 ## ATAC_QC_reads__estimating_library_complexity
@@ -229,7 +229,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
  
  
 ## ATAC_QC_reads__sampling_trimmed_reads
@@ -243,7 +243,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
  
 
 ## ATAC_QC_reads__aligning_sampled_reads
@@ -257,7 +257,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
  
  
 ## ATAC_QC_reads__gathering_all_stat
@@ -271,7 +271,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
  
 
 ## ATAC_QC_reads__gathering_all_samples
@@ -285,7 +285,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
  
  
 ## ATAC_QC_reads__splitting_stat_for_multiqc
@@ -299,7 +299,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
  
  
 ## ATAC_QC_reads__running_multiQC
@@ -313,7 +313,7 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 #### Files
 - **XX** if *YY* 
 #### Folder
-- *Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw* for ZZ
  
 
 
