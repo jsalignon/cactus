@@ -464,7 +464,7 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 
   label "samtools_bedtools_perl"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", mode: "${pub_mode}", enabled: save_all_bam, saveAs: { if (it.indexOf(".bam") > 0) "$it" }
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", mode: "${pub_mode}", enabled: params.save_1bp_bam, saveAs: { if (it.indexOf(".bam") > 0) "$it" }
 
   when: do_atac
 
