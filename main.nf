@@ -544,7 +544,7 @@ process ATAC_QC_reads__running_fastqc {
   script:
   """
 
-    fastqc -t 2 ${read1} ${read2}
+    fastqc -t ${params.nb_threads_fastqc} ${read1} ${read2}
 
   """
 }
@@ -559,7 +559,6 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
     if (it.indexOf(".pdf") > 0) "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
     else if (it.indexOf("_raw.bw") > 0) "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
-    else if (it.indexOf("_RPGC_norm.bw") > 0) "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_norm/${it}"
   }
 
   when: do_atac & params.do_bigwig
@@ -585,6 +584,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_coverage_plots_for_me
 
 
 //// Bigwig with normalized signal:
+// else if (it.indexOf("_RPGC_norm.bw") > 0) "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_norm/${it}"
 // bamCoverage --bam ${bam} --outFileName ${id}_RPGC_norm.bw --binSize ${params.binsize_bigwig_creation}  --numberOfProcessors ${params.nb_threads} --blackListFileName ${params.blacklisted_regions} --normalizeUsing RPGC --effectiveGenomeSize ${params.effective_genome_size}
 
 
@@ -1800,7 +1800,7 @@ process MRNA_QC__running_fastqc {
   script:
   """
 
-  fastqc -t 2 ${reads}
+  fastqc -t ${params.nb_threads_fastqc} ${reads}
 
   """
 
