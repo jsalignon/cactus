@@ -814,7 +814,7 @@ process ATAC_QC_reads__sampling_trimmed_reads {
     set id, file(read1), file(read2) from Trimmed_reads_for_sampling
 
   output:
-    set id, file("*R1.fastq"), file("*R2.fastq") into Sampled_reads_for_alignment
+    set id, file("*R1.fastq"), file("*R2.fastq") into Sampled_trimmed_reads_for_alignment
 
   script:
   """
@@ -834,10 +834,10 @@ process ATAC_QC_reads__aligning_sampled_reads {
   when: do_atac
 
   input:
-    set id, file(read1), file(read2) from Sampled_reads_for_alignment
+    set id, file(read1), file(read2) from Sampled_trimmed_reads_for_alignment
 
   output:
-    set id, file("*_cel_flagstat.qc"), file("*_op50_flagstat.qc") into Flagstat_on_sampled_reads_for_gathering_reads_stat
+    set id, file("*_cel_flagstat.qc"), file("*_op50_flagstat.qc") into Flagstat_on_aligned_sampled_trimmed_reads_for_gathering_reads_stat
     set file("${id}_cel.bam"), file("${id}_op50.bam")
   script:
   """
@@ -872,7 +872,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
 
 Overlap_with_genomic_regions_results_for_gathering_reads_stat
     .join(Library_complexity_for_gathering_reads_stat)
-    .join(Flagstat_on_sampled_reads_for_gathering_reads_stat)
+    .join(Flagstat_on_aligned_sampled_trimmed_reads_for_gathering_reads_stat)
     .join(Sampled_aligned_reads_for_gathering_reads_stat)
     .join(Number_of_aligned_pairs_for_gathering_reads_stat)
     .join(Reads_in_bed_files_for_gathering_reads_stat)
@@ -913,7 +913,7 @@ process ATAC_QC_reads__gathering_all_stat {
 
     # percentage of aligned reads
     PERCENT_ALIGN_REF=`sed '7q;d' ${cel_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
-    PERCENT_ALIGN_OP50=`sed '7q;d' ${op50_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
+    PERCENT_ALIGN_CONTA=`sed '7q;d' ${op50_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
 
     # percentage of mitochondrial reads
     PERCENT_MITO=$(awk "BEGIN { print 100 * $(samtools view -c ${bam} MtDNA) / $(samtools view -c ${bam}) }" )
@@ -937,7 +937,7 @@ process ATAC_QC_reads__gathering_all_stat {
     PERCENT_DUPLI=`awk -v x=$PERCENT_DUPLI 'BEGIN {printf "%.2f\\n", 100 * x }' }`
 
     # gathering the results
-    echo "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,$PERCENT_INTERGENIC,$PERCENT_GENIC,$PERCENT_ALIGN_REF,$PERCENT_ALIGN_OP50,$PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" > ${id}_bam_stats.txt
+    echo "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,$PERCENT_INTERGENIC,$PERCENT_GENIC,$PERCENT_ALIGN_REF,$PERCENT_ALIGN_CONTA,$PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" > ${id}_bam_stats.txt
 
   '''
 }
@@ -965,7 +965,7 @@ process ATAC_QC_reads__gathering_all_samples {
   '''
       OUTFILE="ATAC__alignment_statistics.csv"
 
-      echo "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_REF,PERCENT_ALIGN_OP50,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,FINAL_PAIRS" > ${OUTFILE}
+      echo "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_REF,PERCENT_ALIGN_CONTA,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,FINAL_PAIRS" > ${OUTFILE}
 
       cat *_bam_stats.txt >> ${OUTFILE}
 
@@ -1003,7 +1003,7 @@ process ATAC_QC_reads__splitting_stat_for_multiqc {
       df = read.csv(bam_stat_csv, stringsAsFactors = F)
       colnames(df) %<>% tolower %>% gsub('percent', 'percentage', .)
 
-      df %<>% rename(percentage_mitochondrial = percentage_mito, percentage_align_reference = percentage_align_ref, percentage_aligned_OP50 = percentage_align_op50, percentage_duplications = percentage_dupli)
+      df %<>% rename(percentage_mitochondrial = percentage_mito, percentage_align_reference = percentage_align_ref, percentage_aligned_CONTA = percentage_align_contaminant, percentage_duplications = percentage_dupli)
 
       colnames = colnames(df)[2:ncol(df)]
       for(colname in colnames){
