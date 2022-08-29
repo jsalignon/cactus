@@ -86,7 +86,7 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
  ### Outputs
  - **Number of aligned reads per category** (.qc file)
  - **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
-  - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`
+   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`
 
 
 ## ATAC_reads__marking_duplicated_reads
@@ -106,7 +106,7 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
  ### Outputs
   - **Number of aligned reads per category** (.qc file)
   - **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
-   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`
+    - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`
  
 
 ## ATAC_reads__removing_reads_in_mitochondria_and_small_contigs
