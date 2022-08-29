@@ -1134,8 +1134,6 @@ process ATAC_peaks__calling_peaks {
 // macs2 callpeak -f BED --shift -100 --extsize 200 ...
 
 
-// In my analysis I shift the reads manually by 75 bp with slopBed (process ATAC__extend_bed_before_peak_calling). So I don't need to use the shift argument in the call to macs2
-
 //// There is also a justification to use 150 bp instead of 200:
 // https://twitter.com/hoondy/status/1337170830997004290
 // Is there any reason you chose the size as 200bp? For example, I use "shift -75 --extsize 150" (approx. size of nucleosome) and wonder if there were any benefit of making the unit of pileup 200bp.
