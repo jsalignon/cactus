@@ -700,7 +700,7 @@ process ATAC_QC_reads__sampling_aligned_reads {
     samtools view -F 0x904 -H ${bam} > ${id}_sampled.sam
 
     # sampling a certain number of reads
-    samtools view -F 0x904 ${bam} | shuf - -n ${params.nb_sampled_reads} >> ${id}_sampled.sam
+    samtools view -F 0x904 ${bam} | shuf - -n ${params.nb_sampled_aligned_reads} >> ${id}_sampled.sam
 
     # conversion to bam, sorting and indexing of sampled reads
     samtools view -Sb -o ${id}_sampled.bam ${id}_sampled.sam
@@ -819,7 +819,7 @@ process ATAC_QC_reads__sampling_trimmed_reads {
   script:
   """
 
-    reformat.sh in1=${read1} in2=${read2} out1=${id}_subsampled_R1.fastq out2=${id}_subsampled_R2.fastq samplereadstarget=${params.nb_sampled_reads}
+    reformat.sh in1=${read1} in2=${read2} out1=${id}_subsampled_R1.fastq out2=${id}_subsampled_R2.fastq samplereadstarget=${params.nb_sampled_trimmed_reads}
 
   """
 }
@@ -837,7 +837,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
     set id, file(read1), file(read2) from Sampled_reads_for_alignment
 
   output:
-    set id, file("*_cel_flagstat.qc"), file("*_op50_flagstat.qc") into Aligned_sampled_reads_for_gathering_reads_stat
+    set id, file("*_cel_flagstat.qc"), file("*_op50_flagstat.qc") into Flagstat_on_sampled_reads_for_gathering_reads_stat
     set file("${id}_cel.bam"), file("${id}_op50.bam")
   script:
   """
@@ -872,7 +872,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
 
 Overlap_with_genomic_regions_results_for_gathering_reads_stat
     .join(Library_complexity_for_gathering_reads_stat)
-    .join(Aligned_sampled_reads_for_gathering_reads_stat)
+    .join(Flagstat_on_sampled_reads_for_gathering_reads_stat)
     .join(Sampled_aligned_reads_for_gathering_reads_stat)
     .join(Number_of_aligned_pairs_for_gathering_reads_stat)
     .join(Reads_in_bed_files_for_gathering_reads_stat)
