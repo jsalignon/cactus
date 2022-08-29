@@ -54,8 +54,7 @@ Samples sequenced multiple times (that have the same id) are merged.
 ## ATAC_reads__trimming_reads
  
   ### Description
-ATAC-Seq adaptors are trimmed using (Skewer)[https://doi.org/10.1186/1471-2105-15-182], then they are compressed in parallel by 
-[PIGZ](https://zlib.net/pigz/).
+ATAC-Seq adaptors are trimmed using [Skewer](https://doi.org/10.1186/1471-2105-15-182), then they are compressed in parallel by [PIGZ](https://zlib.net/pigz/).
 
   ### Parameters
   - *params.nb_threads_pigz* controls the number of threads used for parallel compression.
@@ -70,7 +69,7 @@ ATAC-Seq adaptors are trimmed using (Skewer)[https://doi.org/10.1186/1471-2105-1
 ## ATAC_reads__aligning_reads
 
  ### Description
-Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/nmeth.1923) and the resulting SAM files are converted to BAM with [SAMtools](https://pubmed.ncbi.nlm.nih.gov/19505943/). SAMtools is also used to count the number of aligned reads.
+Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/nmeth.1923) and the resulting SAM files are converted to BAM with [SAMtools](https://pubmed.ncbi.nlm.nih.gov/19505943/). SAMtools is also used to count the number of aligned reads per category.
 
  ### Parameters
  - *params.nb_threads_bowtie2* controls the number of threads used for parallel compression.
@@ -78,7 +77,7 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
  ### Outputs
  #### Files
  - **Bowtie 2 alignment metrics (.txt file)**
- - **Number of aligned reads (.qc file)**
+ - **Number of aligned reads per category (.qc file)**
  - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
  #### Folder
  *Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed*
@@ -86,45 +85,55 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
 ## ATAC_reads__removing_low_quality_reads
 
  ### Description
- Low quality reads with these attributes are filtered: unmapped, mate unmapped, no primary alignment, low MAPQ
+ Low quality reads with these attributes are filtered: unmapped, mate unmapped, no primary alignment, low MAPQ (quality score). Reads are sorted and the number of aligned reads per category is determined with SAMtools.
 
  ### Parameters
  - *params.sam_MAPQ_threshold* defines the MAPQ threshold
 
  ### Outputs
  #### Files
- - **Number of aligned reads (.qc file)**
+ - **Number of aligned reads per category (.qc file)**
  - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
  #### Folder
  *Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ*
 
 
-ATAC__reads__bam_no_lowQ
 ## ATAC_reads__marking_duplicated_reads
 
  ### Description
+ [Picard](https://broadinstitute.github.io/picard/) is used to mark duplicated reads.
 
  ### Parameters
+ - *params.memory_picard* controls the maximum memory used by Picard.
 
- ### Outputs
- 
  
 ## ATAC_reads__removing_duplicated_reads
 
  ### Description
-
- ### Parameters
+ Duplicated reads are removed with SAMtools, an index is build, and the number of aligned reads per category is determined with SAMtools.
 
  ### Outputs
- 
+   #### Files
+    - **Number of aligned reads per category (.qc file)**
+    - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
+   #### Folder
+   *Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli*
+   
+
 ## ATAC_reads__removing_reads_in_mitochondria_and_small_contigs
 
  ### Description
-
- ### Parameters
+Samtools is used to remove reads mapping to the mitochondrial chromosome or to small contigs. This is defined as regions (contigs and chromosomes) with at least 5 genes (see [References](/docs/2_Install/References.md#Pipeline-to-get-references)). Number of aligned reads per chromosomes and per category are also computed with Samtools.
 
  ### Outputs
+ #### Files
+  - **Number of aligned reads per category (.qc file)**
+  - **Number of reads per chromosome before and after filtering (.txt file)**
+  - **Aligned reads (.bam files)** if *params.save_bam_type = 'last'* 
+ #### Folder
+ *Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito*
  
+
  
 ## ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5
 
@@ -133,7 +142,13 @@ ATAC__reads__bam_no_lowQ
  ### Parameters
 
  ### Outputs
+ #### Files
+  - **Number of aligned reads per category (.qc file)**
+  - **Aligned reads (.bam files)** if *params.save_bam_type = 'all'* 
+ #### Folder
+ *Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli*
  
+
  
  
 # Quality Controls
