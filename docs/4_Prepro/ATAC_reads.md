@@ -195,9 +195,9 @@ Insert size plots are made with [Picard](https://broadinstitute.github.io/picard
 
 ### Description
 This process takes as input non-filtered aligned reads (coming straight out of Bowtie2).  
-These are filterd by keeping only mapped reads (flag 0x4) that are not secondary (flag 0x100, multimappers) or supplementary (flag 0x800, chimeric entries) and transformed to the sam format with SAMtools. This sam file is sent to [ATAC_QC_reads__estimating_library_complexity](ATAC_QC_reads__estimating_library_complexity).
-Then a certain number of reads are randomly sampled and a bam file is created sorted and indexed. This bam file is sent to [ATAC_QC_reads__measuring_overlap_with_genomic_regions](ATAC_QC_reads__measuring_overlap_with_genomic_regions) and [ATAC_QC_reads__gathering_all_stat](ATAC_QC_reads__gathering_all_stat).
-Finally, SAMtools is used again to determine the number of total pairs and the number of aligned pairs in the original, non-sampled bam file. This information is sent to [Number_of_aligned_pairs_for_gathering_reads_stat](Number_of_aligned_pairs_for_gathering_reads_stat).
+These are filterd by keeping only mapped reads (flag 0x4) that are not secondary (flag 0x100, multimappers) or supplementary (flag 0x800, chimeric entries) and transformed to the sam format with SAMtools. This sam file is sent to [estimating_library_complexity](/docs/4_Prepro/ATAC_reads.md#ATAC_QC_reads__estimating_library_complexity).
+Then a certain number of reads are randomly sampled and a bam file is created sorted and indexed. This bam file is sent to [measuring_overlap_with_genomic_regions](/docs/4_Prepro/ATAC_reads.md#ATAC_QC_reads__measuring_overlap_with_genomic_regions) and [gathering_all_stat](/docs/4_Prepro/ATAC_reads.md#ATAC_QC_reads__gathering_all_stat).
+Finally, SAMtools is used again to determine the number of total pairs and the number of aligned pairs in the original, non-sampled bam file. This information is sent to [gathering_all_stat](/docs/4_Prepro/ATAC_reads.md#ATAC_QC_reads__gathering_all_stat).
 
 ### Parameters
 - **_params.nb_sampled_aligned_reads_**: Number of aligned reads to sample.
