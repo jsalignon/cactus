@@ -41,114 +41,114 @@
 
 ## ATAC_reads__merging_reads
 
-  ### Description
+### Description
 Samples sequenced multiple times (that have the same id) are merged.
-  
-  ### Outputs
-    - **Merged reads** (.fastq.gz files) if **_params.save_fastq_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`
+
+### Outputs
+- **Merged reads** (.fastq.gz files) if **_params.save_fastq_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`.
 
 
 ## ATAC_reads__trimming_reads
  
-  ### Description
+### Description
 ATAC-Seq adaptors are trimmed using [Skewer](https://doi.org/10.1186/1471-2105-15-182), then they are compressed in parallel by [PIGZ](https://zlib.net/pigz/).
 
-  ### Parameters
-  - **_params.nb_threads_pigz_**: number of threads used for parallel compression.
+### Parameters
+- **_params.nb_threads_pigz_**: number of threads used for parallel compression.
 
-  ### Outputs
-    - **Trimming and compression reports** (.log files)
-    - **Trimmed reads (.fasqt.gz files)** if **_params.save_fastq_type = 'all'_**
-      - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`
+### Outputs
+- **Trimming and compression reports** (.log files).
+- **Trimmed reads (.fasqt.gz files)** if **_params.save_fastq_type = 'all'_**
+  - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
 
 ## ATAC_reads__aligning_reads
 
- ### Description
+### Description
 Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/nmeth.1923) and the resulting SAM files are converted to BAM with [SAMtools](https://pubmed.ncbi.nlm.nih.gov/19505943/). SAMtools is also used to count the number of aligned reads per category.
 
- ### Parameters
- - **_params.nb_threads_bowtie2_**: number of threads used for parallel compression.
+### Parameters
+- **_params.nb_threads_bowtie2_**: number of threads used for parallel compression.
 
- ### Outputs
- - **Bowtie 2 alignment metrics** (.txt file)
- - **Number of aligned reads per category** (.qc file)
- - **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
-   - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`
+### Outputs
+- **Bowtie 2 alignment metrics** (.txt file).
+- **Number of aligned reads per category** (.qc file).
+- **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
+  - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
 
 ## ATAC_reads__removing_low_quality_reads
 
- ### Description
- Low quality reads with these attributes are filtered: unmapped, mate unmapped, no primary alignment, low MAPQ (quality score). Reads are sorted and the number of aligned reads per category is determined with SAMtools.
+### Description
+Low quality reads with these attributes are filtered: unmapped, mate unmapped, no primary alignment, low MAPQ (quality score). Reads are sorted and the number of aligned reads per category is determined with SAMtools.
 
- ### Parameters
- - **_params.sam_MAPQ_threshold_**: MAPQ threshold
+### Parameters
+- **_params.sam_MAPQ_threshold_**: MAPQ threshold
 
- ### Outputs
- - **Number of aligned reads per category** (.qc file)
- - **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
-   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`
+### Outputs
+- **Number of aligned reads per category** (.qc file)
+- **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
+  - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`
 
 
 ## ATAC_reads__marking_duplicated_reads
 
- ### Description
- [Picard](https://broadinstitute.github.io/picard/) is used to mark duplicated reads.
+### Description
+[Picard](https://broadinstitute.github.io/picard/) is used to mark duplicated reads.
 
- ### Parameters
- - **_params.memory_picard_**: maximum memory used by Picard.
+### Parameters
+- **_params.memory_picard_**: maximum memory used by Picard.
 
- 
+
 ## ATAC_reads__removing_duplicated_reads
 
- ### Description
- Duplicated reads are removed with SAMtools, an index is build, and the number of aligned reads per category is determined with SAMtools.
+### Description
+Duplicated reads are removed with SAMtools, an index is build, and the number of aligned reads per category is determined with SAMtools.
 
- ### Outputs
-  - **Number of aligned reads per category** (.qc file)
-  - **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
-    - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`
- 
+### Outputs
+- **Number of aligned reads per category** (.qc file)
+- **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
+  - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`
+
 
 ## ATAC_reads__removing_reads_in_mitochondria_and_small_contigs
 
- ### Description
+### Description
 Samtools is used to remove reads mapping to the mitochondrial chromosome or to small contigs. This is defined as regions (contigs and chromosomes) with less than 5 genes (see [References](/docs/2_Install/References.md#Pipeline-to-get-references)). Number of aligned reads per chromosomes and per category are also computed with SAMtools.
 
- ### Outputs
-  - **Number of aligned reads per category** (.qc file)
-  - **Number of reads per chromosome before and after filtering** (.txt file)
-  - **Aligned reads** (.bam files) if **_params.save_bam_type = 'last'_** 
-    - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito`
- 
+### Outputs
+- **Number of aligned reads per category** (.qc file)
+- **Number of reads per chromosome before and after filtering** (.txt file)
+- **Aligned reads** (.bam files) if **_params.save_bam_type = 'last'_** 
+  - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito`
+
 
  
 ## ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5
 
- ### Description
+### Description
 This process converts bam files to bed files, and use the insert length as the score. It then adjusts for the shift of the transposase to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688). This is done by shifting reads on the + strand by +4 base pairs and reads on the - strand by -5 base pairs. Finally, it keeps only the 5' end of each reads (and thus each read becomes 1 base pair long), and create a sorted and indexed bam file from the final adjusted bed file. The bam file is sent to [DiffBind](https://doi.org/10.1038/nature10730)] for Differential Binding analysis. The bed file is sent for custom quality controls processes (see below), for computing and plotting saturation curve, and for calling macs2 peaks.
 
- ### Outputs
+### Outputs
   - **Aligned reads** (.bam files) if **_params.save_1bp_bam = true_** in `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift`
 
- 
+
  
 # Quality Controls
 
 
 ## ATAC_QC_reads__running_fastqc
 
- ### Description
+### Description
 [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) is runned to perform standard quality controls check on sequenced data.
 
- ### Parameters
- - **_params.nb_threads_fastqc_**: number of threads used by FastQC
+### Parameters
+- **_params.nb_threads_fastqc_**: number of threads used by FastQC.
 
- ### Outputs
-  - **Reads quality control reports** (.zip and .html files) if **_params.save_1bp_bam = true_**
-    - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw` for raw reads
-    - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_trimmed` for trimmed reads
- 
- 
+### Outputs
+- **Reads quality control reports** (.zip and .html files) if **_params.save_1bp_bam = true_**
+  - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw` for raw reads
+  - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_trimmed` for trimmed reads
+
+
 ## ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage
 
 ### Description
@@ -156,8 +156,8 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 
 ### Parameters
 - **_params.binsize_bigwig_creation_**: size of the bins in the bigwig file. Smaller values increase computation time.
-- **_params.nb_threads_deeptools_**: number of threads used by FastQC
-- **_params.nb_1bp_site_to_sample_for_coverage_**: number of 1 bp sites to sample for the coverage plots
+- **_params.nb_threads_deeptools_**: number of threads used by FastQC.
+- **_params.nb_1bp_site_to_sample_for_coverage_**: number of 1 bp sites to sample for the coverage plots.
 
 ### Outputs
 - **Coverage profiles** (.bw files) in `Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw`
@@ -200,7 +200,7 @@ Then a certain number of reads are randomly sampled and a bam file is created so
 Finally, SAMtools is used again to determine the number of total pairs and the number of aligned pairs in the original, non-sampled bam file. This information is sent to [Number_of_aligned_pairs_for_gathering_reads_stat](Number_of_aligned_pairs_for_gathering_reads_stat).
 
 ### Parameters
-- **_params.nb_sampled_reads_**: Number of sampled reads
+- **_params.nb_sampled_aligned_reads_**: Number of aligned reads to sample.
  
  
 ## ATAC_QC_reads__measuring_overlap_with_genomic_regions
@@ -224,7 +224,7 @@ The overlap of sampled aligned reads with various annotated regions (exons, gene
 [BBMap](https://sourceforge.net/projects/bbmap/) is used to sample trimmed reads.
 
 ### Parameters
-- **_params.XX_**: 
+- **_params.nb_sampled_trimmed_reads_**: Number of trimmed reads to sample.
 
 ### Outputs
 - **EE** ( files) in `SFFDFD`
