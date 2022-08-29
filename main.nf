@@ -366,7 +366,7 @@ process ATAC_reads__marking_duplicated_reads {
   script:
   """
 
-    picard -Xmx20G MarkDuplicates \
+    picard -Xmx${params.memory_picard} MarkDuplicates \
       -INPUT "${bam}" \
       -OUTPUT "${id}_dup_marked.bam" \
       -METRICS_FILE "${id}_dup.qc" \
@@ -386,7 +386,8 @@ process ATAC_reads__removing_duplicated_reads {
 
   label "bowtie2_samtools"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", mode: "${pub_mode}", enabled: save_all_bam
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", mode: "${pub_mode}", pattern: "*.qc"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
   when: do_atac
 
@@ -418,7 +419,8 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
 
   label "bowtie2_samtools"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", mode: "${pub_mode}", enabled: save_last_bam
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", mode: "${pub_mode}", pattern: "*.{qc,txt}"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", mode: "${pub_mode}", pattern: "*.bam", enabled: save_last_bam
 
   when: do_atac
 
@@ -435,14 +437,18 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
       id=!{id}
       bam=!{bam}
       chromosomes_sizes=!{params.chromosomes_sizes}
+      
+      new_bam="${id}_no_mito.bam"
 
       samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c > "${id}_reads_per_chrm_before_removal.txt"
 
       regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
 
-      samtools view -Sb ${bam} $regions_to_keep | tee ${id}_no_mito.bam | samtools view - | awk '{print $3}' OFS='\t' | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+      samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} | samtools view - | awk '{print $3}' OFS='\t' | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
 
-
+      samtools index -b ${new_bam}
+      samtools flagstat ${new_bam} > "${id}_flagstat.qc"
+      
     '''
 
 }
