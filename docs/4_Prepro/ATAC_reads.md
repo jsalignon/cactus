@@ -133,6 +133,10 @@ ATAC__reads__bam_no_lowQ
  ### Outputs
  
  
+ 
+# Quality Controls <a name="Quality-Controls" />
+
+
 ## ATAC_QC_reads__running_fastqc
 
  ### Description
@@ -142,10 +146,6 @@ ATAC__reads__bam_no_lowQ
  ### Outputs
  
  
- 
-# Quality Controls
- 
-
 ## ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage
 
  ### Description
