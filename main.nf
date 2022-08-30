@@ -1344,7 +1344,7 @@ process ATAC_peaks__removing_input_control_peaks {
 
   label "samtools_bedtools_perl"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_control", mode: "${pub_mode}", enabled: save_all_bed
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input", mode: "${pub_mode}", enabled: save_all_bed
 
   when: do_atac
 
@@ -1358,14 +1358,18 @@ process ATAC_peaks__removing_input_control_peaks {
   script:
   """
 
-      input_control_overlap_portion="0.2"
+      intersectBed -wa -v -f ${params.input_control_overlap_portion} -a "${peaks}" -b "${input_control_peaks}" > "${id}_peaks_kept_after_input_control_removal.bed"
 
-      intersectBed -wa -v -f \${input_control_overlap_portion} -a "${peaks}" -b "${input_control_peaks}" > "${id}_peaks_kept_after_input_control_removal.bed"
-
-      intersectBed -wa -u -f \${input_control_overlap_portion} -a "${peaks}" -b "${input_control_peaks}" > "${id}_peaks_lost_after_input_control_removal.bed"
+      intersectBed -wa -u -f ${params.input_control_overlap_portion} -a "${peaks}" -b "${input_control_peaks}" > "${id}_peaks_lost_after_input_control_removal.bed"
 
   """
 }
+
+//       name        	type 	            prefix  	documentation
+// writeOriginalA 	Optional<Boolean> 	-wa 	  	Write the original entry in A for each overlap.
+//   fractionA 	     Optional<Float>   	-f  	  	Minimum overlap required as a fraction of A. - Default is 1E-9 (i.e., 1bp). - FLOAT (e.g. 0.50)
+//     modev      	Optional<Boolean> 	-v 	  	  Only report those entries in A that have _no overlaps_ with B. - Similar to ‘grep -v’ (an homage).
+//     modeu      	Optional<Boolean> 	-u 	    	Write the original A entry _once_ if _any_ overlaps found in B. - In other words, just report the fact >=1 hit was found. - Overlaps restricted by -f and -r.
 
 Peaks_without_blacklist_2.without_input_control
   .concat(Peaks_for_removing_specific_regions_1)
@@ -1425,7 +1429,8 @@ process ATAC_peaks__removing_specific_regions {
       set COMP, file(bed_files), regions_to_remove from Peaks_for_removing_specific_regions_3
 
   output:
-      set COMP, file("*.bed") into Peaks_for_diffbind
+      file("*.bed")
+      set COMP, file("*_peaks_kept_after_specific_regions_removal.bed") into Peaks_for_diffbind
 
 
   shell:
@@ -1450,7 +1455,8 @@ process ATAC_peaks__removing_specific_regions {
         for FILE in ${BED_FILES}
         do
           CUR_NAME=`basename $FILE ".bed"`
-          intersectBed -v -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_filtered.bed"
+          intersectBed -v -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_peaks_kept_after_specific_regions_removal.bed"
+          intersectBed -u -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_peaks_lost_after_specific_regions_removal.bed"
         done
       fi
       
@@ -1470,7 +1476,13 @@ process ATAC_peaks__removing_specific_regions {
 // echo $COMP2 | grep -f - $RTR >> rtr_filtered.txt
 
 
-// note: the reason why this process is here and not upstread is because we want to remove in all bed files the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider all peaks for his analysis, so if we remove one such peak in just one of the two samples to compare, if it is still present in the other sample then it will be included in the analysis and it will likely be found as differential bound during the DBA. I.e. we compare daf-16RNAi vs control. if there is a macs2 peak at daf-16 in the control condition, then even if we remove this peak in the daf-16RNAi condition, it will be included in the final analysis.
+// note: the reason why this process is here and not upstread is because we want to remove in all bed files 
+// the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind will 
+// consider all peaks for his analysis, so if we remove one such peak in just one of the two samples to 
+// compare, if it is still present in the other sample then it will be included in the analysis and it will 
+// likely be found as differential bound during the DBA. I.e. we compare daf-16RNAi vs control. if there is 
+// a macs2 peak at daf-16 in the control condition, then even if we remove this peak in the daf-16RNAi 
+// condition, it will be included in the final analysis.
 
 
 

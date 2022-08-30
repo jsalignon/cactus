@@ -28,77 +28,72 @@
 ## ATAC_peaks__calling_peaks
 
 ### Description
-Inputs are reads in bed files that are 1 base pair long (the 5' end), and that have been adjusted for the [shift of the transposase](https://doi.org/10.1038/nmeth.2688).
-Peaks are called with [MACS2](https://doi.org/10.1186/gb-2008-9-9-r137). These options are specified: `-f BED -nomodel --shift -75 --extsize 150`.  
-The argument `--extsize 150` indicates to extend the reads by 150 bp in the 3' direction. This way fragments are centered in the original 5' location. 
-The combination of the --shift and --extsize arguments are often recommended for ATAC-Seq data (see these links for references and explanations: [1](https://groups.google.com/g/macs-announcement/c/4OCE59gkpKY/m/v9Tnh9jWriUJ), [2](https://github.com/macs3-project/MACS/issues/145#issuecomment-742593158), [3](https://github.com/macs3-project/MACS/discussions/435), [4](https://twitter.com/XiChenUoM/status/1336658454866325506)).
+Inputs are reads in bed files that are 1 base pair long (the 5' end), and that have been adjusted for the [shift of the transposase](https://doi.org/10.1038/nmeth.2688).  
+Peaks are called with [MACS2](https://doi.org/10.1186/gb-2008-9-9-r137). The `macs2 callpeak` function is called with these arguments: `-f BED -nomodel --shift -75 --extsize 150 --call-summits`.  
+The `--call-summits` argument allows to call multiple summits for each peaks. This allows to split peaks in the next process.  
+The `--extsize 150` argument allows to extend the reads by 150 bp in the 3' direction. This way fragments are centered in the original 5' location.  
+The combination of the `--shift` and `--extsize` arguments are often recommended for ATAC-Seq data (see these links for references and explanations: [1](https://groups.google.com/g/macs-announcement/c/4OCE59gkpKY/m/v9Tnh9jWriUJ), [2](https://github.com/macs3-project/MACS/issues/145#issuecomment-742593158), [3](https://github.com/macs3-project/MACS/discussions/435), [4](https://twitter.com/XiChenUoM/status/1336658454866325506)).  
 We use a size of 150 base pair as it is approximately the size of a nucleosome. 
 
 > Note: the two ends of each read pair are analyzed separately as they both provide valuable and separate information. See [here](https://twitter.com/XiChenUoM/status/1336658454866325506).
 
 
 ### Parameters
-- **_params.SDS**: EER.
+- **_params.macs2_qvalue_**: q-value (minimum FDR) cutoff to call significant regions.
 
 ### Outputs
-- **SS** (.log files)
-- **FF** if **_params.XX = 'EE'_**
-  - in `XX`.
+- **Raw peaks** (.narrowPeak file) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__raw`.
 
 
 ## ATAC_peaks__splitting_multi_summits_peaks
 
 ### Description
-
-### Parameters
-- **_params.SDS**: EER.
+MACS2 peaks with multiple summits are split, with a boundary set in the middle of neighboring summits.  
+The script from this process was written by [Aaron C Daugherty](https://github.com/brunetlab/CelegansATACseq/blob/master/Fig1/splitMACS2SubPeaks.pl) for the [first ATAC-Seq paper in *C. elegans*](http://www.genome.org/cgi/doi/10.1101/gr.226233.117).
 
 ### Outputs
-- **SS** (.log files)
-- **FF** if **_params.XX = 'EE'_**
-  - in `XX`.
+- **Split peaks** (.narrowPeak file) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split`.
 
 
 ## ATAC_peaks__removing_blacklisted_regions
 
 ### Description
-
-### Parameters
-- **_params.SDS**: EER.
+Any peak that has any overlap with a blacklisted region is discarded.
 
 ### Outputs
-- **SS** (.log files)
-- **FF** if **_params.XX = 'EE'_**
-  - in `XX`.
+- **Kept and discarded peaks** (.bed file) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split__no_BL`.
+
 
 
 ## ATAC_peaks__removing_input_control_peaks
 
 ### Description
+If an input control is included in the experiment, and **_params.use_input_control_** is true, then peaks overlapping with input control peaks are removed.
 
-### Parameters
-- **_params.SDS**: EER.
+### Parameterss
+- **_params.input_control_overlap_portion_**: threshold of the fraction of overlapping input control peaks to remove peaks. The percentage is regarding the treatment/sample peaks, not the input control peaks. Default: 0.2.
 
 ### Outputs
-- **SS** (.log files)
-- **FF** if **_params.XX = 'EE'_**
-  - in `XX`.
+- **Kept and discarded peaks** (.bed file) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split__no_BL_input`.
 
 
 ## ATAC_peaks__removing_specific_regions
 
 ### Description
+This process takes as input peaks from a comparison and remove any peaks that are in a region to remove for any of the two sample_id to compare. This is mostly useful for RNAi experiments that induce a large signal in ATAC-Seq, but it can be used to remove any arbitrary region.  
+
+>**_Note_:** the reason why this process is here and not upstream (before aggregating replicates and comparisons) is because we want to remove in all bed files the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind (i.e. the Differential Binding Analysis (DBA) tool) will consider all peaks for his analysis (i.e. differential abundance for ATAC-Seq), so if we remove one such peak in just one of the two samples to compare, if it is still present in the other sample then it will be included in the analysis and it will likely be found as differential bound during the DBA. e.g.: let's say we compare daf-16 RNAi vs control. If there is a MACS2 peak at daf-16 in the control condition, then even if we remove this peak in the daf-16 RNAi condition, it will still be included in the final analysis.
 
 ### Parameters
-- **_params.SDS**: EER.
+- **_params.SDS_**: EER.
 
 ### Outputs
 - **SS** (.log files)
 - **FF** if **_params.XX = 'EE'_**
   - in `XX`.
+- **Kept and discarded peaks** (.bed file) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split__no_BL_input`.
 
-
-
+  
 
 
 # Quality Controls
@@ -108,7 +103,7 @@ We use a size of 150 base pair as it is approximately the size of a nucleosome.
 ### Description
 
 ### Parameters
-- **_params.SDS**: EER.
+- **_params.SDS_**: EER.
 
 ### Outputs
 - **SS** (.log files)
@@ -121,7 +116,7 @@ We use a size of 150 base pair as it is approximately the size of a nucleosome.
 ### Description
 
 ### Parameters
-- **_params.SDS**: EER.
+- **_params.SDS_**: EER.
 
 ### Outputs
 - **SS** (.log files)
@@ -134,7 +129,7 @@ We use a size of 150 base pair as it is approximately the size of a nucleosome.
 ### Description
 
 ### Parameters
-- **_params.SDS**: EER.
+- **_params.SDS_**: EER.
 
 ### Outputs
 - **SS** (.log files)
@@ -147,7 +142,7 @@ We use a size of 150 base pair as it is approximately the size of a nucleosome.
 ### Description
 
 ### Parameters
-- **_params.SDS**: EER.
+- **_params.SDS_**: EER.
 
 ### Outputs
 - **SS** (.log files)
