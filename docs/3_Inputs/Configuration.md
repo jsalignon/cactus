@@ -104,8 +104,8 @@ fragment_sd   = '20'
 bootstrap     = '100'
 
 //// promoters annotation
-promoter_up_macs2_peaks      = 3000
-promoter_down_macs2_peaks    = 3000
+promoter_up_macs2_peaks      = 1500
+promoter_down_macs2_peaks    = 500
 promoter_up_diffbind_peaks   = 1500
 promoter_down_diffbind_peaks = 500
 

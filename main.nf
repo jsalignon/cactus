@@ -1523,8 +1523,6 @@ process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
 
   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__saturation_curve", mode: "${pub_mode}"
 
-  when: do_atac
-
   input:
     val out_path from Channel.value('1_Preprocessing') 
     set id, file(bed) from Reads_in_bed_files_for_computing_and_plotting_saturation_curve
@@ -1532,7 +1530,7 @@ process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
   output:
     set val("ATAC__peaks__saturation_curve"), out_path, file('*.pdf') into ATAC_saturation_curve_plots_for_merging_pdfs
 
-  when: params.do_saturation_curve
+  when: do_atac & params.do_saturation_curve
 
   script:
   """
@@ -1580,7 +1578,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 
   label "bioconductor"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", mode: "${pub_mode}", enabled: save_all_bed
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", mode: "${pub_mode}"
 
   when: do_atac
 
