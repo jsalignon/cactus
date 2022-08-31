@@ -1586,7 +1586,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
     set id, file(peaks_bed_file) from Macs2_Peaks_without_blacklist_1_for_annotating_them
 
   output: 
-    set id, file("*.rds") into Annotated_macs2_peaks_for_plotting_each_sample, Annotated_macs2_peaks_for_plotting_all_samples_grouped optional true
+    set id, file("*.rds") into Annotated_macs2_peaks_for_plotting_each_sample, Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 optional true
 
   when: params.do_raw_peak_annotation
 
@@ -1636,12 +1636,12 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 // select(txdb, keys = keys(txdb)[1:1], columns = columns(txdb), keytype = 'GENEID')
 
 
-Annotated_macs2_peaks_for_plotting_all_samples_grouped
+Annotated_macs2_peaks_for_plotting_all_samples_grouped_1
   .map { it[1] }
   // .groupTuple () // legacy: before there was the option type that was equal to either "raw" or "norm", so we would group tupple this way. Now there is only "raw", so we just collect peaks
   .collect()
   .dump(tag:'anno_list') {"annotated peaks as list: ${it}"}
-  .set { Annotated_macs2_peaks_for_plotting_all_samples_grouped1 }
+  .set { Annotated_macs2_peaks_for_plotting_all_samples_grouped_2 }
 
 
 
@@ -1706,7 +1706,7 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
 
   input:
     val out_path from Channel.value('1_Preprocessing') 
-    file ("*") from Annotated_macs2_peaks_for_plotting_all_samples_grouped1
+    file ("*") from Annotated_macs2_peaks_for_plotting_all_samples_grouped_2
 
   output:
     file("*.pdf")
@@ -1774,13 +1774,15 @@ process MRNA__quantifying_transcripts_abundances {
         if( single ) {
             """
               mkdir kallisto_${id}
-              kallisto quant --single -l ${params.fragment_len} -s ${params.fragment_sd} -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads_kallisto} -o kallisto_${id} ${reads}
+              kallisto quant --single -l ${params.fragment_len} -s ${params.fragment_sd} -b ${params.bootstrap} \
+              -i ${params.kallisto_transcriptome} -t ${params.nb_threads_kallisto} -o kallisto_${id} ${reads}
             """
         }
         else {
             """
               mkdir kallisto_${id}
-              kallisto quant -b ${params.bootstrap} -i ${params.kallisto_transcriptome} -t ${params.nb_threads_kallisto} -o kallisto_${id} ${reads}
+              kallisto quant -b ${params.bootstrap} -i ${params.kallisto_transcriptome} \ 
+              -t ${params.nb_threads_kallisto} -o kallisto_${id} ${reads}
             """
         }
 }

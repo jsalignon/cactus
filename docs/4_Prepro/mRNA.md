@@ -10,9 +10,62 @@
 [](END_OF_MENU)
 
 
+[Analysis](#Analysis)
+ - [MRNA__quantifying_transcripts_abundances](#MRNA__quantifying_transcripts_abundances)
+
+[Quality Controls](#Quality-Controls)
+ - [MRNA_QC__running_fastqc](#MRNA_QC__running_fastqc)
+ - [MRNA_QC__running_MultiQC](#MRNA_QC__running_MultiQC)
 
 
-MRNA__quantifying_transcripts_abundances
 
-MRNA_QC__running_fastqc
-MRNA_QC__running_MultiQC
+# Analysis
+
+ 
+## MRNA__quantifying_transcripts_abundances
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## MRNA_QC__running_fastqc
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## MRNA_QC__running_MultiQC
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+
+
+
+
+## Template
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
