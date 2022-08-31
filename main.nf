@@ -1719,7 +1719,6 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
       downstream = !{params.promoter_down_macs2_peaks}
 
       library(ChIPseeker)
-      library(clusterProfiler)
       library(ggplot2)
       library(purrr)
 

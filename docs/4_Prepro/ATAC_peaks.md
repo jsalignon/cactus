@@ -117,37 +117,38 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 
 ### Parameters
 - **_params.do_raw_peak_annotation_**: to enable or disable this process. Default: true.
-- **_params.promoter_up_macs2_peaks_**: ONGOING.
-- **_params.promoter_down_macs2_peaks_**: EER.
+- **_params.promoter_up_macs2_peaks_**: promoter start; upstream from TSS site.
+- **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **Annotated peaks R objects** (.rds files) if **_params.XX = 'EE'_**
-  - in `Processed_Data/1_Preprocessing/ATAC__peaks__annotated_rds`.
+- **Annotated peaks R objects** (.rds files) in `Processed_Data/1_Preprocessing/ATAC__peaks__annotated_rds`.
 
 
 ## ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample
 
 ### Description
+Using ChIPseeker and [ggplot2](https://ggplot2.tidyverse.org/) to plot coverage and average profile around TSS for each sample (one plot type per sample).
 
 ### Parameters
-- **_params.SDS_**: EER.
+- **_params.promoter_up_macs2_peaks_**: promoter start; upstream from TSS site.
+- **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **SS** (.log files)
-- **FF** if **_params.XX = 'EE'_**
-  - in `XX`.
-
+- **Coverage plots** (__coverage.pdf files) in `Figures_Individual/1_Preprocessing/ATAC__peaks__coverage`.
+- **Average profile plots** (__average_profile.pdf files) in `Figures_Individual/1_Preprocessing/ATAC__peaks__average_profile`.
+  
 
 ## ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped
 
 ### Description
+Using ChIPseeker and ggplot2 to plot coverage and average profile around TSS for all samples grouped (one plot type for all samples).
 
 ### Parameters
-- **_params.SDS_**: EER.
+- **_params.promoter_up_macs2_peaks_**: promoter start; upstream from TSS site.
+- **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **SS** (.log files)
-- **FF** if **_params.XX = 'EE'_**
-  - in `XX`.
+- **Coverage plots** (__coverage.pdf files) in `Figures_Individual/1_Preprocessing/ATAC__peaks__coverage`.
+- **Average profile plots** (__average_profile.pdf files) in `Figures_Individual/1_Preprocessing/ATAC__peaks__average_profile`.
 
 
