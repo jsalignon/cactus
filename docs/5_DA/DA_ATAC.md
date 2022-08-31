@@ -21,12 +21,13 @@
 ## DA_ATAC__doing_differential_abundance_analysis
 
 ### Description
+This process takes as input final filtered peaks and (1 base pair) reads.  
 [DiffBind](https://doi.org/10.1038/nature10730) is used to do Differential Binding analysis between two comparisons.  
-Briefly, DiffBind counts reads abundance at selected peaks of interest (i.e. the consensus peak set) and then use differential gene expression analysis tools (i.e. [DESeq2](https://doi.org/10.1186/s13059-014-0550-8) or [edgeR](https://doi.org/10.1093/bioinformatics/btp616)) to determine peaks that are differentially bound. 
-The final filtered peaks and (1 base pair) reads are used as input.  
+Briefly, DiffBind estimates reads abundance at selected peaks of interest (i.e. the consensus peak set) and then use differential gene expression analysis tools (i.e. [DESeq2](https://doi.org/10.1186/s13059-014-0550-8) or [edgeR](https://doi.org/10.1093/bioinformatics/btp616)) to determine peaks that are differentially bound. 
+
 
 ### Parameterss
-- **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 1 (all peaks are included).
+- **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 1.
 - **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 'DBA_DESEQ2'.
 - **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. See the [DiffBind::dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) for details. Default: false.
 - **_params.diffbind__min_count_**: Minimum read count value. Any interval with fewer than this many overlapping reads will be set to have this count. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for details. Default: 0.
@@ -55,15 +56,23 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 ## DA_ATAC__plotting_differential_abundance_results
 
 ### Description
-Plots showing the 
+This process makes standardized (i.e. similar types of plots are produced for mRNA-Seq data) PCA and volcano plots, and some other plots produced directly by DiffBind. 
 
 ### Parameterss
-- **_params.fdr_threshold_diffbind_plots_**: Sites with FDR less than or equal to this value will be colored red in the plot. Default: 0.05.
+- **_params.diffbind_plots__fdr_threshold_**: Sites with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
+- **_params.diffbind_plots__top_n_highlight_**: Sites with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
 
 ### Outputs
 - **Volcano plots** (.bed files) in `Figures_Individual/2_Differential_Abundance/ATAC__volcano`
+  - Sites with FDR less than or equal to this **_params.fdr_threshold_diffbind_plots_** are colored in red.
+
+   => TO DO: add a param for the top_n coef to display
 - **PCA plots (PC 1 and 2)** (.bed files) in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_1_2`
+  - top left panel: percentage of variance explained by the top 5 first principal components
+  - top right panel: PCA plot for principal components 1 and 2
+  - bottom panels: genes annotated to peaks that contribute the most to principal components 1 (left) and 2 (right). Color code: red or -1 indicates that the peak is a positive contributor. Blue or +1 indicates that the peak is a negative contributor. 
 - **PCA plots (PC 3 and 4)** (.bed files) in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_3_4`
+  - same as above but for principal componenets 3 and 4
 - **Other plots** (.bed files) in `Figures_Individual/2_Differential_Abundance/ATAC__other_plots`
 
 

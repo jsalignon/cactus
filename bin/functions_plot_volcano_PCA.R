@@ -6,7 +6,7 @@ theme_set(theme_bw() + theme(plot.title = element_text(hjust = 0.5, size = 11)))
 
 ##### volcano plots
 
-plot_volcano_custom <- function(res, sig_level, label_column, title, sig_color = 'red', point_alpha = 0.4, label_alpha = 0.9, label_size = 2, label_nb = 15, epsilon = 10^-320){
+plot_volcano_custom <- function(res, sig_level, label_column, title, sig_color = 'red', point_alpha = 0.4, label_alpha = 0.9, label_size = 2, top_n_labels = 15, epsilon = 10^-320){
   res = res[!is.na(res$padj), ]
   res = dplyr::mutate(res, significant = res$padj < sig_level)
   res$min_log10_FDR = -log10(res$padj + epsilon)
@@ -16,7 +16,7 @@ plot_volcano_custom <- function(res, sig_level, label_column, title, sig_color =
   p1 = p1 + xlab(xlab) + ylab('-log10(FDR)') + geom_vline(xintercept = 0, colour = 'black', linetype = 'longdash')
   
   # adding the highlight for the top N up and down
-  top_N = seq_len(label_nb)
+  top_N = seq_len(top_n_labels)
   top_reg_up = order(res$min_log10_FDR * -sign(res$L2FC), decreasing = F)[top_N]
   top_reg_down = order(res$min_log10_FDR * sign(res$L2FC), decreasing = F)[top_N]
   top_reg = c(top_reg_up, top_reg_down)

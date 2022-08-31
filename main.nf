@@ -2770,7 +2770,8 @@ process DA_ATAC__plotting_differential_abundance_results {
       COMP = '!{COMP}'
 
       dbo = readRDS('!{diffbind_object_rds}')
-      fdr_threshold = !{params.fdr_threshold_diffbind_plots}
+      fdr_threshold = !{params.diffbind_plots__fdr_threshold}
+      top_n_labels = !{params.diffbind_plots__top_n_labels}
       dbo$config$th = fdr_threshold
       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
       df_annotated_peaks = readRDS('!{annotated_peaks}')
@@ -2785,7 +2786,8 @@ process DA_ATAC__plotting_differential_abundance_results {
 
       pdf(paste0(COMP, '__ATAC_volcano.pdf'))
         plot_volcano_custom(res, sig_level = fdr_threshold, 
-            label_column = 'gene_name', title = paste(COMP, 'ATAC'))
+            label_column = 'gene_name', title = paste(COMP, 'ATAC'),
+            top_n_labels = top_n_labels)
       dev.off()
 
 
@@ -3128,7 +3130,7 @@ process DA_mRNA__plotting_differential_abundance_results {
       cond2 = conditions[2]
       test_cond = paste0('condition', cond2)
 
-      fdr_threshold = !{params.fdr_threshold_sleuth_plots}
+      fdr_threshold = !{params.sleuth_plots__fdr_threshold}
 
 
 
