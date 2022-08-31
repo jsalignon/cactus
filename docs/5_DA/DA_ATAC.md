@@ -59,14 +59,11 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 This process makes standardized (i.e. similar types of plots are produced for mRNA-Seq data) PCA and volcano plots, and some other plots produced directly by DiffBind. 
 
 ### Parameterss
-- **_params.diffbind_plots__fdr_threshold_**: Sites with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
-- **_params.diffbind_plots__top_n_highlight_**: Sites with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
+- **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
+- **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
 
 ### Outputs
 - **Volcano plots** (.bed files) in `Figures_Individual/2_Differential_Abundance/ATAC__volcano`
-  - Sites with FDR less than or equal to this **_params.fdr_threshold_diffbind_plots_** are colored in red.
-
-   => TO DO: add a param for the top_n coef to display
 - **PCA plots (PC 1 and 2)** (.bed files) in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_1_2`
   - top left panel: percentage of variance explained by the top 5 first principal components
   - top right panel: PCA plot for principal components 1 and 2
@@ -74,6 +71,11 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 - **PCA plots (PC 3 and 4)** (.bed files) in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_3_4`
   - same as above but for principal componenets 3 and 4
 - **Other plots** (.bed files) in `Figures_Individual/2_Differential_Abundance/ATAC__other_plots`
+  - [MA plot](https://rdrr.io/bioc/DiffBind/man/dba.plotMA.html): MA and scatter plots of differential binding analysis results; using normalization factors.
+  - [Heatmap plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Binding site heatmap.
+  - [Venn diagram](https://rdrr.io/bioc/DiffBind/man/dba.plotVenn.html): 4-way Venn diagrams showing the first 2 replicates per condition.
+- **Peaks without annotations** (.txt files) in `Processed_Data/2_Differential_Abundance/ATAC__non_annotated_peaks`
+  - Should not be many, but if there are this file can help to inspect these peaks.
 
 
 ## DA_ATAC__saving_detailed_results_tables
