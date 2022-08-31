@@ -1857,8 +1857,11 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 
       tag_matrix = getTagMatrix(peaks, windows = promoter)
 
-      annotated_peaks = annotatePeak(peaks, TxDb = tx_db, 
-                        tssRegion = c(-upstream, downstream), level = 'gene')
+      annotated_peaks = annotatePeak(peaks, 
+                                    TxDb = tx_db, 
+                                    tssRegion = c(-upstream, downstream), 
+                                    level = 'gene', 
+                                    overlap = 'all')
 
       genes = as.data.frame(annotated_peaks)$geneId
 
@@ -2206,6 +2209,11 @@ process DA_ATAC__doing_differential_abundance_analysis {
         source('!{projectDir}/bin/export_df_to_bed.R')
         cur_seqinfo = readRDS('!{params.cur_seqinfo}')
 
+        min_overlap     = !{params.diffbind__min_overlap}
+        min_count       = !{params.diffbind__min_count}
+        analysis_method = !{params.diffbind__analysis_method}
+        normalization   = !{params.diffbind__normalize}
+        
         conditions = strsplit(COMP, '_vs_')[[1]]
         cond1 = conditions[1]
         cond2 = conditions[2]
@@ -2267,26 +2275,35 @@ process DA_ATAC__doing_differential_abundance_analysis {
         if(length(empty_peaks) > 0) df1$Peaks[empty_peaks] = ''
         if(length(empty_peaks) == nrow(df1)) { quit('no') }
 
+        
 
         ##### Running DiffBind
 
         dbo = tryCatch(
           expr = {
-            dbo <- dba(sampleSheet = df1, minOverlap = 1)
+            
+            config = data.frame(AnalysisMethod = analysis_method, 
+                    RunParallel = F, singleEnd = F)
+            
+            dbo <- dba(sampleSheet = df1, minOverlap = min_overlap, 
+                      config = config)
+            
             if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, 
               greylist = cur_seqinfo)
-            dbo$config$RunParallel = F
-            dbo$config$singleEnd = T
-            dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, 
-              fragmentSize = 1, minOverlap = 1, score = DBA_SCORE_NORMALIZED, 
-              bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, 
-              summits = 75)
-            dbo$config$AnalysisMethod = DBA_DESEQ2 
-            dbo <- dba.normalize(dbo, normalize = DBA_NORM_RLE, 
+            
+            dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = F, 
+              fragmentSize = 1, minOverlap = min_overlap, 
+              score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, 
+              bSubControl = F, minCount = min_count, summits = 75)
+            
+            dbo <- dba.normalize(dbo, normalize = normalization, 
               library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
+            
             dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
+            
             dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
-              bReduceObjects = FALSE)
+              bReduceObjects = F)
+          
           }, error = function(e) {
             print(e$message)
             quit('no')
@@ -2330,6 +2347,15 @@ process DA_ATAC__doing_differential_abundance_analysis {
 
     '''
 }
+
+
+// not sure these lines of codes will be needed
+// string_as_object <- function(x) eval(parse(text = x))
+// min_overlap     = string_as_object('!params.dba_min_overlap')
+// analysis_method = string_as_object('!params.dba_analysis_method')
+// min_count       = string_as_object('!params.dba_min_count')
+// score           = string_as_object('!params.dba_min_count')
+
 
 // => generating the set of all peaks found in all replicates, and a set of 
 // differentially abundant/accessible peaks (can also be called differentially 
@@ -2590,7 +2616,26 @@ process DA_ATAC__doing_differential_abundance_analysis {
 
 // rtracklayer::export(promoters, 'promoters.bed')
 
-// note: diffbind_peaks: means the peaks from diffbind, not that these peaks are diffbound (differentially bound). This set is in fact all the peaks that diffbind found in all replicates. The corresponding bed file will be used as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
+// note: diffbind_peaks: means the peaks from diffbind, not that these peaks are 
+// diffbound (differentially bound). This set is in fact all the peaks that 
+// diffbind found in all replicates. The corresponding bed file will be used 
+// as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
+
+//// Scores are not for anything besides downstream analysis (i.e. PCA, plots)
+// https://support.bioconductor.org/p/69924/
+// 2. Peak scores. Peak scores can be exported, but are mostly used for plotting 
+// data that doesn't have a differential analysis run via dba.analyze(). For 
+// example, after calling dba.count(), the heatmaps and PCA plots will use the 
+// peak scores. You can see the peak scores using dba.peakset() with 
+// bRetrieve=TRUE. The documentation for dba.count() describes the  different 
+// scoring methods available (currently 16). These range from using the raw read 
+// counts (with or without control reads subtracted), to variations of RPKM 
+// normalized read counts and TMM normalized counts (the normalization method 
+//   used by edgeR) and some scores based on summits (we do recommend using the 
+//     summits option in dba.count). When you run an analysis using dba.analyze(), 
+//     the normalization method used by the underlying differential expression 
+//     package (edgeR or DESeq2) will be used for plots and reports (ie, when 
+//       bCounts=TRUE in a call to dba.report).
 
 
 process DA_ATAC__annotating_diffbind_peaks {
@@ -2623,7 +2668,7 @@ process DA_ATAC__annotating_diffbind_peaks {
       #!/usr/bin/env Rscript
 
 
-      ##### loading data and libraries
+      ##### loading data, libraries and parameters
 
       library(GenomicFeatures)
       library(ChIPseeker)
@@ -2636,26 +2681,21 @@ process DA_ATAC__annotating_diffbind_peaks {
       diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
 
 
-      ##### annotating all peaks
+      ##### annotating peaks
+      anno_peak_cs = annotatePeak(diffbind_peaks_gr, 
+                                  TxDb = tx_db, 
+                                  tssRegion = c(-upstream, downstream), 
+                                  level = 'gene', 
+                                  overlap = 'all')
 
-      # annotating peaks
-      anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, 
-        tssRegion = c(-upstream, downstream), level = 'gene')
-      ROWNAMES(anno_peak_cs)
-      anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, 
-        tssRegion = c(-upstream, downstream), level = 'gene', overlap = 'all')
-
-
-      # creating data frame
+      ##### creating the data frame object
       anno_peak_gr = anno_peak_cs@anno
       df = as.data.frame(anno_peak_gr)
       anno_peak_df = cbind(peak_id = rownames(df), df, 
         anno_peak_cs@detailGenomicAnnotation)
       anno_peak_df$peak_id %<>% as.character %>% as.integer
 
-
-      ##### saving all peaks
-
+      ##### saving results
       name0 = paste0(COMP, '__diffb_anno_peaks')
       saveRDS(anno_peak_df, paste0(name0, '_df.rds'))
       saveRDS(anno_peak_cs, paste0(name0, '_cs.rds'))
@@ -2666,6 +2706,10 @@ process DA_ATAC__annotating_diffbind_peaks {
 // cs: for ChIPseeker
 // rtracklayer::export(anno_peak_df, paste0(name0, '.bed'))
 // these are peaks of differential chromatin accessibility called by DiffBind
+
+// overlap: one of 'TSS' or 'all', if overlap="all", then gene overlap with peak 
+// will be reported as nearest gene, no matter the overlap is at TSS region or not.
+
 
 // note that in df_annotated_peaks: the geneStart and geneEnd field reflect actually the transcript start and transcript end. This is if the level = 'transcript' option is used. If the option level = 'gene' is used then the coordinates correspond to gene. (same goes for distanceToTSS, genLength...)
 

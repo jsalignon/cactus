@@ -10,16 +10,18 @@
 [](END_OF_MENU)
 
 
-[Analysis](#Analysis)
- - [MRNA__quantifying_transcripts_abundances](#MRNA__quantifying_transcripts_abundances)
+# List of processes
 
-[Quality Controls](#Quality-Controls)
- - [MRNA_QC__running_fastqc](#MRNA_QC__running_fastqc)
- - [MRNA_QC__running_MultiQC](#MRNA_QC__running_MultiQC)
+- [Preprocessing](#Preprocessing)
+  - [MRNA__quantifying_transcripts_abundances](#MRNA__quantifying_transcripts_abundances)
+
+- [Quality Controls](#Quality-Controls)
+  - [MRNA_QC__running_fastqc](#MRNA_QC__running_fastqc)
+  - [MRNA_QC__running_MultiQC](#MRNA_QC__running_MultiQC)
 
 
 
-# Analysis
+# Preprocessing
 
  
 ## MRNA__quantifying_transcripts_abundances
@@ -60,17 +62,4 @@ A MultiQC html report is made that aggregates all basic FastQC quality controls 
 ### Outputs
 - **MultiQC report** (.html files) in `Figures_Individual/1_Preprocessing`.
  
-
-
-
-
-## Template
-
-### Description
-
-### Parameterss
-- **_params.XX_**: AA Default: RR.
-
-### Outputs
-- **UU** (.pdf files) in `EE`
 

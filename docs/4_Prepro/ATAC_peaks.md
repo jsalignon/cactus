@@ -9,21 +9,24 @@
 
 [](END_OF_MENU)
 
-[Analysis](#Analysis)
- - [ATAC_peaks__calling_peaks](#ATAC_peaks__calling_peaks)
- - [ATAC_peaks__splitting_multi_summits_peaks](#ATAC_peaks__splitting_multi_summits_peaks)
- - [ATAC_peaks__removing_blacklisted_regions](#ATAC_peaks__removing_blacklisted_regions)
- - [ATAC_peaks__removing_input_control_peaks](#ATAC_peaks__removing_input_control_peaks)
- - [ATAC_peaks__removing_specific_regions](#ATAC_peaks__removing_specific_regions)
 
-[Quality Controls](#Quality-Controls)
- - [ATAC_QC_peaks__computing_and_plotting_saturation_curve](#ATAC_QC_peaks__computing_and_plotting_saturation_curve)
- - [ATAC_QC_peaks__annotating_macs2_peaks](#ATAC_QC_peaks__annotating_macs2_peaks)
- - [ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample](#ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample)
- - [ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped](#ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped)
+# List of processes
+
+- [Preprocessing](#Preprocessing)
+  - [ATAC_peaks__calling_peaks](#ATAC_peaks__calling_peaks)
+  - [ATAC_peaks__splitting_multi_summits_peaks](#ATAC_peaks__splitting_multi_summits_peaks)
+  - [ATAC_peaks__removing_blacklisted_regions](#ATAC_peaks__removing_blacklisted_regions)
+  - [ATAC_peaks__removing_input_control_peaks](#ATAC_peaks__removing_input_control_peaks)
+  - [ATAC_peaks__removing_specific_regions](#ATAC_peaks__removing_specific_regions)
+
+- [Quality Controls](#Quality-Controls)
+  - [ATAC_QC_peaks__computing_and_plotting_saturation_curve](#ATAC_QC_peaks__computing_and_plotting_saturation_curve)
+  - [ATAC_QC_peaks__annotating_macs2_peaks](#ATAC_QC_peaks__annotating_macs2_peaks)
+  - [ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample](#ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample)
+  - [ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped](#ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped)
 
 
-# Analysis
+# Preprocessing
 
 ## ATAC_peaks__calling_peaks
 
