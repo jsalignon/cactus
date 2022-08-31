@@ -9,6 +9,44 @@
 
 [](END_OF_MENU)
 
-DA_mRNA__doing_differential_abundance_analysis
-DA_mRNA__plotting_differential_abundance_results
-DA_mRNA__saving_detailed_results_tables
+
+# List of processes
+
+  - [DA_mRNA__doing_differential_abundance_analysis](#DA_mRNA__doing_differential_abundance_analysis)
+  - [DA_mRNA__plotting_differential_abundance_results](#DA_mRNA__plotting_differential_abundance_results)
+  - [DA_mRNA__saving_detailed_results_tables](#DA_mRNA__saving_detailed_results_tables)
+
+
+## DA_mRNA__doing_differential_abundance_analysis
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## DA_mRNA__plotting_differential_abundance_results
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## DA_mRNA__saving_detailed_results_tables
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+

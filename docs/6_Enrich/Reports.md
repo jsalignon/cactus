@@ -8,3 +8,59 @@
 * [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Overlap](/docs/6_Enrich/Overlap.md), [Plots](/docs/6_Enrich/Plots.md), [Reports](/docs/6_Enrich/Reports.md)
 
 [](END_OF_MENU)
+
+
+# List of processes
+
+  - [Reports__formatting_csv_tables](#Reports__formatting_csv_tables)
+  - [Reports__merging_csv_tables](#Reports__merging_csv_tables)
+  - [Reports__saving_excel_tables](#Reports__saving_excel_tables)
+  - [Reports__merging_pdfs](#Reports__merging_pdfs)
+
+
+
+## Reports__formatting_csv_tables
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## Reports__merging_csv_tables
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## Reports__saving_excel_tables
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## Reports__merging_pdfs
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+

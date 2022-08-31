@@ -9,5 +9,32 @@
 
 [](END_OF_MENU)
 
-DA__splitting_differential_abundance_results_in_subsets
-DA__plotting_venn_diagrams
+
+# List of processes
+
+  - [DA_split__splitting_differential_abundance_results_in_subsets](#DA_split__splitting_differential_abundance_results_in_subsets)
+  - [DA_split__plotting_venn_diagrams](#DA_split__plotting_venn_diagrams)
+
+
+## DA_split__splitting_differential_abundance_results_in_subsets
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## DA_split__plotting_venn_diagrams
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+

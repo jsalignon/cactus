@@ -9,8 +9,67 @@
 
 [](END_OF_MENU)
 
-Overlap__computing_functional_annotations_overlaps
-Overlap__computing_genes_self_overlaps
-Overlap__computing_peaks_overlaps
-Overlap__computing_motifs_overlaps
-Overlap__reformatting_motifs_results
+
+# List of processes
+
+  - [Overlap__computing_functional_annotations_overlaps](#Overlap__computing_functional_annotations_overlaps)
+  - [Overlap__computing_genes_self_overlaps](#Overlap__computing_genes_self_overlaps)
+  - [Overlap__computing_peaks_overlaps](#Overlap__computing_peaks_overlaps)
+  - [Overlap__computing_motifs_overlaps](#Overlap__computing_motifs_overlaps)
+  - [Overlap__reformatting_motifs_results](#Overlap__reformatting_motifs_results)
+
+
+## Overlap__computing_functional_annotations_overlaps
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## Overlap__computing_genes_self_overlaps
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## Overlap__computing_peaks_overlaps
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## Overlap__computing_motifs_overlaps
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## Overlap__reformatting_motifs_results
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+

@@ -8,3 +8,47 @@
 * [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Overlap](/docs/6_Enrich/Overlap.md), [Plots](/docs/6_Enrich/Plots.md), [Reports](/docs/6_Enrich/Reports.md)
 
 [](END_OF_MENU)
+
+
+# List of processes
+
+  - [Plots__computing_enrichment_pvalues](#Plots__computing_enrichment_pvalues)
+  - [Plots__making_enrichment_barplots](#Plots__making_enrichment_barplots)
+  - [Plots__making_enrichment_heatmap](#Plots__making_enrichment_heatmap)
+
+
+
+## Plots__computing_enrichment_pvalues
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## Plots__making_enrichment_barplots
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## Plots__making_enrichment_heatmap
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+

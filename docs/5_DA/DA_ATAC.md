@@ -10,7 +10,55 @@
 [](END_OF_MENU)
 
 
-DA_ATAC__doing_differential_abundance_analysis
-DA_ATAC__annotating_diffbind_peaks
-DA_ATAC__plotting_differential_abundance_results
-DA_ATAC__saving_detailed_results_tables
+# List of processes
+
+  - [DA_ATAC__doing_differential_abundance_analysis](#DA_ATAC__doing_differential_abundance_analysis)
+  - [DA_ATAC__annotating_diffbind_peaks](#DA_ATAC__annotating_diffbind_peaks)
+  - [DA_ATAC__plotting_differential_abundance_results](#DA_ATAC__plotting_differential_abundance_results)
+  - [DA_ATAC__saving_detailed_results_tables](#DA_ATAC__saving_detailed_results_tables)
+
+
+## DA_ATAC__doing_differential_abundance_analysis
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## DA_ATAC__annotating_diffbind_peaks
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## DA_ATAC__plotting_differential_abundance_results
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
+## DA_ATAC__saving_detailed_results_tables
+
+### Description
+
+### Parameterss
+- **_params.XX_**: AA Default: RR.
+
+### Outputs
+- **UU** (.pdf files) in `EE`
+
+
