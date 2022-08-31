@@ -470,7 +470,9 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
     set id, file(bam), file(bai) from Bam_for_removing_mitochondrial_reads
 
   output:
-    set id, file("*.bam") into Bam_for_plotting_inserts_distribution, Bam_for_converting_bam_to_bed_and_adjusting_for_Tn5
+    set id, file("*.bam") 
+      into Bam_for_plotting_inserts_distribution, 
+           Bam_for_converting_bam_to_bed_and_adjusting_for_Tn5
     file "*_reads_per_chrm_before_removal.txt"
     file "*_reads_per_chrm_after_removal.txt"
 
@@ -665,9 +667,11 @@ Merging_pdfs_channel = Merging_pdfs_channel
 
 
 //// Bigwig with normalized signal:
-// else if (it.indexOf("_RPGC_norm.bw") > 0) "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_norm/${it}"
-// bamCoverage --bam ${bam} --outFileName ${id}_RPGC_norm.bw --binSize ${params.binsize_bigwig_creation}  --numberOfProcessors ${params.nb_threads} --blackListFileName ${params.blacklisted_regions} --normalizeUsing RPGC --effectiveGenomeSize ${params.effective_genome_size}
-
+// else if (it.indexOf("_RPGC_norm.bw") > 0) 
+//    "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_norm/${it}"
+// bamCoverage --bam ${bam} \
+//       --outFileName ${id}_RPGC_norm.bw \
+//      --normalizeUsing RPGC \ ...
 
 
 
@@ -756,7 +760,8 @@ process ATAC_QC_reads__plotting_insert_size_distribution {
     set id, file(bam) from Bam_for_plotting_inserts_distribution
 
   output:
-    set val("ATAC__reads__insert_size"), out_path, file("*.pdf") into ATAC_reads_insert_size_plots_for_merging_pdfs
+    set val("ATAC__reads__insert_size"), out_path, file("*.pdf") 
+      into ATAC_reads_insert_size_plots_for_merging_pdfs
 
   script:
   """
@@ -1569,11 +1574,16 @@ process ATAC_peaks__removing_input_control_peaks {
   """
 }
 
-//       name        	type 	            prefix  	documentation
-// writeOriginalA 	Optional<Boolean> 	-wa 	  	Write the original entry in A for each overlap.
-//   fractionA 	     Optional<Float>   	-f  	  	Minimum overlap required as a fraction of A. - Default is 1E-9 (i.e., 1bp). - FLOAT (e.g. 0.50)
-//     modev      	Optional<Boolean> 	-v 	  	  Only report those entries in A that have _no overlaps_ with B. - Similar to ‘grep -v’ (an homage).
-//     modeu      	Optional<Boolean> 	-u 	    	Write the original A entry _once_ if _any_ overlaps found in B. - In other words, just report the fact >=1 hit was found. - Overlaps restricted by -f and -r.
+// https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
+// option   Description
+// -wa 	  	Write the original entry in A for each overlap.
+// -f  	  	Minimum overlap required as a fraction of A. - Default is 1E-9 
+//          (i.e., 1bp). - FLOAT (e.g. 0.50)
+// -v 	  	Only report those entries in A that have _no overlaps_ with B. 
+//          - Similar to ‘grep -v’ (an homage).
+// -u 	    Write the original A entry _once_ if _any_ overlaps found in B. 
+//          - In other words, just report the fact >=1 hit was found. 
+//          - Overlaps restricted by -f and -r.
 
 Peaks_without_blacklist_2.without_input_control
   .concat(Peaks_for_removing_specific_regions_1)
@@ -1671,8 +1681,10 @@ process ATAC_peaks__removing_specific_regions {
         for FILE in ${BED_FILES}
         do
           CUR_NAME=`basename $FILE ".bed"`
-          intersectBed -v -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_peaks_kept_after_specific_regions_removal.bed"
-          intersectBed -u -a $FILE -b rtr_filtered_formatted.txt > "${CUR_NAME}_peaks_lost_after_specific_regions_removal.bed"
+          intersectBed -v -a $FILE -b rtr_filtered_formatted.txt \
+            > "${CUR_NAME}_peaks_kept_after_specific_regions_removal.bed"
+          intersectBed -u -a $FILE -b rtr_filtered_formatted.txt \
+            > "${CUR_NAME}_peaks_lost_after_specific_regions_removal.bed"
         done
       fi
       
@@ -1816,7 +1828,9 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 
   output: 
     set id, file("*.rds") 
-      into Annotated_macs2_peaks_for_plotting_each_sample, Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 optional true
+      into Annotated_macs2_peaks_for_plotting_each_sample, 
+           Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 
+           optional true
 
   when: params.do_raw_peak_annotation
 
@@ -1873,7 +1887,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 // verbose = TRUE)
 
 // the addFlankGeneInfo gives rather confusing output so we ignore it
-  // geneId          transcriptId distanceToTSS                                                     flank_txIds         flank_gene
+  // geneId          transcriptId distanceToTSS   flank_txIds    flank_gene
 
 // select(txdb, keys = keys(txdb)[1:1], columns = columns(txdb), 
 // keytype = 'GENEID')
@@ -3740,7 +3754,8 @@ process Overlap__computing_functional_annotations_overlaps {
   label "bioconductor"
 
   input:
-    set key, data_type, func_anno, file(gene_set_rds) from DA_genes_for_computing_functional_annotations_overlaps_2
+    set key, data_type, func_anno, file(gene_set_rds) 
+      from DA_genes_for_computing_functional_annotations_overlaps_2
 
   output:
     set key, data_type, file('*__counts.csv') 
