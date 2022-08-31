@@ -156,7 +156,10 @@ Channel
     ATAC_reads_for_trimming_1: it[1].size() == 2
   }
   .set{ atac_raw }
-  // => if it[1] has 2 elements it means there is just the R1 and R2 files and thus no other file has the same sample_id, so we don't need to merge, if more it means there are different runs so we merge them, if less it is not an option since we need paired end reads
+  // => if it[1] has 2 elements it means there is just the R1 and R2 files and
+  // thus no other file has the same sample_id, so we don't need to merge, if 
+  // more it means there are different runs so we merge them, if less it is not 
+  // an option since we need paired end reads
 
 
 
@@ -170,13 +173,15 @@ process ATAC_reads__merging_reads {
 
   when: do_atac
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_merged", mode: "${pub_mode}", enabled: save_all_fastq
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_merged", 
+             mode: "${pub_mode}", enabled: save_all_fastq
 
   input:
     set id, file(files_R1_R2) from atac_raw.ATAC_reads_for_merging
 
   output:
-    set id, file('*R1_merged.fastq.gz'), file('*R2_merged.fastq.gz') into ATAC_reads_for_trimming_2
+    set id, file('*R1_merged.fastq.gz'), file('*R2_merged.fastq.gz') 
+             into ATAC_reads_for_trimming_2
 
   script:
   """
@@ -200,8 +205,13 @@ process ATAC_reads__trimming_reads {
 
   label "skewer_pigz"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", pattern: "*.log"
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", mode: "${pub_mode}", pattern: "*.fastq.gz", enabled: save_last_fastq
+  publishDir 
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", 
+    mode: "${pub_mode}", pattern: "*.log"
+    
+  publishDir 
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", 
+    mode: "${pub_mode}", pattern: "*.fastq.gz", enabled: save_last_fastq
 
   when: do_atac
 
@@ -209,8 +219,10 @@ process ATAC_reads__trimming_reads {
     set id, file(read1), file(read2) from ATAC_reads_for_trimming_3
 
   output:
-    set id, file("*_R1_trim.fastq.gz"), file("*_R2_trim.fastq.gz") into Trimmed_reads_for_aligning, Trimmed_reads_for_sampling
-    set val('trimmed'), id, file("*_R1_trim.fastq.gz"), file("*_R2_trim.fastq.gz") into Trimmed_ATAC_reads_for_running_fastqc
+    set id, file("*_R1_trim.fastq.gz"), file("*_R2_trim.fastq.gz") 
+             into Trimmed_reads_for_aligning, Trimmed_reads_for_sampling
+    set val('trimmed'), id, file("*_R1_trim.fastq.gz"), 
+        file("*_R2_trim.fastq.gz") into Trimmed_ATAC_reads_for_running_fastqc
     file("*.log")
 
   shell:
@@ -225,10 +237,13 @@ process ATAC_reads__trimming_reads {
       R1TRIM=$(basename ${R1} .fastq.gz)_R1_trim.fastq
       R2TRIM=$(basename ${R2} .fastq.gz)_R2_trim.fastq
       
-      skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} -o ${id} > trimer_verbose.txt
+      skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} \ 
+             -o ${id} > trimer_verbose.txt
+      
       mv ${id}-trimmed.log ${id}_skewer_trimming.log
       mv ${id}-trimmed-pair1.fastq $R1TRIM
       mv ${id}-trimmed-pair2.fastq $R2TRIM
+      
       pigz -p ${nb_threads_pigz} $R1TRIM
       pigz -p ${nb_threads_pigz} $R2TRIM
       
@@ -240,7 +255,8 @@ process ATAC_reads__trimming_reads {
 
 // trimming adaptors
 
-// this line crashed the script somehow. I don't really get the grep fast here anyway so I changed it
+// this line crashed the script somehow. I don't really get the grep fast here 
+// anyway so I changed it
 // pigz -l $R2TRIM.gz | grep fastq - >> !{id}_pigz_compression.log
 
 // cp $R1 $R1TRIM.gz
@@ -252,17 +268,26 @@ process ATAC_reads__trimming_reads {
 // 
 
 // skewer potentially useful options
-// -m, --mode <str> trimming mode; 1) single-end -- head: 5' end; tail: 3' end; any: anywhere
-//                                 2) paired-end -- pe: paired-end; mp: mate-pair; ap: amplicon (pe)
-// -q, --end-quality  <int> Trim 3' end until specified or higher quality reached; (0). => Maybe one could later set -q 20. But on "https://informatics.fas.harvard.edu/atac-seq-guidelines.html" they say: "Other than adapter removal, we do not recommend any trimming of the reads. Such adjustments can complicate later steps, such as the identification of PCR duplicates."
+// -m, --mode <str> trimming mode; 
+//             1) single-end -- head: 5' end; tail: 3' end; any: anywhere
+//             2) paired-end -- pe: paired-end; mp: mate-pair; ap: amplicon (pe)
+// -q, --end-quality  <int> Trim 3' end until specified or higher quality 
+//      reached; (0). => Maybe one could later set -q 20. But on 
+//      "https://informatics.fas.harvard.edu/atac-seq-guidelines.html" they say: 
+//      "Other than adapter removal, we do not recommend any trimming of the 
+//      reads. Such adjustments can complicate later steps, such as the 
+//      identification of PCR duplicates."
 // -t, --threads <int>   Number of concurrent threads [1, 32]; (1)
-// -A, --masked-output  Write output file(s) for trimmed reads (trimmed bases converted to lower case) (no)
+// -A, --masked-output  Write output file(s) for trimmed reads (trimmed bases 
+//                      converted to lower case) (no)
 
 // pigz potentially useful options
 // -k, --keep           Do not delete original file after processing
-// -0 to -9, -11        Compression level (level 11, zopfli, is much slower) => the default is 6
+// -0 to -9, -11        Compression level (level 11, zopfli, is much slower)
+//                       => the default is 6
 // --fast, --best       Compression levels 1 and 9 respectively
-// -p, --processes n    Allow up to n compression threads (default is the number of online processors, or 8 if unknown)
+// -p, --processes n    Allow up to n compression threads 
+//              (default is the number of online processors, or 8 if unknown)
 // -c, --stdout         Write all processed output to stdout (won't delete)
 // -l, --list           List the contents of the compressed input
 
@@ -281,8 +306,10 @@ process ATAC_reads__aligning_reads {
 
   label "bowtie2_samtools"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", pattern: "*.{txt,qc}"
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", 
+             mode: "${pub_mode}", pattern: "*.{txt,qc}"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", 
+             mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
   when: do_atac
 
@@ -290,7 +317,8 @@ process ATAC_reads__aligning_reads {
     set id, file(read1), file(read2) from Trimmed_reads_for_aligning
 
   output:
-    set id, file("*.bam") into Bam_for_removing_low_quality_reads, Bam_for_sampling
+    set id, file("*.bam") into Bam_for_removing_low_quality_reads, 
+                               Bam_for_sampling
     file("*.txt")
     file("*.qc")
 
@@ -319,8 +347,10 @@ process ATAC_reads__removing_low_quality_reads {
 
   label "bowtie2_samtools"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", mode: "${pub_mode}", pattern: "*.qc"
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
+             mode: "${pub_mode}", pattern: "*.qc"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
+             mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
   when: do_atac
 
@@ -337,15 +367,16 @@ process ATAC_reads__removing_low_quality_reads {
   samtools view -F 1804 \
                 -b \
                 -q "${params.sam_MAPQ_threshold}" \
-                ${bam} | \
-  samtools sort - -o "${id}_filter_LQ.bam"
+                ${bam} \
+                | samtools sort - -o "${id}_filter_LQ.bam"
 
   samtools flagstat "${id}_filter_LQ.bam" > "${id}_flagstat.qc"
 
   """
 }
 
-// => filtering bad quality reads: unmapped, mate unmapped, no primary alignment, low MAPQ
+// => filtering bad quality reads: unmapped, mate unmapped, 
+//                                 no primary alignment, low MAPQ
 
 
 
@@ -386,8 +417,12 @@ process ATAC_reads__removing_duplicated_reads {
 
   label "bowtie2_samtools"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", mode: "${pub_mode}", pattern: "*.qc"
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
+  publishDir 
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", 
+    mode: "${pub_mode}", pattern: "*.qc"
+  publishDir 
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", 
+    mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
   when: do_atac
 
@@ -395,7 +430,9 @@ process ATAC_reads__removing_duplicated_reads {
     set id, file(bam) from Bam_for_removing_duplicated_reads
 
   output:
-    set id, file("*.bam"), file("*.bai") into Bam_for_computing_bigwig_tracks_and_plotting_coverage, Bam_for_removing_mitochondrial_reads
+    set id, file("*.bam"), file("*.bai") 
+          into Bam_for_computing_bigwig_tracks_and_plotting_coverage, 
+               Bam_for_removing_mitochondrial_reads
     file("*_flagstat.qc")
 
   script:
@@ -419,8 +456,13 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
 
   label "bowtie2_samtools"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", mode: "${pub_mode}", pattern: "*.{qc,txt}"
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", mode: "${pub_mode}", pattern: "*.bam", enabled: save_last_bam
+  publishDir 
+   path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", 
+   mode: "${pub_mode}", pattern: "*.{qc,txt}"
+   
+  publishDir 
+   path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", 
+   mode: "${pub_mode}", pattern: "*.bam", enabled: save_last_bam
 
   when: do_atac
 
@@ -440,11 +482,14 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
       
       new_bam="${id}_no_mito.bam"
 
-      samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c > "${id}_reads_per_chrm_before_removal.txt"
+      samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c \ 
+        > "${id}_reads_per_chrm_before_removal.txt"
 
       regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
 
-      samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} | samtools view - | awk '{print $3}' OFS='\t' | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+      samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} \
+         | samtools view - | awk '{print $3}' OFS='\t' \
+         | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
 
       samtools index -b ${new_bam}
       samtools flagstat ${new_bam} > "${id}_flagstat.qc"
@@ -454,7 +499,8 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
 }
 
 // cut -f1 $chromosomes_sizes
-// samtools view  ${bam} $regions_to_keep | awk '{print $3}' OFS='\t' - | sort | uniq -c
+// samtools view  ${bam} $regions_to_keep | awk '{print $3}' OFS='\t' - \
+//     | sort | uniq -c
 // samtools view  ${bam} | awk '{print $3}' OFS='\t' - | sort | uniq -c
 
 
@@ -464,7 +510,11 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 
   label "samtools_bedtools_perl"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", mode: "${pub_mode}", enabled: params.save_1bp_bam, saveAs: { if (it.indexOf(".bam") > 0) "$it" }
+  publishDir 
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", 
+    mode: "${pub_mode}", 
+    enabled: params.save_1bp_bam, 
+    saveAs: { if (it.indexOf(".bam") > 0) "$it" }
 
   when: do_atac
 
@@ -472,8 +522,11 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
     set id, file(bam) from Bam_for_converting_bam_to_bed_and_adjusting_for_Tn5
 
   output:
-    set id, file("*.bed") into Reads_in_bed_files_for_gathering_reads_stat, Reads_in_bed_files_for_calling_peaks, Reads_in_bed_files_for_computing_and_plotting_saturation_curve
     set id, file("*.bam*") into Reads_in_bam_files_for_diffbind
+    set id, file("*.bed") into 
+      Reads_in_bed_files_for_gathering_reads_stat, 
+      Reads_in_bed_files_for_calling_peaks, 
+      Reads_in_bed_files_for_computing_and_plotting_saturation_curve
 
   script:
   """
@@ -483,11 +536,15 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
   """
 }
 
-// => converting bam to bed, adjusting for the shift of the transposase (atac seq) and keeping only a bed format compatible with macs2
+// => converting bam to bed, adjusting for the shift of the transposase 
+//    (atac seq) and keeping only a bed format compatible with macs2
 
 
-// input are bam files (aligned reads) that have been filtered out of reads that are low quality, duplicates, and in mitochondria or small contigs
-// output are bed files in which the reads have been converted to 1 base pair (by keeping only the 5' end) and that have been shifted to take into account the transposase shift
+// input are bam files (aligned reads) that have been filtered out of reads 
+//    that are low quality, duplicates, and in mitochondria or small contigs
+// output are bed files in which the reads have been converted to 1 base pair 
+//    (by keeping only the 5' end) and that have been shifted to take into 
+//    account the transposase shift
 
 // Example of a read pair:
 
@@ -502,8 +559,10 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 211000022278033 360     361     SRR11607686.9081238/2   88      +
 // 211000022278033 438     439     SRR11607686.9081238/1   -88     -
 
-// reads on the + strand are shifted by + 4 base pair -1 (different coordinate system) (357 + 4 -1 = 360)
-// reads on the - strand are shifted by - 5 base pair -1 (different coordinate system) (445 -5 - 1 = 439)
+// reads on the + strand are shifted by + 4 base pair -1 
+//    (different coordinate system) (357 + 4 -1 = 360)
+// reads on the - strand are shifted by - 5 base pair -1 
+//    (different coordinate system) (445 -5 - 1 = 439)
 
 // explanations for the input:
 // the read has a size of 37 bp and the insert has a size of 88 bp 
@@ -511,15 +570,18 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // - read 1 [357-394 -> size: 37]
 // - read 2 [408-445 -> size: 37]
 // - insert [357-445 -> size: 88]
-// - fragment [345-457 -> size: 112] (not really sure for this. I just added 12 for the ATAC-Seq adapter length)
+// - fragment [345-457 -> size: 112] (not really sure for this. I just added 
+//                                     12 for the ATAC-Seq adapter length)
 // https://www.frontiersin.org/files/Articles/77572/fgene-05-00005-HTML/image_m/fgene-05-00005-g001.jpg
 // https://samtools-help.narkive.com/BpGYAdaT/isize-field-determining-insert-sizes-in-paired-end-data
 
-// Note: here the 1 base pair long (5') transposase-shifted peaks are sent to DiffBind directly for Differential Accessibility Analysis.
+// Note: here the 1 base pair long (5') transposase-shifted peaks are sent to 
+///      DiffBind directly for Differential Accessibility Analysis.
 
 // https://www.nature.com/articles/nmeth.2688
 // https://www.nature.com/articles/s42003-020-01403-4
-// The Tn5 insertion positions were determined as the start sites of reads adjusted by the rule of “forward strand +4 bp, negative strand −5 bp”4.
+// The Tn5 insertion positions were determined as the start sites of reads 
+//    adjusted by the rule of “forward strand +4 bp, negative strand −5 bp”4.
 
 
 
@@ -528,15 +590,17 @@ process ATAC_QC_reads__running_fastqc {
 
   label "fastqc"
 
-  publishDir path: "${out_processed}/1_Preprocessing", mode: "${pub_mode}", saveAs: {
-    if      (reads_type == 'raw')     "ATAC__reads__fastqc_raw/${it}"
-    else if (reads_type == 'trimmed') "ATAC__reads__fastqc_trimmed/${it}"
-  }
+  publishDir 
+    path: "${out_processed}/1_Preprocessing", mode: "${pub_mode}", saveAs: {
+      if      (reads_type == 'raw')     "ATAC__reads__fastqc_raw/${it}"
+      else if (reads_type == 'trimmed') "ATAC__reads__fastqc_trimmed/${it}"
+    }
 
   when: do_atac
 
   input:
-    set val(reads_type), id, file(read1), file(read2) from All_ATAC_reads_for_running_fastqc
+    set val(reads_type), id, file(read1), file(read2) 
+        from All_ATAC_reads_for_running_fastqc
 
   output:
     file("*.{zip, html}") into ATAC_fastqc_reports_for_multiqc
@@ -557,30 +621,47 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
   label "deeptools"
 
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
-    if (it.indexOf(".pdf") > 0) "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
-    else if (it.indexOf("_raw.bw") > 0) "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
+    if (it.indexOf(".pdf") > 0) 
+        "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
+    else if (it.indexOf("_raw.bw") > 0) 
+        "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
   }
 
   when: do_atac & params.do_bigwig
 
   input:
-    set id, file(bam), file(bai) from Bam_for_computing_bigwig_tracks_and_plotting_coverage
+    set id, file(bam), file(bai) 
+        from Bam_for_computing_bigwig_tracks_and_plotting_coverage
 
   output:
-    set val("ATAC__reads__coverage"), val('1_Preprocessing'), file("*.pdf") into ATAC_reads_coverage_plots_for_merging_pdfs
+    set val("ATAC__reads__coverage"), val('1_Preprocessing'), file("*.pdf") 
+        into ATAC_reads_coverage_plots_for_merging_pdfs
     file("*_raw.bw") into Bigwigs_for_correlation_1 optional true
 
   script:
   """
 
-      bamCoverage --bam ${bam} --outFileName ${id}_raw.bw --binSize ${params.binsize_bigwig_creation} --numberOfProcessors ${params.nb_threads_deeptools} --blackListFileName ${params.blacklisted_regions} --effectiveGenomeSize ${params.effective_genome_size}
+      bamCoverage \
+        --bam ${bam} \
+        --outFileName ${id}_raw.bw \
+        --binSize ${params.binsize_bigwig_creation} \
+        --numberOfProcessors ${params.nb_threads_deeptools} \
+        --blackListFileName ${params.blacklisted_regions} \
+        --effectiveGenomeSize ${params.effective_genome_size}
 
-      plotCoverage --bam ${bam} --blackListFileName ${params.blacklisted_regions} --numberOfProcessors ${params.nb_threads_deeptools} --numberOfSamples ${params.nb_1bp_site_to_sample_for_coverage} --plotTitle ${id}_coverage --plotFile ${id}_coverage.pdf
+      plotCoverage \
+        --bam ${bam} \
+        --blackListFileName ${params.blacklisted_regions} \
+        --numberOfProcessors ${params.nb_threads_deeptools} \
+        --numberOfSamples ${params.nb_1bp_site_to_sample_for_coverage} \
+        --plotTitle ${id}_coverage \
+        --plotFile ${id}_coverage.pdf
 
   """
 }
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_coverage_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+      .mix(ATAC_reads_coverage_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
 
 
 //// Bigwig with normalized signal:
@@ -615,10 +696,11 @@ process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
 
   label "deeptools"
 
-  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: { 
+  publishDir 
+    path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: { 
          if (it.indexOf("_pca.pdf") > 0) "ATAC__reads__PCA/${it}" 
-    else if (it.indexOf("_cor.pdf") > 0) "ATAC__reads__correlations/${it}" 
-  }
+         else if (it.indexOf("_cor.pdf") > 0) "ATAC__reads__correlations/${it}" 
+    }
 
   when: do_atac
 
@@ -627,21 +709,35 @@ process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
     set input_control_present, file("*") from Bigwigs_for_correlation_2
 
   output:
-    set val("ATAC__reads__PCA"),          out_path, file("*_pca.pdf") into ATAC_reads_PCA_plots_for_merging_pdfs
-    set val("ATAC__reads__correlations"), out_path, file("*_cor.pdf") into ATAC_reads_correlation_plots_for_merging_pdfs
+    set val("ATAC__reads__PCA"),          out_path, file("*_pca.pdf") into
+        ATAC_reads_PCA_plots_for_merging_pdfs
+    set val("ATAC__reads__correlations"), out_path, file("*_cor.pdf") into    
+        ATAC_reads_correlation_plots_for_merging_pdfs
 
   script:
   """
 
 
-    plotPCAandCorMat.sh ${input_control_present} ${params.blacklisted_regions} ${params.binsize_bigwig_correlation}
+    plotPCAandCorMat.sh ${input_control_present} ${params.blacklisted_regions} \
+        ${params.binsize_bigwig_correlation}
 
 
   """
 }
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_PCA_plots_for_merging_pdfs.groupTuple(by: [0, 1]).map{ it.flatten() }.map{ [ it[0], it[1], it[2..-1] ] })
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_correlation_plots_for_merging_pdfs.groupTuple(by: [0, 1]).map{ it.flatten() }.map{ [ it[0], it[1], it[2..-1] ] })
+Merging_pdfs_channel = Merging_pdfs_channel
+    .mix(
+      ATAC_reads_PCA_plots_for_merging_pdfs.groupTuple(by: [0, 1])
+      .map{ it.flatten() }
+      .map{ [ it[0], it[1], it[2..-1] ] }
+      )
+Merging_pdfs_channel = Merging_pdfs_channel
+    .mix(
+      ATAC_reads_correlation_plots_for_merging_pdfs
+      .groupTuple(by: [0, 1])
+      .map{ it.flatten() }
+      .map{ [ it[0], it[1], it[2..-1] ] }
+      )
 
 
 
@@ -650,7 +746,8 @@ process ATAC_QC_reads__plotting_insert_size_distribution {
 
   label "picard"
 
-  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__reads__insert_size", mode: "${pub_mode}"
+  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__reads__insert_size", 
+             mode: "${pub_mode}"
 
   when: do_atac
 
@@ -675,7 +772,10 @@ process ATAC_QC_reads__plotting_insert_size_distribution {
   """
 }
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_reads_insert_size_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(
+    ATAC_reads_insert_size_plots_for_merging_pdfs.groupTuple(by: [0, 1])
+    )
 
 
 process ATAC_QC_reads__sampling_aligned_reads {
@@ -690,24 +790,29 @@ process ATAC_QC_reads__sampling_aligned_reads {
 
   output:
     set id, file("*.sam") into Bam_for_estimating_library_complexity
-    set id, file("*_sorted.bam"), file("*.bai") into Bam_for_measuring_overlap_with_genomic_regions, Sampled_aligned_reads_for_gathering_reads_stat
-    set id, file("*.NB_ALIGNED_PAIRS*"), file("*.RAW_PAIRS*") into Number_of_aligned_pairs_for_gathering_reads_stat
+    set id, file("*_sorted.bam"), file("*.bai") 
+        into Bam_for_measuring_overlap_with_genomic_regions, 
+             Sampled_aligned_reads_for_gathering_reads_stat
+    set id, file("*.NB_ALIGNED_PAIRS*"), file("*.RAW_PAIRS*") 
+        into Number_of_aligned_pairs_for_gathering_reads_stat
 
   script:
   """
 
-    # keeping only mapped alignment (flag 0x4) that are not secondary (flag 0x100, multimappers) or supplementary (flag 0x800, chimeric entries) alignments
+    # saving the header
     samtools view -F 0x904 -H ${bam} > ${id}_sampled.sam
 
     # sampling a certain number of reads
-    samtools view -F 0x904 ${bam} | shuf - -n ${params.nb_sampled_aligned_reads} >> ${id}_sampled.sam
+    samtools view -F 0x904 ${bam} \
+      | shuf - -n ${params.nb_sampled_aligned_reads} >> ${id}_sampled.sam
 
     # conversion to bam, sorting and indexing of sampled reads
     samtools view -Sb -o ${id}_sampled.bam ${id}_sampled.sam
     samtools sort -o ${id}_sorted.bam ${id}_sampled.bam
     samtools index ${id}_sorted.bam
 
-    NB_ALIGNED_PAIRS=`samtools view -F 0x4 ${bam} | cut -f 1 | sort -T . | uniq | wc -l`
+    NB_ALIGNED_PAIRS=`samtools view -F 0x4 ${bam} | cut -f 1 | sort -T . \
+                                                  | uniq | wc -l`
     RAW_PAIRS=`samtools view ${bam}| cut -f 1 | sort -T . | uniq | wc -l`
 
     touch \$NB_ALIGNED_PAIRS.NB_ALIGNED_PAIRS_${id}
@@ -717,6 +822,9 @@ process ATAC_QC_reads__sampling_aligned_reads {
 
 }
 
+// The code "-F 0x904" indicates to keep only mapped alignment (flag 0x4) that 
+//    are not secondary (flag 0x100, multimappers) or 
+//        supplementary (flag 0x800, chimeric entries)
 
 
 process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
@@ -727,10 +835,12 @@ process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
   when: do_atac
 
   input:
-  set id, file(bam), file(bai) from Bam_for_measuring_overlap_with_genomic_regions
+  set id, file(bam), file(bai) 
+    from Bam_for_measuring_overlap_with_genomic_regions
 
   output:
-  set id, file("*_reads_overlap_with_genomic_regions.txt") into Overlap_with_genomic_regions_results_for_gathering_reads_stat
+  set id, file("*_reads_overlap_with_genomic_regions.txt") 
+    into Overlap_with_genomic_regions_results_for_gathering_reads_stat
 
   shell:
   '''
@@ -739,7 +849,10 @@ process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
     bam=!{bam}
     BED_PATH=!{params.bed_regions}
 
-    getTotalReadsMappedToBedFile () { bedtools coverage -a $1 -b $2 | cut -f 4 | awk '{ sum+=$1} END {print sum}' ;}
+    getTotalReadsMappedToBedFile () { 
+      bedtools coverage -a $1 -b $2 | cut -f 4 \
+      | awk '{ sum+=$1} END {print sum}'
+      }
 
 
 
@@ -750,10 +863,14 @@ process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
     GENES=`getTotalReadsMappedToBedFile $BED_PATH/genes.bed ${bam}`
     BAM_NB_READS=`samtools view -c ${bam}`
 
-    echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" > ${id}_reads_overlap_with_genomic_regions.txt
-    echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" >> ${id}_reads_overlap_with_genomic_regions.txt
+    echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" \
+      > ${id}_reads_overlap_with_genomic_regions.txt
+    echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" \
+      >> ${id}_reads_overlap_with_genomic_regions.txt
 
-    awkDecimalDivision () { awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }' ; }
+    awkDecimalDivision () { 
+      awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }'
+    }
 
     P_PROM=$(awkDecimalDivision $PROMOTER $BAM_NB_READS)
     P_EXONS=$(awkDecimalDivision $EXONS $BAM_NB_READS)
@@ -762,7 +879,8 @@ process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
     P_GENES=$(awkDecimalDivision $GENES $BAM_NB_READS)
     P_READS=$(awkDecimalDivision $BAM_NB_READS $BAM_NB_READS)
 
-    echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" >> ${id}_reads_overlap_with_genomic_regions.txt
+    echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" \
+      >> ${id}_reads_overlap_with_genomic_regions.txt
 
   '''
 
@@ -787,15 +905,15 @@ process ATAC_QC_reads__estimating_library_complexity {
   set id, file(sam) from Bam_for_estimating_library_complexity
 
   output:
-  set id, file("*_library_complexity.txt") into Library_complexity_for_gathering_reads_stat
+  set id, file("*_library_complexity.txt") 
+    into Library_complexity_for_gathering_reads_stat
 
   script:
   """
 
-    picard -Xmx${params.memory_picard} \
-    EstimateLibraryComplexity \
-    -INPUT ${sam} \
-    -OUTPUT ${id}_library_complexity.txt
+    picard -Xmx${params.memory_picard} EstimateLibraryComplexity \
+      -INPUT ${sam} \
+      -OUTPUT ${id}_library_complexity.txt
 
   """
 
@@ -814,12 +932,18 @@ process ATAC_QC_reads__sampling_trimmed_reads {
     set id, file(read1), file(read2) from Trimmed_reads_for_sampling
 
   output:
-    set id, file("*R1.fastq"), file("*R2.fastq") into Sampled_trimmed_reads_for_alignment
+    set id, file("*R1.fastq"), file("*R2.fastq") 
+      into Sampled_trimmed_reads_for_alignment
 
   script:
   """
 
-    reformat.sh in1=${read1} in2=${read2} out1=${id}_subsampled_R1.fastq out2=${id}_subsampled_R2.fastq samplereadstarget=${params.nb_sampled_trimmed_reads}
+    reformat.sh \
+      in1=${read1} \
+      in2=${read2} \
+      out1=${id}_subsampled_R1.fastq \
+      out2=${id}_subsampled_R2.fastq \
+      samplereadstarget=${params.nb_sampled_trimmed_reads}
 
   """
 }
@@ -837,8 +961,10 @@ process ATAC_QC_reads__aligning_sampled_reads {
     set id, file(read1), file(read2) from Sampled_trimmed_reads_for_alignment
 
   output:
-    set id, file("*_cel_flagstat.qc"), file("*_op50_flagstat.qc") into Flagstat_on_aligned_sampled_trimmed_reads_for_gathering_reads_stat
+    set id, file("*_cel_flagstat.qc"), file("*_op50_flagstat.qc") 
+      into Flagstat_on_aligned_sampled_trimmed_reads_for_gathering_reads_stat
     set file("${id}_cel.bam"), file("${id}_op50.bam")
+    
   script:
   """
 
@@ -852,7 +978,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
       -q -1 "${read1}" -2 "${read2}" \
       | samtools view -bS -o "${id}_cel.bam" -
 
-      samtools flagstat "${id}_cel.bam" > "${id}_cel_flagstat.qc"
+    samtools flagstat "${id}_cel.bam" > "${id}_cel_flagstat.qc"
 
     bowtie2 -p ${params.nb_threads_botwie2} \
       --very-sensitive \
@@ -864,7 +990,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
       -q -1 "${read1}" -2 "${read2}" \
       | samtools view -bS -o "${id}_op50.bam" -
 
-      samtools flagstat "${id}_op50.bam" > "${id}_op50_flagstat.qc"
+    samtools flagstat "${id}_op50.bam" > "${id}_op50_flagstat.qc"
 
   """
 }
@@ -888,7 +1014,10 @@ process ATAC_QC_reads__gathering_all_stat {
   when: do_atac
 
   input:
-    set id, file(overlap_with_genomic_regions), file(library_complexity), file(cel_flagstat), file(op50_flagstat), file(bam), file(bai), file(nb_aligned_pairs), file(nb_total_pairs), file(final_bed) from All_stat_for_gathering_reads_stat
+    set id, file(overlap_genomic_regions), file(library_complexity), 
+      file(cel_flagstat), file(op50_flagstat), file(bam), file(bai), 
+      file(nb_aligned_pairs), file(nb_total_pairs), file(final_bed) 
+      from All_stat_for_gathering_reads_stat
 
   output:
   file("*_bam_stats.txt") into Stats_on_aligned_reads_for_gathering
@@ -897,7 +1026,7 @@ process ATAC_QC_reads__gathering_all_stat {
   '''
 
     id=!{id}
-    overlap_with_genomic_regions=!{overlap_with_genomic_regions}
+    overlap_genomic_regions=!{overlap_genomic_regions}
     library_complexity=!{library_complexity}
     cel_flagstat=!{cel_flagstat}
     op50_flagstat=!{op50_flagstat}
@@ -912,18 +1041,22 @@ process ATAC_QC_reads__gathering_all_stat {
     RAW_PAIRS=`basename ${nb_total_pairs} .RAW_PAIRS_${id}`
 
     # percentage of aligned reads
-    PERCENT_ALIGN_REF=`sed '7q;d' ${cel_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
-    PERCENT_ALIGN_CONTA=`sed '7q;d' ${op50_flagstat} | cut -f 2 -d '(' | cut -f 1 -d '%'`
+    PERCENT_ALIGN_REF=`sed '7q;d' ${cel_flagstat} \
+        | cut -f 2 -d '(' | cut -f 1 -d '%'`
+    PERCENT_ALIGN_CONTA=`sed '7q;d' ${op50_flagstat} \
+        | cut -f 2 -d '(' | cut -f 1 -d '%'`
 
     # percentage of mitochondrial reads
-    PERCENT_MITO=$(awk "BEGIN { print 100 * $(samtools view -c ${bam} MtDNA) / $(samtools view -c ${bam}) }" )
+    PERCENT_MITO=$(awk "BEGIN { 
+      print 100 * $(samtools view -c ${bam} MtDNA) / $(samtools view -c ${bam}) 
+      }" )
 
     # percentage of reads mapping to various annotated regions
-    PERCENT_PROMOTERS=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 1 -d ' ')
-    PERCENT_EXONS=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 2 -d ' ')
-    PERCENT_INTRONS=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 3 -d ' ')
-    PERCENT_INTERGENIC=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 4 -d ' ')
-    PERCENT_GENIC=$(sed '3q;d' ${overlap_with_genomic_regions} | cut -f 5 -d ' ')
+    PERCENT_PROMOTERS=$(sed '3q;d' ${overlap_genomic_regions} \| cut -f 1 -d ' ')
+    PERCENT_EXONS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 2 -d ' ')
+    PERCENT_INTRONS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 3 -d ' ')
+    PERCENT_INTERGENIC=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 4 -d ' ')
+    PERCENT_GENIC=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 5 -d ' ')
 
     # library size and percentage of duplicated reads 
     LIBRARY_SIZE=0
@@ -937,7 +1070,11 @@ process ATAC_QC_reads__gathering_all_stat {
     PERCENT_DUPLI=`awk -v x=$PERCENT_DUPLI 'BEGIN {printf "%.2f\\n", 100 * x }' }`
 
     # gathering the results
-    echo "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,$PERCENT_INTERGENIC,$PERCENT_GENIC,$PERCENT_ALIGN_REF,$PERCENT_ALIGN_CONTA,$PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" > ${id}_bam_stats.txt
+    echo \
+      "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,\
+$PERCENT_INTERGENIC,$PERCENT_GENIC,$PERCENT_ALIGN_REF,$PERCENT_ALIGN_CONTA,\
+$PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" \
+      > ${id}_bam_stats.txt
 
   '''
 }
@@ -965,7 +1102,12 @@ process ATAC_QC_reads__gathering_all_samples {
   '''
       OUTFILE="ATAC__alignment_statistics.csv"
 
-      echo "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_REF,PERCENT_ALIGN_CONTA,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,FINAL_PAIRS" > ${OUTFILE}
+      echo \ 
+        "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,\
+PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_REF,\
+PERCENT_ALIGN_CONTA,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,\
+FINAL_PAIRS" \
+        > ${OUTFILE}
 
       cat *_bam_stats.txt >> ${OUTFILE}
 
@@ -1003,7 +1145,12 @@ process ATAC_QC_reads__splitting_stat_for_multiqc {
       df = read.csv(bam_stat_csv, stringsAsFactors = F)
       colnames(df) %<>% tolower %>% gsub('percent', 'percentage', .)
 
-      df %<>% rename(percentage_mitochondrial = percentage_mito, percentage_align_reference = percentage_align_ref, percentage_aligned_CONTA = percentage_align_contaminant, percentage_duplications = percentage_dupli)
+      df %<>% rename(
+        percentage_mitochondrial = percentage_mito, 
+        percentage_align_reference = percentage_align_ref, 
+        percentage_aligned_CONTA = percentage_align_contaminant, 
+        percentage_duplications = percentage_dupli
+        )
 
       colnames = colnames(df)[2:ncol(df)]
       for(colname in colnames){
@@ -1048,7 +1195,8 @@ process ATAC_QC_reads__running_multiQC {
   """
 }
 
-// This kind of commands could maybe make a more pretty multiqc report, but I would need to investigate more on how to do that exactly
+// This kind of commands could maybe make a more pretty multiqc report, 
+// but I would need to investigate more on how to do that exactly
 // FILENAME=`basename bam_stats.csv .csv`
 // cut -d "," -f 1-2 bam_stats.csv > ${FILENAME}_test_mqc.csv
 //
@@ -1056,7 +1204,8 @@ process ATAC_QC_reads__running_multiQC {
 // cut -d "," -f 1-6 ${bam_stat} > \${FILENAME}_percentage_mqc.csv
 // cut -d "," -f 1,7-10 ${bam_stat} > \${FILENAME}_counts_mqc.csv
 
-// the raw multiqc_data folder is probably not useful to publish. Interested people may add it back though by uncommenting these 2 lines.
+// the raw multiqc_data folder is probably not useful to publish. 
+// Interested people may add it back though by uncommenting these 2 lines.
 
 
 
@@ -1068,7 +1217,9 @@ process ATAC_peaks__calling_peaks {
 
   label "macs2"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__raw", mode: "${pub_mode}", enabled: save_all_bed
+  publishDir 
+    path: "${out_processed}/1_Preprocessing/ATAC__peaks__raw", 
+    mode: "${pub_mode}", enabled: save_all_bed
 
   when: do_atac
 
@@ -1123,10 +1274,25 @@ process ATAC_peaks__calling_peaks {
 //// Here are details for the macs2 parameters (the macs2 website is broken)
 // https://www.biostars.org/p/207318/
 // --extsize
-//     While '--nomodel' is set, MACS uses this parameter to extend reads in 5'->3' direction to fix-sized fragments. For example, if the size of binding region for your transcription factor is 200 bp, and you want to bypass the model building by MACS, this parameter can be set as 200. This option is only valid when --nomodel is set or when MACS fails to build model and --fix-bimodal is on.
+//    While '--nomodel' is set, MACS uses this parameter to extend reads in 
+//    5'->3' direction to fix-sized fragments. For example, if the size of 
+//    binding region for your transcription factor is 200 bp, and you want to 
+//    bypass the model building by MACS, this parameter can be set as 200. 
+//    This option is only valid when --nomodel is set or when MACS fails to 
+//    build model and --fix-bimodal is on.
 // 
 // --shift
-//     Note, this is NOT the legacy --shiftsize option which is replaced by --extsize! You can set an arbitrary shift in bp here. Please Use discretion while setting it other than default value (0). When --nomodel is set, MACS will use this value to move cutting ends (5') then apply --extsize from 5' to 3' direction to extend them to fragments. When this value is negative, ends will be moved toward 3'->5' direction, otherwise 5'->3' direction. Recommended to keep it as default 0 for ChIP-Seq datasets, or -1 * half of EXTSIZE together with --extsize option for detecting enriched cutting loci such as certain DNAseI-Seq datasets. Note, you can't set values other than 0 if format is BAMPE or BEDPE for paired-end data. Default is 0.
+//     Note, this is NOT the legacy --shiftsize option which is replaced by 
+//    --extsize! You can set an arbitrary shift in bp here. Please Use 
+//    discretion while setting it other than default value (0). When --nomodel 
+//    is set, MACS will use this value to move cutting ends (5') then apply 
+//    --extsize from 5' to 3' direction to extend them to fragments. When this 
+//    value is negative, ends will be moved toward 3'->5' direction, otherwise 
+//    5'->3' direction. Recommended to keep it as default 0 for ChIP-Seq 
+//    datasets, or -1 * half of EXTSIZE together with --extsize option for 
+//    detecting enriched cutting loci such as certain DNAseI-Seq datasets. 
+//    Note, you can't set values other than 0 if format is BAMPE or BEDPE 
+//    for paired-end data. Default is 0.
 
 //// a recommanded setting to use both read pairs is the following:
 // https://github.com/macs3-project/MACS/issues/145#issuecomment-742593158
@@ -1136,29 +1302,44 @@ process ATAC_peaks__calling_peaks {
 
 //// There is also a justification to use 150 bp instead of 200:
 // https://twitter.com/hoondy/status/1337170830997004290
-// Is there any reason you chose the size as 200bp? For example, I use "shift -75 --extsize 150" (approx. size of nucleosome) and wonder if there were any benefit of making the unit of pileup 200bp.
-// We use 200 due to habit. The choice is arbitrary. Not sure how diff it makes. Intuitively smaller fragLen give better res. but it can’t be too short. Check Fig1 in this ref (not ATAC though) https://ncbi.nlm.nih.gov/pmc/articles/PMC2596141/ 75 gives better res. Maybe that’s the reason ENCODE use it.
+// Is there any reason you chose the size as 200bp? For example, I use 
+//    "shift -75 --extsize 150" (approx. size of nucleosome) and wonder if there 
+//    were any benefit of making the unit of pileup 200bp.
+// We use 200 due to habit. The choice is arbitrary. Not sure how diff it makes. 
+//    Intuitively smaller fragLen give better res. but it can’t be too short. 
+//    Check Fig1 in this ref (not ATAC though) 
+//    https://ncbi.nlm.nih.gov/pmc/articles/PMC2596141/ 75 gives better res. 
+//    Maybe that’s the reason ENCODE use it.
 
 //// So to sum up: 
 // - the two ends of each read pair are analyzed separately
-// - we keep only the 5' end of each read pair. This is were we want our peak to be centered
-// - we shift the reads to take into account the transposase (+4 bp on + strand, -5 on the - strand)
+// - we keep only the 5' end of each read pair. 
+//    This is were we want our peak to be centered
+// - we shift the reads to take into account the transposase 
+//    (+4 bp on + strand, -5 on the - strand)
 // - we shift the reads manually by -75 bp (in the 5' direction)
-// - we use macs2 with the argument --extsize 150 which indicate to extend the read by 150 bp in the 3' direction. This way they will be centered in the original 5' location. 150 bp is the approximate size of nucleosome.
+// - we use macs2 with the argument --extsize 150 which indicate to extend the 
+//    read by 150 bp in the 3' direction. This way they will be centered in the 
+//    original 5' location. 150 bp is the approximate size of nucleosome.
 // - the peaks in the .narrowPeak file are 150 base pair long
 
 
 //// methods from the Daugherty 2017 paper (Brunet lab)
-// Chromatin accessibility dynamics reveal novel functional enhancers in C. elegans
+// Chromatin accessibility dynamics reveal novel functional enhancers in 
+//    C. elegans
 // https://genome.cshlp.org/content/27/12/2096.long
 // Supplemental_Material.pdf, section ATAC-seq peak calling
-// For every replicate, prior to calling peaks with MACS (Zhang et al. 2008) (v2.1), single-base 
-// reads were shifted 75bp 5’ to mimic read distributions of a 150 bp fragment of ChIP-seq, thereby
-// allowing use of MACS. The following settings were used for MACS: -g 9e7, -q 5e-2, --nomodel,
-// --extsize 150, -B, --keep-dup all, and --call-summits.  The resulting peaks included a portion that 
-// had multiple summits; to maximize our resolution these summits were subsequently separated 
-// into individual peaks by treating the midpoint between the two adjacent summits as the 5’ and 3’ 
-// end of each individual peak, respectively.
+// For every replicate, prior to calling peaks with MACS (Zhang et al. 2008) 
+//    (v2.1), single-base 
+// reads were shifted 75bp 5’ to mimic read distributions of a 150 bp fragment 
+//    of ChIP-seq, thereby
+// allowing use of MACS. The following settings were used for MACS: 
+//    -g 9e7, -q 5e-2, --nomodel, --extsize 150, -B, --keep-dup all, and 
+//    --call-summits.  
+// The resulting peaks included a portion that had multiple summits; to 
+// maximize our resolution these summits were subsequently separated into 
+// individual peaks by treating the midpoint between the two adjacent summits 
+// as the 5’ and 3’ end of each individual peak, respectively.
 // macs2.1 doc: https://pypi.org/project/MACS2/2.1.0.20151222/
 
 
@@ -1215,7 +1396,9 @@ process ATAC_peaks__calling_peaks {
 
 
 
-// we can see here that when using the --call-summits option, the peak number 7 (summits at coordinates 21891) was split into two different peaks (summits at coordinates 21708 and 21892)
+// we can see here that when using the --call-summits option, the peak number 7 
+//    (summits at coordinates 21891) was split into two different peaks (summits 
+//    at coordinates 21708 and 21892)
 // however the narrowPeaks file is just duplicated
 
 
@@ -1225,7 +1408,8 @@ process ATAC_peaks__splitting_multi_summits_peaks {
 
   label "samtools_bedtools_perl"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", mode: "${pub_mode}", enabled: save_all_bed
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", 
+    mode: "${pub_mode}", enabled: save_all_bed
 
   when: do_atac
 
@@ -1233,17 +1417,20 @@ process ATAC_peaks__splitting_multi_summits_peaks {
     set id, file(peaks) from Peaks_for_sub_peaks_calling
 
   output:
-    set id, file("*_split_peaks.narrowPeak") into Peaks_for_removing_blacklisted_regions
+    set id, file("*_split_peaks.narrowPeak") 
+      into Peaks_for_removing_blacklisted_regions
 
   script:
   """
 
-      perl "${projectDir}/bin/splitMACS2SubPeaks.pl" "${peaks}" > "${id}_split_peaks.narrowPeak"
+      perl "${projectDir}/bin/splitMACS2SubPeaks.pl" "${peaks}" \
+        > "${id}_split_peaks.narrowPeak"
 
   """
 }
 
-// This scripts comes from Anshul Kundaje, and was made for the Daugherty et al 2017 manuscript (Brunet lab)
+// This scripts comes from Anshul Kundaje, and was made for the Daugherty et al 
+//    2017 manuscript (Brunet lab)
 
 // Example:
 
@@ -1271,8 +1458,9 @@ process ATAC_peaks__splitting_multi_summits_peaks {
 // I       22239   22394   ctl_2_macs2_peak_8      100     .       1.7653  11.3334 10.0498 85
 // I       24470   24626   ctl_2_macs2_peak_9      223     .       2.19612 23.7962 22.3841 72
 
-// here we see that peaks peaks 7a and 7b have the same start (21631) and end (21997) but different summits
-// after splitting, they are split into two regions in their middle; so 7a ends at 21800, and 7b starts at 21800
+// here we see that peaks peaks 7a and 7b have the same start (21631) and end 
+//    (21997) but different summits after splitting, they are split into two 
+//    regions in their middle; so 7a ends at 21800, and 7b starts at 21800
 
 
 process ATAC_peaks__removing_blacklisted_regions {
@@ -1280,7 +1468,8 @@ process ATAC_peaks__removing_blacklisted_regions {
 
   label "samtools_bedtools_perl"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL", mode: "${pub_mode}", enabled: save_all_bed
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL", 
+    mode: "${pub_mode}", enabled: save_all_bed
 
   when: do_atac
 
@@ -1289,15 +1478,19 @@ process ATAC_peaks__removing_blacklisted_regions {
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_blacklist_removal.bed") into Peaks_without_blacklist_1, Macs2_Peaks_without_blacklist_1_for_annotating_them
+    set id, file("*_peaks_kept_after_blacklist_removal.bed") 
+      into Peaks_without_blacklist_1, 
+           Macs2_Peaks_without_blacklist_1_for_annotating_them
 
 
   script:
   """
 
-      intersectBed -v -a "${peaks}" -b "${params.blacklisted_regions}" > "${id}_peaks_kept_after_blacklist_removal.bed"
+      intersectBed -v -a "${peaks}" -b "${params.blacklisted_regions}" \
+        > "${id}_peaks_kept_after_blacklist_removal.bed"
 
-      intersectBed -u -a "${peaks}" -b "${params.blacklisted_regions}" > "${id}_peaks_lost_after_blacklist_removal.bed"
+      intersectBed -u -a "${peaks}" -b "${params.blacklisted_regions}" \
+        > "${id}_peaks_lost_after_blacklist_removal.bed"
 
 
   """
@@ -1305,7 +1498,8 @@ process ATAC_peaks__removing_blacklisted_regions {
 }
 
 // there are two output channels because:
-// all peaks including input control are sent for annotation by ChipSeeker to get the distribution of peaks in various genomic locations
+// all peaks including input control are sent for annotation by ChipSeeker 
+//    to get the distribution of peaks in various genomic locations
 // the peaks are then sent for input control removal before DiffBind analysis
 
 
@@ -1319,8 +1513,10 @@ Peaks_without_blacklist_1
   .set { Peaks_without_blacklist_2 }
 
 // this command redirects the channel items to: 
-// Peaks_without_blacklist_2.with_input_control    if params.use_input_control = true
-// Peaks_without_blacklist_2.without_input_control if params.use_input_control = false
+// Peaks_without_blacklist_2.with_input_control   
+//     if params.use_input_control = true
+// Peaks_without_blacklist_2.without_input_control 
+//    if params.use_input_control = false
 
 
 Peaks_without_blacklist_2.with_input_control
@@ -1335,7 +1531,7 @@ Peaks_without_blacklist_2.with_input_control
 Peaks_without_blacklist_3.treatment
     .combine(Peaks_without_blacklist_3.control)
     .map { it[0, 1, 3] }
-    .dump(tag:'peaks_input_control') {"Peaks with input_control controls: ${it}"}
+    .dump(tag:'peaks_input') {"Peaks with input_control controls: ${it}"}
     .set { Peaks_treatment_with_control }
 
 
@@ -1344,23 +1540,31 @@ process ATAC_peaks__removing_input_control_peaks {
 
   label "samtools_bedtools_perl"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input", mode: "${pub_mode}", enabled: save_all_bed
+  publishDir 
+    path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input", 
+    mode: "${pub_mode}", enabled: save_all_bed
 
   when: do_atac
 
   input:
-    set id, file(peaks), file(input_control_peaks) from Peaks_treatment_with_control
+    set id, file(peaks), file(input_control_peaks) 
+      from Peaks_treatment_with_control
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_input_control_removal.bed") into Peaks_for_removing_specific_regions_1
+    set id, file("*_peaks_kept_after_input_control_removal.bed") 
+      into Peaks_for_removing_specific_regions_1
 
   script:
   """
 
-      intersectBed -wa -v -f ${params.input_control_overlap_portion} -a "${peaks}" -b "${input_control_peaks}" > "${id}_peaks_kept_after_input_control_removal.bed"
+      intersectBed -wa -v -f ${params.input_control_overlap_portion} \
+        -a "${peaks}" -b "${input_control_peaks}" \
+        > "${id}_peaks_kept_after_input_control_removal.bed"
 
-      intersectBed -wa -u -f ${params.input_control_overlap_portion} -a "${peaks}" -b "${input_control_peaks}" > "${id}_peaks_lost_after_input_control_removal.bed"
+      intersectBed -wa -u -f ${params.input_control_overlap_portion} \
+        -a "${peaks}" -b "${input_control_peaks}" \
+        > "${id}_peaks_lost_after_input_control_removal.bed"
 
   """
 }
@@ -1406,8 +1610,15 @@ regions_to_remove = Channel.fromPath( 'design/regions_to_remove.tsv' )
 comparisons_files_for_merging
   .combine(reads_and_peaks_1)
   .combine(reads_and_peaks_2)
-  .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, id_2, reads_and_peaks_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
-  .map { [ it[0] + '_vs_' + it[1], it.flatten().findAll { it =~ '\\.bed' }, it.flatten().findAll { it =~ "\\.bam" } ] }
+  .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, id_2, 
+            reads_and_peaks_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
+  .map { 
+    [ 
+      it[0] + '_vs_' + it[1], 
+      it.flatten().findAll { it =~ '\\.bed' }, 
+      it.flatten().findAll { it =~ "\\.bam" } 
+      ] 
+    }
   .tap { Reads_in_bam_files_for_diffbind_1 }
   .map { it[0,1] }
   .combine(regions_to_remove)
@@ -1421,16 +1632,20 @@ process ATAC_peaks__removing_specific_regions {
 
   label "samtools_bedtools_perl"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", mode: "${pub_mode}", enabled: save_last_bed
+  publishDir 
+   path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", 
+   mode: "${pub_mode}", enabled: save_last_bed
 
   when: do_atac
 
   input:
-      set COMP, file(bed_files), regions_to_remove from Peaks_for_removing_specific_regions_3
+      set COMP, file(bed_files), regions_to_remove 
+        from Peaks_for_removing_specific_regions_3
 
   output:
       file("*.bed")
-      set COMP, file("*_peaks_kept_after_specific_regions_removal.bed") into Peaks_for_diffbind
+      set COMP, file("*_peaks_kept_after_specific_regions_removal.bed") 
+        into Peaks_for_diffbind
 
 
   shell:
@@ -1450,7 +1665,8 @@ process ATAC_peaks__removing_specific_regions {
           cp $FILE "${CUR_NAME}_filtered.bed"
         done
       else
-        cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
+        cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" \
+          | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
       
         for FILE in ${BED_FILES}
         do
@@ -1465,24 +1681,28 @@ process ATAC_peaks__removing_specific_regions {
 
 }
 
-// really weird nextflow bug: this command makes all commands below ignored when the rtr file is empty:
+// really weird nextflow bug: this command makes all commands below ignored 
+// when the rtr file is empty:
 // echo $COMP1 | grep -E -f - $RTR > rtr_filtered.txt
 // https://github.com/nextflow-io/nextflow/issues/1149
 // => solution: grep pattern || true
 // or: process.shell = ['/bin/bash','-u']
 
 
-// cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
+// cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" \
+//   | sed "s/chr//g" > rtr_filtered_formatted.txt 
 // echo $COMP2 | grep -f - $RTR >> rtr_filtered.txt
 
 
-// note: the reason why this process is here and not upstread is because we want to remove in all bed files 
-// the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind will 
-// consider all peaks for his analysis, so if we remove one such peak in just one of the two samples to 
-// compare, if it is still present in the other sample then it will be included in the analysis and it will 
-// likely be found as differential bound during the DBA. I.e. we compare daf-16RNAi vs control. if there is 
-// a macs2 peak at daf-16 in the control condition, then even if we remove this peak in the daf-16RNAi 
-// condition, it will be included in the final analysis.
+// note: the reason why this process is here and not upstread is because we 
+// want to remove in all bed files the peaks that are in specific regions 
+// (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider 
+// all peaks for his analysis, so if we remove one such peak in just one of the 
+// two samples to compare, if it is still present in the other sample then it 
+// will be included in the analysis and it will likely be found as differential 
+// bound during the DBA. I.e. we compare daf-16RNAi vs control. if there is a 
+// macs2 peak at daf-16 in the control condition, then even if we remove this 
+// peak in the daf-16RNAi condition, it will be included in the final analysis.
 
 
 
@@ -1502,7 +1722,10 @@ Reads_in_bam_files_for_diffbind_1
 
 Reads_and_peaks_for_diffbind_1.with_input_control
   .combine(Reads_input_control_1)
-  .map{ comp_id, bam_files, bed_files, input_id, imput_bam -> [ comp_id, bed_files, [bam_files, imput_bam].flatten() ] }
+  .map{ 
+          comp_id, bam_files, bed_files, input_id, imput_bam -> 
+        [ comp_id, bed_files, [bam_files, imput_bam].flatten() ]
+      }
   // .map{ it -> [ it[0], it[1], [it[2,4].flatten()]] }
   .set{ Reads_and_peaks_with_input_control }
 
@@ -1521,14 +1744,17 @@ process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
 
   label "macs2"
 
-  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__saturation_curve", mode: "${pub_mode}"
+  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__saturation_curve", 
+             mode: "${pub_mode}"
 
   input:
     val out_path from Channel.value('1_Preprocessing') 
-    set id, file(bed) from Reads_in_bed_files_for_computing_and_plotting_saturation_curve
+    set id, file(bed) 
+      from Reads_in_bed_files_for_computing_and_plotting_saturation_curve
 
   output:
-    set val("ATAC__peaks__saturation_curve"), out_path, file('*.pdf') into ATAC_saturation_curve_plots_for_merging_pdfs
+    set val("ATAC__peaks__saturation_curve"), out_path, file('*.pdf') 
+      into ATAC_saturation_curve_plots_for_merging_pdfs
 
   when: do_atac & params.do_saturation_curve
 
@@ -1567,7 +1793,8 @@ process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
   """
 }
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_saturation_curve_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_saturation_curve_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
 
 
 
@@ -1578,15 +1805,18 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 
   label "bioconductor"
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", mode: "${pub_mode}"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", 
+             mode: "${pub_mode}"
 
   when: do_atac
 
   input:
-    set id, file(peaks_bed_file) from Macs2_Peaks_without_blacklist_1_for_annotating_them
+    set id, file(peaks_bed_file) 
+      from Macs2_Peaks_without_blacklist_1_for_annotating_them
 
   output: 
-    set id, file("*.rds") into Annotated_macs2_peaks_for_plotting_each_sample, Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 optional true
+    set id, file("*.rds") 
+      into Annotated_macs2_peaks_for_plotting_each_sample, Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 optional true
 
   when: params.do_raw_peak_annotation
 
@@ -1601,14 +1831,20 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
       upstream = !{params.promoter_up_macs2_peaks}
       downstream = !{params.promoter_down_macs2_peaks}
       tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
-      if(gsub(' .*', '', system(paste('wc -l', peaks_bed_file), intern = T)) == 0) {quit('no')}
+      
+      nb_of_peaks = 
+        system(paste('wc -l', peaks_bed_file), intern = T) %>% 
+        gsub(' .*', '', .)
+      if(nb_of_peaks == 0) {quit('no')}
       peaks = readPeakFile('!{peaks_bed_file}')
 
-      promoter <- getPromoters(TxDb = tx_db, upstream = upstream, downstream = downstream)
+      promoter <- getPromoters(TxDb = tx_db, upstream   = upstream, 
+                                             downstream = downstream)
 
       tag_matrix = getTagMatrix(peaks, windows = promoter)
 
-      annotated_peaks = annotatePeak(peaks, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
+      annotated_peaks = annotatePeak(peaks, TxDb = tx_db, 
+                        tssRegion = c(-upstream, downstream), level = 'gene')
 
       genes = as.data.frame(annotated_peaks)$geneId
 
@@ -1628,17 +1864,26 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 // these are ATAC-Seq peaks from macs
 
 // defaults parameters for the annotation function
-// 1 function (peak, tssRegion = c(-3000, 3000), TxDb = NULL, level = "transcript", assignGenomicAnnotation = TRUE, genomicAnnotationPriority = c("Promoter", "5UTR", "3UTR", "Exon", "Intron", "Downstream", "Intergenic"), annoDb = NULL, addFlankGeneInfo = FALSE, flankDistance = 5000, sameStrand = FALSE, ignoreOverlap = FALSE, ignoreUpstream = FALSE, ignoreDownstream = FALSE, overlap = "TSS", verbose = TRUE)
+// 1 function (peak, tssRegion = c(-3000, 3000), TxDb = NULL, 
+// level = "transcript", assignGenomicAnnotation = TRUE, 
+// genomicAnnotationPriority = c("Promoter", "5UTR", "3UTR", "Exon", "Intron", 
+// "Downstream", "Intergenic"), annoDb = NULL, addFlankGeneInfo = FALSE, 
+// flankDistance = 5000, sameStrand = FALSE, ignoreOverlap = FALSE, 
+// ignoreUpstream = FALSE, ignoreDownstream = FALSE, overlap = "TSS", 
+// verbose = TRUE)
 
 // the addFlankGeneInfo gives rather confusing output so we ignore it
   // geneId          transcriptId distanceToTSS                                                     flank_txIds         flank_gene
 
-// select(txdb, keys = keys(txdb)[1:1], columns = columns(txdb), keytype = 'GENEID')
+// select(txdb, keys = keys(txdb)[1:1], columns = columns(txdb), 
+// keytype = 'GENEID')
 
 
 Annotated_macs2_peaks_for_plotting_all_samples_grouped_1
   .map { it[1] }
-  // .groupTuple () // legacy: before there was the option type that was equal to either "raw" or "norm", so we would group tupple this way. Now there is only "raw", so we just collect peaks
+  // .groupTuple () // legacy: before there was the option type that was 
+  // equal to either "raw" or "norm", so we would group tupple this way. 
+  // Now there is only "raw", so we just collect peaks
   .collect()
   .dump(tag:'anno_list') {"annotated peaks as list: ${it}"}
   .set { Annotated_macs2_peaks_for_plotting_all_samples_grouped_2 }
@@ -1651,20 +1896,28 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample {
 
   label "bioconductor"
 
-  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
-           if (it.indexOf("_coverage.pdf") > 0)        "ATAC__peaks__coverage/${it}"
-      else if (it.indexOf("_average_profile.pdf") > 0) "ATAC__peaks__average_profile/${it}"
+  publishDir 
+    path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
+    saveAs: {
+           if (it.indexOf("_coverage.pdf") > 0)        
+              "ATAC__peaks__coverage/${it}"
+      else if (it.indexOf("_average_profile.pdf") > 0) 
+              "ATAC__peaks__average_profile/${it}"
   }
 
   when: do_atac
 
   input:
     val out_path from Channel.value('1_Preprocessing') 
-    set id, file(annotated_peaks_objects_rds) from Annotated_macs2_peaks_for_plotting_each_sample
+    set id, file(annotated_peaks_objects_rds) 
+      from Annotated_macs2_peaks_for_plotting_each_sample
 
   output:
-    set val("ATAC__peaks__coverage"), out_path, file("*_coverage.pdf") into ATAC_peaks_coverage_for_merging_pdfs
-    set val("ATAC__peaks__average_profile"), out_path, file("*_average_profile.pdf") into ATAC_peaks_average_profile_for_merging_pdfs
+    set val("ATAC__peaks__coverage"), out_path, file("*_coverage.pdf") 
+      into ATAC_peaks_coverage_for_merging_pdfs
+    set val("ATAC__peaks__average_profile"), out_path, 
+      file("*_average_profile.pdf") 
+      into ATAC_peaks_average_profile_for_merging_pdfs
 
   shell:
   '''
@@ -1679,18 +1932,24 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample {
       lres = readRDS('!{annotated_peaks_objects_rds}')
 
       pdf(paste0(id, '__coverage.pdf'))
-        covplot(lres$peaks, weightCol="V5") + ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
+        covplot(lres$peaks, weightCol="V5") + ggtitle(id) + 
+          theme(plot.title = element_text(hjust = 0.5))
       dev.off()
 
       pdf(paste0(id, '__average_profile.pdf'))
-        plotAvgProf(lres$tag_matrix, xlim=c(-upstream, downstream), xlab="Genomic Region (5'->3')", ylab = "Read Count Frequency") + ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
+        plotAvgProf(lres$tag_matrix, xlim=c(-upstream, downstream), 
+          xlab="Genomic Region (5'->3')", ylab = "Read Count Frequency") + 
+          ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
       dev.off()
 
   '''
 }
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_peaks_coverage_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_peaks_average_profile_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_peaks_coverage_for_merging_pdfs.groupTuple(by: [0, 1]))
+  
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_peaks_average_profile_for_merging_pdfs.groupTuple(by: [0, 1]))
 
 
 
@@ -1699,7 +1958,8 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
 
   label "bioconductor"
 
-  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__grouped_plots", mode: "${pub_mode}"
+  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__grouped_plots", 
+             mode: "${pub_mode}"
   publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
 
   when: do_atac
@@ -1732,7 +1992,8 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
       size_facet = ifelse(length(tag_matrix_list) > 12, 2.8, 5.5)
 
       p1 = plotAvgProf(tag_matrix_list, c(-upstream, downstream), facet='row')
-      p1 = p1 + theme(axis.text.y = element_text(size = 3.5), strip.text.y = element_text(size = size_facet))
+      p1 = p1 + theme(axis.text.y = element_text(size = 3.5), 
+            strip.text.y = element_text(size = size_facet))
 
       pdf('ATAC__peaks__average_profile.pdf', font = 'mono')
         print(p1)
@@ -1758,7 +2019,8 @@ process MRNA__quantifying_transcripts_abundances {
 
     label "kallisto"
 
-    publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", mode: "${pub_mode}"
+    publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", 
+               mode: "${pub_mode}"
 
     when: do_mRNA
 
@@ -1774,20 +2036,32 @@ process MRNA__quantifying_transcripts_abundances {
         if( single ) {
             """
               mkdir kallisto_${id}
-              kallisto quant --single -l ${params.fragment_len} -s ${params.fragment_sd} -b ${params.bootstrap} \
-              -i ${params.kallisto_transcriptome} -t ${params.nb_threads_kallisto} -o kallisto_${id} ${reads}
+              kallisto quant \
+                --single \
+                -l ${params.fragment_len} \
+                -s ${params.fragment_sd} \
+                -b ${params.bootstrap} \
+                -i ${params.kallisto_transcriptome} \
+                -t ${params.nb_threads_kallisto} \
+                -o kallisto_${id} \
+                ${reads}
             """
         }
         else {
             """
               mkdir kallisto_${id}
-              kallisto quant -b ${params.bootstrap} -i ${params.kallisto_transcriptome} \ 
-              -t ${params.nb_threads_kallisto} -o kallisto_${id} ${reads}
+              kallisto quant \
+                -b ${params.bootstrap} \
+                -i ${params.kallisto_transcriptome} \
+                -t ${params.nb_threads_kallisto} \
+                -o kallisto_${id} \
+                ${reads}
             """
         }
 }
 
-// note: I adapted a basic mRNA-Seq pipeline from https:////github.com/cbcrg/kallisto-nf
+// note: I adapted a basic mRNA-Seq pipeline from 
+//                    https:////github.com/cbcrg/kallisto-nf
 
 
 
@@ -1796,7 +2070,8 @@ process MRNA_QC__running_fastqc {
 
   label "fastqc"
 
-  publishDir path: "${res_dir}/Processed_Data/1_Preprocessing/mRNA__fastqc", mode: "${pub_mode}"
+  publishDir path: "${res_dir}/Processed_Data/1_Preprocessing/mRNA__fastqc", 
+             mode: "${pub_mode}"
 
   when: do_mRNA
 
@@ -1880,10 +2155,13 @@ process DA_ATAC__doing_differential_abundance_analysis {
   // label "differential_abundance"
   // Error in loadNamespace(x) : there is no package called ‘edgeR’
 
-  publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
+  publishDir path: "${out_processed}/2_Differential_Abundance", 
+    mode: "${pub_mode}", saveAs: {
      if (it.indexOf("__all_peaks.bed") > 0) "ATAC__all_peaks__bed/${it}"
-     else if (it.indexOf("__diffbind_peaks_dbo.rds") > 0) "ATAC__all_peaks__DiffBind/${it}"
-     else if (it.indexOf("__diffbind_peaks_gr.rds") > 0) "ATAC__all_peaks__gRange/${it}"
+     else if (it.indexOf("__diffbind_peaks_dbo.rds") > 0) 
+                                            "ATAC__all_peaks__DiffBind/${it}"
+     else if (it.indexOf("__diffbind_peaks_gr.rds") > 0) 
+                                            "ATAC__all_peaks__gRange/${it}"
   }
 
   when: do_atac
@@ -1892,8 +2170,11 @@ process DA_ATAC__doing_differential_abundance_analysis {
       set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
 
   output:
-      set COMP, file('*__diffbind_peaks_gr.rds'), file('*__diffbind_peaks_dbo.rds') into Diffbind_peaks_for_annotating_them optional true
-      set COMP, file('*__all_peaks.bed') into All_detected_diffbind_peaks_for_background optional true
+      set COMP, file('*__diffbind_peaks_gr.rds'), 
+        file('*__diffbind_peaks_dbo.rds') 
+        into Diffbind_peaks_for_annotating_them optional true
+      set COMP, file('*__all_peaks.bed') 
+        into All_detected_diffbind_peaks_for_background optional true
 
   shell:
   '''
@@ -1918,18 +2199,31 @@ process DA_ATAC__doing_differential_abundance_analysis {
 
         ##### Preparing the metadata table
         use_input_control %<>% toupper %>% as.logical
-        cur_files = grep('diffbind_peaks', list.files(pattern = '*.bam$|*filtered.bed$'), value = T, invert = T)
+        bed_bam_files = list.files(pattern = '*.bam$|*filtered.bed$')
+        cur_files = grep('diffbind_peaks', bed_bam_files, value = T, invert = T)
         df = data.frame(path = cur_files, stringsAsFactors=F)
         cursplit = sapply(cur_files, strsplit, '_')
         df$condition = sapply(cursplit, '[[', 1)
         df$replicate = sapply(cursplit, '[[', 2)
         df$id = paste0(df$condition, '_', df$replicate)
         df$id[df$condition == 'input'] = 'input'
-        df$type = sapply(df$path, function(c1) ifelse(length(grep('reads', c1)) == 1, 'reads', ifelse(length(grep('peaks', c1)) == 1, 'peaks', '')))
+        df$type = sapply(df$path, function(c1) {
+          ifelse(
+            length(grep('reads', c1)) == 1, 
+            'reads', 
+            ifelse(
+              length(grep('peaks', c1)) == 1, 
+              'peaks', 
+              ''
+              )
+            )
+          )
 
-        names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 'ControlID', 'bamControl', 'Peaks','PeakCaller')
+        names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 
+                      'ControlID', 'bamControl', 'Peaks','PeakCaller')
         all_id = unique(df$id) %>% .[. != 'input']
-        df1 = data.frame(matrix(nrow = length(all_id), ncol = length(names_df1)), stringsAsFactors=F)
+        df1 = data.frame(matrix(nrow = length(all_id), 
+                         ncol = length(names_df1)), stringsAsFactors=F)
         names(df1) = names_df1
 
         for(c1 in 1:length(all_id)){
@@ -1945,7 +2239,8 @@ process DA_ATAC__doing_differential_abundance_analysis {
           df1$PeakCaller[c1] = 'bed'
 
           if(use_input_control){
-            sel_input_control_reads = which(df$condition == 'input' & df$type == 'reads')
+            sel_input_control_reads = which(
+                df$condition == 'input' & df$type == 'reads')
             df1$ControlID[c1] = df$id[sel_input_control_reads]
             df1$bamControl[c1] = df$path[sel_input_control_reads]
           } else {
@@ -1964,14 +2259,20 @@ process DA_ATAC__doing_differential_abundance_analysis {
         dbo = tryCatch(
           expr = {
             dbo <- dba(sampleSheet = df1, minOverlap = 1)
-            if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, greylist = cur_seqinfo)
+            if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, 
+              greylist = cur_seqinfo)
             dbo$config$RunParallel = F
             dbo$config$singleEnd = T
-            dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 1, score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, summits = 75)
+            dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, 
+              fragmentSize = 1, minOverlap = 1, score = DBA_SCORE_NORMALIZED, 
+              bUseSummarizeOverlaps = F, bSubControl = F, minCount = 1, 
+              summits = 75)
             dbo$config$AnalysisMethod = DBA_DESEQ2 
-            dbo <- dba.normalize(dbo, normalize = DBA_NORM_RLE, library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
+            dbo <- dba.normalize(dbo, normalize = DBA_NORM_RLE, 
+              library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
             dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
-            dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = FALSE)
+            dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
+              bReduceObjects = FALSE)
           }, error = function(e) {
             print(e$message)
             quit('no')
@@ -1983,10 +2284,12 @@ process DA_ATAC__doing_differential_abundance_analysis {
 
         ##### Exporting all peaks as a data frame
 
-        # extracting all peaks (note: th is the fdr threshold, so with th = 1 we keep all peaks)
+        # extracting all peaks (note: th is the fdr threshold, so with th = 1 
+        # we keep all peaks)
         all_peaks_gr = suppressWarnings(dba.report(dbo, th = 1))
 
-        # recomputing the FDR to have more precise values (DiffBind round them at 3 digits)
+        # recomputing the FDR to have more precise values (DiffBind round them 
+        # at 3 digits)
         all_peaks_gr$FDR <- NULL
         all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, method = 'BH')
 
@@ -1995,14 +2298,17 @@ process DA_ATAC__doing_differential_abundance_analysis {
         mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
         m <- findOverlaps(all_peaks_gr, cp_raw)
         names_subject = names(mcols(cp_raw))
-        mcols(all_peaks_gr)[queryHits(m), names_subject] = mcols(cp_raw)[subjectHits(m), names_subject]
+        mcols(all_peaks_gr)[queryHits(m), names_subject] = 
+            mcols(cp_raw)[subjectHits(m), names_subject]
         saveRDS(all_peaks_gr, paste0(COMP, '__diffbind_peaks_gr.rds'))
 
 
         ##### Exporting all peaks as a bed file
 
         all_peaks_df = as.data.frame(all_peaks_gr)
-        all_peaks_df %<>% dplyr::mutate(name = rownames(.), score = round(-log10(p.value), 2))
+        all_peaks_df %<>% dplyr::mutate(
+          name = rownames(.), 
+          score = round(-log10(p.value), 2))
         all_peaks_df %<>% dplyr::rename(chr = seqnames)
         all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
         export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
@@ -2011,7 +2317,9 @@ process DA_ATAC__doing_differential_abundance_analysis {
     '''
 }
 
-// => generating the set of all peaks found in all replicates, and a set of differentially abundant/accessible peaks (can also be called differentially bound regions)
+// => generating the set of all peaks found in all replicates, and a set of 
+// differentially abundant/accessible peaks (can also be called differentially 
+// bound regions)
 
 
 ////// justification for the parameters used
@@ -2276,20 +2584,23 @@ process DA_ATAC__annotating_diffbind_peaks {
 
   label "bioconductor"
 
-  publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
+  publishDir path: "${out_processed}/2_Differential_Abundance", 
+    mode: "${pub_mode}", saveAs: {
      if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
      else if (it.indexOf("_cs.rds") > 0) "ATAC__all_peaks__ChIPseeker/${it}"
-  }
+   }
 
   when: do_atac
 
   input:
-    set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) from Diffbind_peaks_for_annotating_them
+    set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) 
+      from Diffbind_peaks_for_annotating_them
 
   output:
     file('*.rds')
     set COMP, file("*_df.rds") into Annotated_diffbind_peaks_for_saving_tables
-    set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) into Annotated_diffbind_peaks_for_plotting
+    set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) 
+      into Annotated_diffbind_peaks_for_plotting
 
   when: params.do_diffbind_peak_annotation
 
@@ -2314,15 +2625,18 @@ process DA_ATAC__annotating_diffbind_peaks {
       ##### annotating all peaks
 
       # annotating peaks
-      anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene')
+      anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, 
+        tssRegion = c(-upstream, downstream), level = 'gene')
       ROWNAMES(anno_peak_cs)
-      anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, tssRegion = c(-upstream, downstream), level = 'gene', overlap = 'all')
+      anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, 
+        tssRegion = c(-upstream, downstream), level = 'gene', overlap = 'all')
 
 
       # creating data frame
       anno_peak_gr = anno_peak_cs@anno
       df = as.data.frame(anno_peak_gr)
-      anno_peak_df = cbind(peak_id = rownames(df), df, anno_peak_cs@detailGenomicAnnotation)
+      anno_peak_df = cbind(peak_id = rownames(df), df, 
+        anno_peak_cs@detailGenomicAnnotation)
       anno_peak_df$peak_id %<>% as.character %>% as.integer
 
 
@@ -2349,26 +2663,35 @@ process DA_ATAC__plotting_differential_abundance_results {
   label "diffbind"
   // label "differential_abundance"
 
-  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: {
-         if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
-         else if (it.indexOf("_PCA_1_2.pdf") > 0) "ATAC__PCA_1_2/${it}"
-         else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
-         else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
-  }
-  publishDir path: "${out_processed}/${out_path}", mode: "${pub_mode}", saveAs: {
-        if (it.indexOf("__ATAC_non_annotated_peaks.txt") > 0) "ATAC__non_annotated_peaks/${it}"
-      }
+  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
+    saveAs: {
+      if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
+      else if (it.indexOf("_PCA_1_2.pdf") > 0) "ATAC__PCA_1_2/${it}"
+      else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
+      else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
+    }
+    
+  publishDir path: "${out_processed}/${out_path}", mode: "${pub_mode}", 
+    saveAs: {
+      if (it.indexOf("__ATAC_non_annotated_peaks.txt") > 0) 
+        "ATAC__non_annotated_peaks/${it}"
+    }
 
 
   input:
     val out_path from Channel.value('2_Differential_Abundance')
-    set COMP, file(annotated_peaks), file(diffbind_object_rds) from Annotated_diffbind_peaks_for_plotting
+    set COMP, file(annotated_peaks), file(diffbind_object_rds) 
+      from Annotated_diffbind_peaks_for_plotting
 
   output:
-    set val("ATAC__volcano"), out_path, file('*__ATAC_volcano.pdf') into ATAC_Volcano_for_merging_pdfs
-    set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') into ATAC_PCA_1_2_for_merging_pdfs
-    set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') into ATAC_PCA_3_4_for_merging_pdfs
-    set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') into ATAC_Other_plot_for_merging_pdfs
+    set val("ATAC__volcano"), out_path, file('*__ATAC_volcano.pdf') 
+      into ATAC_Volcano_for_merging_pdfs
+    set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') 
+      into ATAC_PCA_1_2_for_merging_pdfs
+    set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') 
+      into ATAC_PCA_3_4_for_merging_pdfs
+    set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') 
+      into ATAC_Other_plot_for_merging_pdfs
     file("*__ATAC_non_annotated_peaks.txt")
 
   shell:
@@ -2403,7 +2726,8 @@ process DA_ATAC__plotting_differential_abundance_results {
       res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
 
       pdf(paste0(COMP, '__ATAC_volcano.pdf'))
-        plot_volcano_custom(res, sig_level = fdr_threshold, label_column = 'gene_name', title = paste(COMP, 'ATAC'))
+        plot_volcano_custom(res, sig_level = fdr_threshold, 
+            label_column = 'gene_name', title = paste(COMP, 'ATAC'))
       dev.off()
 
 
@@ -2418,7 +2742,8 @@ process DA_ATAC__plotting_differential_abundance_results {
       sink()
 
       # doing and plotting the PCA
-      prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), cor = F, bLog = T)$pc
+      prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), 
+        cor = F, bLog = T)$pc
       rownames(prcomp1$x) = v_gene_names
 
       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
@@ -2438,7 +2763,8 @@ process DA_ATAC__plotting_differential_abundance_results {
       pdf(paste0(COMP, '__ATAC_other_plots.pdf'))
           dba.plotMA(dbo, bNormalized = T)
           dba.plotHeatmap(dbo, main = 'all reads')
-          first_2_replicates = sort(c(which(dbo$masks$Replicate.1), which(dbo$masks$Replicate.2)))
+          first_2_replicates = sort(c(which(dbo$masks$Replicate.1), 
+            which(dbo$masks$Replicate.2)))
           dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
       dev.off()
 
@@ -2447,13 +2773,20 @@ process DA_ATAC__plotting_differential_abundance_results {
 
 }
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel.mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
 
-// DiffBind__pv_pcmask__custom was adapted from DiffBind::pv.pcmask. This little hacking is necessary because DiffBind functions plots PCA but do not return the object.
-// alternatively, the PCA could be made from scratch as done here: https://support.bioconductor.org/p/76346/
+// DiffBind__pv_pcmask__custom was adapted from DiffBind::pv.pcmask. 
+// This little hacking is necessary because DiffBind functions plots PCA but 
+// do not return the object.
+// alternatively, the PCA could be made from scratch as done here: 
+// https://support.bioconductor.org/p/76346/
 
 
 
@@ -2465,10 +2798,12 @@ process DA_ATAC__saving_detailed_results_tables {
   when: do_atac
 
   input:
-    set COMP, file(annotated_peaks) from Annotated_diffbind_peaks_for_saving_tables
+    set COMP, file(annotated_peaks) 
+      from Annotated_diffbind_peaks_for_saving_tables
 
   output:
-    set val('ATAC_detailed'), val('2_Differential_Abundance'), file('*.rds') into ATAC_detailed_tables_for_formatting_table
+    set val('ATAC_detailed'), val('2_Differential_Abundance'), file('*.rds') 
+      into ATAC_detailed_tables_for_formatting_table
     set COMP, file("*.rds") into ATAC_detailed_tables_for_splitting_in_subsets
 
   shell:
@@ -2494,29 +2829,41 @@ process DA_ATAC__saving_detailed_results_tables {
 
       # creating the res_detailed table
       res_detailed = df_annotated_peaks
-      # adding gene metadata in a more readable format than what provided by default by ChIPseeker
-      df_genes_metadata1 = dplyr::rename(df_genes_metadata, gene_chr = chr, gene_start = start, gene_end = end, gene_width = width, gene_strand = strand)
-      res_detailed %<>% dplyr::select(-geneChr, -geneStart, -geneEnd, -geneLength, -geneStrand)
+      # adding gene metadata in a more readable format than what provided by 
+      # default by ChIPseeker
+      df_genes_metadata1 = dplyr::rename(df_genes_metadata, gene_chr = chr, 
+        gene_start = start, gene_end = end, gene_width = width, 
+        gene_strand = strand)
+      res_detailed %<>% dplyr::select(-geneChr, -geneStart, -geneEnd, 
+        -geneLength, -geneStrand)
       colnames(res_detailed) %<>% tolower
       res_detailed %<>% dplyr::rename(gene_id = geneid)
       res_detailed %<>% dplyr::inner_join(df_genes_metadata1, by = 'gene_id')
 
       # renaming columns
-      res_detailed %<>% dplyr::rename(chr = seqnames, L2FC = fold, pval = p.value, distance_to_tss = distancetotss, five_UTR = fiveutr, three_UTR = threeutr)
+      res_detailed %<>% dplyr::rename(chr = seqnames, L2FC = fold, 
+        pval = p.value, distance_to_tss = distancetotss, five_UTR = fiveutr, 
+        three_UTR = threeutr)
       res_detailed$COMP = COMP
 
       # collapsing replicates values and renaming these columns as well
-      colnames(res_detailed)[grep('conc_', colnames(res_detailed))] = c('conc_cond1', 'conc_cond2')
+      colnames(res_detailed)[grep('conc_', colnames(res_detailed))] = 
+        c('conc_cond1', 'conc_cond2')
       colns = colnames(res_detailed)
       colns1 = grep(paste0('^', cond1, '_'), colns)
       colns2 = grep(paste0('^', cond2, '_'), colns)
-      res_detailed$counts_cond1 = apply(res_detailed[, colns1], 1, paste, collapse = '|')
-      res_detailed$counts_cond2 = apply(res_detailed[, colns2], 1, paste, collapse = '|')
+      res_detailed$counts_cond1 = 
+        apply(res_detailed[, colns1], 1, paste, collapse = '|')
+      res_detailed$counts_cond2 = 
+        apply(res_detailed[, colns2], 1, paste, collapse = '|')
       res_detailed[, c(colns1, colns2)] <- NULL
 
       # reordering columns
-      res_detailed$strand <- NULL  # strand information is not available for ATAC-Seq
-      res_detailed %<>% dplyr::select(COMP, peak_id, chr, start, end, width, gene_name, gene_id, pval, padj, L2FC, distance_to_tss, annotation, conc, conc_cond1, conc_cond2, counts_cond1, counts_cond2, dplyr::everything())
+      res_detailed$strand <- NULL  
+        # strand information is not available for ATAC-Seq
+      res_detailed %<>% dplyr::select(COMP, peak_id, chr, start, end, width, 
+        gene_name, gene_id, pval, padj, L2FC, distance_to_tss, annotation, conc, 
+        conc_cond1, conc_cond2, counts_cond1, counts_cond2, dplyr::everything())
 
       # adding the filtering columns
       res_detailed %<>% dplyr::mutate(
@@ -2530,7 +2877,8 @@ process DA_ATAC__saving_detailed_results_tables {
         PF_genProm = genic | promoter,
         PF_genic = genic,
         PF_prom = promoter,
-        PF_distNC = distal_intergenic | ( intron & !promoter & !five_UTR  & !three_UTR  & !exon)
+        PF_distNC = distal_intergenic | ( intron & !promoter & !five_UTR  & 
+          !three_UTR  & !exon)
       )
 
       # saving table
@@ -2542,7 +2890,8 @@ process DA_ATAC__saving_detailed_results_tables {
 }
 
 
-Formatting_csv_tables_channel = Formatting_csv_tables_channel.mix(ATAC_detailed_tables_for_formatting_table)
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(ATAC_detailed_tables_for_formatting_table)
 
 
 
@@ -2553,21 +2902,27 @@ process DA_mRNA__doing_differential_abundance_analysis {
 
     label "sleuth"
 
-    publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
-         if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) "mRNA__all_genes__rsleuth/${it}"
-         else if (it.indexOf("__mRNA_DEG_df.rds") > 0) "mRNA__all_genes__dataframe/${it}"
-      else if (it.indexOf("__all_genes_prom.bed") > 0) "mRNA__all_genes__bed_promoters/${it}"
+    publishDir path: "${out_processed}/2_Differential_Abundance", 
+      mode: "${pub_mode}", saveAs: {
+         if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) 
+            "mRNA__all_genes__rsleuth/${it}"
+         else if (it.indexOf("__mRNA_DEG_df.rds") > 0) 
+            "mRNA__all_genes__dataframe/${it}"
+      else if (it.indexOf("__all_genes_prom.bed") > 0) 
+            "mRNA__all_genes__bed_promoters/${it}"
     }
 
     when: do_mRNA
 
     input:
-      set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) from Kallisto_results_for_sleuth_4
+      set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) 
+        from Kallisto_results_for_sleuth_4
 
     output:
       set COMP, file('*__mRNA_DEG_rsleuth.rds') into Sleuth_results_for_plotting
       set COMP, file('*__mRNA_DEG_df.rds') into Sleuth_results_for_saving_tables
-      set COMP, file('*__all_genes_prom.bed') into All_detected_sleuth_promoters_for_background
+      set COMP, file('*__all_genes_prom.bed') 
+        into All_detected_sleuth_promoters_for_background
 
     shell:
     '''
@@ -2589,7 +2944,8 @@ process DA_mRNA__doing_differential_abundance_analysis {
       source('!{projectDir}/bin/get_prom_bed_df_table.R')
 
 
-      s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), stringsAsFactors = F)
+      s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), 
+        stringsAsFactors = F)
       s2c$sample = sapply(s2c$path, function(x) strsplit(x, 'kallisto_')[[1]][2])
       s2c$condition = sapply(s2c$path, function(x) strsplit(x, '_')[[1]][2])
       levels(s2c$condition) = c(cond1, cond2)
@@ -2600,11 +2956,14 @@ process DA_mRNA__doing_differential_abundance_analysis {
   		md <- model.matrix(~cond, s2c)
   		colnames(md)[2] <- test_cond
 
-      t2g <- dplyr::rename(df_genes_transcripts, target_id = TXNAME, gene_id = GENEID)
+      t2g <- dplyr::rename(df_genes_transcripts, target_id = TXNAME, 
+          gene_id = GENEID)
       t2g$target_id %<>% paste0('transcript:', .)
 
       # Load the kallisto data, normalize counts and filter genes
-		  sleo <- sleuth_prep(sample_to_covariates = s2c, full_model = md, target_mapping = t2g, aggregation_column = 'gene_id', transform_fun_counts = function(x) log2(x + 0.5), gene_mode = T)
+		  sleo <- sleuth_prep(sample_to_covariates = s2c, full_model = md, 
+        target_mapping = t2g, aggregation_column = 'gene_id', 
+        transform_fun_counts = function(x) log2(x + 0.5), gene_mode = T)
 
       # Estimate parameters for the sleuth response error measurement (full) model
       sleo <- sleuth_fit(sleo)
@@ -2614,7 +2973,8 @@ process DA_mRNA__doing_differential_abundance_analysis {
       saveRDS(sleo, file = paste0(COMP, '__mRNA_DEG_rsleuth.rds'))
 
       # saving as dataframe and recomputing the FDR
-      res <- sleuth_results(sleo, test_cond, test_type = 'wt', pval_aggregate  = F)
+      res <- sleuth_results(sleo, test_cond, test_type = 'wt', 
+        pval_aggregate  = F)
       res %<>% .[!is.na(.$b), ]
       res$padj = p.adjust(res$pval, method = 'BH')
       res$qval <- NULL
@@ -2662,12 +3022,13 @@ process DA_mRNA__doing_differential_abundance_analysis {
 process DA_mRNA__plotting_differential_abundance_results {
     tag "${COMP}"
 
-    publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: { 
-          if (it.indexOf("__mRNA_volcano.pdf") > 0) "mRNA__volcano/${it}"
-          else if (it.indexOf("__mRNA_PCA_1_2.pdf") > 0) "mRNA__PCA_1_2/${it}"
-          else if (it.indexOf("__mRNA_PCA_3_4.pdf") > 0) "mRNA__PCA_3_4/${it}"
-          else if (it.indexOf("__mRNA_other_plots.pdf") > 0) "mRNA__other_plots/${it}"
-    }
+    publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
+      saveAs: { 
+        if (it.indexOf("__mRNA_volcano.pdf") > 0) "mRNA__volcano/${it}"
+        else if (it.indexOf("__mRNA_PCA_1_2.pdf") > 0) "mRNA__PCA_1_2/${it}"
+        else if (it.indexOf("__mRNA_PCA_3_4.pdf") > 0) "mRNA__PCA_3_4/${it}"
+        else if (it.indexOf("__mRNA_other_plots.pdf") > 0) "mRNA__other_plots/${it}"
+      }
 
 
     label "sleuth"
@@ -2677,10 +3038,14 @@ process DA_mRNA__plotting_differential_abundance_results {
       set COMP, file(mRNA_DEG_rsleuth_rds) from Sleuth_results_for_plotting
 
     output:
-      set val("mRNA__volcano"), out_path, file('*__mRNA_volcano.pdf') into MRNA_Volcano_for_merging_pdfs
-      set val("mRNA__PCA_1_2"), out_path, file('*__mRNA_PCA_1_2.pdf') into MRNA_PCA_1_2_for_merging_pdfs
-      set val("mRNA__PCA_3_4"), out_path, file('*__mRNA_PCA_3_4.pdf') into MRNA_PCA_3_4_for_merging_pdfs
-      set val("mRNA__other_plots"), out_path, file('*__mRNA_other_plots.pdf') into MRNA_Other_plot_for_merging_pdfs
+      set val("mRNA__volcano"), out_path, file('*__mRNA_volcano.pdf') 
+        into MRNA_Volcano_for_merging_pdfs
+      set val("mRNA__PCA_1_2"), out_path, file('*__mRNA_PCA_1_2.pdf') 
+        into MRNA_PCA_1_2_for_merging_pdfs
+      set val("mRNA__PCA_3_4"), out_path, file('*__mRNA_PCA_3_4.pdf') 
+        into MRNA_PCA_3_4_for_merging_pdfs
+      set val("mRNA__other_plots"), out_path, file('*__mRNA_other_plots.pdf') 
+        into MRNA_Other_plot_for_merging_pdfs
 
     shell:
     '''
@@ -2718,16 +3083,20 @@ process DA_mRNA__plotting_differential_abundance_results {
       res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
 
       pdf(paste0(COMP, '__mRNA_volcano.pdf'))
-        plot_volcano_custom(res_volcano, sig_level = fdr_threshold, label_column = 'gene_name', title = paste(COMP, 'mRNA'))
+        plot_volcano_custom(res_volcano, sig_level = fdr_threshold, 
+          label_column = 'gene_name', title = paste(COMP, 'mRNA'))
       dev.off()
 
 
       ##### PCA plots
 
-      # the pca is computed using the default parameters in the sleuth functions sleuth::plot_pca
-      mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 'scaled_reads_per_base')
+      # the pca is computed using the default parameters in the sleuth functions 
+      # sleuth::plot_pca
+      mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 
+        'scaled_reads_per_base')
       prcomp1 <- prcomp(mat)
-      v_gene_id_name = df_genes_metadata_1$gene_name %>% setNames(., df_genes_metadata_1$gene_id)
+      v_gene_id_name = df_genes_metadata_1$gene_name %>% 
+        setNames(., df_genes_metadata_1$gene_id)
       rownames(prcomp1$x) %<>% v_gene_id_name[.]
 
       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
@@ -2745,20 +3114,29 @@ process DA_mRNA__plotting_differential_abundance_results {
       ##### other plots
 
       pdf(paste0(COMP, '__mRNA_other_plots.pdf'))
-        plot_ma(sleo, test = test_cond, sig_level = fdr_threshold) + ggtitle(paste('MA:', COMP))
-        plot_group_density(sleo, use_filtered = TRUE, units = "scaled_reads_per_base", trans = "log", grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
+        plot_ma(sleo, test = test_cond, sig_level = fdr_threshold) + 
+          ggtitle(paste('MA:', COMP))
+        plot_group_density(sleo, use_filtered = TRUE, 
+          units = "scaled_reads_per_base", trans = "log", 
+          grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), 
+          offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
         # plot_scatter(sleo) + ggtitle(paste('Scatter:', COMP))
-        # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', COMP))
+        # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', 
+        # COMP))
       dev.off()
 
 
     '''
 }
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(MRNA_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel.mix(MRNA_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel.mix(MRNA_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel.mix(MRNA_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(MRNA_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(MRNA_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(MRNA_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(MRNA_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
 
 
 
@@ -2768,7 +3146,8 @@ process DA_mRNA__saving_detailed_results_tables {
 
     label "r_basic"
 
-    publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", mode: pub_mode, enabled: params.save_tables_as_csv
+    publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", 
+      mode: pub_mode, enabled: params.save_tables_as_csv
 
     when: do_mRNA
 
@@ -2776,7 +3155,8 @@ process DA_mRNA__saving_detailed_results_tables {
     set COMP, file(mRNA_DEG_df) from Sleuth_results_for_saving_tables
 
     output:
-    set val('mRNA_detailed'), val('2_Differential_Abundance'), file('*.rds') into MRNA_detailed_tables_for_formatting_table
+    set val('mRNA_detailed'), val('2_Differential_Abundance'), file('*.rds') 
+      into MRNA_detailed_tables_for_formatting_table
     set COMP, file('*.rds') into MRNA_detailed_tables_for_splitting_in_subsets
 
     shell:
@@ -2797,7 +3177,8 @@ process DA_mRNA__saving_detailed_results_tables {
       res_detailed = mRNA_DEG_df
       res_detailed %<>% dplyr::rename(L2FC = b)
       res_detailed$COMP = COMP
-      res_detailed %<>% dplyr::select(COMP, chr, start, end, width, strand, gene_name, gene_id, entrez_id, pval, padj, L2FC, dplyr::everything())
+      res_detailed %<>% dplyr::select(COMP, chr, start, end, width, strand, 
+        gene_name, gene_id, entrez_id, pval, padj, L2FC, dplyr::everything())
       saveRDS(res_detailed, paste0(COMP, '__res_detailed_mRNA.rds'))
 
 
@@ -2805,7 +3186,8 @@ process DA_mRNA__saving_detailed_results_tables {
 }
 
 
-Formatting_csv_tables_channel = Formatting_csv_tables_channel.mix(MRNA_detailed_tables_for_formatting_table)
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(MRNA_detailed_tables_for_formatting_table)
 
 
 
@@ -2848,19 +3230,27 @@ process DA__splitting_differential_abundance_results_in_subsets {
 
   label "r_basic"
 
-  publishDir path: "${out_processed}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
+  publishDir path: "${out_processed}/2_Differential_Abundance", 
+  mode: "${pub_mode}", saveAs: {
     if (it.indexOf("__genes.rds") > 0) "DA_split__genes_rds/${it}"
     else if   (it.indexOf(".bed") > 0) "DA_split__bed_regions/${it}"
   }
 
   input:
-    set COMP, file(res_detailed) from Differational_abundance_results_for_splitting_in_subsets
+    set COMP, file(res_detailed) 
+      from Differational_abundance_results_for_splitting_in_subsets
 
   output:
-    set val('res_simple'), val('2_Differential_Abundance'), file("*__res_simple.rds") into Res_simple_table_for_formatting_table optional true
-    set val('res_filter'), val('2_Differential_Abundance'), file("*__res_filter.rds") into Res_filter_table_for_formatting_table optional true
-    set COMP, file("*__genes.rds") into DA_genes_split_for_doing_enrichment_analysis optional true
-    set COMP, file("*__regions.bed") into DA_regions_split_for_doing_enrichment_analysis optional true
+    set val('res_simple'), val('2_Differential_Abundance'), 
+      file("*__res_simple.rds") 
+      into Res_simple_table_for_formatting_table optional true
+    set val('res_filter'), val('2_Differential_Abundance'), 
+      file("*__res_filter.rds") 
+      into Res_filter_table_for_formatting_table optional true
+    set COMP, file("*__genes.rds") 
+      into DA_genes_split_for_doing_enrichment_analysis optional true
+    set COMP, file("*__regions.bed") 
+      into DA_regions_split_for_doing_enrichment_analysis optional true
 
 
   shell:
@@ -2888,9 +3278,12 @@ process DA__splitting_differential_abundance_results_in_subsets {
       promoters_df = readRDS('!{params.promoters_df}')
 
       TT       = '!{params.threshold_type_for_splitting_subsets}'
-      TV_split = read_from_nextflow('!{params.threshold_values_for_splitting_subsets}') %>% as.numeric
-      FC_split = read_from_nextflow('!{params.fold_changes_for_splitting_subsets}')
-      PF_split = read_from_nextflow('!{params.peak_assignment_for_splitting_subsets}')
+      TV_split = read_from_nextflow(
+        '!{params.threshold_values_for_splitting_subsets}') %>% as.numeric
+      FC_split = read_from_nextflow(
+        '!{params.fold_changes_for_splitting_subsets}')
+      PF_split = read_from_nextflow(
+        '!{params.peak_assignment_for_splitting_subsets}')
       
 
       ################################
@@ -2903,9 +3296,13 @@ process DA__splitting_differential_abundance_results_in_subsets {
         # adding the aggregated PF filter column
         res_detailed_atac$PF_all = T
         PF_columns_all = grep('PF_', colnames(res_detailed_atac), value = T)
-        res_detailed_atac$PF = get_merged_columns(res_detailed_atac, paste0('PF_', PF_split), 'PF')
+        res_detailed_atac$PF = 
+          get_merged_columns(res_detailed_atac, paste0('PF_', PF_split), 'PF')
 
-        res_simple_atac = res_detailed_atac %>% dplyr::mutate(transcript_id = NA, ET = 'ATAC') %>% dplyr::select(COMP, peak_id, chr, gene_name, gene_id, pval, padj, L2FC, PF, ET)
+        res_simple_atac = res_detailed_atac %>% 
+          dplyr::mutate(transcript_id = NA, ET = 'ATAC') %>% 
+          dplyr::select(COMP, peak_id, chr, gene_name, gene_id, pval, padj, 
+            L2FC, PF, ET)
         
         # adding the rank column
         res_simple_atac %<>% dplyr::arrange(padj, desc(abs(L2FC)))
@@ -2923,9 +3320,12 @@ process DA__splitting_differential_abundance_results_in_subsets {
 
       if(do_mRNA) {
         res_detailed_mRNA = readRDS(grep('mRNA.rds', lf, value = T))
-        res_simple_mRNA = res_detailed_mRNA %>% dplyr::select(COMP, chr, gene_name, gene_id, pval, padj, L2FC)
-        res_simple_mRNA = cbind(peak_id = 'Null', res_simple_mRNA, ET = 'mRNA', PF = 'Null', stringsAsFactors = F)
-        res_simple_mRNA %<>% dplyr::select(COMP, peak_id, chr, gene_name, gene_id, pval, padj, L2FC, PF, ET)
+        res_simple_mRNA = res_detailed_mRNA %>% dplyr::select(COMP, chr, 
+          gene_name, gene_id, pval, padj, L2FC)
+        res_simple_mRNA = cbind(peak_id = 'Null', res_simple_mRNA, ET = 'mRNA', 
+          PF = 'Null', stringsAsFactors = F)
+        res_simple_mRNA %<>% dplyr::select(COMP, peak_id, chr, gene_name, 
+          gene_id, pval, padj, L2FC, PF, ET)
         
         # adding the rank column
         res_simple_mRNA %<>% dplyr::arrange(padj, desc(abs(L2FC)))
@@ -2937,16 +3337,21 @@ process DA__splitting_differential_abundance_results_in_subsets {
       if(do_mRNA & do_atac) res_simple = rbind(res_simple_atac, res_simple_mRNA)
 
       # adding the aggregated FC filter column
-      res_simple %<>% dplyr::mutate(FC_all = T, FC_up = L2FC > 0, FC_down = L2FC < 0)
-      res_simple$FC = get_merged_columns(res_simple, paste0('FC_', FC_split), 'FC')
+      res_simple %<>% dplyr::mutate(FC_all = T, FC_up = L2FC > 0, 
+        FC_down = L2FC < 0)
+      res_simple$FC = get_merged_columns(res_simple, paste0('FC_', FC_split), 
+        'FC')
 
       # adding the aggregated TV filter column
-      for(TV in TV_split) res_simple[[paste0('TV_', TV)]] = filter_entries_by_threshold(res_simple, TT, TV)
-      res_simple$TV = get_merged_columns(res_simple, paste0('TV_', TV_split), 'TV')
+      for(TV in TV_split) res_simple[[paste0('TV_', TV)]] = 
+        filter_entries_by_threshold(res_simple, TT, TV)
+      res_simple$TV = 
+        get_merged_columns(res_simple, paste0('TV_', TV_split), 'TV')
       res_simple$TV %<>% gsub('^$', 'NS', .)  # NS: None Significant
 
       # filtering and reordering columns
-      res_simple %<>% dplyr::select(ET, PF, FC, TV, COMP, peak_id, chr, gene_name, gene_id, pval, padj, L2FC)
+      res_simple %<>% dplyr::select(ET, PF, FC, TV, COMP, peak_id, chr, 
+        gene_name, gene_id, pval, padj, L2FC)
 
       saveRDS(res_simple, paste0(COMP, '__res_simple.rds'))
 
@@ -2954,7 +3359,8 @@ process DA__splitting_differential_abundance_results_in_subsets {
       ################################
       ## creating the res_filter table
 
-      df_split = expand.grid(TV = TV_split, FC = FC_split, PF = PF_split, stringsAsFactors = F)
+      df_split = expand.grid(TV = TV_split, FC = FC_split, PF = PF_split, 
+        stringsAsFactors = F)
       lres_filter = list()
 
       for(c1 in 1:nrow(df_split)){
@@ -2962,18 +3368,26 @@ process DA__splitting_differential_abundance_results_in_subsets {
         FC1 = df_split$FC[c1]
         PF1 = df_split$PF[c1]
 
-        res_filter_atac = res_simple %>% dplyr::filter(grepl(TV1, TV) & grepl(FC1, FC) & grepl(PF1, PF) & ET == 'ATAC')
-        res_filter_mRNA = res_simple %>% dplyr::filter(grepl(TV1, TV) & grepl(FC1, FC) & ET == 'mRNA')
+        res_filter_atac = res_simple %>% 
+          dplyr::filter(grepl(TV1, TV) & 
+                        grepl(FC1, FC) & grepl(PF1, PF) & ET == 'ATAC')
+        res_filter_mRNA = res_simple %>% 
+          dplyr::filter(grepl(TV1, TV) & grepl(FC1, FC) & ET == 'mRNA')
 
         # adding the Experiment Type "both"
         ATAC_genes = res_filter_atac$gene_id
         mRNA_genes = res_filter_mRNA$gene_id
         both_genes = res_filter_atac$gene_id %>% .[. %in% mRNA_genes]
 
-        res_filter_atac_both = res_filter_atac %>% dplyr::filter(gene_id %in% both_genes) %>% dplyr::mutate(ET = 'both_ATAC')
-        res_filter_mRNA_both = res_filter_mRNA %>% dplyr::filter(gene_id %in% both_genes) %>% dplyr::mutate(ET = 'both_mRNA')
+        res_filter_atac_both = res_filter_atac %>% 
+          dplyr::filter(gene_id %in% both_genes) %>% 
+          dplyr::mutate(ET = 'both_ATAC')
+        res_filter_mRNA_both = res_filter_mRNA %>% 
+          dplyr::filter(gene_id %in% both_genes) %>% 
+          dplyr::mutate(ET = 'both_mRNA')
 
-        res_filter_tmp = rbind(res_filter_atac_both, res_filter_mRNA_both, res_filter_atac, res_filter_mRNA)
+        res_filter_tmp = rbind(res_filter_atac_both, res_filter_mRNA_both, 
+          res_filter_atac, res_filter_mRNA)
         res_filter_tmp %<>% dplyr::mutate(TV = TV1, FC = FC1, PF = PF1)
         res_filter_tmp$PF[res_filter_tmp$ET == 'mRNA'] = 'Null'
 
@@ -2992,8 +3406,10 @@ process DA__splitting_differential_abundance_results_in_subsets {
 
       if(do_atac) {
         atac_bed_df = res_detailed_atac
-        atac_bed_df %<>% dplyr::mutate(score = round(-log10(padj), 2), name = paste(gene_name, peak_id, sep = '_'), strand = '*')
-        atac_bed_df %<>% dplyr::select(chr, start, end, name, score, strand, gene_id)
+        atac_bed_df %<>% dplyr::mutate(score = round(-log10(padj), 2), 
+                      name = paste(gene_name, peak_id, sep = '_'), strand = '*')
+        atac_bed_df %<>% dplyr::select(chr, start, end, name, score, strand, 
+          gene_id)
       }
 
       if(do_mRNA) {
@@ -3001,7 +3417,8 @@ process DA__splitting_differential_abundance_results_in_subsets {
         prom_bed_df = get_prom_bed_df_table(promoters_df1, res_simple_mRNA)
       }
 
-      res_filter$gene_peak = apply(res_filter[, c('gene_name', 'peak_id')], 1, paste, collapse = '_')
+      res_filter$gene_peak = 
+        apply(res_filter[, c('gene_name', 'peak_id')], 1, paste, collapse = '_')
 
       df_split1 = res_filter %>% dplyr::select(ET:TV) %>% .[!duplicated(.),]
 
@@ -3013,7 +3430,8 @@ process DA__splitting_differential_abundance_results_in_subsets {
 
         df = subset(res_filter, ET == ET1 & PF == PF1 & FC == FC1 & TV == TV1)
         DA_genes = unique(df$gene_id)
-        NDA_genes = subset(res_simple, ET == ET1 & !gene_id %in% DA_genes, 'gene_id')$gene_id
+        NDA_genes = subset(res_simple, ET == ET1 & !gene_id %in% DA_genes, 
+          'gene_id')$gene_id
         lgenes = list(DA = DA_genes, NDA = NDA_genes)
 
         key = paste(ET1, PF1, FC1, TV1, COMP, sep = '__')
@@ -3044,14 +3462,16 @@ process DA__splitting_differential_abundance_results_in_subsets {
 // bed_name = paste0(key, '__diff_expr_genes_prom.bed')
 // bed_name = paste0(key, '__diff_ab_peaks.bed')
 
-// note that the rank column for atac increase for each peak that is assigned to a new gene. This way as many genes are assigned in ATAC-Seq and mRNA-Seq
+// note that the rank column for atac increase for each peak that is assigned to 
+// a new gene. This way as many genes are assigned in ATAC-Seq and mRNA-Seq
 
 // commands to check venn diagrams sizes:
 // dt[rank < 1001][L2FC > 0]$gene_id %>% unique %>% length
 // dt[rank < 1001][L2FC < 0]$gene_id %>% unique %>% length
 
 
-// a=      res_simple %>% .[.$ET == 'ATAC', ] %>% .[.$rank < 1001 & .$FC > 0, ] %>% .$gene_id %>% unique
+// a=      res_simple %>% .[.$ET == 'ATAC', ] %>% 
+//     .[.$rank < 1001 & .$FC > 0, ] %>% .$gene_id %>% unique
 // c = a %>% .[!. %in% b]
 // dt[gene_id == c[1]]
 
@@ -3059,22 +3479,27 @@ process DA__splitting_differential_abundance_results_in_subsets {
 // res_simple[, c('ET', 'FC', 'TV_1000')] %>% table
 // to run after this line:    for(TV in TV_split) res_simple[[paste0('TV_', ...
 
-// res_simple_atac %>% .[.$rank < 1000] %>%  .[.$L2FC < 0 ,]  %>% .[!duplicated(.$gene_id),] %>% nrow
+// res_simple_atac %>% .[.$rank < 1000] %>%  .[.$L2FC < 0 ,]  %>% 
+// .[!duplicated(.$gene_id),] %>% nrow
 // res_simple_atac %>%  .[.$L2FC > 0 ,]  %>% .[!duplicated(.$gene_id),] %>% nrow
 
 
-Formatting_csv_tables_channel = Formatting_csv_tables_channel.mix(Res_simple_table_for_formatting_table)
-Formatting_csv_tables_channel = Formatting_csv_tables_channel.mix(Res_filter_table_for_formatting_table)
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(Res_simple_table_for_formatting_table)
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(Res_filter_table_for_formatting_table)
 
 
 
 
-// Note: in the res_filter table, each entry is multiplied at maximum by the number of rows in the df_split table times 2 (for the ET column)
+// Note: in the res_filter table, each entry is multiplied at maximum by the 
+// number of rows in the df_split table times 2 (for the ET column)
 
 // why we remove 1bp at the start for bed export from a grange object
 // https://www.biostars.org/p/89341/
 // The only trick is remembering the BED uses 0-based coordinates.
-// note that the df that are input to the function export_df_to_bed all come from a grange object (output of )
+// note that the df that are input to the function export_df_to_bed all come 
+// from a grange object (output of )
 
 
 
@@ -3083,22 +3508,30 @@ Formatting_csv_tables_channel = Formatting_csv_tables_channel.mix(Res_filter_tab
 
 //// Adding keys to genes sets
 
-// note: there are slightly more items in the peaks channels, since the both sets are duplicated (both_ATAC and both_mRNA)
+// note: there are slightly more items in the peaks channels, since the both 
+// sets are duplicated (both_ATAC and both_mRNA)
 
 
 DA_genes_split_for_doing_enrichment_analysis
-  // COMP, [ multiple_rds_files ] (files format: path/ET__PF__FC__TV__COMP__genes.rds)
+  // COMP, [ multiple_rds_files ] 
+  //  (files format: path/ET__PF__FC__TV__COMP__genes.rds)
   .tap{ DA_genes_for_plotting_venn_diagrams }
   .map{ it[1] }.flatten().toList()
   // [ all_rds_files ]
-  .into{ DA_genes_list_for_computing_genes_self_overlaps ; DA_genes_for_computing_genes_self_overlaps_1 }
+  .into{ 
+    DA_genes_list_for_computing_genes_self_overlaps ;
+    DA_genes_for_computing_genes_self_overlaps_1
+  }
 
 DA_genes_for_computing_genes_self_overlaps_1
   .flatten()
   // one rds_file per line
   .map{ [ it.name.replaceFirst(~/__genes.*/, ''), it ] }
   // key (ET__PF__FC__TV__COMP), rds_file
-  .into{ DA_genes_for_computing_genes_self_overlaps_2 ; DA_genes_for_computing_functional_annotations_overlaps_1 }
+  .into{ 
+    DA_genes_for_computing_genes_self_overlaps_2 ; 
+    DA_genes_for_computing_functional_annotations_overlaps_1
+  }
 
 
 DA_genes_for_computing_genes_self_overlaps_2
@@ -3114,10 +3547,14 @@ DA_genes_for_computing_genes_self_overlaps_2
 
 //// Adding backgrounds to peak sets
 
-// A background is needed for downstream analysis to compare DEG or DBP to all genes or all peaks. This background is all_peaks found by DiffBind for the ATAC and both_ATAC entries. And it is the promoters of genes detected by sleuth for mRNA and both_mRNA entries.
+// A background is needed for downstream analysis to compare DEG or DBP to all 
+// genes or all peaks. This background is all_peaks found by DiffBind for the 
+// ATAC and both_ATAC entries. And it is the promoters of genes detected by 
+// sleuth for mRNA and both_mRNA entries.
 
 DA_regions_split_for_doing_enrichment_analysis
-  // COMP, multiple_bed_files (files format: path/ET__PF__FC__TV__COMP__peaks.bed)
+  // COMP, multiple_bed_files 
+  //   (files format: path/ET__PF__FC__TV__COMP__peaks.bed)
   .map{ it[1] }.flatten()
   // bed_file
   .map{ [ it.name.replaceFirst(~/__regions.bed/, ''), it ] }
@@ -3162,17 +3599,24 @@ process DA__plotting_venn_diagrams {
 
   label "venndiagram"
 
-  publishDir path: "${out_fig_indiv}/2_Differential_Abundance", mode: "${pub_mode}", saveAs: {
-      if (it.indexOf("__venn_up_or_down.pdf") > 0) "Venn_diagrams__two_ways/${it}"
-      else if (it.indexOf("__venn_up_and_down.pdf") > 0) "Venn_diagrams__four_ways/${it}"
+  publishDir path: "${out_fig_indiv}/2_Differential_Abundance", 
+    mode: "${pub_mode}", saveAs: {
+      if (it.indexOf("__venn_up_or_down.pdf") > 0) 
+        "Venn_diagrams__two_ways/${it}"
+      else if (it.indexOf("__venn_up_and_down.pdf") > 0) 
+        "Venn_diagrams__four_ways/${it}"
   }
 
   input:
     set COMP, file('*') from DA_genes_for_plotting_venn_diagrams
 
   output:
-    set val("Venn_diagrams__two_ways"), val("2_Differential_Abundance"), file('*__venn_up_or_down.pdf')  into Venn_up_or_down_for_merging_pdfs optional true
-    set val("Venn_diagrams__four_ways"), val("2_Differential_Abundance"), file('*__venn_up_and_down.pdf') into Venn_up_and_down_for_merging_pdfs optional true
+    set val("Venn_diagrams__two_ways"), val("2_Differential_Abundance"), 
+      file('*__venn_up_or_down.pdf') 
+      into Venn_up_or_down_for_merging_pdfs optional true
+    set val("Venn_diagrams__four_ways"), val("2_Differential_Abundance"), 
+      file('*__venn_up_and_down.pdf') 
+      into Venn_up_and_down_for_merging_pdfs optional true
 
   when: params.do_diffbind_peak_annotation
 
@@ -3189,7 +3633,8 @@ process DA__plotting_venn_diagrams {
       all_files = list.files(pattern = '*.rds')
 
 
-      df = data.frame(do.call(rbind, lapply(all_files, function(x) strsplit(x, '__')[[1]][-6])), stringsAsFactors = F)
+      df = data.frame(do.call(rbind, lapply(all_files, 
+        function(x) strsplit(x, '__')[[1]][-6])), stringsAsFactors = F)
       colnames(df) = c('ET', 'PF', 'FC', 'TV', 'COMP')
 
       PFs = unique(df$PF)
@@ -3215,19 +3660,23 @@ process DA__plotting_venn_diagrams {
           m_d = file.exists(mrna_down)
 
           if(a_u & m_u) {
-            lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = readRDS(mrna_up)$DA)
+            lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
+              readRDS(mrna_up)$DA)
             prefix = paste(PF1, 'up', TV1, COMP, sep = '__')
             plot_venn_diagrams(lgenes, prefix)
           }
 
           if(a_d & m_d) {
-            lgenes = list(atac_down = readRDS(atac_down)$DA, mrna_down = readRDS(mrna_down)$DA)
+            lgenes = list(atac_down = readRDS(atac_down)$DA, mrna_down = 
+              readRDS(mrna_down)$DA)
             prefix = paste(PF1, 'down', TV1, COMP, sep = '__')
             plot_venn_diagrams(lgenes, prefix)
           }
 
           if(a_u & a_d & m_u & m_d) {
-            lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = readRDS(mrna_up)$DA, atac_down = readRDS(atac_down)$DA, mrna_down = readRDS(mrna_down)$DA)
+            lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
+              readRDS(mrna_up)$DA, atac_down = readRDS(atac_down)$DA, 
+              mrna_down = readRDS(mrna_down)$DA)
             prefix = paste(PF1, TV1, COMP, sep = '__')
             plot_venn_diagrams(lgenes, prefix)
           }
@@ -3239,13 +3688,21 @@ process DA__plotting_venn_diagrams {
   '''
 }
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_or_down_for_merging_pdfs.groupTuple(by: [0, 1]).map{ it.flatten() }.map{ [ it[0], it[1], it[2..-1] ] })
-Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_and_down_for_merging_pdfs.groupTuple(by: [0, 1]).map{ it.flatten() }.map{ [ it[0], it[1], it[2..-1] ] })
+Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_or_down_for_merging_pdfs
+  .groupTuple(by: [0, 1])
+  .map{ it.flatten() }
+  .map{ [ it[0], it[1], it[2..-1] ] })
+  
+Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_and_down_for_merging_pdfs
+  .groupTuple(by: [0, 1])
+  .map{ it.flatten() }
+  .map{ [ it[0], it[1], it[2..-1] ] })
 
 
 
 
-//// importing groups of comparisons to plot together on the overlap matrix and the heatmaps
+//// importing groups of comparisons to plot together on the overlap matrix and 
+// the heatmaps
 
 comparisons_grouped = file("design/groups.tsv")
 Channel
@@ -3254,7 +3711,8 @@ Channel
   .map { [ it[0], it[1..-1].join('|') ] }
   // format: GRP, [ comp_order ]
   .dump(tag:'comp_group') {"comparisons grouped: ${it}"}
-  // .into { comparisons_grouped_for_overlap_matrix ; comparisons_grouped_for_heatmap }
+  // .into { comparisons_grouped_for_overlap_matrix ; 
+  // comparisons_grouped_for_heatmap }
   .set { comparisons_grouped_for_heatmap }
 
 
@@ -3285,7 +3743,8 @@ process Overlap__computing_functional_annotations_overlaps {
     set key, data_type, func_anno, file(gene_set_rds) from DA_genes_for_computing_functional_annotations_overlaps_2
 
   output:
-    set key, data_type, file('*__counts.csv') into Functional_annotations_overlaps_for_computing_pvalues optional true
+    set key, data_type, file('*__counts.csv') 
+      into Functional_annotations_overlaps_for_computing_pvalues optional true
 
   when: params.do_gene_set_enrichment
 
@@ -3314,21 +3773,28 @@ process Overlap__computing_functional_annotations_overlaps {
 
         if(type == 'KEGG') {
 
-          vec = df_genes_metadata$entrez_id %>% setNames(., df_genes_metadata$gene_id)
+          vec = df_genes_metadata$entrez_id %>% 
+            setNames(., df_genes_metadata$gene_id)
           gene_set_entrez = vec[DA_genes]
 
-          res <- clusterProfiler:::enricher_internal(gene_set_entrez, pvalueCutoff  = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', universe = universe, USER_DATA = kegg_environment)
+          res <- clusterProfiler:::enricher_internal(gene_set_entrez, 
+            pvalueCutoff  = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', 
+            universe = universe, USER_DATA = kegg_environment)
           
           if(is.null(res)) error('NULL output')
           res
         }
           else {
-            simplify( enrichGO( gene = DA_genes, OrgDb = org_db, keyType = 'ENSEMBL', ont = type, pAdjustMethod = 'BH', pvalueCutoff = 1, qvalueCutoff  = 1, universe = universe), cutoff = 0.8, by = 'p.adjust', select_fun = min)
+            simplify( enrichGO( gene = DA_genes, OrgDb = org_db, 
+              keyType = 'ENSEMBL', ont = type, pAdjustMethod = 'BH', 
+              pvalueCutoff = 1, qvalueCutoff  = 1, universe = universe), 
+              cutoff = 0.8, by = 'p.adjust', select_fun = min)
           }
       }
 
       robust_gene_set_enrich <- function(lgenes, type){
-        tryCatch(gene_set_enrich(lgenes, type), error = function(e) {print(paste('No enrichment found'))})
+        tryCatch(gene_set_enrich(lgenes, type), error = 
+          function(e) {print(paste('No enrichment found'))})
       }
 
       res = robust_gene_set_enrich(lgenes, func_anno)
@@ -3340,18 +3806,23 @@ process Overlap__computing_functional_annotations_overlaps {
 
             # converting IDs from entrez to Ensembl
             if(func_anno == 'KEGG'){
-              vec = df_genes_metadata$gene_id %>% setNames(., df_genes_metadata$entrez_id)
-              ensembl_ids = purrr::map_chr(strsplit(df$geneID, '/'), ~ paste(unname(vec[.x]), collapse = '/'))
+              vec = df_genes_metadata$gene_id %>% 
+                setNames(., df_genes_metadata$entrez_id)
+              ensembl_ids = purrr::map_chr(strsplit(df$geneID, '/'), 
+                              ~paste(unname(vec[.x]), collapse = '/'))
               df$geneID = ensembl_ids
             }
 
             # extracting count columns, reformatting and saving results
             df %<>% tidyr::separate(GeneRatio, c('ov_da', 'tot_da'), sep = '/')
             df %<>% tidyr::separate(BgRatio, c('ov_nda', 'tot_nda'), sep = '/')
-            df[, c('ov_da', 'tot_da', 'ov_nda', 'tot_nda')] %<>% apply(2, as.integer)
+            df[, c('ov_da', 'tot_da', 'ov_nda', 'tot_nda')] %<>% 
+              apply(2, as.integer)
 
-            df %<>% dplyr::rename(tgt_id = ID, tgt = Description, genes_id = geneID)
-            df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, tgt_id, genes_id)
+            df %<>% dplyr::rename(tgt_id = ID, tgt = Description, 
+              genes_id = geneID)
+            df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, tgt_id, 
+              genes_id)
 
             write.csv(df, paste0(key, '__counts.csv'), row.names = F)
 
@@ -3361,7 +3832,8 @@ process Overlap__computing_functional_annotations_overlaps {
   '''
 }
 
-Overlap_tables_channel = Overlap_tables_channel.mix(Functional_annotations_overlaps_for_computing_pvalues)
+Overlap_tables_channel = Overlap_tables_channel
+  .mix(Functional_annotations_overlaps_for_computing_pvalues)
 
 // universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL) # => this fails: "error replacement has length zero"
 
@@ -3428,16 +3900,20 @@ Overlap_tables_channel = Overlap_tables_channel.mix(Functional_annotations_overl
 // detach("package:clusterProfiler", unload=TRUE)
 // library(clusterProfiler)
 
+
+
 process Overlap__computing_genes_self_overlaps {
   tag "${key}"
 
   label "r_basic"
 
   input:
-    set key, data_type, file(lgenes), file('all_gene_sets/*') from DA_genes_for_computing_genes_self_overlaps_3
+    set key, data_type, file(lgenes), file('all_gene_sets/*') 
+      from DA_genes_for_computing_genes_self_overlaps_3
 
   output:
-    set key, data_type, file("*__counts.csv") into Genes_self_overlaps_for_computing_pvalues
+    set key, data_type, file("*__counts.csv") 
+      into Genes_self_overlaps_for_computing_pvalues
 
   shell:
   '''
@@ -3453,7 +3929,8 @@ process Overlap__computing_genes_self_overlaps {
 
         all_gene_sets = list.files('all_gene_sets')
         all_gene_sets %<>% setNames(., gsub('__genes.rds', '', .))
-        all_DA = purrr::map(all_gene_sets, ~readRDS(paste0('all_gene_sets/', .x))$DA)
+        all_DA = purrr::map(all_gene_sets, 
+          ~readRDS(paste0('all_gene_sets/', .x))$DA)
 
         df = purrr::imap_dfr(all_DA, function(genes_tgt, target){
           tgt = target
@@ -3472,7 +3949,8 @@ process Overlap__computing_genes_self_overlaps {
   '''
 }
 
-Overlap_tables_channel = Overlap_tables_channel.mix(Genes_self_overlaps_for_computing_pvalues)
+Overlap_tables_channel = Overlap_tables_channel
+  .mix(Genes_self_overlaps_for_computing_pvalues)
 
 
 
@@ -3483,12 +3961,22 @@ DA_regions_with_bg_for_computing_peaks_overlaps_1
     DA_regions_with_bg_for_computing_peaks_overlaps_2
     DA_regions_with_bg_for_computing_peaks_overlaps_3
   }
-DA_regions_channel = DA_regions_with_bg_for_computing_peaks_overlaps_2.map{ it[1] }    .toList().map{ [ 'peaks_self'  , it ] }
+DA_regions_channel = DA_regions_with_bg_for_computing_peaks_overlaps_2
+  .map{ it[1] }
+  .toList()
+  .map{ [ 'peaks_self'  , it ] }
+  .dump(tag:'peaks_self')
 
-// filtering the selected chromatin state file with the parameter "params.chromatin_state_1"
-Chrom_states_channel = Channel.fromPath( "${params.chromatin_state_1}/*bed" ).toList().map{ [ 'chrom_states', it ] }.dump(tag:'chrom_states')
+// filtering the selected chromatin state file with the parameter 
+// "params.chromatin_state_1"
+Chrom_states_channel = 
+  Channel.fromPath( "${params.chromatin_state_1}/*bed" )
+  .toList()
+  .map{ [ 'chrom_states', it ] }
+  .dump(tag:'chrom_states')
 
-// filtering the selected CHIP ontology group with the parameter "params.chip_ontology"
+// filtering the selected CHIP ontology group with the parameter 
+// "params.chip_ontology"
 CHIP_channel_all = Channel.fromPath( "${params.encode_chip_files}/*bed" )
 
 Channel
@@ -3512,7 +4000,10 @@ CHIP_channel_all
 if( ! params.do_chromatin_state ) Chrom_states_channel.close()
 
 
-Bed_regions_to_overlap_with = CHIP_channel_filtered.mix(Chrom_states_channel).mix(DA_regions_channel)
+Bed_regions_to_overlap_with = 
+  CHIP_channel_filtered
+  .mix(Chrom_states_channel)
+  .mix(DA_regions_channel)
 
 DA_regions_with_bg_for_computing_peaks_overlaps_3
   // format: key (ET__PF__FC__TV__COMP), DA_regions, all_regions
@@ -3520,7 +4011,8 @@ DA_regions_with_bg_for_computing_peaks_overlaps_3
   // format: key, DA_regions, all_regions, data_type, bed_files
   .map{ [ it[0,3].join('__'), it[3], it[1], it[2], it[4] ] }
   .dump(tag:'bed_overlap')
-  // format: key (ET__PF__FC__TV__COMP__DT), data_type, DA_regions, all_regions, bed_files
+  // format: key (ET__PF__FC__TV__COMP__DT), data_type, DA_regions, 
+  //        all_regions, bed_files
   .set{ DA_regions_with_bg_and_bed_for_computing_peaks_overlaps }
 
 
@@ -3533,10 +4025,12 @@ process Overlap__computing_peaks_overlaps {
   maxRetries 3
 
   input:
-    set key, data_type, file(DA_regions), file(all_regions), file("BED_FILES/*") from DA_regions_with_bg_and_bed_for_computing_peaks_overlaps
+    set key, data_type, file(DA_regions), file(all_regions), file("BED_FILES/*") 
+      from DA_regions_with_bg_and_bed_for_computing_peaks_overlaps
 
   output:
-    set key, data_type, file("*__counts.csv") into Peaks_self_overlaps_for_computing_pvalues
+    set key, data_type, file("*__counts.csv") 
+      into Peaks_self_overlaps_for_computing_pvalues
 
   shell:
   '''
@@ -3567,19 +4061,25 @@ process Overlap__computing_peaks_overlaps {
             ov_da=`wc -l < overlap_DB.tmp`
             intersectBed -u -a ${NDB} -b ${BED} > overlap_NDB.tmp
             ov_nda=`wc -l < overlap_NDB.tmp`
-            echo "${tgt}, ${tot_tgt}, ${tot_da}, ${ov_da}, ${tot_nda}, ${ov_nda}" >> $OUTPUT_FILE
+            echo \
+              "${tgt}, ${tot_tgt}, ${tot_da}, ${ov_da}, ${tot_nda}, ${ov_nda}" \
+              >> $OUTPUT_FILE
           done
 
 
   '''
 }
 
-Overlap_tables_channel = Overlap_tables_channel.mix(Peaks_self_overlaps_for_computing_pvalues)
+Overlap_tables_channel = Overlap_tables_channel
+  .mix(Peaks_self_overlaps_for_computing_pvalues)
 
 
-// note: we need to save tmp files (overlap_DB.tmp and overlap_NDB.tmp, otherwise it crashes when there is zero overlap)
+// note: we need to save tmp files (overlap_DB.tmp and overlap_NDB.tmp, 
+// otherwise it crashes when there is zero overlap)
 
-// note: here we use the option intersectBed -u instead of -wa to just indicate if at least one chip peak overlap with a given atac seq peak. Thus the number of overlap cannot be higher than the number of atac peaks.
+// note: here we use the option intersectBed -u instead of -wa to just indicate 
+// if at least one chip peak overlap with a given atac seq peak. Thus the number 
+// of overlap cannot be higher than the number of atac peaks.
 
 
 
@@ -3599,14 +4099,17 @@ process Overlap__computing_motifs_overlaps {
 
   label "homer"
 
-  publishDir path: "${out_processed}/3_Enrichment/${data_type}/${key}", mode: "${pub_mode}"
+  publishDir path: "${out_processed}/3_Enrichment/${data_type}/${key}", 
+             mode: "${pub_mode}"
 
   input:
-    set key, data_type, file(DA_regions), file(all_regions) from DA_regions_with_bg_for_computing_motifs_overlaps_2
+    set key, data_type, file(DA_regions), file(all_regions) 
+      from DA_regions_with_bg_for_computing_motifs_overlaps_2
 
   output:
     file("**")
-    set key, data_type, file("*__homer_results.txt") optional true into Motifs_overlaps_for_reformatting_results
+    set key, data_type, file("*__homer_results.txt") optional true 
+      into Motifs_overlaps_for_reformatting_results
 
   when: params.do_motif_enrichment
 
@@ -3614,8 +4117,12 @@ process Overlap__computing_motifs_overlaps {
   '''
 
 
-    findMotifsGenome.pl !{DA_regions} !{params.homer_genome} "."  -size given  -p !{params.nb_threads_homer}  -bg !{all_regions}  -mknown !{params.pwms_motifs}  -nomotif
-
+    findMotifsGenome.pl !{DA_regions} !{params.homer_genome} "." \
+      -size given \
+      -p !{params.nb_threads_homer} \
+      -bg !{all_regions} \
+      -mknown !{params.pwms_motifs} \
+      -nomotif
 
     FILE="knownResults.txt"
     if [ -f $FILE ]; then
@@ -3626,7 +4133,8 @@ process Overlap__computing_motifs_overlaps {
 
 }
 
-// note: homer automatically removes overlapping peaks between input and bg, so it doesn't matter that we don't separtate them.
+// note: homer automatically removes overlapping peaks between input and bg, 
+// so it doesn't matter that we don't separtate them.
 
 
 
@@ -3636,10 +4144,12 @@ process Overlap__reformatting_motifs_results {
   label "r_basic"
 
   input:
-    set key, data_type, file(motifs_results) from Motifs_overlaps_for_reformatting_results
+    set key, data_type, file(motifs_results) 
+      from Motifs_overlaps_for_reformatting_results
 
   output:
-    set key, data_type, file("*__counts.csv") into Formatted_motifs_results_for_computing_pvalues
+    set key, data_type, file("*__counts.csv") 
+      into Formatted_motifs_results_for_computing_pvalues
 
   shell:
   '''
@@ -3653,31 +4163,41 @@ process Overlap__reformatting_motifs_results {
 
       df = read.csv(file = filename, sep = '\t', stringsAsFactors = F)
 
-      total = purrr::map_chr(strsplit(names(df), 'Motif.of.')[c(6,8)], 2) %>% gsub('.', '', ., fixed = T) %>% as.integer
+      total = purrr::map_chr(strsplit(names(df), 'Motif.of.')[c(6,8)], 2) %>% 
+                gsub('.', '', ., fixed = T) %>% as.integer
 
-      names(df) = c('tgt', 'consensus', 'pvalue', 'log_pval', 'qval', 'ov_da', 'pt_da', 'ov_nda', 'pt_nda')
+      names(df) = c('tgt', 'consensus', 'pvalue', 'log_pval', 'qval', 'ov_da', 
+                    'pt_da', 'ov_nda', 'pt_nda')
       df$tot_da  = total[1]
       df$tot_nda = total[2]
       df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, consensus)
       
       ov_da_too_high = which(df$ov_da > df$tot_da)
-      if(length(ov_da_too_high) > 0) df$ov_da[ov_da_too_high] = df$tot_da[ov_da_too_high]
+      if(length(ov_da_too_high) > 0) df$ov_da[ov_da_too_high] = 
+        df$tot_da[ov_da_too_high]
       ov_nda_too_high = which(df$ov_nda > df$tot_nda)
-      if(length(ov_nda_too_high) > 0) df$ov_nda[ov_nda_too_high] = df$tot_nda[ov_nda_too_high]
+      if(length(ov_nda_too_high) > 0) df$ov_nda[ov_nda_too_high] = 
+        df$tot_nda[ov_nda_too_high]
 
       write.csv(df, paste0(key, '__motifs__counts.csv'), row.names = F)
 
   '''
 }
 
-Overlap_tables_channel = Overlap_tables_channel.mix(Formatted_motifs_results_for_computing_pvalues)
+Overlap_tables_channel = Overlap_tables_channel
+  .mix(Formatted_motifs_results_for_computing_pvalues)
 
 // Overlap_tables_channel = Overlap_tables_channel.view()
 
-// note : the "wrong_entries" variable is used because ov_nda is sometimes slightly higher (by a decimal) than tot_nda; i.e.: tot_nda = 4374 and ov_nda = 4374.6. This makes the Fischer test crash later on. This change is minimal so we just fix it like that.
+// note : the "wrong_entries" variable is used because ov_nda is sometimes 
+// slightly higher (by a decimal) than tot_nda; i.e.: tot_nda = 4374 and 
+// ov_nda = 4374.6. This makes the Fischer test crash later on. This change 
+// is minimal so we just fix it like that.
 
-// This one liner works and is cleaner but it fails in nextflow due to the double escape string
-// total = as.integer(stringr::str_extract_all(paste0(names(df), collapse = ' '),"\\(?[0-9]+\\)?")[[1]])
+// This one liner works and is cleaner but it fails in nextflow due to the 
+// double escape string
+// total = as.integer(stringr::str_extract_all(paste0(names(df), collapse = ' '),
+//          "\\(?[0-9]+\\)?")[[1]])
 
 
 
@@ -3695,7 +4215,8 @@ process Plots__computing_enrichment_pvalues {
 
   output:
     file("*.rds") into Enrichment_results_for_plotting optional true
-    set data_type, val("3_Enrichment"), file("*.rds") into Enrichment_results_for_formatting_table optional true
+    set data_type, val("3_Enrichment"), file("*.rds") 
+      into Enrichment_results_for_formatting_table optional true
 
 
   shell:
@@ -3724,7 +4245,8 @@ process Plots__computing_enrichment_pvalues {
           df$pval[c1] = fisher_test$p.value
           df$L2OR[c1] = log2(fisher_test$estimate)
           if(data_type == 'motifs' & motifs_test_type == 'binomial') {
-            df$pval[c1] = binom.test(ov_da, tot_da, ov_nda / tot_nda, alternative = 'two.sided')$p.value
+            df$pval[c1] = binom.test(ov_da, tot_da, ov_nda / tot_nda, 
+              alternative = 'two.sided')$p.value
           }
         }
 
@@ -3742,7 +4264,8 @@ process Plots__computing_enrichment_pvalues {
         }
 
         # reordering columns
-        df %<>% dplyr::select(tgt, pval, padj, L2OR, pt_da, ov_da, tot_da, pt_nda, ov_nda, tot_nda, dplyr::everything())
+        df %<>% dplyr::select(tgt, pval, padj, L2OR, pt_da, ov_da, tot_da, 
+          pt_nda, ov_nda, tot_nda, dplyr::everything())
 
         # adding a Gene Enrichment Type column for func_anno
         if(grepl('func_anno', data_type)) {
@@ -3755,7 +4278,8 @@ process Plots__computing_enrichment_pvalues {
 
         # adding the key and saving for plots
         key_split = strsplit(key, '__')[[1]]
-        key_df = as.data.frame(t(key_split[-length(key_split)]), stringsAsFactors = F)
+        key_df = as.data.frame(t(key_split[-length(key_split)]), 
+          stringsAsFactors = F)
         cln = c('ET', 'PF', 'FC', 'TV', 'COMP')
         key_df %<>% set_colnames(cln)
         if(data_type1 == 'func_anno') key_df %<>% cbind(GE = GE, .)
@@ -3768,22 +4292,27 @@ process Plots__computing_enrichment_pvalues {
 
 
 // => the input should be a df with these columns: tgt tot_da ov_da tot_nda ov_nda
-// other extra columns are facultatory. These are: tot_tgt for bed_overlap, consensus for motifs, geneIds for ontologies/pathways
+// other extra columns are facultatory. These are: tot_tgt for bed_overlap, 
+// consensus for motifs, geneIds for ontologies/pathways
 
-// data_types can be either of: func_anno(BP|CC|MF|KEGG), genes_self, peaks_self, chrom_states, CHIP, motifs
+// data_types can be either of: func_anno(BP|CC|MF|KEGG), genes_self, 
+// peaks_self, chrom_states, CHIP, motifs
 
 // df$tgt %>% .[. %in% names(vec)]
 // df$tgt %>% .[!. %in% names(vec)]
 
 
 
-Formatting_csv_tables_channel = Formatting_csv_tables_channel.mix(Enrichment_results_for_formatting_table)
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(Enrichment_results_for_formatting_table)
 
 
 
 
-// note DT stands for Data_Type. It can be either 'genes_(BP|CC|MF|KEGG)', 'CHIP', 'motif' or 'chrom_states'
-// comp_order has this format: Eri1Daf2_vs_Eri1|Eri1Eat2_vs_Eri1|Eri1Isp1_vs_Eri1|...
+// note DT stands for Data_Type. It can be either 'genes_(BP|CC|MF|KEGG)', 
+// 'CHIP', 'motif' or 'chrom_states'
+// comp_order has this format: 
+// Eri1Daf2_vs_Eri1|Eri1Eat2_vs_Eri1|Eri1Isp1_vs_Eri1|...
 
 
 Enrichment_results_for_plotting
@@ -3828,13 +4357,16 @@ process Plots__plotting_enrichment_barplots {
 
   label "figures"
 
-  publishDir path: "${out_fig_indiv}/3_Enrichment/Barplots__${data_type}", mode: "${pub_mode}"
+  publishDir path: "${out_fig_indiv}/3_Enrichment/Barplots__${data_type}", 
+    mode: "${pub_mode}"
 
   input:
-    set key, data_type, file(res_gene_set_enrichment_rds) from Enrichment_results_for_plotting_barplots_2
+    set key, data_type, file(res_gene_set_enrichment_rds) 
+      from Enrichment_results_for_plotting_barplots_2
 
   output:
-    set val("Barplots__${data_type}"), val("3_Enrichment"), file("*.pdf") optional true into Barplots_for_merging_pdfs
+    set val("Barplots__${data_type}"), val("3_Enrichment"), file("*.pdf") 
+      optional true into Barplots_for_merging_pdfs
 
   shell:
   '''
@@ -3865,7 +4397,8 @@ process Plots__plotting_enrichment_barplots {
       # quitting if there are no significant results to show
       if(all(df$padj > threshold_plot_adj_pval)) quit(save = 'no')
 
-      # removing the genes_id column from func_anno enrichments (for easier debugging)
+      # removing the genes_id column from func_anno enrichments 
+      # (for easier debugging)
       df %<>% .[, names(.) != 'genes_id']
 
       # adding the loglog and binned padj columns
@@ -3882,17 +4415,25 @@ process Plots__plotting_enrichment_barplots {
       df = df[seq_len(min(nrow(df), 30)), ]
       df$yaxis_terms %<>% factor(., levels = rev(.))
 
-      is_bed_overlap = data_type %in% c('CHIP', 'chrom_states', 'peaks_self', 'genes_self')
+      bed_data_types = c('CHIP', 'chrom_states', 'peaks_self', 'genes_self')
+      is_bed_overlap = data_type %in% bed_data_types
       if(is_bed_overlap){
         xlab = paste0('Overlap (DA: ', df$tot_da[1], ', bg: ', df$tot_nda[1], ')')
       } else {
         xlab = paste0('Overlap (DA: ', df$tot_da[1], ')')
       }
 
-      p1 = ggplot(df, aes(x = yaxis_terms, y = ov_da)) + coord_flip() + geom_bar(stat = 'identity') + ggtitle(key) + theme_bw() + theme(axis.title.y = element_blank(), axis.text = element_text(size = 11, color = 'black'), plot.title = element_text(hjust = 0.9, size = 10), legend.text = element_text(size = 7)) + ylab(xlab)
+      p1 = ggplot(df, aes(x = yaxis_terms, y = ov_da)) + coord_flip() + 
+        geom_bar(stat = 'identity') + ggtitle(key) + theme_bw() + 
+        theme(axis.title.y = element_blank(), 
+          axis.text = element_text(size = 11, color = 'black'), 
+          plot.title = element_text(hjust = 0.9, size = 10), 
+          legend.text = element_text(size = 7)
+         ) + ylab(xlab)
 
       point_size = scales::rescale(c(nrow(df), seq(0, 30, len = 5)), c(6, 3))[1]
-      p_binned = get_plot_binned(p1, signed_padj, add_var_to_plot, point_size = point_size)
+      p_binned = get_plot_binned(p1, signed_padj, add_var_to_plot, 
+        point_size = point_size)
 
       pdf(paste0(key, '__barplot.pdf'), paper = 'a4r')
         print(p_binned)
@@ -3904,7 +4445,8 @@ process Plots__plotting_enrichment_barplots {
 
 // # signed_padj = ifelse(data_type %in% c('CHIP', 'chrom_states'), T, F)
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(Barplots_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel.mix(Barplots_for_merging_pdfs
+  .groupTuple(by: [0, 1]))
 
 
 
@@ -3917,13 +4459,16 @@ process Plots__plotting_enrichment_heatmap {
   errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
   maxRetries 3
 
-  publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", mode: "${pub_mode}"
+  publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", 
+             mode: "${pub_mode}"
 
   input:
-    set key, data_type, comp_order, tv, file('*') from Enrichment_results_for_plotting_heatmaps
+    set key, data_type, comp_order, tv, file('*') 
+      from Enrichment_results_for_plotting_heatmaps
 
   output:
-    set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") optional true into Heatmaps_for_merging_pdfs
+    set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") 
+      optional true into Heatmaps_for_merging_pdfs
 
 
   shell:
@@ -3960,7 +4505,8 @@ process Plots__plotting_enrichment_heatmap {
     # filtering table
     if(data_type %in% c('genes_self', 'peaks_self')){
       key1 = paste(df[1, c('ET', 'PF', 'TV')], collapse = '__')
-      df$tgt_key = sapply(strsplit(df$tgt, '__'), function(x) paste(x[c(1,2,4)], collapse = '__'))
+      df$tgt_key = sapply(strsplit(df$tgt, '__'), 
+                          function(x) paste(x[c(1,2,4)], collapse = '__'))
       df %<>% .[.$tgt_key %in% key1, ]
       df$tgt_key <- NULL
     }
@@ -3971,7 +4517,8 @@ process Plots__plotting_enrichment_heatmap {
     if(grepl('func_anno', data_type)) data_type = 'func_anno'
 
     # adding the comp_FC
-    df$comp_FC = apply(df[, c('COMP', 'FC')], 1, paste, collapse = '_') %>% gsub('_vs_', '_', .)
+    df$comp_FC = apply(df[, c('COMP', 'FC')], 1, paste, collapse = '_') %>% 
+                 gsub('_vs_', '_', .)
 
     # ordering the x-axis comparisons
     comp_order_levels = get_comp_order_levels(comp_order, up_down_pattern)
@@ -3986,15 +4533,18 @@ process Plots__plotting_enrichment_heatmap {
 
     # setting parameters for selection of yaxis terms to display
     if(data_type == 'func_anno'){
-      nshared = 6 ; nunique = 20 ; ntotal = 26 ; threshold_type = 'fixed' ; threshold_value = 0.05 ; remove_similar = F
+      nshared = 6 ; nunique = 20 ; ntotal = 26 ; threshold_type = 'fixed'
+      threshold_value = 0.05 ; remove_similar = F
     }
     if(data_type %in% c('CHIP', 'motifs')){
-      nshared = 8 ; nunique = 25 ; ntotal = 40 ; threshold_type = 'quantile' ; threshold_value = 0.25 ; seed = 38 ; remove_similar = T
+      nshared = 8 ; nunique = 25 ; ntotal = 40 ; threshold_type = 'quantile'
+      threshold_value = 0.25 ; seed = 38 ; remove_similar = T
     }
 
     add_number = F
 
-    purrr__map_chr <- function(x, c1) lapply(x, function(y) y[c1]) %>% as.character
+    purrr__map_chr <- function(x, c1) lapply(x, function(y) y[c1]) %>% 
+                      as.character
 
     # if plotting self overlap keeping only targets in the group
     if(data_type %in% c('genes_self', 'peaks_self')) {
@@ -4016,28 +4566,36 @@ process Plots__plotting_enrichment_heatmap {
     }
 
     # reformat df to a matrix
-    mat_dt = dcast(as.data.table(df), yaxis_terms ~ comp_FC, value.var = 'padj_loglog', fill = get_pval_loglog(1))
+    mat_dt = dcast(as.data.table(df), yaxis_terms ~ comp_FC, 
+                    value.var = 'padj_loglog', fill = get_pval_loglog(1))
     mat = as.matrix(mat_dt[,-1]) %>% set_rownames(mat_dt$yaxis_terms)
 
     # selecting and ordering the y-axis terms
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
-      terms_levels = select_y_axis_terms_grouped_plot(mat, nshared = nshared, nunique = nunique, ntotal = ntotal, threshold_type = threshold_type, threshold_value = threshold_value, remove_similar = remove_similar, remove_similar_n = 2, seed = 38)
+      terms_levels = select_y_axis_terms_grouped_plot(mat, nshared = nshared, 
+        nunique = nunique, ntotal = ntotal, threshold_type = threshold_type, 
+        threshold_value = threshold_value, remove_similar = remove_similar, 
+        remove_similar_n = 2, seed = 38)
     }
     if(data_type == 'chrom_states') {
       vec = unique(df$tgt)
-      vec_order = vec %>% gsub('.', '', ., fixed = T) %>% gsub(' .*', '', .) %>% as.integer %>% order
+      vec_order = vec %>% gsub('.', '', ., fixed = T) %>% gsub(' .*', '', .) %>% 
+                  as.integer %>% order
       terms_levels = vec[vec_order] %>% rev
     }
 
     # clustering y-axis terms and adding final matrix indexes to the df
     mat_final = mat[terms_levels, comp_order1]
     rows = nrow(mat_final) ; cols = ncol(mat_final)
-    df_final = add_matrix_indexes_to_df(mat_final, df, rows, cols, data_type, signed_padj)
+    df_final = add_matrix_indexes_to_df(mat_final, df, rows, cols, data_type, 
+      signed_padj)
 
     # getting and saving plots
-    p1 = getting_heatmap_base(df_final, rows, cols, title = key, cur_mat = mat_final)
+    p1 = getting_heatmap_base(df_final, rows, cols, title = key, 
+      cur_mat = mat_final)
     point_size = scales::rescale(c(rows, seq(0, 40, len = 5)), c(3, 0.8))[1]
-    p_binned = get_plot_binned(p1, signed_padj, add_var_to_plot, add_number, point_size = point_size)
+    p_binned = get_plot_binned(p1, signed_padj, add_var_to_plot, add_number, 
+      point_size = point_size)
 
     pdf(paste0(key, '__heatmap.pdf'))
       print(p_binned)
@@ -4048,11 +4606,13 @@ process Plots__plotting_enrichment_heatmap {
 
 }
 
-// note that: gtools::mixedsort(df$tgt) would be simpler for chromatin states if gtools was in the container
+// note that: gtools::mixedsort(df$tgt) would be simpler for chromatin states 
+// if gtools was in the container
 
 // signed_padj = data_type %in% c('CHIP', 'chrom_states')
 
-Merging_pdfs_channel = Merging_pdfs_channel.mix(Heatmaps_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel.mix(Heatmaps_for_merging_pdfs
+  .groupTuple(by: [0, 1]))
 
 
 // 
@@ -4060,33 +4620,42 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Heatmaps_for_merging_pdfs.groupT
 // signed_padj = T;  add_loglog = T; add_L2OR = T
 // 
 // 
-// ## Some explainations on the selection of terms to display (with the example of the algorithm for genes)
-// # 26 terms at max will be plotted since it is the maximum to keep a readable plot
-// # the first 6 slots will be attributed to terms that are the most shared amoung groups (if any term is shared)
+// ## Some explainations on the selection of terms to display (with the example 
+// of the algorithm for genes)
+// # 26 terms at max will be plotted since it is the maximum to keep a readable 
+// plot
+// # the first 6 slots will be attributed to terms that are the most shared 
+// amoung groups (if any term is shared)
 // # then the top_N term for each group will be selected, aiming at 20 terms max
-// # then the lowest pvalues overall will fill the rest of the terms (since shared terms will leave empty gaps)
-// # Note that there should be at maximum 10 comparisons in each grouping plot (10 * 2 for up and down means at least 1 pvalue for each comparison)
+// # then the lowest pvalues overall will fill the rest of the terms (since 
+// shared terms will leave empty gaps)
+// # Note that there should be at maximum 10 comparisons in each grouping plot 
+// (10 * 2 for up and down means at least 1 pvalue for each comparison)
 
 
 
 
 
 
-Formatting_csv_tables_channel = Formatting_csv_tables_channel.dump(tag: 'csv_tables')
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .dump(tag: 'csv_tables')
 
 process Reports__formatting_csv_tables {
   tag "${out_folder}__${data_type}"
 
   label "r_basic"
 
-  publishDir path: "${out_tab_indiv}/${out_folder}/${data_type}", mode: "${pub_mode}", enabled: params.save_tables_as_csv
+  publishDir path: "${out_tab_indiv}/${out_folder}/${data_type}", 
+    mode: "${pub_mode}", enabled: params.save_tables_as_csv
 
   input:
     set data_type, out_folder, file(rds_file) from Formatting_csv_tables_channel
 
   output:
-    set data_type, out_folder, file('*.csv') into Formatted_csv_tables_for_merging optional true
-    set val("Tables_Individual/${out_folder}/${data_type}"), file('*.csv') into Formatted_csv_tables_for_saving_Excel_tables optional true
+    set data_type, out_folder, file('*.csv') 
+      into Formatted_csv_tables_for_merging optional true
+    set val("Tables_Individual/${out_folder}/${data_type}"), file('*.csv') 
+      into Formatted_csv_tables_for_saving_Excel_tables optional true
 
   // when: params.do_chip_enrichment
 
@@ -4103,8 +4672,10 @@ process Reports__formatting_csv_tables {
         data_type = '!{data_type}'
         rds_file = '!{rds_file}'
 
-        fdr_filter_tables       = read_from_nextflow('!{params.fdr_filter_tables}') %>% as.numeric
-        fdr_filter_tables_names = read_from_nextflow('!{params.fdr_filter_tables_names}')
+        fdr_filter_tables       = 
+          read_from_nextflow('!{params.fdr_filter_tables}') %>% as.numeric
+        fdr_filter_tables_names = 
+          read_from_nextflow('!{params.fdr_filter_tables_names}')
 
 
         # reading
@@ -4133,7 +4704,8 @@ process Reports__formatting_csv_tables {
 // => reformatting tables without breaking the cache
 
 
-Exporting_to_Excel_channel = Exporting_to_Excel_channel.mix(Formatted_csv_tables_for_saving_Excel_tables)
+Exporting_to_Excel_channel = Exporting_to_Excel_channel
+  .mix(Formatted_csv_tables_for_saving_Excel_tables)
 
 
 Formatted_csv_tables_for_merging
@@ -4146,13 +4718,16 @@ process Reports__merging_csv_tables {
 
   label "r_basic"
 
-  publishDir path: "${out_tab_merge}/${out_folder}", mode: "${pub_mode}", enabled: params.save_tables_as_csv
+  publishDir path: "${out_tab_merge}/${out_folder}", mode: "${pub_mode}", 
+             enabled: params.save_tables_as_csv
 
   input:
-    set data_type, out_folder, file(csv_file) from Formatted_tables_grouped_for_merging_tables
+    set data_type, out_folder, file(csv_file) 
+      from Formatted_tables_grouped_for_merging_tables
 
   output:
-    set val("Tables_Merged/${out_folder}"), file("*.csv") into Merged_csv_tables_for_Excel optional true
+    set val("Tables_Merged/${out_folder}"), file("*.csv") 
+      into Merged_csv_tables_for_Excel optional true
 
   shell:
   '''
@@ -4178,7 +4753,8 @@ process Reports__merging_csv_tables {
   '''
 }
 
-Exporting_to_Excel_channel = Exporting_to_Excel_channel.mix(Merged_csv_tables_for_Excel)
+Exporting_to_Excel_channel = Exporting_to_Excel_channel
+  .mix(Merged_csv_tables_for_Excel)
 
 
 
@@ -4187,7 +4763,10 @@ Exporting_to_Excel_channel = Exporting_to_Excel_channel.dump(tag: 'excel')
 process Reports__saving_excel_tables {
   tag "${csv_file}"
 
-  // label "openxlsx" => sh: : Permission denied ; Error: zipping up workbook failed. Please make sure Rtools is installed or a zip application is available to R.
+  // label "openxlsx" => sh: : Permission denied ; Error: zipping up workbook 
+  // failed. Please make sure Rtools is installed or a zip application is 
+  // available to R.
+  
   label "differential_abundance"
 
   publishDir path: "${res_dir}/${out_path}", mode: "${pub_mode}" 
@@ -4231,26 +4810,37 @@ process Reports__saving_excel_tables {
         df$L2OR[L2OR_Inf_down] = -1e99
       }
 
-      names_colors  = c( 'filter',  'target',    'fold',  'pvalue',   'da',      'nda',    'other',    'gene', 'coordinate')
-      # color type :       red        green     purple     orange     gold      pale_blue    grey     darkblue   darkolive
-      header_colors = c('#963634', '#76933c', '#60497a', '#e26b0a', '#9d821f', '#31869b', '#808080', '#16365c',   '#494529'  )
-      body_colors   = c('#f2dcdb', '#ebf1de', '#e4dfec', '#fde9d9', '#f1edcb', '#daeef3', '#f2f2f2', '#c5d9f1',   '#ddd9c4'  )
+      names_colors_1  = c( 'filter',  'target',    'fold',  'pvalue',   'da'   )
+      # color type           red        green     purple     orange     gold     
+      header_colors_1 = c('#963634', '#76933c', '#60497a', '#e26b0a', '#9d821f')
+      body_colors_1   = c('#f2dcdb', '#ebf1de', '#e4dfec', '#fde9d9', '#f1edcb')
+      
+      names_colors_2  = c(  'nda',    'other',    'gene', 'coordinate')
+      # color type       pale_blue    grey     darkblue   darkolive
+      header_colors_2 = c('#31869b', '#808080', '#16365c',  '#494529' )
+      body_colors_2   = c('#daeef3', '#f2f2f2', '#c5d9f1',  '#ddd9c4' )
+      
+      names_colors = c(names_colors_1, names_colors_2)
+      header_colors = c(header_colors_1, header_colors_2)
+      body_colors = c(body_colors_1, body_colors_2)
+      
       names(header_colors) = names_colors
       names(body_colors)   = names_colors
+      
 
       get_nms_type <- function(nms){
         nms_coordinates = c('chr','start', 'end',	'width', 'strand')
         nms_coordinates = c(nms_coordinates, paste0('gene_', nms_coordinates))
 
         if(nms %in% c('GE', 'ET', 'PF', 'FC', 'TV', 'COMP')) return('filter') else
-        if(nms %in% c('gene_name', 'gene_id', 'entrez_id'))   return('gene') else
-        if(nms %in% c('pval', 'padj'))                        return('pvalue') else
-        if(nms %in% c('L2FC', 'L2OR'))                        return('fold') else
-        if(nms %in% c('tgt'))                                 return('target') else
-        if(nms %in% c('pt_da', 'tot_da', 'ov_da'))            return('da') else
-        if(nms %in% c('pt_nda', 'tot_nda', 'ov_nda'))         return('nda') else
-        if(nms %in% nms_coordinates)                          return('coordinate') else
-                                                              return('other')
+        if(nms %in% c('gene_name', 'gene_id', 'entrez_id'))  return('gene') else
+        if(nms %in% c('pval', 'padj'))                       return('pvalue') else
+        if(nms %in% c('L2FC', 'L2OR'))                       return('fold') else
+        if(nms %in% c('tgt'))                                return('target') else
+        if(nms %in% c('pt_da', 'tot_da', 'ov_da'))           return('da') else
+        if(nms %in% c('pt_nda', 'tot_nda', 'ov_nda'))        return('nda') else
+        if(nms %in% nms_coordinates)                         return('coordinate') else
+                                                             return('other')
       }
       nms_types = sapply(names(df), get_nms_type)
       nms_color_header = unname(header_colors[nms_types])
@@ -4276,27 +4866,43 @@ process Reports__saving_excel_tables {
 
       for(col in cols) {
         col_nm = nms[col]
-        halign = ifelse('GE' %in% nms & col_nm %in% c('tgt', 'genes_id'), 'left', 'center')
-        header_style = createStyle(fontColour = '#ffffff', fgFill = nms_color_header[col], halign = halign, valign = 'center', textDecoration = 'Bold', border = 'TopBottomLeftRight', wrapText = T)
+        halign = ifelse('GE' %in% nms & col_nm %in% c('tgt', 'genes_id'), 
+                        'left', 'center')
+        header_style = createStyle(fontColour = '#ffffff', 
+          fgFill = nms_color_header[col], halign = halign, valign = 'center', 
+          textDecoration = 'Bold', border = 'TopBottomLeftRight', wrapText = T)
         addStyle(wb, sheet, header_style, rows = 1, col)
 
-        body_style = createStyle(halign = halign, valign = 'center', fgFill = nms_color_body[col])
+        body_style = createStyle(halign = halign, valign = 'center', 
+          fgFill = nms_color_body[col])
         addStyle(wb, sheet, body_style, rows = rows[-1], col)
 
         if(excel_add_conditional_formatting){
-          if(col_nm == 'padj') conditionalFormatting(wb, sheet, cols = col, rows = rows[-1], type = 'colourScale', style = c('#e26b0a', '#fde9d9')) 
+          if(col_nm == 'padj') conditionalFormatting(wb, sheet, cols = col, 
+            rows = rows[-1], type = 'colourScale', 
+            style = c('#e26b0a', '#fde9d9')) 
           vec = df[[col]]
           if(col_nm == 'L2FC') {
-            conditionalFormatting(wb, sheet, cols = col, rows = rows[-1], type = 'colourScale', style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), rule = c(min(vec), 0, max(vec)))
+            conditionalFormatting(wb, sheet, cols = col, rows = rows[-1], 
+              type = 'colourScale', 
+              style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), 
+              rule = c(min(vec), 0, max(vec)))
           }
           if(col_nm == 'L2OR') {
             if(length(L2OR_not_Inf) > 0) {
               vec1 = vec[L2OR_not_Inf]
               vec1 = vec1[!is.na(vec1)]
-              conditionalFormatting(wb, sheet, cols = col, rows = L2OR_not_Inf + 1, type = 'colourScale', style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), rule = c(min(vec1), 0, max(vec1)))
+              conditionalFormatting(wb, sheet, cols = col, 
+                rows = L2OR_not_Inf + 1, type = 'colourScale', 
+                style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), 
+                rule = c(min(vec1), 0, max(vec1)))
             }
-            if(length(L2OR_Inf_up) > 0) addStyle(wb, sheet, createStyle(fgFill = c(lightblue = '#ff7c80'), halign = 'center', valign = 'center'), rows = L2OR_Inf_up + 1, col)
-            if(length(L2OR_Inf_down) > 0) addStyle(wb, sheet, createStyle(fgFill = c(lightred = '#6699ff'), halign = 'center', valign = 'center'), rows = L2OR_Inf_down + 1, col)
+            if(length(L2OR_Inf_up) > 0) addStyle(wb, sheet, 
+              createStyle(fgFill = c(lightblue = '#ff7c80'), halign = 'center', 
+              valign = 'center'), rows = L2OR_Inf_up + 1, col)
+            if(length(L2OR_Inf_down) > 0) addStyle(wb, sheet, 
+              createStyle(fgFill = c(lightred = '#6699ff'), halign = 'center', 
+              valign = 'center'), rows = L2OR_Inf_down + 1, col)
           }
         }
       }
