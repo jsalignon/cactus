@@ -37,7 +37,7 @@ Quantification of transcripts abundance is made with [kallisto](https://doi.org/
 - **_params.nb_threads_botwie2_**: number of threads used by Bowtie2. Default: 6.
 
 ### Outputs
-- **Kallisto results** (`kallisto_${id}/{abundance.{h5,tsv},run_info.json}`) in `Processed_Data/1_Preprocessing/mRNA__kallisto_output`
+- **Kallisto results** (`kallisto_${sample}/{abundance.{h5,tsv},run_info.json}`) in `Processed_Data/1_Preprocessing/mRNA__kallisto_output`
 
 
 # Quality Controls

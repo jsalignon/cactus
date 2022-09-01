@@ -45,7 +45,7 @@
 Samples sequenced multiple times (that have the same id) are merged.
 
 ### Outputs
-- **Merged reads** (`${id}_R{1,2}_merged.fastq.gz`) if **_params.save_fastq_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`.
+- **Merged reads** (`${sample}_R{1,2}_merged.fastq.gz`) if **_params.save_fastq_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`.
 
 
 ## ATAC_reads__trimming_reads
@@ -57,7 +57,7 @@ ATAC-Seq adaptors are trimmed using [Skewer](https://doi.org/10.1186/1471-2105-1
 - **_params.nb_threads_pigz_**: number of threads used for parallel compression. Default: 6.
 
 ### Outputs
-- **Trimming and compression reports** (`${id}_skewer_trimming.log` and `${id}_pigz_compression.log`)
+- **Trimming and compression reports** (`${sample}_skewer_trimming.log` and `${sample}_pigz_compression.log`)
 - **Trimmed reads** (`*_R{1,2}_trimmed.fastq`) if **_params.save_fastq_type = 'all'_**
   - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
 
@@ -70,9 +70,9 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
 - **_params.nb_threads_bowtie2_**: number of threads used by Bowtie2. Default: 6.
 
 ### Outputs
-- **Bowtie 2 alignment metrics** (`${id}_bowtie2_align_metrics.txt`)
-- **Number of aligned reads per category** (`${id}.qc`)
-- **Aligned reads** (`${id}.bam`) if **_params.save_bam_type = 'all'_** 
+- **Bowtie 2 alignment metrics** (`${sample}_bowtie2_align_metrics.txt`)
+- **Number of aligned reads per category** (`${sample}.qc`)
+- **Aligned reads** (`${sample}.bam`) if **_params.save_bam_type = 'all'_** 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
 
 ## ATAC_reads__removing_low_quality_reads
@@ -84,8 +84,8 @@ Low quality reads with these attributes are filtered: unmapped, mate unmapped, n
 - **_params.sam_MAPQ_threshold_**: MAPQ threshold. Default: 30.
 
 ### Outputs
-- **Number of aligned reads per category** (`${id}__filter_LQ.qc`)
-- **Aligned reads** (`${id}__filter_LQ.bam`) if **_params.save_bam_type = 'all'_** 
+- **Number of aligned reads per category** (`${sample}__filter_LQ.qc`)
+- **Aligned reads** (`${sample}__filter_LQ.bam`) if **_params.save_bam_type = 'all'_** 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`.
 
 
@@ -104,8 +104,8 @@ Low quality reads with these attributes are filtered: unmapped, mate unmapped, n
 Duplicated reads are removed with SAMtools, an index is build, and the number of aligned reads per category is determined with SAMtools.
 
 ### Outputs
-- **Number of aligned reads per category** (`${id}__dup_rem.qc`)
-- **Aligned reads** (`${id}__dup_rem.bam`) if **_params.save_bam_type = 'all'_** 
+- **Number of aligned reads per category** (`${sample}__dup_rem.qc`)
+- **Aligned reads** (`${sample}__dup_rem.bam`) if **_params.save_bam_type = 'all'_** 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`.
 
 
@@ -115,9 +115,9 @@ Duplicated reads are removed with SAMtools, an index is build, and the number of
 Samtools is used to remove reads mapping to the mitochondrial chromosome or to small contigs. This is defined as regions (contigs and chromosomes) with less than 5 genes (see [References](/docs/2_Install/References.md#Pipeline-to-get-references)). Number of aligned reads per chromosomes and per category are also computed with SAMtools.
 
 ### Outputs
-- **Number of aligned reads per category** (`${id}__no_mito.qc`)
+- **Number of aligned reads per category** (`${sample}__no_mito.qc`)
 - **Number of reads per chromosome before and after filtering** (.txt file)
-- **Aligned reads** (`${id}__no_mito.bam`) if **_params.save_bam_type = 'all' or 'last'_** 
+- **Aligned reads** (`${sample}__no_mito.bam`) if **_params.save_bam_type = 'all' or 'last'_** 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito`.
 
 
@@ -128,7 +128,7 @@ Samtools is used to remove reads mapping to the mitochondrial chromosome or to s
 This process converts bam files to bed files, and use the insert length as the score. It then adjusts for the shift of the transposase to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688). This is done by shifting reads on the + strand by +4 base pairs and reads on the - strand by -5 base pairs. Finally, it keeps only the 5' end of each reads (and thus each read becomes 1 base pair long), and create a sorted and indexed bam file from the final adjusted bed file. The bam file is sent to [DiffBind](https://doi.org/10.1038/nature10730)] for Differential Binding analysis. The bed file is sent for custom quality controls processes (see below), for computing and plotting saturation curve, and for calling macs2 peaks.
 
 ### Outputs
-  - **Aligned reads** (`${id}__1bp_shifted_reads.bam`) if **_params.save_1bp_bam = true_** in `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift`.
+  - **Aligned reads** (`${sample}__1bp_shifted_reads.bam`) if **_params.save_1bp_bam = true_** in `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift`.
 
 
  
@@ -161,8 +161,8 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 - **_params.nb_1bp_site_to_sample_for_coverage_**: number of 1 bp sites to sample for the coverage plots. Default: 10000.
 
 ### Outputs
-- **Coverage profiles** (`${id}.bw`) in `Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw`.
-- **Coverage plots** (`${id}__coverage.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__reads__coverage`.
+- **Coverage profiles** (`${sample}.bw`) in `Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw`.
+- **Coverage plots** (`${sample}__coverage.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__reads__coverage`.
 
  
 ## ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations
@@ -190,7 +190,7 @@ Insert size plots are made with [Picard](https://broadinstitute.github.io/picard
 - **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
 
 ### Outputs
-- **insert size plots** (`${id}__insert_size.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__reads__insert_size`.
+- **insert size plots** (`${sample}__insert_size.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__reads__insert_size`.
 
  
 ## ATAC_QC_reads__sampling_aligned_reads

@@ -45,7 +45,7 @@ We use a size of 150 base pair as it is approximately the size of a nucleosome.
 - **_params.macs2_qvalue_**: q-value (minimum FDR) cutoff to call significant regions.
 
 ### Outputs
-- **Raw peaks** (`${id}__macs2_peaks.narrowPeak`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__raw`.
+- **Raw peaks** (`${sample}__macs2_peaks.narrowPeak`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__raw`.
 
 
 ## ATAC_peaks__splitting_multi_summits_peaks
@@ -55,7 +55,7 @@ MACS2 peaks with multiple summits are split, with a boundary set in the middle o
 The script from this process was written by [Aaron C Daugherty](https://github.com/brunetlab/CelegansATACseq/blob/master/Fig1/splitMACS2SubPeaks.pl) for the [first ATAC-Seq paper in *C. elegans*](http://www.genome.org/cgi/doi/10.1101/gr.226233.117).
 
 ### Outputs
-- **Split peaks** (`${id}__split_peaks.narrowPeak`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split`.
+- **Split peaks** (`${sample}__split_peaks.narrowPeak`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split`.
 
 
 ## ATAC_peaks__removing_blacklisted_regions
@@ -64,7 +64,7 @@ The script from this process was written by [Aaron C Daugherty](https://github.c
 Any peak that has any overlap with a blacklisted region is discarded.
 
 ### Outputs
-- **Kept and discarded peaks** (`${id}__peaks_kept_after_blacklist_removal.bed` and `${id}__peaks_lost_after_blacklist_removal.bed`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split__no_BL`.
+- **Kept and discarded peaks** (`${sample}__peaks_kept_after_blacklist_removal.bed` and `${sample}__peaks_lost_after_blacklist_removal.bed`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split__no_BL`.
 
 
 
@@ -77,7 +77,7 @@ If an input control is included in the experiment, and **_params.use_input_contr
 - **_params.input_control_overlap_portion_**: threshold of the fraction of overlapping input control peaks to remove peaks. The percentage is regarding the treatment/sample peaks, not the input control peaks. Default: 0.2.
 
 ### Outputs
-- **Kept and discarded peaks** (`${id}__peaks_kept_after_input_control_removal.bed` and `${id}__peaks_lost_after_input_control_removal.bed`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split__no_BL_input`.
+- **Kept and discarded peaks** (`${sample}__peaks_kept_after_input_control_removal.bed` and `${sample}__peaks_lost_after_input_control_removal.bed`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split__no_BL_input`.
 
 
 ## ATAC_peaks__removing_specific_regions
@@ -91,7 +91,7 @@ This process takes as input peaks from a comparison and remove any peaks that ar
 - **_params.design__regions_to_remove**: path to the file containing the regions to remove (see the [Design](/docs/3_Inputs/Design.md) section for details). Default: 'Design/regions_to_remove.tsv'.
 
 ### Outputs
-- **Kept and discarded peaks** (`${id}__peaks_kept_after_specific_regions_removal.bed` and `${id}__peaks_lost_after_specific_regions_removal.bed`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split__no_BL_input`.
+- **Kept and discarded peaks** (`${sample}__peaks_kept_after_specific_regions_removal.bed` and `${sample}__peaks_lost_after_specific_regions_removal.bed`) if **_params.save_bed_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__peaks__split__no_BL_input`.
 
 
 
@@ -112,7 +112,7 @@ Finally, a plot is made in R showing the number of peaks (y-axis) by sequencing 
 - **_params.do_saturation_curve_**: enable or disable this process. Default: true.
 
 ### Outputs
-- **Saturation curves** (`${id}__saturation_curve.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__peaks__saturation_curve`
+- **Saturation curves** (`${sample}__saturation_curve.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__peaks__saturation_curve`
 
 
 ## ATAC_QC_peaks__annotating_macs2_peaks
@@ -126,7 +126,7 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 - **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **Annotated peaks R objects** (`${id}__annotated_peaks.pdf`) in `Processed_Data/1_Preprocessing/ATAC__peaks__annotated_rds`.
+- **Annotated peaks R objects** (`${sample}__annotated_peaks.pdf`) in `Processed_Data/1_Preprocessing/ATAC__peaks__annotated_rds`.
 
 
 ## ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample
@@ -139,8 +139,8 @@ Using ChIPseeker and [ggplot2](https://ggplot2.tidyverse.org/) to plot coverage 
 - **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **Coverage plots** (`${id}__coverage.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__peaks__coverage`.
-- **Average profile plots** (`${id}__average_profile.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__peaks__average_profile`.
+- **Coverage plots** (`${sample}__coverage.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__peaks__coverage`.
+- **Average profile plots** (`${sample}__average_profile.pdf`) in `Figures_Individual/1_Preprocessing/ATAC__peaks__average_profile`.
   
 
 ## ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped
