@@ -26,7 +26,7 @@ for(percent in seq(10,100,10)){
 match_pattern = '_sampled_10_percent.bed_macs2_peaks.narrowPeak'
 file1 = grep(paste0('.*', match_pattern), cur_files, value = T)
 id_name = gsub(match_pattern, '', file1)
-pdf_name = paste0(id_name, '_saturation_curve.pdf')
+pdf_name = paste0(id_name, '__saturation_curve.pdf')
 
 # pdf(file = args[1])
 pdf(file = pdf_name)

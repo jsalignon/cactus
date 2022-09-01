@@ -2,6 +2,7 @@
 
 
 function bamToBedInsertLengthAsScore {
+	
 	bamToBed -i "${1}"> temp.bed
 	samtools view  "${1}" | perl -lane 'print $F[0]."\t".$F[8];' > insert.temp
 
@@ -21,9 +22,10 @@ function fivePrimeOfBed6Cols {
 
 function getInsertSites {
   # Files and directories to write to
-  INSERT_SITES_BED_FILE="${2}_1bp_shifted_reads.bed"
-  INSERT_SITES_BAM_PREFIX="${2}_1bp_shifted_reads"
-  INSERT_SITES_BAM_FILE="${2}_1bp_shifted_reads.bam"
+	key=${2}
+  INSERT_SITES_BED_FILE="${key}.bed"
+  INSERT_SITES_BAM_PREFIX="${key}"
+  INSERT_SITES_BAM_FILE="${key}.bam"
   
   bamToBedInsertLengthAsScore "${1}" | adjustBedTn5 | fivePrimeOfBed6Cols - > "${INSERT_SITES_BED_FILE}"
   # Convert back to a bam, but now just the 1bp

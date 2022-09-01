@@ -57,8 +57,8 @@ ATAC-Seq adaptors are trimmed using [Skewer](https://doi.org/10.1186/1471-2105-1
 - **_params.nb_threads_pigz_**: number of threads used for parallel compression. Default: 6.
 
 ### Outputs
-- **Trimming and compression reports** (`${id}_pigz_compression.log`)
-- **Trimmed reads (*_R1/2_trim.fastq)** if **_params.save_fastq_type = 'all'_**
+- **Trimming and compression reports** (`${id}_skewer_trimming.log` and `${id}_pigz_compression.log`)
+- **Trimmed reads (`*_R1/2_trim.fastq`)** if **_params.save_fastq_type = 'all'_**
   - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
 
 ## ATAC_reads__aligning_reads
@@ -70,9 +70,9 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
 - **_params.nb_threads_bowtie2_**: number of threads used by Bowtie2. Default: 6.
 
 ### Outputs
-- **Bowtie 2 alignment metrics** (.txt file)
-- **Number of aligned reads per category** (.qc file)
-- **Aligned reads** (.bam files) if **_params.save_bam_type = 'all'_** 
+- **Bowtie 2 alignment metrics** (`${id}_bowtie2_align_metrics.txt`)
+- **Number of aligned reads per category** (`${id}_flagstat.qc`)
+- **Aligned reads** (`${id}.bam`) if **_params.save_bam_type = 'all'_** 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
 
 ## ATAC_reads__removing_low_quality_reads

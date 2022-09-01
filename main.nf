@@ -180,13 +180,13 @@ process ATAC_reads__merging_reads {
     set id, file(files_R1_R2) from atac_raw.ATAC_reads_for_merging
 
   output:
-    set id, file('*R1_merged.fastq.gz'), file('*R2_merged.fastq.gz') 
+    set id, file('*__R1_merged.fastq.gz'), file('*__R2_merged.fastq.gz') 
              into ATAC_reads_for_trimming_2
 
   script:
   """
-      cat `ls *R1* | sort` > ${id}_R1_merged.fastq.gz
-      cat `ls *R2* | sort` > ${id}_R2_merged.fastq.gz
+      cat `ls *R1* | sort` > ${id}__R1_merged.fastq.gz
+      cat `ls *R2* | sort` > ${id}__R2_merged.fastq.gz
   """
 
 }
@@ -219,36 +219,36 @@ process ATAC_reads__trimming_reads {
     set id, file(read1), file(read2) from ATAC_reads_for_trimming_3
 
   output:
-    set id, file("*_R1_trim.fastq.gz"), file("*_R2_trim.fastq.gz") 
+    set id, file("*__R1_trim.fastq.gz"), file("*__R2_trim.fastq.gz") 
              into Trimmed_reads_for_aligning, Trimmed_reads_for_sampling
-    set val('trimmed'), id, file("*_R1_trim.fastq.gz"), 
-        file("*_R2_trim.fastq.gz") into Trimmed_ATAC_reads_for_running_fastqc
+    set val('trimmed'), id, file("*__R1_trim.fastq.gz"), 
+        file("*__R2_trim.fastq.gz") into Trimmed_ATAC_reads_for_running_fastqc
     file("*.log")
 
   shell:
 
   '''
-
+      
       R1=!{read1}
       R2=!{read2}
       id=!{id}
-      nb_threads_pigz=!{params.nb_threads_pigz}
+      pigz__nb_threads=!{params.pigz__nb_threads}
       
-      R1TRIM=$(basename ${R1} .fastq.gz)_R1_trim.fastq
-      R2TRIM=$(basename ${R2} .fastq.gz)_R2_trim.fastq
+      R1TRIM=$(basename ${R1} .fastq.gz)__R1_trim.fastq
+      R2TRIM=$(basename ${R2} .fastq.gz)__R2_trim.fastq
       
       skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} \ 
              -o ${id} > trimer_verbose.txt
       
-      mv ${id}-trimmed.log ${id}_skewer_trimming.log
+      mv ${id}-trimmed.log ${id}__skewer_trimming.log
       mv ${id}-trimmed-pair1.fastq $R1TRIM
       mv ${id}-trimmed-pair2.fastq $R2TRIM
       
-      pigz -p ${nb_threads_pigz} $R1TRIM
-      pigz -p ${nb_threads_pigz} $R2TRIM
+      pigz -p ${pigz__nb_threads} $R1TRIM
+      pigz -p ${pigz__nb_threads} $R2TRIM
       
-      pigz -l $R1TRIM.gz > ${id}_pigz_compression.log
-      pigz -l $R2TRIM.gz >> ${id}_pigz_compression.log
+      pigz -l $R1TRIM.gz > ${id}__pigz_compression.log
+      pigz -l $R2TRIM.gz >> ${id}__pigz_compression.log
       
   '''
 }
@@ -324,18 +324,21 @@ process ATAC_reads__aligning_reads {
 
   script:
   """
-    bowtie2 -p ${params.nb_threads_botwie2} \
-      --very-sensitive \
-      --end-to-end \
-      --no-mixed \
-      -X 2000 \
-      --met 1 \
-      --met-file "${id}_bowtie2_align_metrics.txt" \
-      -x "${params.bowtie2_indexes}" \
-      -q -1 "${read1}" -2 "${read2}" \
-      | samtools view -bS -o "${id}.bam" -
+  
+      new_bam="${id}.bam"
+    
+      bowtie2 -p ${params.nb_threads_botwie2} \
+        --very-sensitive \
+        --end-to-end \
+        --no-mixed \
+        -X 2000 \
+        --met 1 \
+        --met-file "${id}_bowtie2_align_metrics.txt" \
+        -x "${params.bowtie2_indexes}" \
+        -q -1 "${read1}" -2 "${read2}" \
+        | samtools view -bS -o ${new_bam} -
 
-      samtools flagstat "${id}.bam" > "${id}_flagstat.qc"
+      samtools flagstat ${new_bam} > "${id}.qc"
 
   """
 }
@@ -358,19 +361,23 @@ process ATAC_reads__removing_low_quality_reads {
     set id, file(bam) from Bam_for_removing_low_quality_reads
 
   output:
-    set id, file("*_filter_LQ.bam") into Bam_for_marking_duplicated_reads
-    file("*_flagstat.qc")
+    set id, file("*.bam") into Bam_for_marking_duplicated_reads
+    file("*.qc")
 
   script:
   """
 
-  samtools view -F 1804 \
-                -b \
-                -q "${params.sam_MAPQ_threshold}" \
-                ${bam} \
-                | samtools sort - -o "${id}_filter_LQ.bam"
+    key="${id}__filter_LQ"
+    
+    new_bam="${key}.bam"
+    
+    samtools view -F 1804 \
+                  -b \
+                  -q "${params.sam_MAPQ_threshold}" \
+                  ${bam} \
+                  | samtools sort - -o ${new_bam}
 
-  samtools flagstat "${id}_filter_LQ.bam" > "${id}_flagstat.qc"
+    samtools flagstat ${new_bam} > "${key}.qc"
 
   """
 }
@@ -391,16 +398,18 @@ process ATAC_reads__marking_duplicated_reads {
     set id, file(bam) from Bam_for_marking_duplicated_reads
 
   output:
-    set id, file("*_dup_marked.bam") into Bam_for_removing_duplicated_reads
-    file("*_dup.qc")
+    set id, file("*.bam") into Bam_for_removing_duplicated_reads
+    file("*.qc")
 
   script:
   """
-
+    
+    key="${id}__dup_marked"
+    
     picard -Xmx${params.memory_picard} MarkDuplicates \
       -INPUT "${bam}" \
-      -OUTPUT "${id}_dup_marked.bam" \
-      -METRICS_FILE "${id}_dup.qc" \
+      -OUTPUT "${key}.bam" \
+      -METRICS_FILE "${key}.qc" \
       -VALIDATION_STRINGENCY LENIENT \
       -ASSUME_SORTED true \
       -REMOVE_DUPLICATES false \
@@ -433,14 +442,18 @@ process ATAC_reads__removing_duplicated_reads {
     set id, file("*.bam"), file("*.bai") 
           into Bam_for_computing_bigwig_tracks_and_plotting_coverage, 
                Bam_for_removing_mitochondrial_reads
-    file("*_flagstat.qc")
+    file("*.qc")
 
   script:
   """
 
-    samtools view -F 1804 "${bam}" -b -o "${id}_dup_rem.bam"
-    samtools index -b "${id}_dup_rem.bam"
-    samtools flagstat "${id}_dup_rem.bam" > "${id}_flagstat.qc"
+    key="${id}__dup_rem"
+    
+    new_bam="${key}.bam"
+  
+    samtools view -F 1804 "${bam}" -b -o ${new_bam}
+    samtools index -b ${new_bam}
+    samtools flagstat ${new_bam} > "${key}.qc"
 
   """
 }
@@ -475,27 +488,31 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
            Bam_for_converting_bam_to_bed_and_adjusting_for_Tn5
     file "*_reads_per_chrm_before_removal.txt"
     file "*_reads_per_chrm_after_removal.txt"
+    file("*.qc")
 
   shell:
     '''
-      id=!{id}
-      bam=!{bam}
-      chromosomes_sizes=!{params.chromosomes_sizes}
-      
-      new_bam="${id}_no_mito.bam"
+    
+        id=!{id}
+        bam=!{bam}
+        chromosomes_sizes=!{params.chromosomes_sizes}
+        
+        key="${id}__no_mito"
+        
+        new_bam="${key}.bam"
 
-      samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c \ 
-        > "${id}_reads_per_chrm_before_removal.txt"
+        samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c \ 
+          > "${id}_reads_per_chrm_before_removal.txt"
 
-      regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
+        regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
 
-      samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} \
-         | samtools view - | awk '{print $3}' OFS='\t' \
-         | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+        samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} \
+           | samtools view - | awk '{print $3}' OFS='\t' \
+           | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
 
-      samtools index -b ${new_bam}
-      samtools flagstat ${new_bam} > "${id}_flagstat.qc"
-      
+        samtools index -b ${new_bam}
+        samtools flagstat ${new_bam} > "${key}.qc"
+        
     '''
 
 }
@@ -532,11 +549,20 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 
   script:
   """
-
-    bamToBed_and_atacShift.sh ${bam} ${id} ${params.chromosomes_sizes}
+  
+      key="${id}__1bp_shifted_reads"
+      
+      bamToBed_and_atacShift.sh ${bam} ${key} ${params.chromosomes_sizes}
 
   """
 }
+
+// Examples of :
+// input: hmg4_1__no_mito.bam
+// outpus: hmg4_1__1bp_shifted_reads.bam  hmg4_1__1bp_shifted_reads.bam.bai  
+//         hmg4_1__1bp_shifted_reads.bed  
+
+
 
 // => converting bam to bed, adjusting for the shift of the transposase 
 //    (atac seq) and keeping only a bed format compatible with macs2
@@ -610,7 +636,7 @@ process ATAC_QC_reads__running_fastqc {
   script:
   """
 
-    fastqc -t ${params.nb_threads_fastqc} ${read1} ${read2}
+    fastqc -t ${params.fastqc__nb_threads} ${read1} ${read2}
 
   """
 }
@@ -638,40 +664,35 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
   output:
     set val("ATAC__reads__coverage"), val('1_Preprocessing'), file("*.pdf") 
         into ATAC_reads_coverage_plots_for_merging_pdfs
-    file("*_raw.bw") into Bigwigs_for_correlation_1 optional true
+    file("*.bw") into Bigwigs_for_correlation_1 optional true
 
   script:
   """
 
       bamCoverage \
         --bam ${bam} \
-        --outFileName ${id}_raw.bw \
-        --binSize ${params.binsize_bigwig_creation} \
-        --numberOfProcessors ${params.nb_threads_deeptools} \
-        --blackListFileName ${params.blacklisted_regions} \
-        --effectiveGenomeSize ${params.effective_genome_size}
+        --outFileName ${id}.bw \
+        --binSize             ${params.deeptools__binsize_bigwig_creation} \
+        --normalizeUsing      ${params.deeptools__normalization_method}
+        --numberOfProcessors  ${params.deeptools__nb_threads} \
+        --blackListFileName   ${params.blacklisted_regions} \
+        --effectiveGenomeSize ${params.effective_genome_size} \
 
+      key="${id}__coverage"
+      
       plotCoverage \
         --bam ${bam} \
-        --blackListFileName ${params.blacklisted_regions} \
-        --numberOfProcessors ${params.nb_threads_deeptools} \
-        --numberOfSamples ${params.nb_1bp_site_to_sample_for_coverage} \
-        --plotTitle ${id}_coverage \
-        --plotFile ${id}__coverage.pdf
+        --numberOfSamples    ${params.deeptools__nb_of_1_bp_samples} \
+        --numberOfProcessors ${params.deeptools__nb_threads} \
+        --blackListFileName  ${params.blacklisted_regions} \
+        --plotTitle ${key} \
+        --plotFile ${key}.pdf
 
   """
 }
 
 Merging_pdfs_channel = Merging_pdfs_channel
       .mix(ATAC_reads_coverage_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
-
-
-//// Bigwig with normalized signal:
-// else if (it.indexOf("_RPGC_norm.bw") > 0) 
-//    "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_norm/${it}"
-// bamCoverage --bam ${bam} \
-//       --outFileName ${id}_RPGC_norm.bw \
-//      --normalizeUsing RPGC \ ...
 
 
 
@@ -722,8 +743,10 @@ process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
   """
 
 
-    plotPCAandCorMat.sh ${input_control_present} ${params.blacklisted_regions} \
-        ${params.binsize_bigwig_correlation}
+      plotPCAandCorMat.sh \
+        ${input_control_present} \
+        ${params.deeptools__binsize_bigwig_correlation} \
+        ${params.blacklisted_regions}
 
 
   """
@@ -731,10 +754,12 @@ process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
 
 Merging_pdfs_channel = Merging_pdfs_channel
     .mix(
-      ATAC_reads_PCA_plots_for_merging_pdfs.groupTuple(by: [0, 1])
+      ATAC_reads_PCA_plots_for_merging_pdfs
+      .groupTuple(by: [0, 1])
       .map{ it.flatten() }
       .map{ [ it[0], it[1], it[2..-1] ] }
       )
+      
 Merging_pdfs_channel = Merging_pdfs_channel
     .mix(
       ATAC_reads_correlation_plots_for_merging_pdfs
@@ -765,13 +790,15 @@ process ATAC_QC_reads__plotting_insert_size_distribution {
 
   script:
   """
+  
+      key="${id}__insert_size"
 
-    picard -Xmx${params.memory_picard} CollectInsertSizeMetrics \
-      -INPUT "${bam}" \
-      -OUTPUT "${id}.insertSizes.txt" \
-      -METRIC_ACCUMULATION_LEVEL ALL_READS \
-      -Histogram_FILE "${id}__insert_size.pdf" \
-      -TMP_DIR .
+      picard -Xmx${params.memory_picard} CollectInsertSizeMetrics \
+        -INPUT "${bam}" \
+        -OUTPUT "${key}.txt" \
+        -METRIC_ACCUMULATION_LEVEL ALL_READS \
+        -Histogram_FILE "${key}.pdf" \
+        -TMP_DIR .
 
 
   """
@@ -795,7 +822,7 @@ process ATAC_QC_reads__sampling_aligned_reads {
 
   output:
     set id, file("*.sam") into Bam_for_estimating_library_complexity
-    set id, file("*_sorted.bam"), file("*.bai") 
+    set id, file("*.bam"), file("*.bai") 
         into Bam_for_measuring_overlap_with_genomic_regions, 
              Sampled_aligned_reads_for_gathering_reads_stat
     set id, file("*.NB_ALIGNED_PAIRS*"), file("*.RAW_PAIRS*") 
@@ -804,28 +831,33 @@ process ATAC_QC_reads__sampling_aligned_reads {
   script:
   """
 
-    # saving the header
-    samtools view -F 0x904 -H ${bam} > ${id}_sampled.sam
+      key="${id}__sampled"
+      new_sam="${key}.sam"
+      new_bam="${key}.bam"
+      
+      # saving the header
+      samtools view -F 0x904 -H ${bam} > ${new_sam}
 
-    # sampling a certain number of reads
-    samtools view -F 0x904 ${bam} \
-      | shuf - -n ${params.nb_sampled_aligned_reads} >> ${id}_sampled.sam
+      # sampling a certain number of reads
+      samtools view -F 0x904 ${bam} \
+        | shuf - -n ${params.nb_sampled_aligned_reads} >> ${new_sam}
 
-    # conversion to bam, sorting and indexing of sampled reads
-    samtools view -Sb -o ${id}_sampled.bam ${id}_sampled.sam
-    samtools sort -o ${id}_sorted.bam ${id}_sampled.bam
-    samtools index ${id}_sorted.bam
+      # conversion to bam, sorting and indexing of sampled reads
+      samtools view -Sb ${new_sam} \
+        | samtools sort - -o ${new_bam}
+      samtools index ${new_bam}
 
-    NB_ALIGNED_PAIRS=`samtools view -F 0x4 ${bam} | cut -f 1 | sort -T . \
-                                                  | uniq | wc -l`
-    RAW_PAIRS=`samtools view ${bam}| cut -f 1 | sort -T . | uniq | wc -l`
+      NB_ALIGNED_PAIRS=`samtools view -F 0x4 ${bam} | cut -f 1 | sort -T . \
+                                                    | uniq | wc -l`
+      RAW_PAIRS=`samtools view ${bam}| cut -f 1 | sort -T . | uniq | wc -l`
 
-    touch \$NB_ALIGNED_PAIRS.NB_ALIGNED_PAIRS_${id}
-    touch \$RAW_PAIRS.RAW_PAIRS_${id}
+      touch \$NB_ALIGNED_PAIRS.NB_ALIGNED_PAIRS_${id}
+      touch \$RAW_PAIRS.RAW_PAIRS_${id}
 
   """
 
 }
+
 
 // The code "-F 0x904" indicates to keep only mapped alignment (flag 0x4) that 
 //    are not secondary (flag 0x100, multimappers) or 
@@ -844,48 +876,48 @@ process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
     from Bam_for_measuring_overlap_with_genomic_regions
 
   output:
-  set id, file("*_reads_overlap_with_genomic_regions.txt") 
+  set id, file("*.txt") 
     into Overlap_with_genomic_regions_results_for_gathering_reads_stat
 
   shell:
   '''
 
-    id=!{id}
-    bam=!{bam}
-    BED_PATH=!{params.bed_regions}
+      id=!{id}
+      bam=!{bam}
+      BED_PATH=!{params.bed_regions}
 
-    getTotalReadsMappedToBedFile () { 
-      bedtools coverage -a $1 -b $2 | cut -f 4 \
-      | awk '{ sum+=$1} END {print sum}'
+      new_txt="${id}_reads_overlap_with_genomic_regions.txt"
+      
+      getTotalReadsMappedToBedFile () { 
+        bedtools coverage -a $1 -b $2 | cut -f 4 \
+        | awk '{ sum+=$1} END {print sum}'
+        }
+
+
+      PROMOTER=`getTotalReadsMappedToBedFile $BED_PATH/promoters.bed ${bam}`
+      EXONS=`getTotalReadsMappedToBedFile $BED_PATH/exons.bed ${bam}`
+      INTRONS=`getTotalReadsMappedToBedFile $BED_PATH/introns.bed ${bam}`
+      INTERGENIC=`getTotalReadsMappedToBedFile $BED_PATH/intergenic.bed ${bam}`
+      GENES=`getTotalReadsMappedToBedFile $BED_PATH/genes.bed ${bam}`
+      BAM_NB_READS=`samtools view -c ${bam}`
+
+      echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" > ${new_txt}
+      echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" \
+        >> ${new_txt}
+
+      awkDecimalDivision () { 
+        awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }'
       }
 
+      P_PROM=$(awkDecimalDivision $PROMOTER $BAM_NB_READS)
+      P_EXONS=$(awkDecimalDivision $EXONS $BAM_NB_READS)
+      P_INTRONS=$(awkDecimalDivision $INTRONS $BAM_NB_READS)
+      P_INTERGENIC=$(awkDecimalDivision $INTERGENIC $BAM_NB_READS)
+      P_GENES=$(awkDecimalDivision $GENES $BAM_NB_READS)
+      P_READS=$(awkDecimalDivision $BAM_NB_READS $BAM_NB_READS)
 
-
-    PROMOTER=`getTotalReadsMappedToBedFile $BED_PATH/promoters.bed ${bam}`
-    EXONS=`getTotalReadsMappedToBedFile $BED_PATH/exons.bed ${bam}`
-    INTRONS=`getTotalReadsMappedToBedFile $BED_PATH/introns.bed ${bam}`
-    INTERGENIC=`getTotalReadsMappedToBedFile $BED_PATH/intergenic.bed ${bam}`
-    GENES=`getTotalReadsMappedToBedFile $BED_PATH/genes.bed ${bam}`
-    BAM_NB_READS=`samtools view -c ${bam}`
-
-    echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" \
-      > ${id}_reads_overlap_with_genomic_regions.txt
-    echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" \
-      >> ${id}_reads_overlap_with_genomic_regions.txt
-
-    awkDecimalDivision () { 
-      awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }'
-    }
-
-    P_PROM=$(awkDecimalDivision $PROMOTER $BAM_NB_READS)
-    P_EXONS=$(awkDecimalDivision $EXONS $BAM_NB_READS)
-    P_INTRONS=$(awkDecimalDivision $INTRONS $BAM_NB_READS)
-    P_INTERGENIC=$(awkDecimalDivision $INTERGENIC $BAM_NB_READS)
-    P_GENES=$(awkDecimalDivision $GENES $BAM_NB_READS)
-    P_READS=$(awkDecimalDivision $BAM_NB_READS $BAM_NB_READS)
-
-    echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" \
-      >> ${id}_reads_overlap_with_genomic_regions.txt
+      echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" \
+        >> ${new_txt}
 
   '''
 
@@ -910,15 +942,15 @@ process ATAC_QC_reads__estimating_library_complexity {
   set id, file(sam) from Bam_for_estimating_library_complexity
 
   output:
-  set id, file("*_library_complexity.txt") 
+  set id, file("*.txt") 
     into Library_complexity_for_gathering_reads_stat
 
   script:
   """
 
-    picard -Xmx${params.memory_picard} EstimateLibraryComplexity \
-      -INPUT ${sam} \
-      -OUTPUT ${id}_library_complexity.txt
+      picard -Xmx${params.memory_picard} EstimateLibraryComplexity \
+        -INPUT ${sam} \
+        -OUTPUT ${id}_library_complexity.txt
 
   """
 
@@ -943,12 +975,12 @@ process ATAC_QC_reads__sampling_trimmed_reads {
   script:
   """
 
-    reformat.sh \
-      in1=${read1} \
-      in2=${read2} \
-      out1=${id}_subsampled_R1.fastq \
-      out2=${id}_subsampled_R2.fastq \
-      samplereadstarget=${params.nb_sampled_trimmed_reads}
+      reformat.sh \
+        in1=${read1} \
+        in2=${read2} \
+        out1=${id}_subsampled_R1.fastq \
+        out2=${id}_subsampled_R2.fastq \
+        samplereadstarget=${params.nb_sampled_trimmed_reads}
 
   """
 }
@@ -966,36 +998,43 @@ process ATAC_QC_reads__aligning_sampled_reads {
     set id, file(read1), file(read2) from Sampled_trimmed_reads_for_alignment
 
   output:
-    set id, file("*_cel_flagstat.qc"), file("*_op50_flagstat.qc") 
+    set id, file("*_ref.qc"), file("*_conta.qc") 
       into Flagstat_on_aligned_sampled_trimmed_reads_for_gathering_reads_stat
-    set file("${id}_cel.bam"), file("${id}_op50.bam")
+    set file("*_ref.bam"), file("*_conta.bam")
     
   script:
   """
+      
+      key_ref="${id}_ref"
+      new_bam_ref="${key_ref}.bam"
+      
+      key_conta="${id}_conta"
+      new_bam_conta="${key_conta}.bam"
+      
+      
+      bowtie2 -p ${params.nb_threads_botwie2} \
+        --very-sensitive \
+        --end-to-end \
+        --no-mixed \
+        -X 2000 \
+        --met 1 \
+        -x "${params.bowtie2_indexes}" \
+        -q -1 "${read1}" -2 "${read2}" \
+        | samtools view -bS -o ${new_bam_ref} -
 
-    bowtie2 -p ${params.nb_threads_botwie2} \
-      --very-sensitive \
-      --end-to-end \
-      --no-mixed \
-      -X 2000 \
-      --met 1 \
-      -x "${params.bowtie2_indexes}" \
-      -q -1 "${read1}" -2 "${read2}" \
-      | samtools view -bS -o "${id}_cel.bam" -
+      samtools flagstat ${new_bam_ref} > "${key_ref}.qc"
 
-    samtools flagstat "${id}_cel.bam" > "${id}_cel_flagstat.qc"
+      bowtie2 -p ${params.nb_threads_botwie2} \
+        --very-sensitive \
+        --end-to-end \
+        --no-mixed \
+        -X 2000 \
+        --met 1 \
+        -x "${params.bowtie2_indexes_contam}" \
+        -q -1 "${read1}" -2 "${read2}" \
+        | samtools view -bS -o ${new_bam_conta} -
 
-    bowtie2 -p ${params.nb_threads_botwie2} \
-      --very-sensitive \
-      --end-to-end \
-      --no-mixed \
-      -X 2000 \
-      --met 1 \
-      -x "${params.bowtie2_indexes_contam}" \
-      -q -1 "${read1}" -2 "${read2}" \
-      | samtools view -bS -o "${id}_op50.bam" -
-
-    samtools flagstat "${id}_op50.bam" > "${id}_op50_flagstat.qc"
+      samtools flagstat ${new_bam_conta} > "${key_conta}.qc"
 
   """
 }
@@ -1025,7 +1064,7 @@ process ATAC_QC_reads__gathering_all_stat {
       from All_stat_for_gathering_reads_stat
 
   output:
-  file("*_bam_stats.txt") into Stats_on_aligned_reads_for_gathering
+    file("*.txt") into Stats_on_aligned_reads_for_gathering
 
   shell:
   '''
@@ -1151,10 +1190,10 @@ process ATAC_QC_reads__splitting_stat_for_multiqc {
       colnames(df) %<>% tolower %>% gsub('percent', 'percentage', .)
 
       df %<>% rename(
-        percentage_mitochondrial = percentage_mito, 
+        percentage_mitochondrial   = percentage_mito, 
         percentage_align_reference = percentage_align_ref, 
-        percentage_aligned_CONTA = percentage_align_contaminant, 
-        percentage_duplications = percentage_dupli
+        percentage_aligned_CONTA   = percentage_align_contaminant, 
+        percentage_duplications    = percentage_dupli
         )
 
       colnames = colnames(df)[2:ncol(df)]
@@ -1194,8 +1233,8 @@ process ATAC_QC_reads__running_multiQC {
   script:
   """
 
-    multiqc -f .
-    mv multiqc_report.html ATAC__multiQC.html
+      multiqc -f .
+      mv multiqc_report.html ATAC__multiQC.html
 
   """
 }
@@ -1239,21 +1278,21 @@ process ATAC_peaks__calling_peaks {
 
     export TMPDIR="." PYTHON_EGG_CACHE="."
 
-    macs2 callpeak  \
-        -t "${bed}" \
-        -f BED \
-        -n "${id}_macs2" \
-        -g "${params.effective_genome_size}" \
-        -q "${params.macs2_qvalue}" \
+    macs2 callpeak \
+        --treatment "${bed}" \
+        --format BED \
+        --name "_${id}_macs2" \
+        --qvalue "${params.macs2__qvalue}" \
+        --gsize "${params.effective_genome_size}" \
         --nomodel \
         --shift -75 \
         --extsize 150 \
-        -B \
         --keep-dup all \
         --call-summits
 
   """
 }
+
 
 //// doc
 // https://pypi.org/project/MACS2/
@@ -1422,14 +1461,14 @@ process ATAC_peaks__splitting_multi_summits_peaks {
     set id, file(peaks) from Peaks_for_sub_peaks_calling
 
   output:
-    set id, file("*_split_peaks.narrowPeak") 
+    set id, file("*.narrowPeak") 
       into Peaks_for_removing_blacklisted_regions
 
   script:
   """
 
       perl "${projectDir}/bin/splitMACS2SubPeaks.pl" "${peaks}" \
-        > "${id}_split_peaks.narrowPeak"
+        > "${id}__split_peaks.narrowPeak"
 
   """
 }
@@ -1483,7 +1522,7 @@ process ATAC_peaks__removing_blacklisted_regions {
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_blacklist_removal.bed") 
+    set id, file("*__peaks_kept_after_blacklist_removal.bed") 
       into Peaks_without_blacklist_1, 
            Macs2_Peaks_without_blacklist_1_for_annotating_them
 
@@ -1492,10 +1531,10 @@ process ATAC_peaks__removing_blacklisted_regions {
   """
 
       intersectBed -v -a "${peaks}" -b "${params.blacklisted_regions}" \
-        > "${id}_peaks_kept_after_blacklist_removal.bed"
+        > "${id}__peaks_kept_after_blacklist_removal.bed"
 
       intersectBed -u -a "${peaks}" -b "${params.blacklisted_regions}" \
-        > "${id}_peaks_lost_after_blacklist_removal.bed"
+        > "${id}__peaks_lost_after_blacklist_removal.bed"
 
 
   """
@@ -1557,7 +1596,7 @@ process ATAC_peaks__removing_input_control_peaks {
 
   output:
     file("*.bed")
-    set id, file("*_peaks_kept_after_input_control_removal.bed") 
+    set id, file("*__peaks_kept_after_input_control_removal.bed") 
       into Peaks_for_removing_specific_regions_1
 
   script:
@@ -1565,11 +1604,11 @@ process ATAC_peaks__removing_input_control_peaks {
 
       intersectBed -wa -v -f ${params.input_control_overlap_portion} \
         -a "${peaks}" -b "${input_control_peaks}" \
-        > "${id}_peaks_kept_after_input_control_removal.bed"
+        > "${id}__peaks_kept_after_input_control_removal.bed"
 
       intersectBed -wa -u -f ${params.input_control_overlap_portion} \
         -a "${peaks}" -b "${input_control_peaks}" \
-        > "${id}_peaks_lost_after_input_control_removal.bed"
+        > "${id}__peaks_lost_after_input_control_removal.bed"
 
   """
 }
@@ -1654,7 +1693,7 @@ process ATAC_peaks__removing_specific_regions {
 
   output:
       file("*.bed")
-      set COMP, file("*_peaks_kept_after_specific_regions_removal.bed") 
+      set COMP, file("*__peaks_kept_after_specific_regions_removal.bed") 
         into Peaks_for_diffbind
 
 
@@ -1671,8 +1710,8 @@ process ATAC_peaks__removing_specific_regions {
       if [ ! -s rtr_filtered.txt ]; then
         for FILE in ${BED_FILES}
         do
-          CUR_NAME=`basename $FILE ".bed"`
-          cp $FILE "${CUR_NAME}_filtered.bed"
+          key=`basename $FILE ".bed"`
+          cp $FILE "${key}_filtered.bed"
         done
       else
         cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" \
@@ -1680,11 +1719,11 @@ process ATAC_peaks__removing_specific_regions {
       
         for FILE in ${BED_FILES}
         do
-          CUR_NAME=`basename $FILE ".bed"`
+          key=`basename $FILE ".bed"`
           intersectBed -v -a $FILE -b rtr_filtered_formatted.txt \
-            > "${CUR_NAME}_peaks_kept_after_specific_regions_removal.bed"
+            > "${key}__peaks_kept_after_specific_regions_removal.bed"
           intersectBed -u -a $FILE -b rtr_filtered_formatted.txt \
-            > "${CUR_NAME}_peaks_lost_after_specific_regions_removal.bed"
+            > "${key}__peaks_lost_after_specific_regions_removal.bed"
         done
       fi
       
@@ -1787,15 +1826,15 @@ process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
           --percentage \${PERCENT} \
           -f BED
 
-        macs2 callpeak -t \${BED_FILE} \
-          -f BED \
+        macs2 callpeak \
+          --treatment \${BED_FILE} \
+          --format BED \
           --name \${BED_FILE}_macs2 \
+          --qvalue "${params.macs2__qvalue}" \
           --gsize "${params.effective_genome_size}" \
-          --qvalue "${params.macs2_qvalue}" \
           --nomodel \
           --shift -75 \
           --extsize 150 \
-          -B \
           --keep-dup all \
           --call-summits
       done
@@ -2055,11 +2094,11 @@ process MRNA__quantifying_transcripts_abundances {
               mkdir kallisto_${id}
               kallisto quant \
                 --single \
-                -l ${params.fragment_len} \
-                -s ${params.fragment_sd} \
-                -b ${params.bootstrap} \
+                -l ${params.kallisto__fragment_len} \
+                -s ${params.kallisto__fragment_sd} \
+                -b ${params.kallisto__bootstrap} \
+                -t ${params.kallisto__nb_threads} \
                 -i ${params.kallisto_transcriptome} \
-                -t ${params.nb_threads_kallisto} \
                 -o kallisto_${id} \
                 ${reads}
             """
@@ -2068,9 +2107,9 @@ process MRNA__quantifying_transcripts_abundances {
             """
               mkdir kallisto_${id}
               kallisto quant \
-                -b ${params.bootstrap} \
+                -b ${params.kallisto__bootstrap} \
+                -t ${params.kallisto__nb_threads} \
                 -i ${params.kallisto_transcriptome} \
-                -t ${params.nb_threads_kallisto} \
                 -o kallisto_${id} \
                 ${reads}
             """
@@ -2101,7 +2140,7 @@ process MRNA_QC__running_fastqc {
   script:
   """
 
-  fastqc -t ${params.nb_threads_fastqc} ${reads}
+  fastqc -t ${params.fastqc__nb_threads} ${reads}
 
   """
 
@@ -4180,7 +4219,7 @@ process Overlap__computing_motifs_overlaps {
 
     findMotifsGenome.pl !{DA_regions} !{params.homer_genome} "." \
       -size given \
-      -p !{params.nb_threads_homer} \
+      -p !{params.homer__nb_threads} \
       -bg !{all_regions} \
       -mknown !{params.pwms_motifs} \
       -nomotif
@@ -4847,8 +4886,8 @@ process Reports__saving_excel_tables {
       library(openxlsx)
 
       csv_file = '!{csv_file}'
-      excel_add_conditional_formatting = !{params.excel_add_conditional_formatting}
-      excel_max_width = !{params.excel_max_width}
+      excel__add_conditional_formatting = !{params.excel__add_conditional_formatting}
+      excel__max_width = !{params.excel__max_width}
 
 
       options(digits = 1)
@@ -4920,7 +4959,7 @@ process Reports__saving_excel_tables {
       widths = apply(df, 2, function(x) {
         if(all(is.na(x))) return(5)
         width = max(nchar(x), na.rm = T) + 2.5
-        width = ifelse(width > excel_max_width, excel_max_width, width)
+        width = ifelse(width > excel__max_width, excel__max_width, width)
         return(width)
       })
       setColWidths(wb, sheet, cols, widths = widths)
@@ -4938,7 +4977,7 @@ process Reports__saving_excel_tables {
           fgFill = nms_color_body[col])
         addStyle(wb, sheet, body_style, rows = rows[-1], col)
 
-        if(excel_add_conditional_formatting){
+        if(excel__add_conditional_formatting){
           if(col_nm == 'padj') conditionalFormatting(wb, sheet, cols = col, 
             rows = rows[-1], type = 'colourScale', 
             style = c('#e26b0a', '#fde9d9')) 
