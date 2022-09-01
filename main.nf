@@ -1912,7 +1912,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
         genes = genes
       )
 
-      saveRDS(lres, file = paste0('annotated_peaks__', id, '.rds'))
+      saveRDS(lres, file = paste0(id, '__annotated_peaks.rds'))
 
   '''
 }
@@ -2292,11 +2292,11 @@ process DA_ATAC__doing_differential_abundance_analysis {
           sel_reads = which(df$id == cur_id & df$type == 'reads')
           sel_peaks = which(df$id == cur_id & df$type == 'peaks')
 
-          df1$SampleID[c1] = cur_id
-          df1$Condition[c1] = df$condition[sel_reads]
-          df1$Replicate[c1] = df$replicate[sel_reads]
-          df1$bamReads[c1] = df$path[sel_reads]
-          df1$Peaks[c1] = df$path[sel_peaks]
+          df1$SampleID[c1]   = cur_id
+          df1$Condition[c1]  = df$condition[sel_reads]
+          df1$Replicate[c1]  = df$replicate[sel_reads]
+          df1$bamReads[c1]   = df$path[sel_reads]
+          df1$Peaks[c1]      = df$path[sel_peaks]
           df1$PeakCaller[c1] = 'bed'
 
           if(use_input_control){
@@ -2361,7 +2361,8 @@ process DA_ATAC__doing_differential_abundance_analysis {
         # recomputing the FDR to have more precise values (DiffBind round them 
         # at 3 digits)
         all_peaks_gr$FDR <- NULL
-        all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, method = 'BH')
+        all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, 
+                                     method = 'BH')
 
         # adding the raw reads counts of each replicate
         cp_raw = dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_READS)
