@@ -57,7 +57,7 @@ ATAC-Seq adaptors are trimmed using [Skewer](https://doi.org/10.1186/1471-2105-1
 - **_params.nb_threads_pigz_**: number of threads used for parallel compression. Default: 6.
 
 ### Outputs
-- **Trimming and compression reports** (${id}_pigz_compression.log)
+- **Trimming and compression reports** (`${id}_pigz_compression.log`)
 - **Trimmed reads (*_R1/2_trim.fastq)** if **_params.save_fastq_type = 'all'_**
   - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
 
