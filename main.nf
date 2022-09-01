@@ -657,7 +657,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
         --numberOfProcessors ${params.nb_threads_deeptools} \
         --numberOfSamples ${params.nb_1bp_site_to_sample_for_coverage} \
         --plotTitle ${id}_coverage \
-        --plotFile ${id}_coverage.pdf
+        --plotFile ${id}__coverage.pdf
 
   """
 }
@@ -770,7 +770,7 @@ process ATAC_QC_reads__plotting_insert_size_distribution {
       -INPUT "${bam}" \
       -OUTPUT "${id}.insertSizes.txt" \
       -METRIC_ACCUMULATION_LEVEL ALL_READS \
-      -Histogram_FILE "${id}.insertSizes.pdf" \
+      -Histogram_FILE "${id}__insert_size.pdf" \
       -TMP_DIR .
 
 
