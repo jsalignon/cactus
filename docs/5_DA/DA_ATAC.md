@@ -26,7 +26,7 @@ This process takes as input final filtered peaks and (1 base pair) reads.
 Briefly, DiffBind estimates reads abundance at selected peaks of interest (i.e. the consensus peak set) and then use differential gene expression analysis tools (i.e. [DESeq2](https://doi.org/10.1186/s13059-014-0550-8) or [edgeR](https://doi.org/10.1093/bioinformatics/btp616)) to determine peaks that are differentially bound. 
 
 
-### Parameterss
+### Parameters
 - **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 1.
 - **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 'DBA_DESEQ2'.
 - **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. See the [DiffBind::dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) for details. Default: false.
@@ -44,7 +44,7 @@ Briefly, DiffBind estimates reads abundance at selected peaks of interest (i.e. 
 ### Description
 Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/btv145). Each peak is assigned to its closest gene using the [annotatePeak function](https://github.com/YuLab-SMU/ChIPseeker/blob/master/R/annotatePeak.R).
 
-### Parameterss
+### Parameters
 - **_params.promoter_up_diffbind_peaks_**: promoter start; upstream from TSS site.
 - **_params.promoter_down_diffbind_peaks_**: promoter end; downstream from TSS site.
 
@@ -58,7 +58,7 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 ### Description
 This process makes standardized (i.e. similar types of plots are produced for mRNA-Seq data) PCA and volcano plots, and some other plots produced directly by DiffBind. 
 
-### Parameterss
+### Parameters
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
 - **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
 
@@ -82,10 +82,9 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 
 ### Description
 
-### Parameterss
+### Parameters
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
-
+- **Table** (`${comparison}__res_detailed_atac.{csv,xlsx}`) in `Tables_Individual/2_Differential_Abundance/ATAC_detailed`
 

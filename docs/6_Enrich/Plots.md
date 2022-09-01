@@ -22,7 +22,7 @@
 
 ### Description
 
-### Parameterss
+### Parameters
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
@@ -33,7 +33,7 @@
 
 ### Description
 
-### Parameterss
+### Parameters
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
@@ -44,7 +44,7 @@
 
 ### Description
 
-### Parameterss
+### Parameters
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs

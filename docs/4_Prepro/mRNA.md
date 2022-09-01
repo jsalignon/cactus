@@ -29,7 +29,7 @@
 ### Description
 Quantification of transcripts abundance is made with [kallisto](https://doi.org/10.1038/nbt.3519) in single or paired-end mode according to the input type. Briefly, Kallisto is based on the recent idea of a pseudoalignment that allows fasta and precise alignment-free quantification of transcripts (more details [here](https://pachterlab.github.io/kallisto/about)).
 
-### Parameterss
+### Parameters
 - **_params.nb_threads_kallisto_**: number of threads used by kallisto. Default: 6.
 - **_params.bootstrap_**: Number of bootstrap samples. Default: '100'.
 - **_params.fragment_len_**: Estimated average fragment length. For single end only. Default: '180'.

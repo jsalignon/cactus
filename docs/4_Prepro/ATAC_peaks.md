@@ -73,7 +73,7 @@ Any peak that has any overlap with a blacklisted region is discarded.
 ### Description
 If an input control is included in the experiment, and **_params.use_input_control_** is true, then peaks overlapping with input control peaks are removed.
 
-### Parameterss
+### Parameters
 - **_params.input_control_overlap_portion_**: threshold of the fraction of overlapping input control peaks to remove peaks. The percentage is regarding the treatment/sample peaks, not the input control peaks. Default: 0.2.
 
 ### Outputs
@@ -87,7 +87,7 @@ This process takes as input peaks from a comparison and remove any peaks that ar
 
 >**_Note_:** the reason why this process is here and not upstream (before aggregating replicates and comparisons) is because we want to remove in all bed files the peaks that are in specific regions (i.e. RNAi) that we want to avoid. This is because, Diffbind (i.e. the Differential Binding Analysis (DBA) tool) will consider all peaks for his analysis (i.e. differential abundance for ATAC-Seq), so if we remove one such peak in just one of the two samples to compare, if it is still present in the other sample then it will be included in the analysis and it will likely be found as differential bound during the DBA. e.g.: let's say we compare daf-16 RNAi vs control. If there is a MACS2 peak at daf-16 in one of the control condition's replicate, then even if we remove this peak in the daf-16 RNAi condition's replicates, it will still be included in the final analysis.
 
-### Parameterss
+### Parameters
 - **_params.design__regions_to_remove**: path to the file containing the regions to remove (see the [Design](/docs/3_Inputs/Design.md) section for details). Default: 'Design/regions_to_remove.tsv'.
 
 ### Outputs
@@ -108,7 +108,7 @@ MACS2 is used to sample reads (1 base pair reads in bed format) from 10% to 100%
 Then, peaks are called with MACS2 for each sample. 
 Finally, a plot is made in R showing the number of peaks (y-axis) by sequencing depth (x-axis). 
 
-### Parameterss
+### Parameters
 - **_params.do_saturation_curve_**: enable or disable this process. Default: true.
 
 ### Outputs
