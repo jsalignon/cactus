@@ -14,6 +14,26 @@ multiBigwigSummary bins \
   --blackListFileName ${BLAKLISTED} \
   --binSize ${BINSIZE}
 
+
+plotPCA \
+  --corData correlation.npz \
+  --transpose \
+  --ntop 100 \
+  --plotHeight 10 \
+  --plotWidth 7 \
+  --plotTitle pca_raw_top100_${gDNA_PRESENT} \
+  --plotFile pca_raw_top100_${gDNA_PRESENT}_pca.pdf
+
+plotPCA \
+  --corData correlation.npz \
+  --transpose \
+  --log2 \
+  --ntop 100 \
+  --plotHeight 10 \
+  --plotWidth 7 \
+  --plotTitle pca_log2_top100_${gDNA_PRESENT} \
+  --plotFile pca_log2_top100_${gDNA_PRESENT}_pca.pdf
+
 plotPCA \
   --corData correlation.npz \
   --transpose \
@@ -37,30 +57,21 @@ plotPCA \
   --corData correlation.npz \
   --transpose \
   --ntop 5000 \
+  --plotHeight 10 \
+  --plotWidth 7 \
+  --plotTitle pca_raw_top5000_${gDNA_PRESENT} \
+  --plotFile pca_raw_top5000_${gDNA_PRESENT}_pca.pdf
+
+plotPCA \
+  --corData correlation.npz \
+  --transpose \
+  --ntop 5000 \
   --log2 \
   --plotHeight 10 \
   --plotWidth 7 \
   --plotTitle pca_log2_top5000_${gDNA_PRESENT} \
   --plotFile pca_log2_top5000_${gDNA_PRESENT}_pca.pdf
 
-plotPCA \
-  --corData correlation.npz \
-  --transpose \
-  --ntop 100 \
-  --plotHeight 10 \
-  --plotWidth 7 \
-  --plotTitle pca_raw_top100_${gDNA_PRESENT} \
-  --plotFile pca_raw_top100_${gDNA_PRESENT}_pca.pdf
-
-plotPCA \
-  --corData correlation.npz \
-  --transpose \
-  --log2 \
-  --ntop 100 \
-  --plotHeight 10 \
-  --plotWidth 7 \
-  --plotTitle pca_log2_top100_${gDNA_PRESENT} \
-  --plotFile pca_log2_top100_${gDNA_PRESENT}_pca.pdf
 
 # heatmap spearman without outliers
 plotCorrelation \

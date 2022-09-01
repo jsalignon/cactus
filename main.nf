@@ -219,10 +219,10 @@ process ATAC_reads__trimming_reads {
     set id, file(read1), file(read2) from ATAC_reads_for_trimming_3
 
   output:
-    set id, file("*__R1_trim.fastq.gz"), file("*__R2_trim.fastq.gz") 
+    set id, file("*__R1_trimmed.fastq.gz"), file("*__R2_trimmed.fastq.gz") 
              into Trimmed_reads_for_aligning, Trimmed_reads_for_sampling
-    set val('trimmed'), id, file("*__R1_trim.fastq.gz"), 
-        file("*__R2_trim.fastq.gz") into Trimmed_ATAC_reads_for_running_fastqc
+    set val('trimmed'), id, file("*__R1_trimmed.fastq.gz"), 
+        file("*__R2_trimmed.fastq.gz") into Trimmed_ATAC_reads_for_running_fastqc
     file("*.log")
 
   shell:
@@ -234,8 +234,8 @@ process ATAC_reads__trimming_reads {
       id=!{id}
       pigz__nb_threads=!{params.pigz__nb_threads}
       
-      R1TRIM=$(basename ${R1} .fastq.gz)__R1_trim.fastq
-      R2TRIM=$(basename ${R2} .fastq.gz)__R2_trim.fastq
+      R1TRIM=$(basename ${R1} .fastq.gz)__R1_trimmed.fastq
+      R2TRIM=$(basename ${R2} .fastq.gz)__R2_trimmed.fastq
       
       skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} \ 
              -o ${id} > trimer_verbose.txt
@@ -1281,7 +1281,7 @@ process ATAC_peaks__calling_peaks {
     macs2 callpeak \
         --treatment "${bed}" \
         --format BED \
-        --name "_${id}_macs2" \
+        --name "${id}__macs2" \
         --qvalue "${params.macs2__qvalue}" \
         --gsize "${params.effective_genome_size}" \
         --nomodel \
@@ -1710,8 +1710,8 @@ process ATAC_peaks__removing_specific_regions {
       if [ ! -s rtr_filtered.txt ]; then
         for FILE in ${BED_FILES}
         do
-          key=`basename $FILE ".bed"`
-          cp $FILE "${key}_filtered.bed"
+          id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
+          cp $FILE "${id}__peaks_kept_after_specific_regions_removal.bed"
         done
       else
         cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" \
@@ -1719,11 +1719,12 @@ process ATAC_peaks__removing_specific_regions {
       
         for FILE in ${BED_FILES}
         do
-          key=`basename $FILE ".bed"`
+          id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
+          
           intersectBed -v -a $FILE -b rtr_filtered_formatted.txt \
-            > "${key}__peaks_kept_after_specific_regions_removal.bed"
+            > "${id}__peaks_kept_after_specific_regions_removal.bed"
           intersectBed -u -a $FILE -b rtr_filtered_formatted.txt \
-            > "${key}__peaks_lost_after_specific_regions_removal.bed"
+            > "${id}__peaks_lost_after_specific_regions_removal.bed"
         done
       fi
       
@@ -1829,7 +1830,7 @@ process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
         macs2 callpeak \
           --treatment \${BED_FILE} \
           --format BED \
-          --name \${BED_FILE}_macs2 \
+          --name \${BED_FILE}__macs2 \
           --qvalue "${params.macs2__qvalue}" \
           --gsize "${params.effective_genome_size}" \
           --nomodel \
@@ -1839,7 +1840,7 @@ process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
           --call-summits
       done
 
-      Rscript "${projectDir}/bin/plot_saturation_curve.R"
+      Rscript "${projectDir}/bin/plot_saturation_curve.R" ${id}
 
   """
 }

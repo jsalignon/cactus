@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
-# args <- commandArgs(trailingOnly = TRUE)
+args <- commandArgs(trailingOnly = TRUE)
+id = args[1]
 
 cur_files = list.files('.')
 
@@ -23,12 +24,6 @@ for(percent in seq(10,100,10)){
 
 }
 
-match_pattern = '_sampled_10_percent.bed_macs2_peaks.narrowPeak'
-file1 = grep(paste0('.*', match_pattern), cur_files, value = T)
-id_name = gsub(match_pattern, '', file1)
-pdf_name = paste0(id_name, '__saturation_curve.pdf')
-
-# pdf(file = args[1])
-pdf(file = pdf_name)
-  plot(v_reads, v_peaks, type = 'b', xlab = 'number of reads', ylab = 'number of peaks', main = id_name)
+pdf(file = paste0(id, '__saturation_curve.pdf'))
+  plot(v_reads, v_peaks, type = 'b', xlab = 'number of reads', ylab = 'number of peaks', main = id)
 dev.off()
