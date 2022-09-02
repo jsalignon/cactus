@@ -45,7 +45,7 @@
 Samples sequenced multiple times (that have the same id) are merged.
 
 ### Outputs
-- **Merged reads**: `${sample}_R{1,2}_merged.fastq.gz` if *params.save_fastq_type = 'all'* in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`.
+- **Merged reads**: `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged/${sample}_R{1,2}_merged.fastq.gz` if *params.save_fastq_type = 'all'* in .
 
 
 ## ATAC_reads__trimming_reads
@@ -57,9 +57,14 @@ ATAC-Seq adaptors are trimmed using [Skewer](https://doi.org/10.1186/1471-2105-1
 - **_params.nb_threads_pigz_**: number of threads used for parallel compression. Default: 6.
 
 ### Outputs
-- **Trimming and compression reports**: `${sample}_skewer_trimming.log` and `${sample}_pigz_compression.log`
+- **Log files**: 
+  - `${sample}_skewer_trimming.log`
+  - `${sample}_pigz_compression.log`
 - **Trimmed reads**: `*_R{1,2}_trimmed.fastq` if *params.save_fastq_type = 'all'*
-  - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
+
+### Output folders
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
+
 
 ## ATAC_reads__aligning_reads
 
@@ -73,7 +78,10 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
 - **Bowtie 2 alignment metrics**: `${sample}_bowtie2_align_metrics.txt`
 - **Number of aligned reads per category**: `${sample}.qc`
 - **Aligned reads**: `${sample}.bam` if *params.save_bam_type = 'all'* 
-  - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
+
+### Output folders
+- `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
+
 
 ## ATAC_reads__removing_low_quality_reads
 
@@ -86,7 +94,9 @@ Low quality reads with these attributes are filtered: unmapped, mate unmapped, n
 ### Outputs
 - **Number of aligned reads per category**: `${sample}__filter_LQ.qc`
 - **Aligned reads**: `${sample}__filter_LQ.bam` if *params.save_bam_type = 'all'* 
-  - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`.
+
+### Output folders
+- `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`.
 
 
 ## ATAC_reads__marking_duplicated_reads
@@ -106,7 +116,9 @@ Duplicated reads are removed with SAMtools, an index is build, and the number of
 ### Outputs
 - **Number of aligned reads per category**: `${sample}__dup_rem.qc`
 - **Aligned reads**: `${sample}__dup_rem.bam` if *params.save_bam_type = 'all'* 
-  - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`.
+
+### Output folders
+- `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`.
 
 
 ## ATAC_reads__removing_reads_in_mitochondria_and_small_contigs
@@ -118,7 +130,9 @@ Samtools is used to remove reads mapping to the mitochondrial chromosome or to s
 - **Number of aligned reads per category**: `${sample}__no_mito.qc`
 - **Number of reads per chromosome before and after filtering**: .txt file)
 - **Aligned reads**: `${sample}__no_mito.bam` if *params.save_bam_type = 'all' or 'last'* 
-  - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito`.
+
+### Output folders
+- `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito`.
 
 
  
@@ -128,7 +142,7 @@ Samtools is used to remove reads mapping to the mitochondrial chromosome or to s
 This process converts bam files to bed files, and use the insert length as the score. It then adjusts for the shift of the transposase to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688). This is done by shifting reads on the + strand by +4 base pairs and reads on the - strand by -5 base pairs. Finally, it keeps only the 5' end of each reads (and thus each read becomes 1 base pair long), and create a sorted and indexed bam file from the final adjusted bed file. The bam file is sent to [DiffBind](https://doi.org/10.1038/nature10730)] for Differential Binding analysis. The bed file is sent for custom quality controls processes (see below), for computing and plotting saturation curve, and for calling macs2 peaks.
 
 ### Outputs
-  - **Aligned reads**: `${sample}__1bp_shifted_reads.bam` if *params.save_1bp_bam = true* in `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift`.
+  - **Aligned reads**: `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift/${sample}__1bp_shifted_reads.bam` if *params.save_1bp_bam = true*.
 
 
  
@@ -144,9 +158,11 @@ This process converts bam files to bed files, and use the insert length as the s
 - **_params.nb_threads_fastqc_**: number of threads used by FastQC. Default: 2.
 
 ### Outputs
-- **Reads quality control reports**: `*_R{1,2}_fastqc.zip` and `*_R{1,2}_fastqc.html`
-  - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw` for raw reads
-  - in `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_trimmed` for trimmed reads.
+- **Reads quality control reports**: `*_R{1,2}_fastqc.html`
+
+## Output folders
+ - `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_raw` for raw reads
+ - `Processed_Data/1_Preprocessing/ATAC__reads__fastqc_trimmed` for trimmed reads.
 
 
 ## ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage
@@ -161,8 +177,10 @@ Coverage profiles (i.e. bigwig files) and plots are generated by [DeepTools](htt
 - **_params.nb_1bp_site_to_sample_for_coverage_**: number of 1 bp sites to sample for the coverage plots. Default: 10000.
 
 ### Outputs
-- **Coverage profiles**: `${sample}.bw` in `Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw`.
-- **Coverage plots**: `${sample}__coverage.pdf` in `Figures_Individual/1_Preprocessing/ATAC__reads__coverage` and `ATAC__reads__coverage.pdf` in `Figures_Merged/1_Preprocessing`.
+- **BigWig files**: `Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${sample}.bw`.
+- **Coverage plots**: 
+  - `Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${sample}__coverage.pdf`
+  - `Figures_Merged/1_Preprocessing/ATAC__reads__coverage.pdf`
 
  
 ## ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations
@@ -177,8 +195,12 @@ If an input control is included (genomic DNA), then two sets of plots will be ma
 - **_params.binsize_bigwig_creation_**: size of the bins in the coverage matrix. Smaller values increase computation time. Default: 10000.
 
 ### Outputs
-- **PCA plots**: `pca_{raw,log2}_top{100,1000,5000}_${gDNA_PRESENT}_pca.pdf` in `Figures_Individual/1_Preprocessing/ATAC__reads__PCA` and `ATAC__reads__PCA.pdf` in `Figures_Merged/1_Preprocessing`.
-- **Correlation plots**: `{pearson,spearman}_correlation_heatmap_{with,without}_outliers_${gDNA_PRESENT}_cor.pdf` in `Figures_Individual/1_Preprocessing/ATAC__reads__correlations` and `ATAC__reads__correlations.pdf` in `Figures_Merged/1_Preprocessing`.
+- **PCA plots**: 
+  - `Figures_Individual/1_Preprocessing/ATAC__reads__PCA/pca_{raw,log2}_top{100,1000,5000}_${gDNA_PRESENT}_pca.pdf`
+  - `Figures_Merged/1_Preprocessing/ATAC__reads__PCA.pdf`.
+- **Correlation plots**: 
+  - `Figures_Individual/1_Preprocessing/ATAC__reads__correlations/{pearson,spearman}_correlation_heatmap_{with,without}_outliers_${gDNA_PRESENT}_cor.pdf`
+  - `Figures_Merged/1_Preprocessing/ATAC__reads__correlations.pdf`.
 
  
 ## ATAC_QC_reads__plotting_insert_size_distribution
@@ -190,7 +212,9 @@ Insert size plots are made with [Picard](https://broadinstitute.github.io/picard
 - **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
 
 ### Outputs
-- **insert size plots**: `${sample}__insert_size.pdf` in `Figures_Individual/1_Preprocessing/ATAC__reads__insert_size` and `ATAC__reads__insert_size.pdf` in `Figures_Merged/1_Preprocessing`.
+- **insert size plots**: 
+  - `Figures_Individual/1_Preprocessing/ATAC__reads__insert_size/${sample}__insert_size.pdf` 
+  - `Figures_Merged/1_Preprocessing/ATAC__reads__insert_size.pdf`.
 
  
 ## ATAC_QC_reads__sampling_aligned_reads
@@ -277,7 +301,9 @@ Variable names are formated in R, and preprocessing is made for making a file su
 A MultiQC html report is made that aggregates all basic FastQC quality control files, and the custom statistics files generated by cactus.
 
 ### Outputs
-- **MultiQC report**: `ATAC__multiQC.html` in `Figures_Individual/1_Preprocessing` and in `Figures_Merged/1_Preprocessing`.
+- **MultiQC report**: `ATAC__multiQC.html`.
  
-
+### Output folders
+- `Figures_Individual/1_Preprocessing`
+- `Figures_Merged/1_Preprocessing`
 

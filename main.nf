@@ -620,8 +620,10 @@ process ATAC_QC_reads__running_fastqc {
 
   publishDir 
     path: "${out_processed}/1_Preprocessing", mode: "${pub_mode}", saveAs: {
-      if      (reads_type == 'raw')     "ATAC__reads__fastqc_raw/${it}"
-      else if (reads_type == 'trimmed') "ATAC__reads__fastqc_trimmed/${it}"
+      if      (reads_type == 'raw' & it.indexOf(".html") > 0) 
+        "ATAC__reads__fastqc_raw/${it}"
+      else if (reads_type == 'trimmed' & it.indexOf(".html") > 0) 
+        "ATAC__reads__fastqc_trimmed/${it}"
     }
 
   when: do_atac
@@ -2127,8 +2129,10 @@ process MRNA_QC__running_fastqc {
 
   label "fastqc"
 
-  publishDir path: "${res_dir}/Processed_Data/1_Preprocessing/mRNA__fastqc", 
-             mode: "${pub_mode}"
+  publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
+               if (it.indexOf(".html") > 0) 
+               "Processed_Data/1_Preprocessing/mRNA__fastqc/${it}"
+             }
 
   when: do_mRNA
 

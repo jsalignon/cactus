@@ -34,9 +34,9 @@ Briefly, DiffBind estimates reads abundance at selected peaks of interest (i.e. 
 - **_params.diffbind__normalize_**: Normalization method to use. See the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) for options. Default: 'DBA_NORM_RLE'.
 
 ### Outputs
-- **Consensus peaks**: `${comparison}__diffbind_peaks_gr.bed` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__bed`.
-- **Diffbind object**: `${comparison}__diffbind_peaks_dbo.rds` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__DiffBind`.
-- **Read counts by replicate (GRange object)**: `${comparison}__all_peaks.rds` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__gRange`.
+- **Consensus peaks**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__bed/${comparison}__diffbind_peaks_gr.bed`.
+- **Diffbind object**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__DiffBind/${comparison}__diffbind_peaks_dbo.rds`.
+- **Read counts by replicate (GRange object)**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__gRange/${comparison}__all_peaks.rds`.
 
 
 ## DA_ATAC__annotating_diffbind_peaks
@@ -49,8 +49,8 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 - **_params.promoter_down_diffbind_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **Annotated peaks (data.frame object)**: `${comparison}__diffb_anno_peaks_df.rds` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__dataframe`.
-- **Annotated peaks (ChIPseeker object)**: `${comparison}__diffb_anno_peaks_cs.rds` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__ChIPseeker`.
+- **Annotated peaks (data.frame object)**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__dataframe/${comparison}__diffb_anno_peaks_df.rds`.
+- **Annotated peaks (ChIPseeker object)**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__ChIPseeker/${comparison}__diffb_anno_peaks_cs.rds`.
 
 
 ## DA_ATAC__plotting_differential_abundance_results
