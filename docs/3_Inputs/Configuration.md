@@ -114,10 +114,10 @@ fdr_threshold_diffbind_plots = 0.05
 fdr_threshold_sleuth_plots   = 0.05
 
 //// splitting DA results in subset
-threshold_type_for_splitting_subsets   = 'FDR'  // options: 'FDR' or 'rank'
-threshold_values_for_splitting_subsets = [ 1.3 ] // rank cuttoff or -log10 FDR thresholds (here: -log10(0.05) ~= 1.3)
-fold_changes_for_splitting_subsets     = [ 'up', 'down' ] // For now this argument should not be touched. But an 'all' argument may appear in the future
-peak_assignment_for_splitting_subsets  = [ 'all', 'prom', 'distNC' ] // this argument can be any of: 'all', '8kb', '3kb', '2u1d', 'TSS', 'genProm', 'genic', 'prom' or 'distNC'
+split__threshold_type   = 'FDR'  // options: 'FDR' or 'rank'
+split__threshold_values = [ 1.3 ] // rank cuttoff or -log10 FDR thresholds (here: -log10(0.05) ~= 1.3)
+split__fold_changes     = [ 'up', 'down' ] // For now this argument should not be touched. But an 'all' argument may appear in the future
+split__peak_assignment  = [ 'all', 'prom', 'distNC' ] // this argument can be any of: 'all', '8kb', '3kb', '2u1d', 'TSS', 'genProm', 'genic', 'prom' or 'distNC'
 
 //// filtering DA results with too few entries
 min_entries_DA_bed        = 2

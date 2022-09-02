@@ -1884,8 +1884,8 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
       library(ChIPseeker)
       id = '!{id}'
       peaks_bed_file = '!{peaks_bed_file}'
-      upstream = !{params.promoter_up_macs2_peaks}
-      downstream = !{params.promoter_down_macs2_peaks}
+      upstream = !{params.macs2_peaks__promoter_up}
+      downstream = !{params.macs2_peaks__promoter_down}
       tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
       
       nb_of_peaks = 
@@ -1986,8 +1986,8 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample {
       library(ggplot2)
 
       id = '!{id}'
-      upstream = !{params.promoter_up_macs2_peaks}
-      downstream = !{params.promoter_down_macs2_peaks}
+      upstream = !{params.macs2_peaks__promoter_up}
+      downstream = !{params.macs2_peaks__promoter_down}
       lres = readRDS('!{annotated_peaks_objects_rds}')
 
       pdf(paste0(id, '__coverage.pdf'))
@@ -2034,8 +2034,8 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
   '''
       #!/usr/bin/env Rscript
 
-      upstream = !{params.promoter_up_macs2_peaks}
-      downstream = !{params.promoter_down_macs2_peaks}
+      upstream = !{params.macs2_peaks__promoter_up}
+      downstream = !{params.macs2_peaks__promoter_down}
 
       library(ChIPseeker)
       library(ggplot2)
@@ -2721,8 +2721,8 @@ process DA_ATAC__annotating_diffbind_peaks {
 
       COMP = '!{COMP}'
       tx_db <- loadDb('!{params.txdb}')
-      upstream = !{params.promoter_up_diffbind_peaks}
-      downstream = !{params.promoter_down_diffbind_peaks}
+      upstream = !{params.diffbind_peaks__promoter_up}
+      downstream = !{params.diffbind_peaks__promoter_down}
       diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
 
 
@@ -3176,7 +3176,7 @@ process DA_mRNA__plotting_differential_abundance_results {
       test_cond = paste0('condition', cond2)
 
       fdr_threshold = !{params.sleuth_plots__fdr_threshold}
-
+      top_n_labels  = !{params.sleuth_plots__top_n_labels}
 
 
       ##### volcano plots
@@ -3189,7 +3189,9 @@ process DA_mRNA__plotting_differential_abundance_results {
 
       pdf(paste0(COMP, '__mRNA_volcano.pdf'))
         plot_volcano_custom(res_volcano, sig_level = fdr_threshold, 
-          label_column = 'gene_name', title = paste(COMP, 'mRNA'))
+          label_column = 'gene_name', title = paste(COMP, 'mRNA'),
+          top_n_labels = top_n_labels
+          )
       dev.off()
 
 
@@ -3382,13 +3384,13 @@ process DA__splitting_differential_abundance_results_in_subsets {
 
       promoters_df = readRDS('!{params.promoters_df}')
 
-      TT       = '!{params.threshold_type_for_splitting_subsets}'
+      TT       = '!{params.split__threshold_type}'
       TV_split = read_from_nextflow(
-        '!{params.threshold_values_for_splitting_subsets}') %>% as.numeric
+        '!{params.split__threshold_values}') %>% as.numeric
       FC_split = read_from_nextflow(
-        '!{params.fold_changes_for_splitting_subsets}')
+        '!{params.split__fold_changes}')
       PF_split = read_from_nextflow(
-        '!{params.peak_assignment_for_splitting_subsets}')
+        '!{params.split__peak_assignment}')
       
 
       ################################
@@ -3554,7 +3556,7 @@ process DA__splitting_differential_abundance_results_in_subsets {
         export_df_to_bed(cur_bed, bed_name)
 
         # exporting gene list
-        key %<>% gsub('both_....', 'both', .)
+        key %<>% gsub('both_....', 'both', .) # renaming both_{ATAC,mRNA} as both
         saveRDS(lgenes, paste0(key, '__genes.rds'))
 
       }

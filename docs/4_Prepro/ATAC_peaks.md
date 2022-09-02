@@ -136,8 +136,8 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 
 ### Parameters
 - **_params.do_raw_peak_annotation_**: to enable or disable this process. Default: true.
-- **_params.promoter_up_macs2_peaks_**: promoter start; upstream from TSS site.
-- **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
+- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site.
+- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site.
 
 ### Outputs
 - **Annotated peaks R objects**: `Processed_Data/1_Preprocessing/ATAC__peaks__annotated_rds/${sample}__annotated_peaks.rds`.
@@ -149,8 +149,8 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 Using ChIPseeker and [ggplot2](https://ggplot2.tidyverse.org/) to plot coverage and average profile around TSS for each sample (one plot type per sample).
 
 ### Parameters
-- **_params.promoter_up_macs2_peaks_**: promoter start; upstream from TSS site.
-- **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
+- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site.
+- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site.
 
 ### Outputs
 - **[Coverage plots](https://rdrr.io/bioc/ChIPseeker/man/covplot.html)**: 
@@ -167,8 +167,8 @@ Using ChIPseeker and [ggplot2](https://ggplot2.tidyverse.org/) to plot coverage 
 Using ChIPseeker and ggplot2 to plot coverage and average profile around TSS for all samples grouped (one plot type for all samples).
 
 ### Parameters
-- **_params.promoter_up_macs2_peaks_**: promoter start; upstream from TSS site.
-- **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
+- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site.
+- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site.
 
 ### Outputs
 - **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: `ATAC__peaks__average_profile.pdf`
