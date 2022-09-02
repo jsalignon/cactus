@@ -45,7 +45,7 @@
 Samples sequenced multiple times (that have the same id) are merged.
 
 ### Outputs
-- **Merged reads**: `${sample}_R{1,2}_merged.fastq.gz` if **_params.save_fastq_type = 'all'_** in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`.
+- **Merged reads**: `${sample}_R{1,2}_merged.fastq.gz` if *params.save_fastq_type = 'all'* in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_merged`.
 
 
 ## ATAC_reads__trimming_reads
@@ -72,7 +72,7 @@ Reads are aligned to the reference genome by [Bowtie2](https://doi.org/10.1038/n
 ### Outputs
 - **Bowtie 2 alignment metrics** (`${sample}_bowtie2_align_metrics.txt`)
 - **Number of aligned reads per category** (`${sample}.qc`)
-- **Aligned reads** (`${sample}.bam`) if **_params.save_bam_type = 'all'_** 
+- **Aligned reads** (`${sample}.bam`) if *params.save_bam_type = 'all'* 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__fastq_trimmed`.
 
 ## ATAC_reads__removing_low_quality_reads
@@ -85,7 +85,7 @@ Low quality reads with these attributes are filtered: unmapped, mate unmapped, n
 
 ### Outputs
 - **Number of aligned reads per category** (`${sample}__filter_LQ.qc`)
-- **Aligned reads** (`${sample}__filter_LQ.bam`) if **_params.save_bam_type = 'all'_** 
+- **Aligned reads** (`${sample}__filter_LQ.bam`) if *params.save_bam_type = 'all'* 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ`.
 
 
@@ -105,7 +105,7 @@ Duplicated reads are removed with SAMtools, an index is build, and the number of
 
 ### Outputs
 - **Number of aligned reads per category** (`${sample}__dup_rem.qc`)
-- **Aligned reads** (`${sample}__dup_rem.bam`) if **_params.save_bam_type = 'all'_** 
+- **Aligned reads** (`${sample}__dup_rem.bam`) if *params.save_bam_type = 'all'* 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli`.
 
 
@@ -117,7 +117,7 @@ Samtools is used to remove reads mapping to the mitochondrial chromosome or to s
 ### Outputs
 - **Number of aligned reads per category** (`${sample}__no_mito.qc`)
 - **Number of reads per chromosome before and after filtering** (.txt file)
-- **Aligned reads** (`${sample}__no_mito.bam`) if **_params.save_bam_type = 'all' or 'last'_** 
+- **Aligned reads** (`${sample}__no_mito.bam`) if *params.save_bam_type = 'all' or 'last'* 
   - in `Processed_Data/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito`.
 
 
@@ -128,7 +128,7 @@ Samtools is used to remove reads mapping to the mitochondrial chromosome or to s
 This process converts bam files to bed files, and use the insert length as the score. It then adjusts for the shift of the transposase to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688). This is done by shifting reads on the + strand by +4 base pairs and reads on the - strand by -5 base pairs. Finally, it keeps only the 5' end of each reads (and thus each read becomes 1 base pair long), and create a sorted and indexed bam file from the final adjusted bed file. The bam file is sent to [DiffBind](https://doi.org/10.1038/nature10730)] for Differential Binding analysis. The bed file is sent for custom quality controls processes (see below), for computing and plotting saturation curve, and for calling macs2 peaks.
 
 ### Outputs
-  - **Aligned reads** (`${sample}__1bp_shifted_reads.bam`) if **_params.save_1bp_bam = true_** in `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift`.
+  - **Aligned reads** (`${sample}__1bp_shifted_reads.bam`) if *params.save_1bp_bam = true* in `Processed_Data/1_Preprocessing/ATAC__reads__bam_asBed_atacShift`.
 
 
  
