@@ -64,29 +64,33 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 
 ### Outputs
 - **Volcano plots**: 
-  - `${comparison}__ATAC_volcano.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__volcano`
-  - `ATAC__volcano.pdf` in `Figures_Merged/2_Differential_Abundance`.
-- **Volcano plots**: 
   - `Figures_Individual/2_Differential_Abundance/ATAC__volcano/${comparison}__ATAC_volcano.pdf`
   - `Figures_Merged/2_Differential_Abundance/ATAC__volcano.pdf`.
-- **PCA plots (PC 1 and 2)**: `${comparison}__ATAC_PCA_1_2.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_1_2`.
-  - top left panel: percentage of variance explained by the top 5 first principal components
-  - top right panel: PCA plot for principal components 1 and 2
-  - bottom panels: genes annotated to peaks that contribute the most to principal components 1 (left) and 2 (right). Color code: red or -1 indicates that the peak is a positive contributor. Blue or +1 indicates that the peak is a negative contributor. 
-- **PCA plots (PC 3 and 4)**: `${comparison}__ATAC_PCA_3_4.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_3_4`.
-  - same as above but for principal componenets 3 and 4
-- **Other plots**: `${comparison}__ATAC_other_plots.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__other_plots`.
-  - [MA plot](https://rdrr.io/bioc/DiffBind/man/dba.plotMA.html): MA and scatter plots of differential binding analysis results; using normalization factors.
-  - [Heatmap plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Binding site heatmap.
-  - [Venn diagram](https://rdrr.io/bioc/DiffBind/man/dba.plotVenn.html): 4-way Venn diagrams showing the first 2 replicates per condition.
-- **Peaks without annotations**: `${comparison}__ATAC_non_annotated_peaks.pdf` in `Processed_Data/2_Differential_Abundance/ATAC__non_annotated_peaks`.
-  - Should not be many, but if there are this file can help to inspect these peaks.
+- **PCA plots (PC 1 and 2)**: 
+  - `Figures_Individual/2_Differential_Abundance/ATAC__PCA_1_2/${comparison}__ATAC_PCA_1_2.pdf`.
+  - `Figures_Merged/2_Differential_Abundance/ATAC__PCA_1_2.pdf`.
+    - top left panel: percentage of variance explained by the top 5 first principal components
+    - top right panel: PCA plot for principal components 1 and 2
+    - bottom panels: genes annotated to peaks that contribute the most to principal components 1 (left) and 2 (right). Color code: red or -1 indicates that the peak is a positive contributor. Blue or +1 indicates that the peak is a negative contributor. 
+- **PCA plots (PC 3 and 4)**: 
+  - `Figures_Individual/2_Differential_Abundance/ATAC__PCA_3_4/${comparison}__ATAC_PCA_3_4.pdf`.
+  - `Figures_Merged/2_Differential_Abundance/ATAC__PCA_3_4.pdf`.
+    - Same as above but for principal componenets 3 and 4.
+- **Other plots**; 
+  - `Figures_Individual/2_Differential_Abundance/ATAC__other_plots/${comparison}__ATAC_other_plots.pdf`
+  - `Figures_Individual/2_Differential_Abundance/ATAC__other_plots/${comparison}__ATAC_other_plots.pdf`
+    - [MA plot](https://rdrr.io/bioc/DiffBind/man/dba.plotMA.html): MA and scatter plots of differential binding analysis results; using normalization factors.
+    - [Heatmap plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Binding site heatmap.
+    - [Venn diagram](https://rdrr.io/bioc/DiffBind/man/dba.plotVenn.html): 4-way Venn diagrams showing the first 2 replicates per condition.
+- **Peaks without annotations**: 
+  - `Processed_Data/2_Differential_Abundance/ATAC__non_annotated_peaks/${comparison}__ATAC_non_annotated_peaks.txt`.
+    - Should not be many, but if there are this file can help to inspect these peaks.
 
 
 ## DA_ATAC__saving_detailed_results_tables
 
 ### Description
-The detailed ATAC-seq results table is created in R, which includes peak name, locations, significance, log2 fold change, annotated gene name and id, annotated region, distance to TSS (Transcription Start Site), and raw counts. In addition, the following filtering columns are added: 
+The detailed ATAC-seq results table is created in R, which includes peak name, coordinates, significance, log2 fold change, annotated gene name and id, annotated region, distance to TSS (Transcription Start Site), and raw counts. In addition, the following filtering columns are added: 
   - FC_{up,down}: up or down-regulated
   - PF_{3,8}kb: absolute distance of less than 3kb (kilo bases) or 8kb from the TSS
   - PF_2u1d: between 2kb upstream and 1kb downstream the TSS
@@ -95,8 +99,10 @@ The detailed ATAC-seq results table is created in R, which includes peak name, l
   - PF_genic: peak is in a genic region
   - PF_prom: peak is in a promoter
   - PF_distNC: peak is in a distal intergenic region or (in an intron but not in any of these regions: promoter, 5' UTR, 3' UTR and exon). distNC stands for distal noncoding. These regions have been shown in [Daugherty *et al.*](https://doi.org/10.1101/gr.226233.117) (First ATAC-Seq paper in *C. elegans*) to be enriched in active and repressed enhancers.
-These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern. New filtering columns could be added in the future if needed.
+These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern with the parameter *params.peak_assignment_for_splitting_subsets*. New filtering columns could be added in the future if needed.
 
 ### Outputs
-- **Table**: `${comparison}__res_detailed_atac.{csv,xlsx}` in `Tables_Individual/2_Differential_Abundance/ATAC_detailed` and (`ATAC_detailed.{csv,xlsx}` in `Tables_Merged/2_Differential_Abundance`.
+- **Table**: 
+  - `Tables_Individual/2_Differential_Abundance/ATAC_detailed/${comparison}__res_detailed_atac.{csv,xlsx}`
+  - `Tables_Merged/2_Differential_Abundance/ATAC_detailed.{csv,xlsx}`.
 

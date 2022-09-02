@@ -27,7 +27,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## Reports__merging_csv_tables
@@ -38,7 +38,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## Reports__saving_excel_tables
@@ -49,7 +49,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## Reports__merging_pdfs
@@ -60,7 +60,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 

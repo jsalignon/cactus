@@ -20,33 +20,53 @@
 ## DA_mRNA__doing_differential_abundance_analysis
 
 ### Description
-
-### Parameters
-- **_params.XX_**: AA Default: RR.
+Differential gene expression analysis is carried out with [sleuth](http://dx.doi.org/10.1038/nmeth.4324).
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **Sleuth R object**: `1_Preprocessing/2_Differential_Abundance/mRNA__all_genes__rsleuth/${comparison}__mRNA_DEG_rsleuth.rds`
+- **Promoter of all detected genes**: `1_Preprocessing/2_Differential_Abundance/mRNA__all_genes__bed_promoters/${comparison}__all_genes_prom.rds`
 
 
 ## DA_mRNA__plotting_differential_abundance_results
 
 ### Description
+This process makes standardized (i.e. similar types of plots are produced for mRNA-Seq data) PCA and volcano plots, and some other plots produced directly by sleuth. 
 
 ### Parameters
-- **_params.XX_**: AA Default: RR.
+- **_params.sleuth_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
+- **_params.sleuth_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **Volcano plots**: 
+  - `Figures_Individual/2_Differential_Abundance/mRNA__volcano/${comparison}__mRNA_volcano.pdf`
+  - `Figures_Merged/2_Differential_Abundance/mRNA__volcano.pdf`.
+- **PCA plots (PC 1 and 2)**: 
+  - `Figures_Individual/2_Differential_Abundance/mRNA__PCA_1_2/${comparison}__mRNA_PCA_1_2.pdf`.
+  - `Figures_Merged/2_Differential_Abundance/mRNA__PCA_1_2.pdf`.
+    - top left panel: percentage of variance explained by the top 5 first principal components
+    - top right panel: PCA plot for principal components 1 and 2
+    - bottom panels: genes annotated to peaks that contribute the most to principal components 1 (left) and 2 (right). Color code: red or -1 indicates that the peak is a positive contributor. Blue or +1 indicates that the peak is a negative contributor. 
+- **PCA plots (PC 3 and 4)**: 
+  - `Figures_Individual/2_Differential_Abundance/mRNA__PCA_3_4/${comparison}__mRNA_PCA_3_4.pdf`.
+  - `Figures_Merged/2_Differential_Abundance/mRNA__PCA_3_4.pdf`.
+    - Same as above but for principal componenets 3 and 4.
+- **Other plots**; 
+  - `Figures_Individual/2_Differential_Abundance/mRNA__other_plots/${comparison}__mRNA_other_plots.pdf`
+  - `Figures_Individual/2_Differential_Abundance/mRNA__other_plots/${comparison}__mRNA_other_plots.pdf`
+    - [MA plot](https://rdrr.io/github/pachterlab/sleuth/man/plot_ma.html): Make an 'MA plot' for a given test. MA plots display, for each transcript, the mean of abundances across samples on the x-axis and fold change on the y-axis. 
+    - [Density plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Plot the density of a grouping.
 
 
 ## DA_mRNA__saving_detailed_results_tables
 
 ### Description
+The detailed ATAC-seq results table is created in R, which gene id, name, coordinates, significance, log2 fold change and other sleuth columns. 
 
 ### Parameters
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- `Tables_Individual/2_Differential_Abundance/mRNA_detailed/${comparison}__res_detailed_mRNA.{csv,xlsx}`
+- `Tables_Merged/2_Differential_Abundance/mRNA_detailed.{csv,xlsx}`.
 
 

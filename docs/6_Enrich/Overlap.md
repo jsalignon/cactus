@@ -27,7 +27,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## Overlap__computing_genes_self_overlaps
@@ -38,7 +38,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## Overlap__computing_peaks_overlaps
@@ -49,7 +49,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## Overlap__computing_motifs_overlaps
@@ -60,7 +60,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## Overlap__reformatting_motifs_results
@@ -71,5 +71,5 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 

@@ -24,7 +24,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## DA_split__plotting_venn_diagrams
@@ -35,6 +35,6 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 

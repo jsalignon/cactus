@@ -52,7 +52,7 @@ We use a size of 150 base pair as it is approximately the size of a nucleosome.
 
 ### Description
 MACS2 peaks with multiple summits are split, with a boundary set in the middle of neighboring summits.  
-The script from this process was written by [Aaron C Daugherty](https://github.com/brunetlab/CelegansATACseq/blob/master/Fig1/splitMACS2SubPeaks.pl) for the [first ATAC-Seq paper in *C. elegans*](http://www.genome.org/cgi/doi/10.1101/gr.226233.117).
+The script from this process was written by [Aaron C. Daugherty](https://github.com/brunetlab/CelegansATACseq/blob/master/Fig1/splitMACS2SubPeaks.pl) for the [first ATAC-Seq paper in *C. elegans*](http://www.genome.org/cgi/doi/10.1101/gr.226233.117).
 
 ### Outputs
 - **Split peaks**: `Processed_Data/1_Preprocessing/ATAC__peaks__split/${sample}__split_peaks.narrowPeak` if *params.save_bed_type = 'all'*.
@@ -140,7 +140,7 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 - **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **Annotated peaks R objects**: `Processed_Data/1_Preprocessing/ATAC__peaks__annotated_rds/${sample}__annotated_peaks.pdf`.
+- **Annotated peaks R objects**: `Processed_Data/1_Preprocessing/ATAC__peaks__annotated_rds/${sample}__annotated_peaks.rds`.
 
 
 ## ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample
@@ -153,10 +153,10 @@ Using ChIPseeker and [ggplot2](https://ggplot2.tidyverse.org/) to plot coverage 
 - **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **Coverage plots**: 
+- **[Coverage plots](https://rdrr.io/bioc/ChIPseeker/man/covplot.html)**: 
   - `Figures_Individual/1_Preprocessing/ATAC__peaks__coverage/${sample}__coverage.pdf`
   - `Figures_Merged/1_Preprocessing/ATAC__peaks__coverage.pdf`.
-- **Average profile plots**: 
+- **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: 
   - `Figures_Individual/1_Preprocessing/ATAC__peaks__average_profile/${sample}__average_profile.pdf`
   - `Figures_Merged/1_Preprocessing/ATAC__peaks__average_profile.pdf`.
   

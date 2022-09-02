@@ -26,7 +26,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## Plots__making_enrichment_barplots
@@ -37,7 +37,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 ## Plots__making_enrichment_heatmap
@@ -48,7 +48,7 @@
 - **_params.XX_**: AA Default: RR.
 
 ### Outputs
-- **UU** (.pdf files) in `EE`
+- **UU**: `EE`
 
 
 
