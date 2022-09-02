@@ -37,7 +37,7 @@ Quantification of transcripts abundance is made with [kallisto](https://doi.org/
 - **_params.nb_threads_botwie2_**: number of threads used by Bowtie2. Default: 6.
 
 ### Outputs
-- **Kallisto results** (`kallisto_${sample}/{abundance.{h5,tsv},run_info.json}`) in `Processed_Data/1_Preprocessing/mRNA__kallisto_output`
+- **Kallisto results**: `kallisto_${sample}/{abundance.{h5,tsv},run_info.json}` in `Processed_Data/1_Preprocessing/mRNA__kallisto_output`
 
 
 # Quality Controls
@@ -51,7 +51,7 @@ Quantification of transcripts abundance is made with [kallisto](https://doi.org/
 - **_params.nb_threads_fastqc_**: number of threads used by FastQC. Default: 2.
 
 ### Outputs
-- **Reads quality control reports** (`*_R{1,2}_fastqc.zip` and `*_R{1,2}_fastqc.html`) in `Processed_Data/1_Preprocessing/mRNA__fastqc`
+- **Reads quality control reports**: `*_R{1,2}_fastqc.zip` and `*_R{1,2}_fastqc.html` in `Processed_Data/1_Preprocessing/mRNA__fastqc`
 
 
 ## MRNA_QC__running_MultiQC
@@ -60,6 +60,6 @@ Quantification of transcripts abundance is made with [kallisto](https://doi.org/
 A MultiQC html report is made that aggregates all basic FastQC quality controls files.
 
 ### Outputs
-- **MultiQC report** (`mRNA__multiQC.html`) in `Figures_Individual/1_Preprocessing`.
+- **MultiQC report**: `mRNA__multiQC.html` in `Figures_Individual/1_Preprocessing`.
  
 

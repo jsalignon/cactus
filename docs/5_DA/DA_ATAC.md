@@ -34,9 +34,9 @@ Briefly, DiffBind estimates reads abundance at selected peaks of interest (i.e. 
 - **_params.diffbind__normalize_**: Normalization method to use. See the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) for options. Default: 'DBA_NORM_RLE'.
 
 ### Outputs
-- **Consensus peaks** (`${comparison}__diffbind_peaks_gr.bed`) in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__bed`
-- **Diffbind object** (`${comparison}__diffbind_peaks_dbo.rds`) in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__DiffBind`
-- **Read counts by replicate (GRange object)** (`${comparison}__all_peaks.rds`) in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__gRange`
+- **Consensus peaks**: `${comparison}__diffbind_peaks_gr.bed` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__bed`
+- **Diffbind object**: `${comparison}__diffbind_peaks_dbo.rds` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__DiffBind`
+- **Read counts by replicate (GRange object)**: `${comparison}__all_peaks.rds` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__gRange`
 
 
 ## DA_ATAC__annotating_diffbind_peaks
@@ -49,8 +49,8 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 - **_params.promoter_down_diffbind_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **Annotated peaks (data.frame object)** (`${comparison}__diffb_anno_peaks_df.rds`) in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__dataframe`
-- **Annotated peaks (ChIPseeker object)** (`${comparison}__diffb_anno_peaks_cs.rds`) in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__ChIPseeker`
+- **Annotated peaks (data.frame object)**: `${comparison}__diffb_anno_peaks_df.rds` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__dataframe`
+- **Annotated peaks (ChIPseeker object)**: `${comparison}__diffb_anno_peaks_cs.rds` in `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__ChIPseeker`
 
 
 ## DA_ATAC__plotting_differential_abundance_results
@@ -63,18 +63,18 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 - **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
 
 ### Outputs
-- **Volcano plots** (`${comparison}__ATAC_volcano.pdf`) in `Figures_Individual/2_Differential_Abundance/ATAC__volcano`
-- **PCA plots (PC 1 and 2)** (`${comparison}__ATAC_PCA_1_2.pdf`) in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_1_2`
+- **Volcano plots**: `${comparison}__ATAC_volcano.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__volcano`
+- **PCA plots (PC 1 and 2)**: `${comparison}__ATAC_PCA_1_2.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_1_2`
   - top left panel: percentage of variance explained by the top 5 first principal components
   - top right panel: PCA plot for principal components 1 and 2
   - bottom panels: genes annotated to peaks that contribute the most to principal components 1 (left) and 2 (right). Color code: red or -1 indicates that the peak is a positive contributor. Blue or +1 indicates that the peak is a negative contributor. 
-- **PCA plots (PC 3 and 4)** (`${comparison}__ATAC_PCA_3_4.pdf`) in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_3_4`
+- **PCA plots (PC 3 and 4)**: `${comparison}__ATAC_PCA_3_4.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_3_4`
   - same as above but for principal componenets 3 and 4
-- **Other plots** (`${comparison}__ATAC_other_plots.pdf`) in `Figures_Individual/2_Differential_Abundance/ATAC__other_plots`
+- **Other plots**: `${comparison}__ATAC_other_plots.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__other_plots`
   - [MA plot](https://rdrr.io/bioc/DiffBind/man/dba.plotMA.html): MA and scatter plots of differential binding analysis results; using normalization factors.
   - [Heatmap plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Binding site heatmap.
   - [Venn diagram](https://rdrr.io/bioc/DiffBind/man/dba.plotVenn.html): 4-way Venn diagrams showing the first 2 replicates per condition.
-- **Peaks without annotations** (`${comparison}__ATAC_non_annotated_peaks.pdf`) in `Processed_Data/2_Differential_Abundance/ATAC__non_annotated_peaks`
+- **Peaks without annotations**: `${comparison}__ATAC_non_annotated_peaks.pdf` in `Processed_Data/2_Differential_Abundance/ATAC__non_annotated_peaks`
   - Should not be many, but if there are this file can help to inspect these peaks.
 
 
@@ -93,5 +93,5 @@ The detailed ATAC-seq results table is created in R, which includes peak name, l
 These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern. New filtering columns could be added in the future if needed.
 
 ### Outputs
-- **Table** (`${comparison}__res_detailed_atac.{csv,xlsx}`) in `Tables_Individual/2_Differential_Abundance/ATAC_detailed` and (`ATAC_detailed.{csv,xlsx}`) in `Tables_Merged/2_Differential_Abundance`
+- **Table**: `${comparison}__res_detailed_atac.{csv,xlsx}` in `Tables_Individual/2_Differential_Abundance/ATAC_detailed` and (`ATAC_detailed.{csv,xlsx}` in `Tables_Merged/2_Differential_Abundance`
 
