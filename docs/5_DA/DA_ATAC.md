@@ -81,10 +81,17 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 ## DA_ATAC__saving_detailed_results_tables
 
 ### Description
-
-### Parameters
-- **_params.XX_**: AA Default: RR.
+The detailed ATAC-seq results table is created in R, which includes peak name, locations, significance, log2 fold change, annotated gene name and id, annotated region, distance to TSS (Transcription Start Site), and raw counts. In addition, the following filtering columns are added: 
+  - FC_{up,down}: up or down-regulated
+  - PF_{3,8}kb: absolute distance of less than 3kb (kilo bases) or 8kb from the TSS
+  - PF_2u1d: between 2kb upstream and 1kb downstream the TSS
+  - PF_TSS: overalp with the TSS
+  - PF_genProm: peak is in a genic region or in a promoter
+  - PF_genic: peak is in a genic region
+  - PF_prom: peak is in a promoter
+  - PF_distNC: peak is in a distal intergenic region or (in an intron but not in any of these regions: promoter, 5' UTR, 3' UTR and exon). distNC stands for distal noncoding. These regions have been shown in [Daugherty *et al.*](https://doi.org/10.1101/gr.226233.117) (First ATAC-Seq paper in *C. elegans*) to be enriched in active and repressed enhancers.
+These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern. New filtering columns could be added in the future if needed.
 
 ### Outputs
-- **Table** (`${comparison}__res_detailed_atac.{csv,xlsx}`) in `Tables_Individual/2_Differential_Abundance/ATAC_detailed`
+- **Table** (`${comparison}__res_detailed_atac.{csv,xlsx}`) in `Tables_Individual/2_Differential_Abundance/ATAC_detailed` and (`ATAC_detailed.{csv,xlsx}`) in `Tables_Merged/2_Differential_Abundance`
 
