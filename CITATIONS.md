@@ -4,11 +4,12 @@
 
 > Manuscript under preparation
 
-## [Nextflow](https://pubmed.ncbi.nlm.nih.gov/28398311/)
+## [Nextflow](https://doi.org/10.1038/nbt.3820)
 
-> Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017 Apr 11;35(4):316-319. doi: 10.1038/nbt.3820. PubMed PMID: 28398311.
+> Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017 Apr 11;35(4):316-319. PubMed PMID: 28398311.
 
-## Pipeline
+
+## Pipeline tools
 
 - [BBMap](https://sourceforge.net/projects/bbmap/)
 
@@ -121,7 +122,31 @@
 > Jiang, H., Lei, R., Ding, S.W. and Zhu, S. (2014) Skewer: a fast and accurate adapter trimmer for next-generation sequencing paired-end reads. BMC Bioinformatics, 15, 182.
 
 
+
+## Software packaging/containerisation tools
+
+- [Anaconda](https://anaconda.com)
+
+  > Anaconda Software Distribution. Computer software. Vers. 2-2.4.0. Anaconda, Nov. 2016. Web.
+
+- [Bioconda](https://pubmed.ncbi.nlm.nih.gov/29967506/)
+
+  > Grüning B, Dale R, Sjödin A, Chapman BA, Rowe J, Tomkins-Tinch CH, Valieris R, Köster J; Bioconda Team. Bioconda: sustainable and comprehensive software distribution for the life sciences. Nat Methods. 2018 Jul;15(7):475-476. doi: 10.1038/s41592-018-0046-7. PubMed PMID: 29967506.
+
+- [BioContainers](https://pubmed.ncbi.nlm.nih.gov/28379341/)
+
+  > da Veiga Leprevost F, Grüning B, Aflitos SA, Röst HL, Uszkoreit J, Barsnes H, Vaudel M, Moreno P, Gatto L, Weber J, Bai M, Jimenez RC, Sachsenberg T, Pfeuffer J, Alvarez RV, Griss J, Nesvizhskii AI, Perez-Riverol Y. BioContainers: an open-source and community-driven framework for software standardization. Bioinformatics. 2017 Aug 15;33(16):2580-2582. doi: 10.1093/bioinformatics/btx192. PubMed PMID: 28379341; PubMed Central PMCID: PMC5870671.
+
+- [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241)
+
+- [Singularity](https://pubmed.ncbi.nlm.nih.gov/28494014/)
+
+  > Kurtzer GM, Sochat V, Bauer MW. Singularity: Scientific containers for mobility of compute. PLoS One. 2017 May 11;12(5):e0177459. doi: 10.1371/journal.pone.0177459. eCollection 2017. PubMed PMID: 28494014; PubMed Central PMCID: PMC5426675.
+
+
 ## Create references
+
+### Tools 
 
 - [GffRead](https://doi.org/10.12688/f1000research.23297.2)
 
@@ -142,8 +167,49 @@
 > Shane Neph, M. Scott Kuehn, Alex P. Reynolds, Eric Haugen, Robert E. Thurman, Audra K. Johnson, Eric Rynes, Matthew T. Maurano, Jeff Vierstra, Sean Thomas, Richard Sandstrom, Richard Humbert, John A. Stamatoyannopoulos, BEDOPS: high-performance genomic feature operations, Bioinformatics, Volume 28, Issue 14, 15 July 2012, Pages 1919–1920.
 
 
+### Databases
+
+- [ChrommHmm](https://doi.org/10.1038/nmeth.1906)
+
+> Ernst, J., Kellis, M. ChromHMM: automating chromatin-state discovery and characterization. Nat Methods 9, 215–216 (2012). 
+
+- [ChrommHmm human chromatin states](https://doi.org/10.1038/s41586-020-03145-z)
+
+> Boix, C.A., James, B.T., Park, Y.P. et al. Regulatory genomic circuitry of human disease loci by integrative epigenomics. Nature 590, 300–307 (2021). 
+
+- [ChrommHmm mouse chromatin states](https://doi.org/10.1038/s42003-021-01756-4)
+> van der Velde, A., Fan, K., Tsuji, J. et al. Annotation of chromatin states in 66 complete mouse epigenomes during development. Commun Biol 4, 239 (2021). 
+
+- [CIS-BP motifs](https://doi.org/10.1016/j.cell.2014.08.009)
+
+> Weirauch, M. T. et al. Determination and Inference of Eukaryotic Transcription Factor Sequence Specificity. Cell 158, 1431–1443 (2014).
+
+- [ENCODE blacklisted regions](https://doi.org/10.1038/s41598-019-45839-z)
+
+> Amemiya, H.M., Kundaje, A. & Boyle, A.P. The ENCODE Blacklist: Identification of Problematic Regions of the Genome. Sci Rep 9, 9354 (2019). 
+
+- [ENCODE integrative analysis](https://doi.org/10.1038/nature11247)
+
+> The ENCODE Project Consortium. An integrated encyclopedia of DNA elements in the human genome. Nature 489, 57–74 (2012). 
+
+- [ENCODE portal](https://doi.org/10.1093/nar/gkz1062)
+
+> Luo, Y. et al. New developments on the Encyclopedia of DNA Elements (ENCODE) data portal. Nucleic Acids Research 48, D882–D889 (2020).
+
+- [Ensembl genomes](https://doi.org/10.1093/nar/gkab1049)
+
+> Fiona Cunningham *et al.*, Ensembl 2022, Nucleic Acids Research, Volume 50, Issue D1, 7 January 2022, Pages D988–D995.
+
+- [HiHMM chromatin states](https://doi.org/10.1038/nature13415)
+
+> Ho, J., Jung, Y., Liu, T. et al. Comparative analysis of metazoan chromatin organization. Nature 512, 449–452 (2014). 
+
 
 ## Create test datasets
+
+- [nf-core/fetchngs](https://doi.org/10.1038/s41587-020-0439-x)
+
+> Ewels, P.A., Peltzer, A., Fillinger, S. et al. The nf-core framework for community-curated bioinformatics pipelines. Nat Biotechnol 38, 276–278 (2020). 
 
 - [seqtk](https://github.com/lh3/seqtk)
 
@@ -155,10 +221,12 @@
   > R Core Team (2017). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria.
 
 
-## Software packaging/containerisation
+## ATAC-Seq research papers
 
-- [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241)
+- [First ATAC-Seq paper in *C. elegans*](https://doi.org/10.1101/gr.226233.117)
 
-- [Singularity](https://pubmed.ncbi.nlm.nih.gov/28494014/)
+> Daugherty, A. C. et al. Chromatin accessibility dynamics reveal novel functional enhancers in C. elegans. Genome Research (2017).
 
-  > Kurtzer GM, Sochat V, Bauer MW. Singularity: Scientific containers for mobility of compute. PLoS One. 2017 May 11;12(5):e0177459. doi: 10.1371/journal.pone.0177459. eCollection 2017. PubMed PMID: 28494014; PubMed Central PMCID: PMC5426675.
+- [Initial ATAC-Seq paper](https://doi.org/10.1038/NMETH.2688)
+
+> Buenrostro, J. D., Giresi, P. G., Zaba, L. C., Chang, H. Y. & Greenleaf, W. J. Transposition of native chromatin for fast and sensitive epigenomic profiling of open chromatin, DNA-binding proteins and nucleosome position. Nature Methods 10, 1213–1218 (2013).
