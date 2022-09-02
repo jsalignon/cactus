@@ -153,9 +153,9 @@ Using ChIPseeker and ggplot2 to plot coverage and average profile around TSS for
 - **_params.promoter_down_macs2_peaks_**: promoter end; downstream from TSS site.
 
 ### Outputs
-- **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: `ATAC__peaks__average_profile.pdf` made by the [plotAvgProf](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html) function
-- **Annotation barplots**: `ATAC__peaks__annotation_barplot.pdf` made by the [plotAnnoBar](https://rdrr.io/bioc/ChIPseeker/man/plotAnnoBar.data.frame.html) function
-- **Distance to TSS**: `ATAC__peaks__distance_to_TSS.pdf`  made by the [plotDistToTSS](https://rdrr.io/bioc/ChIPseeker/man/plotDistToTSS.data.frame.html) function
-  - in `Figures_Individual/1_Preprocessing/ATAC__peaks__grouped_plots`.
+- **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: `ATAC__peaks__average_profile.pdf`
+- **[Annotation barplots](https://rdrr.io/bioc/ChIPseeker/man/plotAnnoBar.data.frame.html)**: `ATAC__peaks__annotation_barplot.pdf`
+- **[Distance to TSS](https://rdrr.io/bioc/ChIPseeker/man/plotDistToTSS.data.frame.html)**: `ATAC__peaks__distance_to_TSS.pdf`
+  - in `Figures_Individual/1_Preprocessing/ATAC__peaks__grouped_plots` and in `Figures_Individual/1_Preprocessing`.
 
 
