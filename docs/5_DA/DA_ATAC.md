@@ -66,6 +66,9 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 - **Volcano plots**: 
   - `${comparison}__ATAC_volcano.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__volcano`
   - `ATAC__volcano.pdf` in `Figures_Merged/2_Differential_Abundance`.
+- **Volcano plots**: 
+  - `Figures_Individual/2_Differential_Abundance/ATAC__volcano/${comparison}__ATAC_volcano.pdf`
+  - `Figures_Merged/2_Differential_Abundance/ATAC__volcano.pdf`.
 - **PCA plots (PC 1 and 2)**: `${comparison}__ATAC_PCA_1_2.pdf` in `Figures_Individual/2_Differential_Abundance/ATAC__PCA_1_2`.
   - top left panel: percentage of variance explained by the top 5 first principal components
   - top right panel: PCA plot for principal components 1 and 2
