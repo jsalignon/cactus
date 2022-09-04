@@ -35,8 +35,8 @@ Finally, a key is made, of the form `ET_${ET}__PF_${PF}__${FC}__${TV}__${COMP}`,
   - R files that contain gene sets (i.e. to find enriched ontologies, for Venn diagrams plots).
 
 In additions, two types of tables are produced: res_simple and res_filter. These two tables contain the same columns: the 5 key components (ET, PF, FC, TV and COMP), a peak_id column (Null for mRNA-Seq results), chromosome, gene name and id, pvalue and adjusted p-value and log2 fold changes. These two tables differ in their format: 
-  - res_simple: each result is reported with the filters that it passes that are combined with "|" (i.e PF: 'all|prom'). This file allows to quickly browse all results.
-  - res_filter: only results passing filters are reported and each filter it pass is on a different line (so 'all' and 'prom' would be on two different lines in the previous example). This file should be smaller as it exclude all the non-significant results.
+  - res_simple: each result is reported with the filters that it passes that are combined with "|" (i.e PF: 'all|prom'). This allows to quickly browse all results.
+  - res_filter: only results passing filters are reported and each passed filter is on a different line (so 'all' and 'prom' would be on two different lines in the previous example). This file should be smaller as it exclude all the non-significant results.
 
 ### Parameters
 - **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Default: 'FDR'. Options: 'FDR', 'rank'.
@@ -58,11 +58,17 @@ In additions, two types of tables are produced: res_simple and res_filter. These
 ## DA_split__plotting_venn_diagrams
 
 ### Description
-
-### Parameters
-- **_params.XX_**: AA Default: RR.
+This process takes as input all gene lists made by the previous process for a given comparison and generates venn diagrams for gene lists that share these keys: PA (Peak Assignment), FC (Fold Change) and TV (Theshold Value).  
+Two types of plots are made:
+- proportional two ways venn diagrams:  ATAC-Seq vs mRNA-Seq with FC either up or down
+- fixed-size four-ways venn diagrams: ATAC-Seq vs mRNA-Seq with FC up and down.
+In these plots, mRNA-Seq data has an orange filling, ATAC-Seq data has a blue filling, up-regulated genes have a purple outside line and down-regulated genes have a green purple outside line.
 
 ### Outputs
-- **UU**: `EE`
-
+- **Two-ways venn diagrams**: 
+  - `Figures_Individual/2_Differential_Abundance/Venn_diagrams__two_ways/${key}__venn_up_or_down.{csv,xlsx}`
+  - `Figures_Merged/2_Differential_Abundance/Venn_diagrams__two_ways.pdf`
+- **Four-ways venn diagrams**: 
+  - `Figures_Individual/2_Differential_Abundance/Venn_diagrams__four_ways/${key}__venn_up_and_down.{csv,xlsx}`
+  - `Figures_Merged/2_Differential_Abundance/Venn_diagrams__four_ways.pdf`
 

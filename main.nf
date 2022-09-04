@@ -51,8 +51,8 @@
 // DA_mRNA__plotting_differential_abundance_results
 // DA_mRNA__saving_detailed_results_tables
 
-// DA__splitting_differential_abundance_results_in_subsets
-// DA__plotting_venn_diagrams
+// DA_split__splitting_differential_abundance_results_in_subsets
+// DA_split__plotting_venn_diagrams
 
 // Overlap__computing_functional_annotations_overlaps
 // Overlap__computing_genes_self_overlaps
@@ -2706,7 +2706,7 @@ process DA_ATAC__annotating_diffbind_peaks {
     set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) 
       into Annotated_diffbind_peaks_for_plotting
 
-  when: params.do_diffbind_peak_annotation
+  // when: params.do_diffbind_peak_annotation
 
   shell:
   '''
@@ -3332,7 +3332,7 @@ do_mRNA_lgl = do_mRNA.toString().toUpperCase()
 do_atac_lgl = do_atac.toString().toUpperCase()
 
 
-process DA__splitting_differential_abundance_results_in_subsets {
+process DA_split__splitting_differential_abundance_results_in_subsets {
   tag "${COMP}"
 
   label "r_basic"
@@ -3355,7 +3355,8 @@ process DA__splitting_differential_abundance_results_in_subsets {
       file("*__res_filter.rds") 
       into Res_filter_table_for_formatting_table optional true
     set COMP, file("*__genes.rds") 
-      into DA_genes_split_for_doing_enrichment_analysis optional true
+      into DA_genes_split_for_doing_enrichment_analysis, 
+           DA_genes_for_plotting_venn_diagrams optional true
     set COMP, file("*__regions.bed") 
       into DA_regions_split_for_doing_enrichment_analysis optional true
 
@@ -3622,7 +3623,6 @@ Formatting_csv_tables_channel = Formatting_csv_tables_channel
 DA_genes_split_for_doing_enrichment_analysis
   // COMP, [ multiple_rds_files ] 
   //  (files format: path/ET__PF__FC__TV__COMP__genes.rds)
-  .tap{ DA_genes_for_plotting_venn_diagrams }
   .map{ it[1] }.flatten().toList()
   // [ all_rds_files ]
   .into{ 
@@ -3701,7 +3701,7 @@ DA_regions_split_ATAC1
 
 
 
-process DA__plotting_venn_diagrams {
+process DA_split__plotting_venn_diagrams {
   tag "${COMP}"
 
   label "venndiagram"
@@ -3724,8 +3724,6 @@ process DA__plotting_venn_diagrams {
     set val("Venn_diagrams__four_ways"), val("2_Differential_Abundance"), 
       file('*__venn_up_and_down.pdf') 
       into Venn_up_and_down_for_merging_pdfs optional true
-
-  when: params.do_diffbind_peak_annotation
 
   shell:
   '''
