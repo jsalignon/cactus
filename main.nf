@@ -54,20 +54,20 @@
 // DA_split__splitting_differential_abundance_results_in_subsets
 // DA_split__plotting_venn_diagrams
 
-// Overlap__computing_functional_annotations_overlaps
-// Overlap__computing_genes_self_overlaps
-// Overlap__computing_peaks_overlaps
-// Overlap__computing_motifs_overlaps
-// Overlap__reformatting_motifs_results
+// Enrichment__computing_functional_annotations_overlaps
+// Enrichment__computing_genes_self_overlaps
+// Enrichment__computing_peaks_overlaps
+// Enrichment__computing_motifs_overlaps
+// Enrichment__reformatting_motifs_results
+// Enrichment__computing_enrichment_pvalues
 
-// Plots__computing_enrichment_pvalues
-// Plots__making_enrichment_barplots
-// Plots__making_enrichment_heatmap
+// Figures__making_enrichment_barplots
+// Figures__making_enrichment_heatmap
+// Figures__merging_pdfs
 
-// Reports__formatting_csv_tables
-// Reports__merging_csv_tables
-// Reports__saving_excel_tables
-// Reports__merging_pdfs
+// Tables__formatting_csv_tables
+// Tables__merging_csv_tables
+// Tables__saving_excel_tables
 
 
 
@@ -3839,7 +3839,7 @@ DA_genes_for_computing_functional_annotations_overlaps_1
 
 
 
-process Overlap__computing_functional_annotations_overlaps {
+process Enrichment__computing_functional_annotations_overlaps {
   tag "${key}"
 
   label "bioconductor"
@@ -3868,15 +3868,13 @@ process Overlap__computing_functional_annotations_overlaps {
       org_db = AnnotationDbi::loadDb('!{params.org_db}')
       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
       kegg_environment = readRDS('!{params.kegg_environment}')
-      min_entries_DA_genes_sets = '!{params.min_entries_DA_genes_sets}'
       use_nda_as_bg_for_func_anno = !{params.use_nda_as_bg_for_func_anno}
 
 
       gene_set_enrich <- function(lgenes, type){
         DA_genes = lgenes$DA
-        universe = lgenes$NDA
-        if(!use_nda_as_bg_for_func_anno) universe = NULL
-
+        universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL)
+        
         if(type == 'KEGG') {
 
           vec = df_genes_metadata$entrez_id %>% 
@@ -4008,7 +4006,7 @@ Overlap_tables_channel = Overlap_tables_channel
 
 
 
-process Overlap__computing_genes_self_overlaps {
+process Enrichment__computing_genes_self_overlaps {
   tag "${key}"
 
   label "r_basic"
@@ -4122,7 +4120,7 @@ DA_regions_with_bg_for_computing_peaks_overlaps_3
   .set{ DA_regions_with_bg_and_bed_for_computing_peaks_overlaps }
 
 
-process Overlap__computing_peaks_overlaps {
+process Enrichment__computing_peaks_overlaps {
   tag "${key}"
 
   label "samtools_bedtools_perl"
@@ -4200,7 +4198,7 @@ DA_regions_with_bg_for_computing_motifs_overlaps_1
 
 
 
-process Overlap__computing_motifs_overlaps {
+process Enrichment__computing_motifs_overlaps {
   tag "${key}"
 
   label "homer"
@@ -4244,7 +4242,7 @@ process Overlap__computing_motifs_overlaps {
 
 
 
-process Overlap__reformatting_motifs_results {
+process Enrichment__reformatting_motifs_results {
   tag "${key}"
 
   label "r_basic"
@@ -4311,7 +4309,7 @@ Overlap_tables_channel = Overlap_tables_channel
 
 Overlap_tables_channel = Overlap_tables_channel.dump(tag: 'overlap_tables')
 
-process Plots__computing_enrichment_pvalues {
+process Enrichment__computing_enrichment_pvalues {
   tag "${key}"
 
   label "r_basic"
@@ -4458,7 +4456,7 @@ Enrichment_results_for_plotting_barplots_1
 
 
 
-process Plots__plotting_enrichment_barplots {
+process Figures__plotting_enrichment_barplots {
   tag "${key}"
 
   label "figures"
@@ -4557,7 +4555,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Barplots_for_merging_pdfs
 
 
 
-process Plots__plotting_enrichment_heatmap {
+process Figures__plotting_enrichment_heatmap {
   tag "${key}"
   
   label "figures"
@@ -4743,10 +4741,38 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Heatmaps_for_merging_pdfs
 
 
 
+Merging_pdfs_channel = Merging_pdfs_channel.dump(tag: 'merging_pdf')
+
+process Figures__merging_pdfs {
+  tag "${file_name}"
+
+  label "pdftk"
+
+  publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
+
+  input:
+    set file_name, out_path, file("*") from Merging_pdfs_channel
+
+  output:
+    file("*.pdf") optional true
+
+  script:
+  """
+
+      pdftk `ls *pdf | sort` cat output ${file_name}.pdf
+
+  """
+
+}
+
+
+
+
+
 Formatting_csv_tables_channel = Formatting_csv_tables_channel
   .dump(tag: 'csv_tables')
 
-process Reports__formatting_csv_tables {
+process Tables__formatting_csv_tables {
   tag "${out_folder}__${data_type}"
 
   label "r_basic"
@@ -4819,7 +4845,7 @@ Formatted_csv_tables_for_merging
   .dump(tag: 'merge_tables')
   .set{ Formatted_tables_grouped_for_merging_tables }
 
-process Reports__merging_csv_tables {
+process Tables__merging_csv_tables {
   tag "${out_folder}__${data_type}"
 
   label "r_basic"
@@ -4866,7 +4892,7 @@ Exporting_to_Excel_channel = Exporting_to_Excel_channel
 
 Exporting_to_Excel_channel = Exporting_to_Excel_channel.dump(tag: 'excel')
 
-process Reports__saving_excel_tables {
+process Tables__saving_excel_tables {
   tag "${csv_file}"
 
   // label "openxlsx" => sh: : Permission denied ; Error: zipping up workbook 
@@ -5025,31 +5051,6 @@ process Reports__saving_excel_tables {
 // # https://ycphs.github.io/openxlsx/articles/Introduction.html
 
 
-
-
-Merging_pdfs_channel = Merging_pdfs_channel.dump(tag: 'merging_pdf')
-
-process Reports__merging_pdfs {
-  tag "${file_name}"
-
-  label "pdftk"
-
-  publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
-
-  input:
-    set file_name, out_path, file("*") from Merging_pdfs_channel
-
-  output:
-    file("*.pdf") optional true
-
-  script:
-  """
-
-      pdftk `ls *pdf | sort` cat output ${file_name}.pdf
-
-  """
-
-}
 
 
 ////////////////////////////////////////////////////////////////////////////
