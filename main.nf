@@ -2975,14 +2975,14 @@ process DA_ATAC__saving_detailed_results_tables {
         FC_up = L2FC > 0,
         FC_down = L2FC < 0,
 
-        PF_8kb = abs(distance_to_tss) < 8000,
-        PF_3kb = abs(distance_to_tss) < 3000,
-        PF_2u1d = distance_to_tss > -2000 & distance_to_tss < 1000,
-        PF_TSS = distance_to_tss == 0,
-        PF_genProm = genic | promoter,
-        PF_genic = genic,
-        PF_prom = promoter,
-        PF_distNC = distal_intergenic | ( intron & !promoter & !five_UTR  & 
+        PA_8kb = abs(distance_to_tss) < 8000,
+        PA_3kb = abs(distance_to_tss) < 3000,
+        PA_2u1d = distance_to_tss > -2000 & distance_to_tss < 1000,
+        PA_TSS = distance_to_tss == 0,
+        PA_genProm = genic | promoter,
+        PA_genic = genic,
+        PA_prom = promoter,
+        PA_distNC = distal_intergenic | ( intron & !promoter & !five_UTR  & 
           !three_UTR  & !exon)
       )
 
@@ -3390,7 +3390,7 @@ process DA_split__splitting_differential_abundance_results_in_subsets {
         '!{params.split__threshold_values}') %>% as.numeric
       FC_split = read_from_nextflow(
         '!{params.split__fold_changes}')
-      PF_split = read_from_nextflow(
+      PA_split = read_from_nextflow(
         '!{params.split__peak_assignment}')
       
 
@@ -3402,10 +3402,10 @@ process DA_split__splitting_differential_abundance_results_in_subsets {
         res_detailed_atac = readRDS(grep('atac.rds', lf, value = T))
 
         # adding the aggregated PF filter column
-        res_detailed_atac$PF_all = T
-        PF_columns_all = grep('PF_', colnames(res_detailed_atac), value = T)
+        res_detailed_atac$PA_all = T
+        PA_columns_all = grep('PA_', colnames(res_detailed_atac), value = T)
         res_detailed_atac$PF = 
-          get_merged_columns(res_detailed_atac, paste0('PF_', PF_split), 'PF')
+          get_merged_columns(res_detailed_atac, paste0('PA_', PA_split), 'PF')
 
         res_simple_atac = res_detailed_atac %>% 
           dplyr::mutate(transcript_id = NA, ET = 'ATAC') %>% 
@@ -3467,7 +3467,7 @@ process DA_split__splitting_differential_abundance_results_in_subsets {
       ################################
       ## creating the res_filter table
 
-      df_split = expand.grid(TV = TV_split, FC = FC_split, PF = PF_split, 
+      df_split = expand.grid(TV = TV_split, FC = FC_split, PF = PA_split, 
         stringsAsFactors = F)
       lres_filter = list()
 
@@ -3622,7 +3622,7 @@ Formatting_csv_tables_channel = Formatting_csv_tables_channel
 
 DA_genes_split_for_doing_enrichment_analysis
   // COMP, [ multiple_rds_files ] 
-  //  (files format: path/ET__PF__FC__TV__COMP__genes.rds)
+  //  (files format: path/ET__PA__FC__TV__COMP__genes.rds)
   .map{ it[1] }.flatten().toList()
   // [ all_rds_files ]
   .into{ 
@@ -3634,7 +3634,7 @@ DA_genes_for_computing_genes_self_overlaps_1
   .flatten()
   // one rds_file per line
   .map{ [ it.name.replaceFirst(~/__genes.*/, ''), it ] }
-  // key (ET__PF__FC__TV__COMP), rds_file
+  // key (ET__PA__FC__TV__COMP), rds_file
   .into{ 
     DA_genes_for_computing_genes_self_overlaps_2 ; 
     DA_genes_for_computing_functional_annotations_overlaps_1
@@ -3642,11 +3642,11 @@ DA_genes_for_computing_genes_self_overlaps_1
 
 
 DA_genes_for_computing_genes_self_overlaps_2
-  // format: key (ET__PF__FC__TV__COMP), rds_file (lgenes = list(DA, NDA))
+  // format: key (ET__PA__FC__TV__COMP), rds_file (lgenes = list(DA, NDA))
   .combine(DA_genes_list_for_computing_genes_self_overlaps)
   // format: key, rds_file, rds_files
   .map{ [ "${it[0]}__genes_self", 'genes_self', it[1], it[2..-1] ] }
-  // format: key (ET__PF__FC__TV__COMP__DT), DT, rds_file, [ rds_files ]
+  // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file, [ rds_files ]
   .dump(tag: 'genes_self')
   .set{ DA_genes_for_computing_genes_self_overlaps_3 }
 
@@ -3661,11 +3661,11 @@ DA_genes_for_computing_genes_self_overlaps_2
 
 DA_regions_split_for_doing_enrichment_analysis
   // COMP, multiple_bed_files 
-  //   (files format: path/ET__PF__FC__TV__COMP__peaks.bed)
+  //   (files format: path/ET__PA__FC__TV__COMP__peaks.bed)
   .map{ it[1] }.flatten()
   // bed_file
   .map{ [ it.name.replaceFirst(~/__regions.bed/, ''), it ] }
-  // key (ET__PF__FC__TV__COMP), bed_file
+  // key (ET__PA__FC__TV__COMP), bed_file
   .dump(tag:'DA_regions')
   .into{ DA_regions_split_ATAC ; DA_regions_split_mRNA }
 
@@ -3825,15 +3825,15 @@ Channel
 
 
 DA_genes_for_computing_functional_annotations_overlaps_1
-  // key (ET__PF__FC__TV__COMP), rds_file
+  // key (ET__PA__FC__TV__COMP), rds_file
   .combine(params.func_anno_databases)
-  // key (ET__PF__FC__TV__COMP), rds_file, func_anno
+  // key (ET__PA__FC__TV__COMP), rds_file, func_anno
   .map{ key, rds_file, func_anno -> 
     data_type = "func_anno_" + func_anno
     new_key = key + "__" + data_type
     [ new_key, data_type, func_anno, rds_file ]
   }
-  // key (ET__PF__FC__TV__COMP__DT), data_type, func_anno, rds_file 
+  // key (ET__PA__FC__TV__COMP__DT), data_type, func_anno, rds_file 
   .dump(tag: 'func_anno')
   .set{ DA_genes_for_computing_functional_annotations_overlaps_2 }
 
@@ -3869,6 +3869,7 @@ process Enrichment__computing_functional_annotations_overlaps {
       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
       kegg_environment = readRDS('!{params.kegg_environment}')
       use_nda_as_bg_for_func_anno = !{params.use_nda_as_bg_for_func_anno}
+      simplify_cutoff = !{params.simplify_cutoff}
 
 
       gene_set_enrich <- function(lgenes, type){
@@ -3889,10 +3890,12 @@ process Enrichment__computing_functional_annotations_overlaps {
           res
         }
           else {
-            simplify( enrichGO( gene = DA_genes, OrgDb = org_db, 
-              keyType = 'ENSEMBL', ont = type, pAdjustMethod = 'BH', 
-              pvalueCutoff = 1, qvalueCutoff  = 1, universe = universe), 
-              cutoff = 0.8, by = 'p.adjust', select_fun = min)
+            simplify( 
+              enrichGO( 
+                gene = DA_genes, OrgDb = org_db, keyType = 'ENSEMBL', 
+                ont = type, pAdjustMethod = 'BH', pvalueCutoff = 1, 
+                qvalueCutoff  = 1, universe = universe), 
+              cutoff = simplify_cutoff, by = 'p.adjust', select_fun = min)
           }
       }
 
@@ -4110,12 +4113,12 @@ Bed_regions_to_overlap_with =
   .mix(DA_regions_channel)
 
 DA_regions_with_bg_for_computing_peaks_overlaps_3
-  // format: key (ET__PF__FC__TV__COMP), DA_regions, all_regions
+  // format: key (ET__PA__FC__TV__COMP), DA_regions, all_regions
   .combine(Bed_regions_to_overlap_with)
   // format: key, DA_regions, all_regions, data_type, bed_files
   .map{ [ it[0,3].join('__'), it[3], it[1], it[2], it[4] ] }
   .dump(tag:'bed_overlap')
-  // format: key (ET__PF__FC__TV__COMP__DT), data_type, DA_regions, 
+  // format: key (ET__PA__FC__TV__COMP__DT), data_type, DA_regions, 
   //        all_regions, bed_files
   .set{ DA_regions_with_bg_and_bed_for_computing_peaks_overlaps }
 
@@ -4190,10 +4193,10 @@ Overlap_tables_channel = Overlap_tables_channel
 
 
 DA_regions_with_bg_for_computing_motifs_overlaps_1
-  // key (ET__PF__FC__TV__COMP), DA_regions, all_regions
+  // key (ET__PA__FC__TV__COMP), DA_regions, all_regions
   .map{ [ "${it[0]}__motifs", "motifs", it[1], it[2] ] }
   .dump(tag:'peaks_for_homer')
-  // format: key (ET__PF__FC__TV__COMP__DT), data_type, DA_regions, all_regions
+  // format: key (ET__PA__FC__TV__COMP__DT), data_type, DA_regions, all_regions
   .set{ DA_regions_with_bg_for_computing_motifs_overlaps_2 }
 
 
@@ -4424,7 +4427,7 @@ Enrichment_results_for_plotting
   .flatten()
   // we need to flatten since the genes_sets
   .map{ [ it.name.replaceFirst(~/__enrich.rds/, ''), it ] }
-  // format: key (ET__PF__FC__TV__COMP__DT), rds_file
+  // format: key (ET__PA__FC__TV__COMP__DT), rds_file
   .tap{ Enrichment_results_for_plotting_barplots_1 }
   .combine(comparisons_grouped_for_heatmap)
   // format: key, rds_file, GRP, comp_order
@@ -4436,7 +4439,7 @@ Enrichment_results_for_plotting
   .map{ [ it[1].split('__'), it[2..4] ].flatten() }
   // format: ET, PF, FC, TV, COMP, DT, rds_file, GRP, comp_order
   .map{ [ it[0, 1, 3, 7, 5].join('__'), it[5, 8, 3, 6] ].flatten() }
-  // format: key (ET__PF__TV__GRP__DT), DT, comp_order, TV, rds_file
+  // format: key (ET__PA__TV__GRP__DT), DT, comp_order, TV, rds_file
   .groupTuple(by: [0, 1, 2, 3])
   // format: key, DT, comp_order, TV, rds_files
   .filter{ it[4].size() > 1 }
@@ -4448,9 +4451,9 @@ Enrichment_results_for_plotting
 
 
 Enrichment_results_for_plotting_barplots_1
-  // format: key (ET__PF__FC__TV__COMP__DT), rds_file
+  // format: key (ET__PA__FC__TV__COMP__DT), rds_file
   .map{ [ it[0], it[0].split('__')[5], it[1] ]  }
-  // format: key (ET__PF__FC__TV__COMP__DT), DT, rds_file
+  // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file
   .dump(tag: 'barplot')
   .set{ Enrichment_results_for_plotting_barplots_2 }
 

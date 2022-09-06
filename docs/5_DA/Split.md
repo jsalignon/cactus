@@ -5,7 +5,7 @@
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Fastq](/docs/3_Inputs/Fastq.md), [Design](/docs/3_Inputs/Design.md), [Configuration](/docs/3_Inputs/Configuration.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
 * [2. Differential Abundance](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
-* [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Enrichment](/docs/6_Enrich/Enrichment.md), [Figures](/docs/6_Enrich/Figures.md), [Tables](/docs/6_Enrich/Tables.md)
+* [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Overlap](/docs/6_Enrich/Overlap.md), [Plots](/docs/6_Enrich/Plots.md), [Reports](/docs/6_Enrich/Reports.md)
 
 [](END_OF_MENU)
 
@@ -22,15 +22,15 @@
 This process splits Differential abundance results into subsets in order to do enrichment analysis on many different angle and extract the most information out of the data.  
 5 filters are used to split:
   - ET: Experiment Type. Can be either 'ATAC', 'mRNA', 'both', 'both_ATAC', or 'both_mRNA'.  
-  - PA: Peak Assignment. Can be any combination of 'all', 'PF_3kb', 'PF_8kb', 'PF_2u1d', 'PF_TSS', 'PF_genProm', 'PF_genic', 'PF_prom', 'PF_distNC'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included). <!-- this is named Peak Filtering (PF) in main.nf for now; need to change that -->
-  PF_{3,8}kb: absolute distance of less than 3kb (kilo bases) or 8kb from the TSS
+  - PA: Peak Assignment. Can be any combination of 'all', 'PA_3kb', 'PA_8kb', 'PA_2u1d', 'PA_TSS', 'PA_genProm', 'PA_genic', 'PA_prom', 'PA_distNC'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included). <!-- this is named Peak Filtering (PF) in main.nf for now; need to change that -->
+  PA_{3,8}kb: absolute distance of less than 3kb (kilo bases) or 8kb from the TSS
   - FC: Fold Change. To split up and down-regulated results.
-  - Theshold Value(s) (TV): To split results by significance thresholds. 
+  - TV: Theshold Value(s). To split results by significance thresholds. 
 
 > **_NOTE:_** The 'both*' entries indicates that the results pass the filters in both ATAC-Seq and mRNA-Seq. 'both' is used for gene lists (i.e. to find enriched ontologies), while 'both_ATAC' and 'both_mRNA' are used for genomic regions (i.e. to find enriched motifs/CHIP). 'both_ATAC' are ATAC-Seq peaks assigned to genes that are passing the filters in mRNA-Seq data as well. 'both_mRNA' are gene promoters of genes that pass the filters in mRNA-Seq and for which there are nearby ATAC-Seq peaks assigned to the same gene and that pass the filters. 
 > **_NOTE:_** The process merges mRNA-Seq and ATAC-Seq results if *experiment_types = 'both'* otherwise it works on either of the two.
 
-Finally, a key is made, of the form `ET_${ET}__PF_${PF}__${FC}__${TV}__${COMP}`, with COMP indicating the comparison. This key is used to make: 
+Finally, a key is made, of the form `ET_${ET}__PA_${PF}__${FC}__${TV}__${COMP}`, with COMP indicating the comparison. This key is used to make: 
   - bed files that contain genomic regions (i.e. to find enriched motifs/CHIP)
   - R files that contain gene sets (i.e. to find enriched ontologies, for Venn diagrams plots).
 
@@ -71,3 +71,4 @@ In these plots, mRNA-Seq data has an orange filling, ATAC-Seq data has a blue fi
 - **Four-ways venn diagrams**: 
   - `Figures_Individual/2_Differential_Abundance/Venn_diagrams__four_ways/${key}__venn_up_and_down.pdf`
   - `Figures_Merged/2_Differential_Abundance/Venn_diagrams__four_ways.pdf`
+

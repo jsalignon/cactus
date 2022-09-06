@@ -42,7 +42,7 @@ We use a size of 150 base pair as it is approximately the size of a nucleosome.
 
 
 ### Parameters
-- **_params.macs2_qvalue_**: q-value (minimum FDR) cutoff to call significant regions.
+- **_params.macs2__qvalue_**: q-value (minimum FDR) cutoff to call significant regions.
 
 ### Outputs
 - **Raw peaks**: `Processed_Data/1_Preprocessing/ATAC__peaks__raw/${sample}__macs2_peaks.narrowPeak` if *params.save_bed_type = 'all'*.
