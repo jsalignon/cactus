@@ -12,7 +12,7 @@
 
 # Table of contents
 
-  - [Enrichment__computing_functional_annotations_overlaps](#Enrichment__computing_functional_annotations_overlaps)
+  - [Introduction](#Introduction)
   - [Enrichment__computing_functional_annotations_overlaps](#Enrichment__computing_functional_annotations_overlaps)
   - [Enrichment__computing_genes_self_overlaps](#Enrichment__computing_genes_self_overlaps)
   - [Enrichment__computing_peaks_overlaps](#Enrichment__computing_peaks_overlaps)
@@ -31,10 +31,12 @@ Five standardized columns are made for each database:
  - `tot_nda`: total number of non differentially abundant results
  - `ov_nda`: overlap of non differentially abundant results with the target.  
 
+>**_Note_:** Here the words "differentially abundant" just refer to the genes or peaks that are in the subset, while the "non differentially abundant" refers to all other genes or detected regions (macs2 peaks or promoter) detected in the assay.
+
 These standardized columns are then used in subsequent process [to compute pvalues](#Enrichment__computing_enrichment_pvalues) and making [figures](/docs/6_Enrich/Figures.md) and [tables](/docs/6_Enrich/Tables.md#Tables__formatting_csv_tables).
 The columns that are unique to a particular analysis are described in the corresponding process.
 
-The keys of each subset are then augmented by adding the EC (Enrichment Category) variable. Thus the key becomes: `key="${${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}__enrich}"`.  
+The keys of each subset are then augmented by adding the EC (Enrichment Category) variable. Thus the key becomes: `key="${${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}}"`.  
 With, as defined in the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_abundance_results_in_subsets), the variables: 
  - ET = Experiment Type
  - PA: Peak Assignment
@@ -52,7 +54,9 @@ And EC (Enrichment Category) that can be any of these:
 
 *e.g.: key = ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__enrich.*
 
+>**_Note_:** Please see the [References section](/docs/2_Install/References.md) for details on how the external databases were downloaded and preprocessed, as well as details on the labels of the targets used in the figures and tables.
 
+For all genomic regions enrichment analysis, the non differentially abundant (DA) regions are used as a background for computing the significance of the overlaps. While for genes enrichment analysis and option is provided (*params.use_nda_as_bg_for_func_anno*) to either non DA genes as a background or all genes in the database.
 
 
 ## Enrichment__computing_functional_annotations_overlaps
@@ -70,8 +74,9 @@ Overlap of gene lists with functional annotation databases is performed using [c
 - **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
 
 ### Outputs
-- `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
-- `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`,
+- **Overlap tables**:
+  - `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
+  - `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`,
 
 
 
@@ -86,8 +91,8 @@ In this process, all genes sets from subsets of the [splitting process](/docs/5_
 ### Description
 This process takes as input genomic regions (bed files) from various sources and overlap them with genomic regions (bed files) of subsets from the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_abundance_results_in_subsets).  
 The input genomic regions are:
- - [ENCODE CHIP](/docs/2_Install/References.md)
- - [Chromatin states](/docs/2_Install/References.md) (hiHMM or ChromHMM) 
+ - CHIP
+ - Chromatin states (hiHMM or ChromHMM) 
  - genomic regions of subsets from the splitting process -> for computing self overlap of genomic regions subsets within the experiment.
 
 ### Parameters
@@ -95,29 +100,33 @@ The input genomic regions are:
 - **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
 
 ### Outputs
-- `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
-- `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`
+- **Overlap tables**:
+  - `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
+  - `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`
 
 
 ## Enrichment__computing_motifs_overlaps
 
 ### Description
+This process uses [HOMER](https://doi.org/10.1016/j.molcel.2010.05.004) to compute the overlap of genomic regions of subsets in [CIS-BP motifs](https://doi.org/10.1016/j.cell.2014.08.009).
 
 ### Parameters
 - **_params.do_motif_enrichment_**: enable or disable this process. Default: true.
 - **_params.homer__nb_threads_**: number of threads used by Bowtie2. Default: 6.
 
+### Outputs
+- **Homer output folder**: `Processed_Data/3_Enrichment/${EC}/${key}/${key}__homer_results.txt`
+
 
 ## Enrichment__reformatting_motifs_results
 
 ### Description
-
-### Parameters
-- **_params.XX_**: AA Default: RR.
+Homver results tables are formatted in R to add the standardized columns necessary for computing pvalues.
 
 ### Outputs
-- `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
-- `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`
+- **Overlap tables**:
+  - `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
+  - `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`
 
 
 ## Enrichment__computing_enrichment_pvalues

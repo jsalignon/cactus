@@ -5,7 +5,7 @@
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Fastq](/docs/3_Inputs/Fastq.md), [Design](/docs/3_Inputs/Design.md), [Configuration](/docs/3_Inputs/Configuration.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
 * [2. Differential Abundance](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
-* [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Enrichment](/docs/6_Enrich/Enrichment.md), [Figures](/docs/6_Enrich/Figures.md), [Tables](/docs/6_Enrich/Tables.md)
+* [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Overlap](/docs/6_Enrich/Overlap.md), [Plots](/docs/6_Enrich/Plots.md), [Reports](/docs/6_Enrich/Reports.md)
 
 [](END_OF_MENU)
 
@@ -62,9 +62,8 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 ### Description
 The detailed ATAC-seq results table is created in R, which gene id, name, coordinates, significance, log2 fold change and other sleuth columns. 
 
-### Parameters
-- **_params.XX_**: AA Default: RR.
-
 ### Outputs
 - `Tables_Individual/2_Differential_Abundance/mRNA_detailed/${comparison}__res_detailed_mRNA.{csv,xlsx}`
 - `Tables_Merged/2_Differential_Abundance/mRNA_detailed.{csv,xlsx}`.
+
+
