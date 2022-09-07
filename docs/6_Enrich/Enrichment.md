@@ -26,10 +26,12 @@
 In this section, the gene lists and genomic regions from the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_abundance_results_in_subsets) are overlapped with various databases.
 Five standardized columns are made for each database:
  - `tgt`: the target against which the overlap is computed
- - `tot_da`: total number of differentially abundant results
- - `ov_da`: overlap of differentially abundant results with the target
- - `tot_nda`: total number of non differentially abundant results
- - `ov_nda`: overlap of non differentially abundant results with the target.  
+ - `tot_tgt`: total number of target entries
+ - `tot_da`: total number of differentially abundant entries
+ - `ov_da`: overlap of differentially abundant entries with the target
+ - `tot_nda`: total number of non differentially abundant entries
+ - `ov_nda`: overlap of non differentially abundant entries with the target.  
+
 
 >**_Note_:** Here the words "differentially abundant" just refer to the genes or peaks that are in the subset, while the "non differentially abundant" refers to all other genes or detected regions (macs2 peaks or promoter) detected in the assay.
 
@@ -62,22 +64,15 @@ For all genomic regions enrichment analysis, the non differentially abundant (DA
 ## Enrichment__computing_functional_annotations_overlaps
 
 ### Description
-Overlap of gene lists with functional annotation databases is performed using [clusterProfiler](https://doi.org/10.1089/omi.2011.0118). In the exported table, the columns: 
- - `tgt` indicates the name of the ontology
- - `tgt_id` indicates the id of the ontology
- - `genes_id` indicates the list of enriched genes collapsed with a "/".
+Overlap of gene lists with functional annotation databases is performed using [clusterProfiler](https://doi.org/10.1089/omi.2011.0118). These columns are added to the exported table: 
+ - `tgt_id`: the id of the ontology
+ - `genes_id`: the list of enriched genes collapsed with a "/".
 
 ### Parameters
 - **_params.do_gene_set_enrichment_**: enable or disable this process. Default: true.
 - **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
 - **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis. Options: 'KEGG', 'GO_CC', 'GO_MF', 'GO_BP'. Default: ['BP', 'KEGG']. 
 - **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
-
-### Outputs
-- **Overlap tables**:
-  - `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
-  - `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`,
-
 
 
 ## Enrichment__computing_genes_self_overlaps
@@ -99,11 +94,6 @@ The input genomic regions are:
 - **_params.chromatin_state_1_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. No default.
 - **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
 
-### Outputs
-- **Overlap tables**:
-  - `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
-  - `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`
-
 
 ## Enrichment__computing_motifs_overlaps
 
@@ -123,18 +113,28 @@ This process uses [HOMER](https://doi.org/10.1016/j.molcel.2010.05.004) to compu
 ### Description
 Homver results tables are formatted in R to add the standardized columns necessary for computing pvalues.
 
-### Outputs
-- **Overlap tables**:
-  - `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
-  - `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`
-
 
 ## Enrichment__computing_enrichment_pvalues
 
 ### Description
+This process takes all overlap processes, estimates significance and format tables.  
+
+Hypergeometric minimum-likelihood two-sided p-values (`pval`) are obtained with a Fischer test in R. Two-sided Fischer tests are recommended for GO enrichment anlaysis since in most cases both enrichment and depletion can be biologically meaningful (see [reference](https://doi.org/10.1093/bioinformatics/btl633)).  
+Log2 odd ratios (L2OR) is the log2 of the test's estimate.
+Pvalues are then adjusted (`padj`) using Benjamini and Hochberg's [False Discovery Rate](https://doi.org/10.1093/bioinformatics/btl633).
+
+The `pt_da` and `pt_nda` columns are added which indicate the percentage of overlap of the target with the Differential Abundant (DA) (`pt_da`) or non DA (`pt_nda`) results.  
+A gene enrichment type column is added for functional annotation enrichment, to specify the gene database used.  
+Results are sorted by adjusted pvalues (`padj`, descending order) and overlap of DA results (`ov_da`, ascending order).  
+
+Finally, each elements of the key (`ET`, `PA`, `FC`, `TV`, `COMP`) are split in a separate column in the table as well as the target (`tgt`).
 
 ### Parameters
-- **_params.XX_**: AA Default: RR.
+- **_params.motifs_test_type_**: The test to use for motif inputs. If 'Binomial' a two-sided binomial test is performed instead of the two-sided Fischer test. Options: 'binomial' or 'fischer' (any value). Default: 'binomial'.
 
 ### Outputs
-- **UU**: `EE`
+- **Overlap tables**:
+  - `Tables_Individual/3_Enrichment/${EC}/${key}__enrich.{csv,xlsx}`
+  - `Tables_Merged/3_Enrichment/${EC}.{csv,xlsx}`,
+
+

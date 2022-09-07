@@ -1,12 +1,84 @@
-# jsalignon/cactus: Citations
+
+
+# Table of contents
+
+  - [Cactus](#Cactus)
+    - [jsalignon/cactus](#jsalignon/cactus)
+    - [Languages](#Languages)
+    - [Software packaging/containerisation tools](#Software-packaging/containerisation-tools)
+    - [Pipeline tools](#Pipeline-tools)
+  - [Scripts](#Scripts)
+    - [Create references](#Create-references)
+      - [Tools](#Tools)
+      - [Databases](#Databases)
+    - [Create test datasets](#Create-test-datasets)
+      - [Tools](#Tools)
+      - [Databases](#Databases)
+  - [Research papers](#Research-papers)
+    - [ATAC-Seq](#ATAC-Seq)
+    - [Statistics](#Statistics)
+
+  
+  
+  
+  # Scripts
+  
+  ## Create references
+  
+  ### Tools 
+  ### Databases
+  
+  ## Create test datasets
+  
+  ### Tools 
+  
+  ### Databases
+  
+  # Research papers
+  
+  ## 
+  
+  ## Statistics
+
+
+# Cactus
+
 
 ## jsalignon/cactus
 
 > Manuscript under preparation
 
-## [Nextflow](https://doi.org/10.1038/nbt.3820)
+
+## Languages
+
+- [R](https://www.R-project.org/)
+
+  > R Core Team (2017). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria.
+
+- [Nextflow](https://doi.org/10.1038/nbt.3820)
 
 > Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017 Apr 11;35(4):316-319. PubMed PMID: 28398311.
+
+
+## Software packaging/containerisation tools
+
+- [Anaconda](https://anaconda.com)
+
+  > Anaconda Software Distribution. Computer software. Vers. 2-2.4.0. Anaconda, Nov. 2016. Web.
+
+- [Bioconda](https://pubmed.ncbi.nlm.nih.gov/29967506/)
+
+  > Grüning B, Dale R, Sjödin A, Chapman BA, Rowe J, Tomkins-Tinch CH, Valieris R, Köster J; Bioconda Team. Bioconda: sustainable and comprehensive software distribution for the life sciences. Nat Methods. 2018 Jul;15(7):475-476. doi: 10.1038/s41592-018-0046-7. PubMed PMID: 29967506.
+
+- [BioContainers](https://pubmed.ncbi.nlm.nih.gov/28379341/)
+
+  > da Veiga Leprevost F, Grüning B, Aflitos SA, Röst HL, Uszkoreit J, Barsnes H, Vaudel M, Moreno P, Gatto L, Weber J, Bai M, Jimenez RC, Sachsenberg T, Pfeuffer J, Alvarez RV, Griss J, Nesvizhskii AI, Perez-Riverol Y. BioContainers: an open-source and community-driven framework for software standardization. Bioinformatics. 2017 Aug 15;33(16):2580-2582. doi: 10.1093/bioinformatics/btx192. PubMed PMID: 28379341; PubMed Central PMCID: PMC5870671.
+
+- [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241)
+
+- [Singularity](https://pubmed.ncbi.nlm.nih.gov/28494014/)
+
+  > Kurtzer GM, Sochat V, Bauer MW. Singularity: Scientific containers for mobility of compute. PLoS One. 2017 May 11;12(5):e0177459. doi: 10.1371/journal.pone.0177459. eCollection 2017. PubMed PMID: 28494014; PubMed Central PMCID: PMC5426675.
 
 
 ## Pipeline tools
@@ -123,26 +195,7 @@
 
 
 
-## Software packaging/containerisation tools
-
-- [Anaconda](https://anaconda.com)
-
-  > Anaconda Software Distribution. Computer software. Vers. 2-2.4.0. Anaconda, Nov. 2016. Web.
-
-- [Bioconda](https://pubmed.ncbi.nlm.nih.gov/29967506/)
-
-  > Grüning B, Dale R, Sjödin A, Chapman BA, Rowe J, Tomkins-Tinch CH, Valieris R, Köster J; Bioconda Team. Bioconda: sustainable and comprehensive software distribution for the life sciences. Nat Methods. 2018 Jul;15(7):475-476. doi: 10.1038/s41592-018-0046-7. PubMed PMID: 29967506.
-
-- [BioContainers](https://pubmed.ncbi.nlm.nih.gov/28379341/)
-
-  > da Veiga Leprevost F, Grüning B, Aflitos SA, Röst HL, Uszkoreit J, Barsnes H, Vaudel M, Moreno P, Gatto L, Weber J, Bai M, Jimenez RC, Sachsenberg T, Pfeuffer J, Alvarez RV, Griss J, Nesvizhskii AI, Perez-Riverol Y. BioContainers: an open-source and community-driven framework for software standardization. Bioinformatics. 2017 Aug 15;33(16):2580-2582. doi: 10.1093/bioinformatics/btx192. PubMed PMID: 28379341; PubMed Central PMCID: PMC5870671.
-
-- [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241)
-
-- [Singularity](https://pubmed.ncbi.nlm.nih.gov/28494014/)
-
-  > Kurtzer GM, Sochat V, Bauer MW. Singularity: Scientific containers for mobility of compute. PLoS One. 2017 May 11;12(5):e0177459. doi: 10.1371/journal.pone.0177459. eCollection 2017. PubMed PMID: 28494014; PubMed Central PMCID: PMC5426675.
-
+# Scripts
 
 ## Create references
 
@@ -207,21 +260,24 @@
 
 ## Create test datasets
 
+### Tools 
+
 - [nf-core/fetchngs](https://doi.org/10.1038/s41587-020-0439-x)
 
 > Ewels, P.A., Peltzer, A., Fillinger, S. et al. The nf-core framework for community-curated bioinformatics pipelines. Nat Biotechnol 38, 276–278 (2020). 
 
 - [seqtk](https://github.com/lh3/seqtk)
 
+### Databases
 
-## R
+- [NCBI GEO](https://doi.org/10.1093/nar/gks1193)
 
-- [R](https://www.R-project.org/)
-
-  > R Core Team (2017). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria.
+> Tanya Barrett, Stephen E. Wilhite, Pierre Ledoux, Carlos Evangelista, Irene F. Kim, Maxim Tomashevsky, Kimberly A. Marshall, Katherine H. Phillippy, Patti M. Sherman, Michelle Holko, Andrey Yefanov, Hyeseung Lee, Naigong Zhang, Cynthia L. Robertson, Nadezhda Serova, Sean Davis, Alexandra Soboleva, NCBI GEO: archive for functional genomics data sets—update, Nucleic Acids Research, Volume 41, Issue D1, 1 January 2013, Pages D991–D995.
 
 
-## ATAC-Seq research papers
+# Research papers
+
+## ATAC-Seq
 
 - [First ATAC-Seq paper in *C. elegans*](https://doi.org/10.1101/gr.226233.117)
 
@@ -230,3 +286,13 @@
 - [Initial ATAC-Seq paper](https://doi.org/10.1038/NMETH.2688)
 
 > Buenrostro, J. D., Giresi, P. G., Zaba, L. C., Chang, H. Y. & Greenleaf, W. J. Transposition of native chromatin for fast and sensitive epigenomic profiling of open chromatin, DNA-binding proteins and nucleosome position. Nature Methods 10, 1213–1218 (2013).
+
+## Statistics
+
+- [Tests for enrichment or depletion of go categories](https://doi.org/10.1093/bioinformatics/btl633)
+
+> Isabelle Rivals, Léon Personnaz, Lieng Taing, Marie-Claude Potier, Enrichment or depletion of a GO category within a class of genes: which test?, Bioinformatics, Volume 23, Issue 4, 15 February 2007, Pages 401–407.
+
+- [Multiple testing adjustment with the False Discovery Rate](https://doi.org/10.1093/bioinformatics/btl633)
+
+> Benjamini, Y., and Hochberg, Y. (1995).  Controlling the false discovery rate: a practical and powerful approach to multiple testing.  _Journal of the Royal Statistical Society Series B_,*57*, 289-300.
