@@ -4459,7 +4459,7 @@ Enrichment_results_for_plotting_barplots_1
 
 
 
-process Figures__plotting_enrichment_barplots {
+process Figures__making_enrichment_barplots {
   tag "${key}"
 
   label "figures"
@@ -4486,23 +4486,22 @@ process Figures__plotting_enrichment_barplots {
       library(RColorBrewer)
       library(magrittr)
 
-      key = '!{key}'
+      key       = '!{key}'
       data_type = '!{data_type}'
-      df1 = readRDS('!{res_gene_set_enrichment_rds}')
+      df1       = readRDS('!{res_gene_set_enrichment_rds}')
 
-      add_var_to_plot = '!{params.add_var_to_plot}'
-      threshold_plot_adj_pval = !{params.threshold_plot_adj_pval}
+      padj_threshold =  !{params.barplots__padj_threshold}
+      add_var        = '!{params.barplots__add_var}'
+      add_number     =  !{params.barplots__add_number}
 
       source('!{projectDir}/bin/get_new_name_by_unique_character.R')
       source('!{projectDir}/bin/functions_pvalue_plots.R')
 
 
-
-
       df = df1
 
       # quitting if there are no significant results to show
-      if(all(df$padj > threshold_plot_adj_pval)) quit(save = 'no')
+      if(all(df$padj > padj_threshold)) quit(save = 'no')
 
       # removing the genes_id column from func_anno enrichments 
       # (for easier debugging)
@@ -4539,8 +4538,11 @@ process Figures__plotting_enrichment_barplots {
          ) + ylab(xlab)
 
       point_size = scales::rescale(c(nrow(df), seq(0, 30, len = 5)), c(6, 3))[1]
-      p_binned = get_plot_binned(p1, signed_padj, add_var_to_plot, 
-        point_size = point_size)
+      p_binned = get_plot_binned(p1, 
+        signed_padj = signed_padj, 
+        add_var     = add_var, 
+        add_number  = add_number, 
+        point_size  = point_size)
 
       pdf(paste0(key, '__barplot.pdf'), paper = 'a4r')
         print(p_binned)
@@ -4558,7 +4560,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Barplots_for_merging_pdfs
 
 
 
-process Figures__plotting_enrichment_heatmap {
+process Figures__making_enrichment_heatmap {
   tag "${key}"
   
   label "figures"
@@ -4592,9 +4594,10 @@ process Figures__plotting_enrichment_heatmap {
     comp_order = '!{comp_order}'
     data_type  = '!{data_type}'
 
-    threshold_plot_adj_pval = !{params.threshold_plot_adj_pval}
-    add_var_to_plot         = '!{params.add_var_to_plot}'
-    up_down_pattern         = '!{params.up_down_pattern}'
+    enrichment_plots__padj_threshold  =  !{params.heatmaps__padj_threshold}
+    enrichment_plots__add_var         = '!{params.heatmaps__add_var}'
+    add_number                        =  !{params.heatmaps__add_number}
+    up_down_pattern                   = '!{params.heatmaps__up_down_pattern}'
 
     source('!{projectDir}/bin/get_new_name_by_unique_character.R')
     source('!{projectDir}/bin/get_chrom_states_names_vec.R')
@@ -4619,7 +4622,7 @@ process Figures__plotting_enrichment_heatmap {
     }
 
     ## quitting if there are no significant results to show
-    if(all(df$padj > threshold_plot_adj_pval)) quit(save = 'no')
+    if(all(df$padj > enrichment_plots__padj_threshold)) quit(save = 'no')
 
     if(grepl('func_anno', data_type)) data_type = 'func_anno'
 
@@ -4669,7 +4672,7 @@ process Figures__plotting_enrichment_heatmap {
       df = subset(df, tgt_comp_FC %in% comp_FC & tgt_ET == ET & tgt_PF == PF)
       df$yaxis_terms = df$tgt_comp_FC
       add_number = T
-      add_var_to_plot = 'none'
+      enrichment_plots__add_var = 'none'
     }
 
     # reformat df to a matrix
@@ -4701,7 +4704,7 @@ process Figures__plotting_enrichment_heatmap {
     p1 = getting_heatmap_base(df_final, rows, cols, title = key, 
       cur_mat = mat_final)
     point_size = scales::rescale(c(rows, seq(0, 40, len = 5)), c(3, 0.8))[1]
-    p_binned = get_plot_binned(p1, signed_padj, add_var_to_plot, add_number, 
+    p_binned = get_plot_binned(p1, signed_padj, enrichment_plots__add_var, add_number, 
       point_size = point_size)
 
     pdf(paste0(key, '__heatmap.pdf'))

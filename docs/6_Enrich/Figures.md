@@ -21,7 +21,12 @@
 ### Description
 
 ### Parameters
-- **_params.XX_**: AA Default: RR.
+- **_params.barplots__padj_threshold_**: If no adjusted pvalue is above this threshold the process is stop and no figure is made. Default: 0.05.
+- **_params.barplots__add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).
+- **_params.barplots__add_number_**: Write the number count on the plots. Options: 'F' (false; default), 'T' (true).
+- **_params.barplots__nb_of_terms_**: Number of terms to display. Default: 30.
+- **_params.barplots__nb_of_characters_**: The limit of target names length. Longer targt names are cut. Default: 30.
+30
 
 ### Outputs
 - **UU**: `EE`
