@@ -19,14 +19,15 @@
 ## Figures__making_enrichment_barplots
 
 ### Description
-This process produce a barplot showing the most significant results for the input subset.  
+This process produces a barplot showing the most significant results for the input subset.  
 
 Target names are shortened and duplicate entries are removed. The top n most significant entries are kept. 
-The figure made shows on the x-axis the size of the overlap and the term name on the y axis. Entries are sorted by adjusted pvalues (descending order) and overlap of DA results (ascending order). The x-axis title indicates the total number of entries in the subset (all DA entries), and for the genomic regions subsets (i.e. from bed files) the number of entries in the background (all NDA entries).
+The figure made shows on the x-axis the size of the overlap and the term name on the y axis. Entries are sorted by adjusted pvalues (descending order) and overlap of DA results (ascending order). The x-axis title indicates the total number of entries in the subset (all DA entries), and for the genomic regions subsets (i.e. from bed files) the number of entries in the background (all NDA entries).  
 
-Adjusted p-values are signed: with positive values for enrichment and negative values for depletion. The signed and binned adjusted p-values are cut into 11 bins, with these cutting points (and their signed negative values): 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0. On the figure, enrichments are depicted in green and deplection are in purple.  
+Adjusted p-values are signed with positive values for enrichment and negative values for depletion. The signed and binned adjusted p-values are cut into 11 bins, with these cutting points (and their signed negative values): 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0. On the figure, enrichments are depicted in green and deplection are in purple.  
 
 Finally, it is possible to add additional colored point to the top of the bars that represent different values (*params.barplots__add_var*) and to add the overlap count (*params.barplots__add_number*).
+
 
 
 ### Parameters
@@ -37,18 +38,35 @@ Finally, it is possible to add additional colored point to the top of the bars t
 - **_params.barplots__max_char_in_terms_**: The limit of target names length. Longer targt names are cut. Default: 50.
 
 ### Outputs
-- **Barplots**: `Processed_Data/3_Enrichment/${EC}/${key}/${key}__homer_results.txt`
-<!-- /home/jersal/workspace/cactus/test_datasets/worm/results/Cactus_v15.08.22/Figures_Individual/3_Enrichment/Barplots__func_anno_BP -->
+- **Barplots**: 
+  - `Figures_Individual/3_Enrichment/Barplots__${EC}/${key}__barplot.pdf` 
+  - `Figures_Merged/3_Enrichment/Barplots__${EC}.pdf`.
+
+>**_Note_:** The key for this process is `${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}`.
+
 
 ## Figures__making_enrichment_heatmap
 
 ### Description
+This process takes as input all enrichment results for comparisons of a given group (as specified in the [comparisons.tsv file](/docs/3_Inputs/Design.md#comparisons.tsv), `${GRP}` key) and that share the same keys for `${ET}` (Experiment type), `${PA}` (Peak assignment), `${TV}` (Threshold value) and `${EC}` (Enrichment category), filters the most relevant terms, and produce a heatmap.  
+
+If no re
+
+For genes and peaks self-overlap only comparisons that have from the 
+
+makes heatmaps for the groups.
+
+key: 
+'ET', 'PF', 'TV'
 
 ### Parameters
-- **_params.XX_**: AA Default: RR.
+- **_params.barplots__padj_threshold_**: If no adjusted pvalue is above this threshold the process is stop and no figure is made. Default: 0.05.
 
 ### Outputs
-- **UU**: `EE`
+- `Figures_Individual/3_Enrichment/Heatmaps__${EC}/${key}__heatmap.pdf` 
+- `Figures_Merged/3_Enrichment/Heatmaps__${EC}.pdf`.
+
+>**_Note_:** The key for this process is `${ET}__${PA}__${TV}__${GRP}__{EC}`, `${GRP}` being the current group of comparisons.
 
 
 ## Figures__merging_pdfs
@@ -60,3 +78,5 @@ Finally, it is possible to add additional colored point to the top of the bars t
 
 ### Outputs
 - **UU**: `EE`
+
+

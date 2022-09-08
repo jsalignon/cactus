@@ -30,7 +30,7 @@ This process splits Differential abundance results into subsets in order to do e
 > **_NOTE:_** The 'both*' entries indicates that the results pass the filters in both ATAC-Seq and mRNA-Seq. 'both' is used for gene lists (i.e. to find enriched ontologies), while 'both_ATAC' and 'both_mRNA' are used for genomic regions (i.e. to find enriched motifs/CHIP). 'both_ATAC' are ATAC-Seq peaks assigned to genes that are passing the filters in mRNA-Seq data as well. 'both_mRNA' are gene promoters of genes that pass the filters in mRNA-Seq and for which there are nearby ATAC-Seq peaks assigned to the same gene and that pass the filters. 
 > **_NOTE:_** The process merges mRNA-Seq and ATAC-Seq results if *experiment_types = 'both'* otherwise it works on either of the two.
 
-Finally, a key is made, of the form `ET_${ET}__PA_${PF}__${FC}__${TV}__${COMP}`, with COMP indicating the comparison. This key is used to make: 
+Finally, a key is made, of the form `${ET}__${PF}__${FC}__${TV}__${COMP}`, with COMP indicating the comparison. This key is used to make: 
   - bed files that contain genomic regions (i.e. to find enriched motifs/CHIP)
   - R files that contain gene sets (i.e. to find enriched ontologies, for Venn diagrams plots).
 

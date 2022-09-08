@@ -38,7 +38,7 @@ Five standardized columns are made for each database:
 These standardized columns are then used in subsequent process [to compute pvalues](#Enrichment__computing_enrichment_pvalues) and making [figures](/docs/6_Enrich/Figures.md) and [tables](/docs/6_Enrich/Tables.md#Tables__formatting_csv_tables).
 The columns that are unique to a particular analysis are described in the corresponding process.
 
-The keys of each subset are then augmented by adding the EC (Enrichment Category) variable. Thus the key becomes: `key="${${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}}"`.  
+The keys of each subset are then augmented by adding the EC (Enrichment Category) variable. Thus the key becomes: `${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}`.  
 With, as defined in the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_abundance_results_in_subsets), the variables: 
  - ET: Experiment Type
  - PA: Peak Assignment
