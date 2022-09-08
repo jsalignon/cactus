@@ -4490,9 +4490,11 @@ process Figures__making_enrichment_barplots {
       data_type = '!{data_type}'
       df1       = readRDS('!{res_gene_set_enrichment_rds}')
 
-      padj_threshold =  !{params.barplots__padj_threshold}
-      add_var        = '!{params.barplots__add_var}'
-      add_number     =  !{params.barplots__add_number}
+      padj_threshold    =  !{params.barplots__padj_threshold}
+      add_var           = '!{params.barplots__add_var}'
+      add_number        =  !{params.barplots__add_number}
+      max_terms         =  !{params.barplots__max_terms}
+      max_char_in_terms =  !{params.barplots__max_char_in_terms}
 
       source('!{projectDir}/bin/get_new_name_by_unique_character.R')
       source('!{projectDir}/bin/functions_pvalue_plots.R')
@@ -4516,15 +4518,15 @@ process Figures__making_enrichment_barplots {
       df$yaxis_terms = df$tgt
 
       # selecting lowest pvalues
-      df$yaxis_terms %<>% substr(., 1, 50)
+      df$yaxis_terms %<>% substr(., 1, max_char_in_terms)
       df = df[!duplicated(df$yaxis_terms), ]
-      df = df[seq_len(min(nrow(df), 30)), ]
+      df = df[seq_len(min(nrow(df), max_terms)), ]
       df$yaxis_terms %<>% factor(., levels = rev(.))
 
       bed_data_types = c('CHIP', 'chrom_states', 'peaks_self', 'genes_self')
       is_bed_overlap = data_type %in% bed_data_types
       if(is_bed_overlap){
-        xlab = paste0('Overlap (DA: ', df$tot_da[1], ', bg: ', df$tot_nda[1], ')')
+        xlab = paste0('Overlap (DA: ', df$tot_da[1], ', NDA: ', df$tot_nda[1], ')')
       } else {
         xlab = paste0('Overlap (DA: ', df$tot_da[1], ')')
       }
