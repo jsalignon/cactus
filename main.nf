@@ -3254,7 +3254,7 @@ process DA_mRNA__saving_detailed_results_tables {
     label "r_basic"
 
     publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", 
-      mode: pub_mode, enabled: params.save_tables_as_csv
+      mode: pub_mode, enabled: params.tables__save_csv
 
     when: do_mRNA
 
@@ -4600,6 +4600,9 @@ process Figures__making_enrichment_heatmap {
     add_var         = '!{params.heatmaps__add_var}'
     add_number      =  !{params.heatmaps__add_number}
     up_down_pattern = '!{params.heatmaps__up_down_pattern}'
+    seed            = '!{params.heatmaps__seed}'
+    df_filter_terms = parse(eval(text = '!{params.heatmaps__df_filter_terms}'))
+    df_plots        = parse(eval(text = '!{params.heatmaps__df_plots}'))
 
     source('!{projectDir}/bin/get_new_name_by_unique_character.R')
     source('!{projectDir}/bin/get_chrom_states_names_vec.R')
@@ -4607,6 +4610,9 @@ process Figures__making_enrichment_heatmap {
     source('!{projectDir}/bin/functions_grouped_plot.R')
 
 
+    # getting parameters
+    df_p  = df_plots        %>% .[.$data_type == data_type, ]
+    df_ft = df_filter_terms %>% .[.$data_type == data_type, ]
 
     # loading, merging and processing data
     rds_files = list.files(pattern = '*.rds')
@@ -4623,7 +4629,7 @@ process Figures__making_enrichment_heatmap {
     }
 
     ## quitting if there are no significant results to show
-    if(all(df$padj > padj_threshold)) quit(save = 'no')
+    if(all(df$padj > df_p$padj_threshold)) quit(save = 'no')
 
     if(grepl('func_anno', data_type)) data_type = 'func_anno'
 
@@ -4632,15 +4638,14 @@ process Figures__making_enrichment_heatmap {
                  gsub('_vs_', '_', .)
 
     # ordering the x-axis comparisons
-    comp_order_levels = get_comp_order_levels(comp_order, up_down_pattern)
+    comp_order_levels = get_comp_order_levels(comp_order, df_p$up_down_pattern)
     comp_order1 = comp_order_levels %>% .[. %in% unique(df$comp_FC)]
 
     # adding the yaxis terms column
     df$yaxis_terms = df$tgt
 
     # adding loglog and binned padj columns
-    signed_padj = T
-    df %<>% getting_padj_loglog_and_binned(data_type, signed_padj)
+    df %<>% getting_padj_loglog_and_binned(data_type, signed_padj = T)
 
     # setting parameters for selection of yaxis terms to display
     if(data_type == 'func_anno'){
@@ -4676,18 +4681,23 @@ process Figures__making_enrichment_heatmap {
       add_var = 'none'
     }
 
-    # reformat df to a matrix
+    # reformatting df to a matrix
     mat_dt = dcast(as.data.table(df), yaxis_terms ~ comp_FC, 
                     value.var = 'padj_loglog', fill = get_pval_loglog(1))
     mat = as.matrix(mat_dt[,-1]) %>% set_rownames(mat_dt$yaxis_terms)
 
     # selecting and ordering the y-axis terms
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
-      terms_levels = select_y_axis_terms_grouped_plot(mat, nshared = nshared, 
-        nunique = nunique, ntotal = ntotal, threshold_type = threshold_type, 
-        threshold_value = threshold_value, remove_similar = remove_similar, 
-        remove_similar_n = 2, seed = 38)
+      
+      terms_levels = select_y_axis_terms_grouped_plot(mat, 
+        nshared = df_ft$nshared, nunique = df_ft$nunique, ntotal = df_ft$ntotal, 
+        threshold_type = df_ft$threshold_type, 
+        threshold_value = df_ft$threshold_value, 
+        remove_similar = df_ft$remove_similar, 
+        remove_similar_n = df_ft$remove_similar_n, seed = seed)
+        
     }
+    
     if(data_type == 'chrom_states') {
       vec = unique(df$tgt)
       vec_order = vec %>% gsub('.', '', ., fixed = T) %>% gsub(' .*', '', .) %>% 
@@ -4699,14 +4709,14 @@ process Figures__making_enrichment_heatmap {
     mat_final = mat[terms_levels, comp_order1]
     rows = nrow(mat_final) ; cols = ncol(mat_final)
     df_final = add_matrix_indexes_to_df(mat_final, df, rows, cols, data_type, 
-      signed_padj)
+      signed_padj = T)
 
     # getting and saving plots
     p1 = getting_heatmap_base(df_final, rows, cols, title = key, 
       cur_mat = mat_final)
     point_size = scales::rescale(c(rows, seq(0, 40, len = 5)), c(3, 0.8))[1]
-    p_binned = get_plot_binned(p1, signed_padj, add_var, add_number, 
-      point_size = point_size)
+    p_binned = get_plot_binned(p1, signed_padj = T, df_p$add_var, 
+      df_p$add_number, point_size = point_size)
 
     pdf(paste0(key, '__heatmap.pdf'))
       print(p_binned)
@@ -4785,7 +4795,7 @@ process Tables__formatting_csv_tables {
   label "r_basic"
 
   publishDir path: "${out_tab_indiv}/${out_folder}/${data_type}", 
-    mode: "${pub_mode}", enabled: params.save_tables_as_csv
+    mode: "${pub_mode}", enabled: params.tables__save_csv
 
   input:
     set data_type, out_folder, file(rds_file) from Formatting_csv_tables_channel
@@ -4805,16 +4815,14 @@ process Tables__formatting_csv_tables {
 
         library(magrittr)
         
-        source('!{projectDir}/bin/read_from_nextflow.R')
         source('!{projectDir}/bin/get_formatted_table.R')
 
         data_type = '!{data_type}'
         rds_file = '!{rds_file}'
 
-        fdr_filter_tables       = 
-          read_from_nextflow('!{params.fdr_filter_tables}') %>% as.numeric
-        fdr_filter_tables_names = 
-          read_from_nextflow('!{params.fdr_filter_tables_names}')
+        v_fdr_thresholds = 
+        parse(eval(text = '!{params.tables__v_fdr_thresholds}'))
+
 
 
         # reading
@@ -4823,9 +4831,8 @@ process Tables__formatting_csv_tables {
         # filtering
         data_type1 = data_type
         if(grepl('func_anno', data_type)) data_type1 = 'func_anno'
-        names(fdr_filter_tables) = fdr_filter_tables_names
-        FDR_filter = fdr_filter_tables[data_type1]
-        df = subset(df, padj <= FDR_filter)
+        fdr_threshold = v_fdr_thresholds[data_type]
+        df = subset(df, padj <= fdr_threshold)
 
         # formating
         df %<>% get_formatted_table
@@ -4858,7 +4865,7 @@ process Tables__merging_csv_tables {
   label "r_basic"
 
   publishDir path: "${out_tab_merge}/${out_folder}", mode: "${pub_mode}", 
-             enabled: params.save_tables_as_csv
+             enabled: params.tables__save_csv
 
   input:
     set data_type, out_folder, file(csv_file) 
@@ -4916,7 +4923,7 @@ process Tables__saving_excel_tables {
   output:
     file("*.xlsx")
 
-  when: params.save_tables_as_excel
+  when: params.tables__save_excel
 
   shell:
   '''
