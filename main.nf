@@ -4496,6 +4496,7 @@ process Figures__making_enrichment_barplots {
 
 
       # getting parameters
+      if(grepl('func_anno', data_type)) data_type = 'func_anno'
       df          = df1
       df_p        = df_plots %>% .[.$data_type == data_type, ]
       signed_padj = df_p$signed_padj
@@ -4508,15 +4509,12 @@ process Figures__making_enrichment_barplots {
       df %<>% .[, names(.) != 'genes_id']
 
       # adding the loglog and binned padj columns
-      if(grepl('func_anno', data_type)) data_type = 'func_anno'
       df %<>% getting_padj_loglog_and_binned(data_type, signed_padj)
 
-      # adding the yaxis terms column
-      df$yaxis_terms = df$tgt
+      # adding the yaxis_terms column with shortened and unique names
+      df$yaxis_terms = df$tgt %>% get_shorter_names(df_p$max_characters)
 
       # selecting lowest pvalues
-      df$yaxis_terms %<>% substr(., 1, df_p$max_char)
-      df = df[!duplicated(df$yaxis_terms), ]
       df = df[seq_len(min(nrow(df), df_p$max_terms)), ]
       df$yaxis_terms %<>% factor(., levels = rev(.))
 
@@ -4602,6 +4600,7 @@ process Figures__making_enrichment_heatmap {
 
 
     # getting parameters
+    if(grepl('func_anno', data_type)) data_type = 'func_anno'
     df_p  = df_plots        %>% .[.$data_type == data_type, ]
     df_ft = df_filter_terms %>% .[.$data_type == data_type, ]
     signed_padj = df_p$signed_padj
@@ -4622,8 +4621,6 @@ process Figures__making_enrichment_heatmap {
 
     ## quitting if there are no significant results to show
     if(all(df$padj > df_p$padj_threshold)) quit(save = 'no')
-
-    if(grepl('func_anno', data_type)) data_type = 'func_anno'
 
     # adding the comp_FC
     df$comp_FC = apply(df[, c('COMP', 'FC')], 1, paste, collapse = '_') %>% 
@@ -4682,9 +4679,14 @@ process Figures__making_enrichment_heatmap {
                   as.integer %>% order
       terms_levels = vec[vec_order] %>% rev
     }
-
-    # clustering y-axis terms and adding final matrix indexes to the df
+    
+    # making the matrix of selected terms and with the right order of conditions
     mat_final = mat[terms_levels, comp_order1]
+    
+    # shortening the long terms names while keeping them unique
+    rownames(terms_levels) %<>% get_shorter_names(df_p$max_characters)
+    
+   # clustering y-axis terms and adding final matrix indexes to the df
     rows = nrow(mat_final) ; cols = ncol(mat_final)
     df_final = add_matrix_indexes_to_df(mat_final, df, rows, cols, data_type, 
       signed_padj = signed_padj)

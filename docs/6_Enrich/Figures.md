@@ -28,26 +28,23 @@ Adjusted p-values are signed with positive values for enrichment and negative va
 
 Finally, it is possible to add additional colored point to the top of the bars that represent different values (*params.barplots__add_var*) and to add the overlap count (*params.barplots__add_number*).
 
-
-
 ### Parameters
-- **_params.barplots__padj_threshold_**: If no adjusted pvalue is above this threshold the process is stop and no figure is made. Default: 0.05.
-- **_params.barplots__add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).
-- **_params.barplots__add_number_**: Write the number count on the plots. Options: 'F' (false; default), 'T' (true).
-- **_params.barplots__max_terms_**: Number of terms to display. Default: 30.
-- **_params.barplots__max_char_in_terms_**: The limit of target names length. Longer targt names are cut. Default: 50.
 - **_params.barplots__df_plots_**: An R dataframe that contains all parameters to be used for each of the possible enrichment categories (i.e. data types). The default template can be used to modify the wished parameter: 
-"barplots__df_plots          = 'data.frame(
+"barplots__df_plots = 'data.frame(
   data_type      = c("func_anno",  "CHIP"   , "motifs"   , "chrom_states", "genes_self", "peaks_self"),
   padj_threshold = c(     0.05  ,     0.05  ,    0.05    ,        0.05   ,      0.05   ,       0.05  ),
   signed_padj    = c(     T     ,     T     ,    T       ,        T      ,      T      ,       T     )
   add_var        = c(    "none" ,   "none"  ,  "none"    ,      "none"   ,    "none"   ,     "none"  ),
   add_number     = c(     F     ,     F     ,    F       ,        F      ,      T      ,       T     )
   max_terms      = c(    30     ,    30     ,   30       ,       30      ,     30      ,      30     )
-  max_char       = c(    50     ,    50     ,   50       ,       50      ,     50      ,      50     )
+  max_characters = c(    50     ,    50     ,   50       ,       50      ,     50      ,      50     )
   )'"
     - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
-   - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).
+    - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).
+    - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).
+    - **_add_number_**: Write the number count on the plots.
+    - **_max_terms_**: Number of terms to display.
+    - **_max_characters_**: The limit of target names length. Longer targt names are cut. 
 
 ### Outputs
 - **Barplots**: 
