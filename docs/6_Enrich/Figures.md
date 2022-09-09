@@ -61,23 +61,22 @@ barplots__df_plots = 'data.frame(
 ### Description
 This process takes as input all enrichment results for comparisons of a given group (as specified in the [comparisons.tsv file](/docs/3_Inputs/Design.md#comparisons.tsv), `${GRP}` key) and that share the same keys for `${ET}` (Experiment type), `${PA}` (Peak assignment), `${TV}` (Threshold value) and `${EC}` (Enrichment category), filters the most relevant terms, and produces a heatmap.  
 
-The heatmap shows the selected terms on the y-axis and the comparisons with fold change type (`COMP_FC`) on the x-axis with this format: `${condition_1}_${condition_2}_${FC}`. 
-Cells are colored with signed and binned adjusted pvalues (as described in the [previous process](/docs/6_Enrich/Figures.md#Figures__making_enrichment_barplots)). 
+The heatmap shows the selected terms on the y-axis and the comparisons with fold change type (`COMP_FC`) on the x-axis with this format: `${condition_1}_${condition_2}_${FC}`.  
 
-The order of the `COMP_FC` entries on the x-axis, and on the y-axis for the `peaks_self`, `genes_self` enrichment categories is defined by *comparison.tsv* input file as well as the *up_down_pattern* parameter that can be set up within the *params.heatmaps__df_plots* parameter (see next subsection below).
+The order of the `COMP_FC` entries on the x-axis, and on the y-axis for the `peaks_self`, `genes_self` enrichment categories is defined by *comparison.tsv* input file as well as the *up_down_pattern* parameter that can be set up within the *params.heatmaps__df_plots* parameter (see next subsection below).  
 
-The order of the terms of the `chrom_states` enrichment categories (chromatin states) is defined by the chromatin state group (as defined in the original publication).
+The order of the terms of the `chrom_states` enrichment categories (chromatin states) is defined by the chromatin state group (as defined in the original publication).  
 
-All terms are shown for the `peaks_self`, `genes_self` and `chrom_states` enrichment categories. For `peaks_self` and `genes_self` the order 
+All terms are shown for the `peaks_self`, `genes_self` and `chrom_states` enrichment categories.  
 
 For the `CHIP`, `motifs` and `func_anno` enrichment categories a function has been created to select terms of interest (see the `params.heatmaps__df_filter_terms` parameter).
-
-
-
 Briefly, this function first remove terms with similar names. Next, it selects the top x shared terms (significant in multiple `COMP_FC`). Then, it selects the top y terms for each `COMP_FC`. After that, the terms with the lowest pvalues accross all `COMP_FC` are selected to reach the wished number of terms. Finally, hierarchical clustering (with euclidian distance) is performed to order terms by similarity. 
+
+Cells are colored with signed and binned adjusted pvalues as described in the [previous process](/docs/6_Enrich/Figures.md#Figures__making_enrichment_barplots) and several options are available in both processes through the *heatmaps__df_plots* parameter.  
 
 
 ### Parameters
+- **_params.heatmaps__seed_**: random seed for the selection of terms.  
 - **_params.heatmaps__df_plots_**: An R dataframe that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The following default parameters can be used as a template to modify the wished parameter:
 ```
 heatmaps__df_plots = 'data.frame(
@@ -101,22 +100,22 @@ heatmaps__df_plots = 'data.frame(
 ```
 heatmaps__df_plots = 'data.frame(
                 data_type        = c("func_anno",  "CHIP"   , "motifs"   ),
+                remove_similar   = c(     F     ,     T     ,    T       ),
+                remove_similar_n = c(     2     ,     2     ,    2       ),
                 n_shared         = c(     6     ,     8     ,    8       ),
-                n_unique         = c(    20     ,    25     ,   25       ),
-                n_total          = c(    26     ,    40     ,   40       ),
                 threshold_type   = c( "fixed"   , "quantile",  "quantile"),
                 threshold_value  = c(     0.05  ,     0.25  ,    0.25    ),
-                remove_similar   = c(     F     ,     T     ,    T       ),
-                remove_similar_n = c(     2     ,     2     ,    2       )
+                n_unique         = c(    20     ,    25     ,   25       ),
+                n_total          = c(    26     ,    40     ,   40       )
                 )'
 ```
-    - **_n_shared_**: 
-    - **_n_unique_**: 
-    - **_n_total_**: 
-    - **_threshold_type_**: 
-    - **_threshold_value_**: 
-    - **_remove_similar_**: 
-    - **_remove_similar_n_**: 
+    - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.  
+    
+    - **_n_shared_**: Number of shared terms to select. A threshold is defined with the **_threshold_type_** (options: "quantile" or "fixed" (i.e. pvalues)) and the **_threshold_value_** parameters. For each term, the number of `COMP_FC` that are below the threshold is counted. Terms are sorted by this count (with ties sorted randomly) and the top *n_shared* terms are selected.  
+
+    - **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
+
+    - **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
 
 
 ### Outputs
@@ -129,11 +128,6 @@ heatmaps__df_plots = 'data.frame(
 ## Figures__merging_pdfs
 
 ### Description
-
-### Parameters
-- **_params.XX_**: AA Default: RR.
-
-### Outputs
-- **UU**: `EE`
+This process uses [pdftk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) to merge pdf. 
 
 
