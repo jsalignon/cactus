@@ -4489,21 +4489,19 @@ process Figures__making_enrichment_barplots {
       key       = '!{key}'
       data_type = '!{data_type}'
       df1       = readRDS('!{res_gene_set_enrichment_rds}')
-
-      padj_threshold    =  !{params.barplots__padj_threshold}
-      add_var           = '!{params.barplots__add_var}'
-      add_number        =  !{params.barplots__add_number}
-      max_terms         =  !{params.barplots__max_terms}
-      max_char_in_terms =  !{params.barplots__max_char_in_terms}
+      df_plots  = parse(eval(text = '!{params.heatmaps__df_plots}'))
 
       source('!{projectDir}/bin/get_new_name_by_unique_character.R')
       source('!{projectDir}/bin/functions_pvalue_plots.R')
 
 
-      df = df1
+      # getting parameters
+      df          = df1
+      df_p        = df_plots %>% .[.$data_type == data_type, ]
+      signed_padj = df_p$signed_padj
 
       # quitting if there are no significant results to show
-      if(all(df$padj > padj_threshold)) quit(save = 'no')
+      if(all(df$padj > df_plots$padj_threshold)) quit(save = 'no')
 
       # removing the genes_id column from func_anno enrichments 
       # (for easier debugging)
@@ -4511,16 +4509,15 @@ process Figures__making_enrichment_barplots {
 
       # adding the loglog and binned padj columns
       if(grepl('func_anno', data_type)) data_type = 'func_anno'
-      signed_padj = T
       df %<>% getting_padj_loglog_and_binned(data_type, signed_padj)
 
       # adding the yaxis terms column
       df$yaxis_terms = df$tgt
 
       # selecting lowest pvalues
-      df$yaxis_terms %<>% substr(., 1, max_char_in_terms)
+      df$yaxis_terms %<>% substr(., 1, df_p$max_char)
       df = df[!duplicated(df$yaxis_terms), ]
-      df = df[seq_len(min(nrow(df), max_terms)), ]
+      df = df[seq_len(min(nrow(df), df_p$max_terms)), ]
       df$yaxis_terms %<>% factor(., levels = rev(.))
 
       bed_data_types = c('CHIP', 'chrom_states', 'peaks_self', 'genes_self')
@@ -4540,11 +4537,9 @@ process Figures__making_enrichment_barplots {
          ) + ylab(xlab)
 
       point_size = scales::rescale(c(nrow(df), seq(0, 30, len = 5)), c(6, 3))[1]
-      p_binned = get_plot_binned(p1, 
-        signed_padj = signed_padj, 
-        add_var     = add_var, 
-        add_number  = add_number, 
-        point_size  = point_size)
+      p_binned = get_plot_binned(p1, signed_padj = signed_padj, 
+                      add_var = df_p$add_var, add_number  = df_p$add_number, 
+                      point_size  = point_size)
 
       pdf(paste0(key, '__barplot.pdf'), paper = 'a4r')
         print(p_binned)
@@ -4596,10 +4591,6 @@ process Figures__making_enrichment_heatmap {
     comp_order = '!{comp_order}'
     data_type  = '!{data_type}'
 
-    padj_threshold  =  !{params.heatmaps__padj_threshold}
-    add_var         = '!{params.heatmaps__add_var}'
-    add_number      =  !{params.heatmaps__add_number}
-    up_down_pattern = '!{params.heatmaps__up_down_pattern}'
     seed            = '!{params.heatmaps__seed}'
     df_filter_terms = parse(eval(text = '!{params.heatmaps__df_filter_terms}'))
     df_plots        = parse(eval(text = '!{params.heatmaps__df_plots}'))
@@ -4613,6 +4604,7 @@ process Figures__making_enrichment_heatmap {
     # getting parameters
     df_p  = df_plots        %>% .[.$data_type == data_type, ]
     df_ft = df_filter_terms %>% .[.$data_type == data_type, ]
+    signed_padj = df_p$signed_padj
 
     # loading, merging and processing data
     rds_files = list.files(pattern = '*.rds')
@@ -4645,19 +4637,7 @@ process Figures__making_enrichment_heatmap {
     df$yaxis_terms = df$tgt
 
     # adding loglog and binned padj columns
-    df %<>% getting_padj_loglog_and_binned(data_type, signed_padj = T)
-
-    # setting parameters for selection of yaxis terms to display
-    if(data_type == 'func_anno'){
-      nshared = 6 ; nunique = 20 ; ntotal = 26 ; threshold_type = 'fixed'
-      threshold_value = 0.05 ; remove_similar = F
-    }
-    if(data_type %in% c('CHIP', 'motifs')){
-      nshared = 8 ; nunique = 25 ; ntotal = 40 ; threshold_type = 'quantile'
-      threshold_value = 0.25 ; seed = 38 ; remove_similar = T
-    }
-
-    add_number = F
+    df %<>% getting_padj_loglog_and_binned(data_type, signed_padj = signed_padj)
 
     purrr__map_chr <- function(x, c1) lapply(x, function(y) y[c1]) %>% 
                       as.character
@@ -4666,10 +4646,10 @@ process Figures__making_enrichment_heatmap {
     if(data_type %in% c('genes_self', 'peaks_self')) {
       terms_levels = rev(comp_order1)
       strs = strsplit(df$tgt, '__')
-      tgt_ET = purrr__map_chr(strs, 1)
-      tgt_PF = purrr__map_chr(strs, 2)
-      tgt_FC = purrr__map_chr(strs, 3)
-      tgt_TV = purrr__map_chr(strs, 4)
+      tgt_ET   = purrr__map_chr(strs, 1)
+      tgt_PF   = purrr__map_chr(strs, 2)
+      tgt_FC   = purrr__map_chr(strs, 3)
+      tgt_TV   = purrr__map_chr(strs, 4)
       tgt_COMP = purrr__map_chr(strs, 5)
       ET = unique(df$ET)
       PF = unique(df$PF)
@@ -4677,8 +4657,6 @@ process Figures__making_enrichment_heatmap {
       df$tgt_comp_FC = paste0(tgt_COMP, '_', tgt_FC) %>% gsub('_vs_', '_', .)
       df = subset(df, tgt_comp_FC %in% comp_FC & tgt_ET == ET & tgt_PF == PF)
       df$yaxis_terms = df$tgt_comp_FC
-      add_number = T
-      add_var = 'none'
     }
 
     # reformatting df to a matrix
@@ -4709,13 +4687,13 @@ process Figures__making_enrichment_heatmap {
     mat_final = mat[terms_levels, comp_order1]
     rows = nrow(mat_final) ; cols = ncol(mat_final)
     df_final = add_matrix_indexes_to_df(mat_final, df, rows, cols, data_type, 
-      signed_padj = T)
+      signed_padj = signed_padj)
 
     # getting and saving plots
     p1 = getting_heatmap_base(df_final, rows, cols, title = key, 
       cur_mat = mat_final)
     point_size = scales::rescale(c(rows, seq(0, 40, len = 5)), c(3, 0.8))[1]
-    p_binned = get_plot_binned(p1, signed_padj = T, df_p$add_var, 
+    p_binned = get_plot_binned(p1, signed_padj = signed_padj, df_p$add_var, 
       df_p$add_number, point_size = point_size)
 
     pdf(paste0(key, '__heatmap.pdf'))
