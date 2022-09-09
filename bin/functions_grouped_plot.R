@@ -33,7 +33,7 @@ get_comp_order_levels <- function(comp_order, up_down_pattern = 'UUDD'){
 
 # the output is the selected terms ordered by clustering
 
-select_y_axis_terms_grouped_plot <- function(mat, nshared = 6, nunique = 20, ntotal = 26, threshold_type = 'fixed', threshold_value = 0.05, seed = 38, remove_similar = F, remove_similar_n = 2, reverse = T){
+select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n_total = 26, threshold_type = 'fixed', threshold_value = 0.05, seed = 38, remove_similar = F, remove_similar_n = 2, reverse = T){
 
   set.seed(seed)
 
@@ -41,7 +41,7 @@ select_y_axis_terms_grouped_plot <- function(mat, nshared = 6, nunique = 20, nto
   mat_full = mat
 
   # if there are less terms than we want to select we downscale
-  if( nrow(mat) < ntotal ){
+  if( nrow(mat) < n_total ){
 
     mat_final = mat_full
 
@@ -49,7 +49,7 @@ select_y_axis_terms_grouped_plot <- function(mat, nshared = 6, nunique = 20, nto
 
     if(remove_similar){
 
-      # keeping only the top n yaxis_terms for yaxis_terms with similar names
+      # keeping only the top x yaxis_terms for yaxis_terms with similar names
       rn = rownames(mat)
       purrr__map_chr <- function(x, c1) lapply(x, function(y) y[c1]) %>% as.character
       yaxis_terms_names = purrr__map_chr(strsplit(rn, '_'), 1)
@@ -66,7 +66,7 @@ select_y_axis_terms_grouped_plot <- function(mat, nshared = 6, nunique = 20, nto
 
     }
 
-    ## selecting the top 6 shared terms
+    ## selecting the top y shared terms
     all_pvalues = c(unname(mat))
     if(threshold_type == 'quantile') threshold = quantile(all_pvalues, threshold_value)
     if(threshold_type == 'fixed') threshold = threshold_value
@@ -74,23 +74,26 @@ select_y_axis_terms_grouped_plot <- function(mat, nshared = 6, nunique = 20, nto
     shared_terms = c()
     if(any(shared_sum > 1)){
       ranked = rank(shared_sum, ties.method = 'random')
-      shared_terms = names(ranked)[ranked <= nshared]
+      shared_terms = names(ranked)[ranked <= n_shared]
       # we remove selected shared terms so that they do not appear in the unique terms
       mat %<>% .[!rownames(.) %in% shared_terms, ]
     }
 
-    # selecting the top_N terms for each comparison
-    ncomp = ncol(mat)
-    top_N = floor(nunique / ncomp)
-    top_N_terms = apply(mat, 2, function(x) { ranked = rank(x, ties.method = 'random') ; names(ranked)[ranked <= top_N] } ) %>% c %>% unique
+    # selecting the top (n_unique / n_comp) terms for each comparison
+    n_comp = ncol(mat)
+    top_N = floor(n_unique / n_comp)
+    top_N_terms = apply(mat, 2, function(x) { 
+                    ranked = rank(x, ties.method = 'random')
+                    names(ranked)[ranked <= top_N] 
+                  } ) %>% c %>% unique
     mat %<>% .[!rownames(.) %in% top_N_terms, ]
 
-    # filling with the lowest pvalues overall
+    # filling missing values with the lowest pvalues overall
     cur_terms = unique(c(shared_terms, top_N_terms))
-    nmissing = ntotal - length(cur_terms)
-    if(nmissing > 0){
+    n_missing = n_total - length(cur_terms)
+    if(n_missing > 0){
       ranked = rank(apply(mat, 1, min), ties.method = 'random')
-      low_pval_terms = names(ranked)[ranked <= nmissing]
+      low_pval_terms = names(ranked)[ranked <= n_missing]
       cur_terms %<>% c(., low_pval_terms)
     }
 
@@ -109,10 +112,10 @@ select_y_axis_terms_grouped_plot <- function(mat, nshared = 6, nunique = 20, nto
 ## debugging:
 
 # gene enrichment terms
-# nshared = 6 ; nunique = 20 ; ntotal = 26 ; threshold_type = 'fixed'; threshold_value = 0.05 ; seed = 38
+# n_shared = 6 ; n_unique = 20 ; n_total = 26 ; threshold_type = 'fixed'; threshold_value = 0.05 ; seed = 38
 
 # Transcription Factors
-# nshared = 8 ; nunique = 25 ; ntotal = 40 ; threshold_type = 'quantile'; threshold_value = 0.25 ; seed = 38
+# n_shared = 8 ; n_unique = 25 ; n_total = 40 ; threshold_type = 'quantile'; threshold_value = 0.25 ; seed = 38
 
 
 

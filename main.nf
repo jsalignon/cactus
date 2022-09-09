@@ -4665,7 +4665,7 @@ process Figures__making_enrichment_heatmap {
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
       
       terms_levels = select_y_axis_terms_grouped_plot(mat, 
-        nshared = df_ft$nshared, nunique = df_ft$nunique, ntotal = df_ft$ntotal, 
+        n_shared = df_ft$n_shared, n_unique = df_ft$n_unique, n_total = df_ft$n_total, 
         threshold_type = df_ft$threshold_type, 
         threshold_value = df_ft$threshold_value, 
         remove_similar = df_ft$remove_similar, 
@@ -4686,12 +4686,11 @@ process Figures__making_enrichment_heatmap {
     # shortening the long terms names while keeping them unique
     rownames(terms_levels) %<>% get_shorter_names(df_p$max_characters)
     
-   # clustering y-axis terms and adding final matrix indexes to the df
-    rows = nrow(mat_final) ; cols = ncol(mat_final)
-    df_final = add_matrix_indexes_to_df(mat_final, df, rows, cols, data_type, 
-      signed_padj = signed_padj)
+    # creating a data.frame with row and column indexes for plotting
+    df_final = add_matrix_indexes_to_df(mat_final, df, nrow(mat_final), 
+                    ncol(mat_final), data_type, signed_padj = signed_padj)
 
-    # getting and saving plots
+    # making and saving plots
     p1 = getting_heatmap_base(df_final, rows, cols, title = key, 
       cur_mat = mat_final)
     point_size = scales::rescale(c(rows, seq(0, 40, len = 5)), c(3, 0.8))[1]
