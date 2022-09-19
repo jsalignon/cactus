@@ -22,9 +22,9 @@
 ## Tables__formatting_csv_tables
 
 ### Description
-This process takes as input tables from many parts of the pipeline, filter them (optional) and format them (sorting by descending FDR and ascending L2FC or L2OR, rounding values to 2 digits after the decimal).  
+This process takes as input tables from many parts of the pipeline, filter them (optional) and format them (sorting by descending FDR and ascending L2FC (Log2 Fold Change) or L2OR (Log2 Odd Ratio), rounding values to 2 digits after the decimal).  
 
->**_Note_:** No output section is specified here as the output and path for the formatted csv tables are specified in the process where they were created.
+>**_Note_:** Output files and path are specified in the process where they were created.
 
 ### Parameters
 - **_params.v_fdr_thresholds_**: Vector of thresholds for filtering tables. For each data type, entries with FDR above this threhold will be removed.
@@ -38,20 +38,26 @@ Default: 'c( mRNA_detailed = 1, ATAC_detailed = 1,
 ## Tables__merging_csv_tables
 
 ### Description
+This process merge csv tables in R and format them (sorting by descending FDR and ascending L2FC or L2OR, rounding values to 2 digits after the decimal).
 
-### Parameters
-- **_params.XX_**: AA Default: RR.
-
-### Outputs
-- **UU**: `EE`
+>**_Note_:** Output files and path are specified in the process where they were created.
 
 
 ## Tables__saving_excel_tables
 
 ### Description
+This process format tables in Excel with these steps:
+ - Homogeneous coloring: coloring cells by column types: with the subset keys in red, the target in green, pvalue columns in orange, L2OR and L2FC in purple, DA (Differential Abundance) columns in gold, NDA (non-DA) columns in blue, and total entry in target (tot_tgt) in grey. Headers are colored with a darker color than other cells (body) in the column.
+ - Conditional coloring for the body of: 
+   - adjusted pvalues: gradient from light orange (highest pvalues) to dark orange (lowest pvalues).
+   - L2OR and L2FC: gradient from red (highest values) to white (zero) to blue (lowest values). Infinite values are assigned a value of +/-e99 and given the same value as the highest/lowest non-infinite value for coloring.
+ - Filters are added to all columns and column width and header height are adjusted.
+
+>**_Note_:** Output files and path are specified in the process where they were created.
 
 ### Parameters
-- **_params.XX_**: AA Default: RR.
+- **_params.excel__add_conditional_formatting_**: To enable or disable conditional coloring. Default: 'TRUE'.
+- **_params.excel__max_width_**: Maximum column width. Default: 40.
 
-### Outputs
-- **UU**: `EE`
+
+
