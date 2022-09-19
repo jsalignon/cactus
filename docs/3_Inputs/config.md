@@ -40,19 +40,19 @@ Here are the mandatory and recommended optional global parameters:
 
 This part contains parameters from [Nextflow's executor scope](https://www.nextflow.io/docs/latest/config.html?highlight=queuesize#scope-executor):
 
-- **_executor.queueSize_**: How many processes are queued at a given time. Default: *100*.  
-- **_executor.$local.memory_**: Maximum total memory that will be used on the server (or local machine) during the run. Default: *80 GB*.  
-- **_executor.$local.cpus_**: Maximum total number of CPUs that will be used on the server (or local machine) during the run. Default: *50*.  
+- **_params.executor.queueSize_**: How many processes are queued at a given time. Default: *100*.  
+- **_params.executor.$local.memory_**: Maximum total memory that will be used on the server (or local machine) during the run. Default: *80 GB*.  
+- **_params.executor.$local.cpus_**: Maximum total number of CPUs that will be used on the server (or local machine) during the run. Default: *50*.  
 
 
 # Output Files
 
 - **_params.res_dir_**: Name of the directory where results will be saved. Default: 'results/Cactus_v${cactus_version}'.  <!-- default set in conf/version.config -->
 - **_params.pub_mode_**: Type of publication mode to use. Options available [here](https://www.nextflow.io/docs/latest/process.html#publishdir). Default: 'link'. <!-- default set in conf/version.config -->
-- **_save_fastq_type_**: Saving only the last, none or all fastq files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
-- **_save_bam_type_**: Saving only the last, none or all bam files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
-- **_save_bed_type_**: Saving only the last, none or all bed files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
-- **_save_1bp_bam_**: Saving the 1 base pair reads after all filtering steps and tn5-shift adjustement
+- **_params.save_fastq_type_**: Saving only the last, none or all fastq files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
+- **_params.save_bam_type_**: Saving only the last, none or all bam files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
+- **_params.save_bed_type_**: Saving only the last, none or all bed files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
+- **_params.save_1bp_bam_**: Saving the 1 base pair reads after all filtering steps and tn5-shift adjustement
 - adjustment the ATAC-shift. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
 - **_params.report_dir_**: Directory where reports will be saved. Default: '${params.res_dir}/Run_Info/${params.current_date}'. <!-- default set in conf/reports.config -->
 
