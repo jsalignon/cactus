@@ -21,8 +21,8 @@ For a given subset and term of interest (i.e. a pathway, a CHIP profile, ...), e
 
 For each subset, enrichment results are used to produce standardized figures (barplots and heatmaps) and tables (csv and Excel). Here are some considerations:
  - barplots are made showing the top n most significantly enriched term for a given subset
- - heatmaps are made showing groups of conditions (as defined in the [comparisons.tsv file](/docs/3_Inputs/Design.md#comparisons.tsv)) on the x-axis and selected terms on the y-axis. Diffent options can be used to change the selected terms depending on the users need. 
- - E
-
+ - heatmaps are made showing groups of conditions (as defined in the [comparisons.tsv file](/docs/3_Inputs/Design.md#comparisons.tsv)) on the x-axis and selected terms on the y-axis. Diffent options can be used to change the selected terms depending on the users need
+ - Excel tables are formatted for easier and clearer scrolling by adding coloring, conditional coloring, filters, formatting header and adjusting column widths.  
  
 Finally, merged files for both tables and figures are produced to allow for easier scrolling over all results.
+
