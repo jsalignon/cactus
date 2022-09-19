@@ -12,3 +12,11 @@
 
 
 ![](/docs/images/4_Prepro.png "Preprocessing")
+
+This section covers standard preprocessing analysis, that is calling peaks for ATAC-Seq and quantifying transcripts abundance for mRNA-Seq, as well as quality control analysis.
+
+The pipeline was originally developed to analyze ATAC-Seq data and there is therefore more detailed analysis and quality controls for ATAC-Seq. An important difference between ATAC-Seq and mRNA-Seq data preprocessing is that reads are aligned for ATAC-Seq data analysis, while an alignment-free method is used for mRNA-Seq. For this reason the preprocessing is much faster for mRNA-Seq data. This also means that less quality controls can be made for mRNA-Seq data. However, more quality controls for mRNA-Seq data will be added in future version of cactus.
+
+For mRNA-Seq data, transcripts abundances are quantifyied with [kallisto](https://doi.org/10.1038/nbt.3519) and quality controls are made with [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) and [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/).
+
+ATAC-Seq preprocessing steps mostly follow the [guidelines (first version)](https://informatics.fas.harvard.edu/atac-seq-guidelines-old-version.html) from the Harvard Faculty of Arts and Sciences. With the key steps being: reads merging, trimming, aligning, filtering reads (low quality, duplicates, mitonchondrial and small contigs), ATAC-shift, peak calling (with [MACS2](https://doi.org/10.1186/gb-2008-9-9-r137)) and splitting, filtering peaks (blacklisted regions, input control, specific regions). Quality controls are made via published tools ([FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/), [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/), [DeepTools](https://doi.org/10.1093/nar/gkw257) for reads profiles and correlation, [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/btv145) for distribution of annotated peaks) and homemade scripts (saturation curve, reads overlap with genomic regions, ...).

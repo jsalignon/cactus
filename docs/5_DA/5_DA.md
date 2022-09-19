@@ -12,3 +12,12 @@
 
 
 ![](/docs/images/5_DA.png "Differential Abundance")
+
+This section covers Differential Abundance Analysis (DAA), that is differential binding analysis for ATAC-Seq (with [DiffBind](https://doi.org/10.1038/nature10730)) and Differential Gene Expression Analysis for mRNA-Seq (with [sleuth](http://dx.doi.org/10.1038/nmeth.4324)), as well as splitting the DAA results in subsets according to specified filters.
+
+DAA results are processed in a standardized way to produce homogeneous plots (PCA and volcano) and tables (csv and formatted excel) for the two data types.
+
+Finally, subsets of DAA results are extracted to allow more fine-grained analysis of the datasets. For each subset, gene sets are sent for genes-self and pathway/ontology enrichment analysis and for making Venn Diagram plots, while genomic regions are sent for peaks-self, chromatin states, motifs and CHIP enrichment analysis.  
+
+The subsets are made using various keys (Fold change type, significance score, peak assignment (for ATAC-Seq)). Finally, if both ATAC-Seq and mRNA-Seq data are present then results of both experiment can be combined by keeping gene sets or genomic regions that pass all filters/keys in both experiments.  
+

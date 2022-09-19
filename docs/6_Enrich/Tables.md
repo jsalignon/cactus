@@ -22,12 +22,17 @@
 ## Tables__formatting_csv_tables
 
 ### Description
+This process takes as input tables from many parts of the pipeline, filter them (optional) and format them (sorting by descending FDR and ascending L2FC or L2OR, rounding values to 2 digits after the decimal).  
+
+>**_Note_:** No output section is specified here as the output and path for the formatted csv tables are specified in the process where they were created.
 
 ### Parameters
-- **_params.XX_**: AA Default: RR.
-
-### Outputs
-- **UU**: `EE`
+- **_params.v_fdr_thresholds_**: Vector of thresholds for filtering tables. For each data type, entries with FDR above this threhold will be removed.
+Default: 'c( mRNA_detailed = 1, ATAC_detailed = 1,
+                                res_simple = 1, res_filter = 1, func_anno = 1,
+                                genes_self = 1, peaks_self = 1, 
+                                chrom_states = 1, CHIP = 1, motifs = 1
+                                )'.
 
 
 ## Tables__merging_csv_tables

@@ -148,4 +148,6 @@ heatmaps__df_plots = 'data.frame(
 ### Description
 This process uses [pdftk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) to merge pdf. 
 
+>**_Note_:** No output section is specified here as the output and path for the merged figures are specified in the process where they were created.
+
 
