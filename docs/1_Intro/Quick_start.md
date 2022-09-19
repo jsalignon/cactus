@@ -13,10 +13,10 @@
 
 # Install and run
 
-The first step is to create the global configuration file *.cactus.config* located in the home folder. This file must indicate the path where to download: the references (params.references_dir) and the singularity containers. Here is an example of a *.cactus.config* file:
+The first step is to create the global configuration file *.cactus.config* located in the home folder. This file must indicate the path where to download the references and the singularity containers. Here is an example of a *.cactus.config* file:
 ```
-params.references_dir       = '/home/user/workspace/cactus/references'
-singularity_containers_path = '/home/user/workspace/singularity_containers'
+params.references_dir         = '/home/user/workspace/cactus/references'
+params.singularity_images_dir = '/home/user/workspace/singularity_containers'
 ```
 
 Downloading references and test datasets:

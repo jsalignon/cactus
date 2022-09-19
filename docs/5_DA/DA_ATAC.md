@@ -45,8 +45,8 @@ Briefly, DiffBind estimates reads abundance at selected peaks of interest (i.e. 
 Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/btv145). Each peak is assigned to its closest gene using the [annotatePeak function](https://github.com/YuLab-SMU/ChIPseeker/blob/master/R/annotatePeak.R).
 
 ### Parameters
-- **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site.
-- **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site.
+- **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 
 ### Outputs
 - **Annotated peaks (data.frame object)**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__dataframe/${comparison}__diffb_anno_peaks_df.rds`.

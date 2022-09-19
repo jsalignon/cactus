@@ -1,0 +1,99 @@
+
+
+## 1. Preprocessing: ATAC_peaks
+
+- **_params.macs2__qvalue_**: q-value (minimum FDR) cutoff to call significant regions. Default: '5e-2'.
+- **_params.input_control_overlap_portion_**: threshold of the fraction of overlapping input control peaks to remove peaks. The percentage is regarding the treatment/sample peaks, not the input control peaks. Default: 0.2.
+- **_params.design__regions_to_remove**: path to the file containing the regions to remove (see the [Design](/docs/3_Inputs/Design.md) section for details). Default: 'Design/regions_to_remove.tsv'.
+- **_params.do_saturation_curve_**: enable or disable this process. Default: true.
+- **_params.do_raw_peak_annotation_**: to enable or disable this process. Default: true.
+- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+
+
+## 1. Preprocessing: ATAC_reads
+
+- **_params.pigz__nb_threads_**: number of threads used for parallel compression. Default: 6.
+- **_params.bowtie2__nb_threads_**: number of threads used by Bowtie2. Default: 6.
+- **_params.sam_MAPQ_threshold_**: MAPQ threshold. Default: 30.
+- **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
+- **_params.fastqc__nb_threads_**: number of threads used by FastQC. Default: 2.
+- **_params.do_bigwig_**: enable or disable this process. Default: true.
+- **_params.deeptools__binsize_bigwig_creation_**: size of the bins in the bigwig file. Smaller values increase computation time. Default: 10000.
+- **_params.deeptools__nb_threads_**: number of threads used by DeepTools. Default: 6.
+- **_params.deeptools__nb_of_1_bp_samples_**: number of 1 bp sites to sample for the coverage plots. Default: 10000.
+- **_params.deeptools__normalization_method_**: normalization method to use when creating BigWig files. See [here]](https://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html) for options. Default: 'none'.
+- **_params.deeptools__binsize_bigwig_creation_**: size of the bins in the coverage matrix. Smaller values increase computation time. Default: 10000.
+- **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
+- **_params.nb_sampled_aligned_reads_**: Number of aligned reads to sample. Default: 1000000.
+- **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
+- **_params.nb_sampled_trimmed_reads_**: Number of trimmed reads to sample. Default: 1000000.
+- **_params.botwie2__nb_threads_**: number of threads used by Bowtie2. Default: 6.
+
+
+## 1. Preprocessing: mRNA
+
+- **_params.nb_threads_kallisto_**: number of threads used by kallisto. Default: 6.
+- **_params.bootstrap_**: Number of bootstrap samples. Default: '100'.
+- **_params.fragment_len_**: Estimated average fragment length. For single end only. Default: '180'.
+- **_params.fragment_sd_**: Estimated standard deviation of fragment length. For single end only. Default: '20'.
+- **_params.nb_threads_botwie2_**: number of threads used by Bowtie2. Default: 6.
+- **_params.nb_threads_fastqc_**: number of threads used by FastQC. Default: 2.
+
+
+## 2. Differential Abundance: DA_ATAC
+
+- **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 1.
+- **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 'DBA_DESEQ2'.
+- **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. See the [DiffBind::dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) for details. Default: false.
+- **_params.diffbind__min_count_**: Minimum read count value. Any interval with fewer than this many overlapping reads will be set to have this count. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for details. Default: 0.
+- **_params.diffbind__normalize_**: Normalization method to use. See the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) for options. Default: 'DBA_NORM_RLE'.
+- **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site.
+- **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site.
+- **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
+- **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
+
+
+## 2. Differential Abundance: DA_mRNA
+
+- **_params.sleuth_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
+- **_params.sleuth_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
+
+
+## 2. Differential Abundance: Split
+
+- **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Default: 'FDR'. Options: 'FDR', 'rank'.
+- **_params.split__threshold_values_**: Defines the threshold cuttoff value(s). Default: [ 1.3 ].
+- **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all', 'prom', 'distNC' ].
+
+
+## 3. Enrichment: Enrichment
+
+- **_params.do_gene_set_enrichment_**: enable or disable this process. Default: true.
+- **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
+- **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis. Options: 'KEGG', 'GO_CC', 'GO_MF', 'GO_BP'. Default: ['BP', 'KEGG']. 
+- **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
+- **_params.chromatin_state_1_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. No default.
+- **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
+- **_params.do_motif_enrichment_**: enable or disable this process. Default: true.
+- **_params.homer__nb_threads_**: number of threads used by Bowtie2. Default: 6.
+- **_params.motifs_test_type_**: The test to use for motif inputs. If 'Binomial' a two-sided binomial test is performed instead of the two-sided Fischer test. Options: 'binomial' or 'fischer' (any value). Default: 'binomial'.
+
+
+## 3. Enrichment: Figures
+
+- **_params.barplots__df_plots_**: An R dataframe that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
+- **_params.heatmaps__seed_**: random seed for the selection of terms.  
+- **_params.heatmaps__df_plots_**: An R dataframe that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
+- **_params.heatmaps__df_filter_terms_**: An R data.frame that contains the parameters to use to filter the `CHIP`, `motifs`, `func_anno` enrichment categories. The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
+
+
+## 3. Enrichment: Tables
+
+- **_params.v_fdr_thresholds_**: Vector of thresholds for filtering tables. For each data type, entries with FDR above this threhold will be removed.
+- **_params.excel__add_conditional_formatting_**: To enable or disable conditional coloring. Default: 'TRUE'.
+- **_params.excel__max_width_**: Maximum column width. Default: 40.

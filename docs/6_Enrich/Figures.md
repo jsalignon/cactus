@@ -84,7 +84,7 @@ Cells are colored with signed and binned adjusted pvalues as described in the [p
 
 
 ### Parameters
-- **_params.heatmaps__seed_**: random seed for the selection of terms.  
+- **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
 - **_params.heatmaps__df_plots_**: An R dataframe that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
     
     - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
@@ -110,7 +110,7 @@ heatmaps__df_plots = 'data.frame(
   add_number      = c(     F     ,     F  ,    F    ,        F      ,      T      ,       T     ),
   max_characters  = c(    50     ,    50  ,   50    ,       50      ,     50      ,      50     )
   )'
-  ```
+```
 
 - **_params.heatmaps__df_filter_terms_**: An R data.frame that contains the parameters to use to filter the `CHIP`, `motifs`, `func_anno` enrichment categories. The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
 

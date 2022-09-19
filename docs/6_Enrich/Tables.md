@@ -27,12 +27,12 @@ This process takes as input tables from many parts of the pipeline, filter them 
 >**_Note_:** Output files and path are specified in the process where they were created.
 
 ### Parameters
-- **_params.v_fdr_thresholds_**: Vector of thresholds for filtering tables. For each data type, entries with FDR above this threhold will be removed.
-Default: 'c( mRNA_detailed = 1, ATAC_detailed = 1,
-                                res_simple = 1, res_filter = 1, func_anno = 1,
-                                genes_self = 1, peaks_self = 1, 
-                                chrom_states = 1, CHIP = 1, motifs = 1
-                                )'.
+- **_params.v_fdr_thresholds_**: Vector of thresholds for filtering tables. For each data type, entries with FDR above this threhold will be removed. Default: 
+        'c( mRNA_detailed = 1, ATAC_detailed = 1,
+            res_simple = 1, res_filter = 1, func_anno = 1,
+            genes_self = 1, peaks_self = 1, 
+            chrom_states = 1, CHIP = 1, motifs = 1
+            )'.  
 
 
 ## Tables__merging_csv_tables

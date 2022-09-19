@@ -15,9 +15,9 @@
 
 This section covers the inputs files needed by Cactus. There are 4 kind of inputs files: 
  - [*.fastq.gz* files](/docs/3_Inputs/fastq.md): raw sequencing output files
- - [*.tsv* files](/docs/3_Inputs/tsv.md): to indicate the design of the experiment. That is how fastq files relate to samples, conditions, comparisons to perform and groups of comparisons to plot together in the heatmaps
- - [*.config* files](/docs/3_Inputs/Configuration.md): to indicate the parameters of cactus to use for the current analysis run
- - [*.yml* file](/docs/3_Inputs/Configuration.md): the input of a cactus call
+ - [*.tsv* files](/docs/3_Inputs/tsv.md): to indicate the design of the experiment; that is how fastq files relate to samples and conditions, and comparisons to perform and groups of comparisons to plot together in the heatmaps
+ - [*.config* files](/docs/3_Inputs/Configuration.md): to indicate the parameters to use for the current analysis run
+ - [*.yml* file](/docs/3_Inputs/Configuration.md): the input file of a cactus call.
  
 Here is an example of input files at the run directory folder:
 <!-- tree -I "results|work"  (worm folder; then editing the output manually)-->

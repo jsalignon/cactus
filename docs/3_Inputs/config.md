@@ -12,146 +12,223 @@
 
 # Configuration files
 
--	**_~/.cactus.config_** (mandatory): global profile that applies to all runs
+Two configuration files can be set up:  
+
+-	*~/.cactus.config* (mandatory): global profile that applies to all runs  
 	
--	**_conf/run.config_** (optional): this file allows to overwrite Cactus default settings with custom settings. All parameters from the run.config file can be set here to determine how a given experiment is analyzed. 
+-	*conf/run.config* (optional): profile that is specific to a given run. The name of this file can be adjusted freely in the *.yml* input file.  
 
 
 # Global parameters
 
-Any parameter listed below can be set in the **_~/.cactus.config_** file. However, two parameters are mandatory to indicate the path where to download: the references (*params.references_dir*) and the singularity containers (*singularity_containers_path*). 
+Any parameter can be set in the *~/.cactus.config* file.  
 
-In addition, it is recommended to set up a NextFlow Tower token here in order to monipor pipelines' execution here, using the [tower scope](https://www.nextflow.io/docs/latest/config.html#scope-tower). 
+However, two parameters are mandatory to indicate the path where to download the references and the singularity containers.  
 
-Here is an example of a basic **_.cactus.config_** file: 
+In addition, it is recommended to set up a [NextFlow Tower token](https://www.nextflow.io/docs/latest/config.html#scope-tower) here in order to monipor pipelines' execution using [Nextflow Tower](https://cloud.tower.nf/).  
 
+Here are the mandatory and recommended optional global parameters: 
+- **_params.references_dir_**: Directory where references have been downloaded. Mandatory (no default).
+- **_params.singularity_images_dir_**: Directory where containers have been / will be downloaded. Mandatory (no default).
+- **_params.tower_token_**: Tower token to monitor the pipeline on Tower. Default: 'random'. <!-- default set in conf/reports.config -->
+- **_params.enable_tower_**: Directory where containers have been / will be downloaded. Default: false. <!-- default set in conf/reports.config -->
+<!-- - **cactus_version**: which version of cactus to use. Default: *latest*. => To implement later!  -->
+<!-- - **cactus_dir**: Directory where cactus is installed. Default: *~/workspace/cactus*.  => should not be needed by user... or not? -->
+
+
+# Ressources   <!-- default sets in conf/ressources.config -->
+
+This part contains parameters from [Nextflow's executor scope](https://www.nextflow.io/docs/latest/config.html?highlight=queuesize#scope-executor):
+
+- **_executor.queueSize_**: How many processes are queued at a given time. Default: *100*.  
+- **_executor.$local.memory_**: Maximum total memory that will be used on the server (or local machine) during the run. Default: *80 GB*.  
+- **_executor.$local.cpus_**: Maximum total number of CPUs that will be used on the server (or local machine) during the run. Default: *50*.  
+
+
+# Output Files
+
+- **_params.res_dir_**: Name of the directory where results will be saved. Default: 'results/Cactus_v${cactus_version}'.  <!-- default set in conf/version.config -->
+- **_params.pub_mode_**: Type of publication mode to use. Options available [here](https://www.nextflow.io/docs/latest/process.html#publishdir). Default: 'link'. <!-- default set in conf/version.config -->
+- **_save_fastq_type_**: Saving only the last, none or all fastq files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
+- **_save_bam_type_**: Saving only the last, none or all bam files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
+- **_save_bed_type_**: Saving only the last, none or all bed files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
+- **_save_1bp_bam_**: Saving the 1 base pair reads after all filtering steps and tn5-shift adjustement
+- adjustment the ATAC-shift. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
+- **_params.report_dir_**: Directory where reports will be saved. Default: '${params.res_dir}/Run_Info/${params.current_date}'. <!-- default set in conf/reports.config -->
+
+
+# Cache <!-- default set in conf/version.config -->
+
+- **_params.resume_**: Enable or disable resuming of the run with the current cache. Default: true.  
+- **_params.cache_**: Type of cache to make. Options avalable [here](https://www.nextflow.io/docs/latest/process.html?highlight=deep#cache). Default: 'deep'.  
+
+
+# Experiment <!-- default sets in conf/run_base.config -->
+
+- **_params.specie_**: specie under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory (no default).
+<!-- - **_params.experiment_types_**: *both, atac or mRNA*.  
+To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or both kind of data. -->
+- **_params.use_input_control_**: Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind, and for some quality control analysis steps. Default: false.  
+
+
+# Processes    <!-- run this script: docs/util/get_all_parameters.sh and then use this file: docs/3_Inputs/all_config_entries.txt ; note that the last .md files need manual input for the default since they span multiple lines (for Figures.md and Tables.md)-->
+
+
+## 1. Preprocessing: ATAC_peaks
+
+- **_params.macs2__qvalue_**: q-value (minimum FDR) cutoff to call significant regions. Default: '5e-2'.
+- **_params.input_control_overlap_portion_**: threshold of the fraction of overlapping input control peaks to remove peaks. The percentage is regarding the treatment/sample peaks, not the input control peaks. Default: 0.2.
+- **_params.design__regions_to_remove_**: path to the file containing the regions to remove (see the [Design](/docs/3_Inputs/Design.md) section for details). Default: 'Design/regions_to_remove.tsv'.
+- **_params.do_saturation_curve_**: enable or disable this process. Default: true.
+- **_params.do_raw_peak_annotation_**: to enable or disable this process. Default: true.
+- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+
+
+## 1. Preprocessing: ATAC_reads
+
+- **_params.pigz__nb_threads_**: number of threads used for parallel compression. Default: 6.
+- **_params.bowtie2__nb_threads_**: number of threads used by Bowtie2. Default: 6.
+- **_params.sam_MAPQ_threshold_**: MAPQ threshold. Default: 30.
+- **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
+- **_params.fastqc__nb_threads_**: number of threads used by FastQC. Default: 2.
+- **_params.do_bigwig_**: enable or disable this process. Default: true.
+- **_params.deeptools__binsize_bigwig_creation_**: size of the bins in the bigwig file. Smaller values increase computation time. Default: 10000.
+- **_params.deeptools__nb_threads_**: number of threads used by DeepTools. Default: 6.
+- **_params.deeptools__nb_of_1_bp_samples_**: number of 1 bp sites to sample for the coverage plots. Default: 10000.
+- **_params.deeptools__normalization_method_**: normalization method to use when creating BigWig files. See [here]](https://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html) for options. Default: 'none'.
+- **_params.deeptools__binsize_bigwig_creation_**: size of the bins in the coverage matrix. Smaller values increase computation time. Default: 10000.
+- **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
+- **_params.nb_sampled_aligned_reads_**: Number of aligned reads to sample. Default: 1000000.
+- **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
+- **_params.nb_sampled_trimmed_reads_**: Number of trimmed reads to sample. Default: 1000000.
+- **_params.botwie2__nb_threads_**: number of threads used by Bowtie2. Default: 6.
+
+
+## 1. Preprocessing: mRNA
+
+- **_params.nb_threads_kallisto_**: number of threads used by kallisto. Default: 6.
+- **_params.bootstrap_**: Number of bootstrap samples. Default: '100'.
+- **_params.fragment_len_**: Estimated average fragment length. For single end only. Default: '180'.
+- **_params.fragment_sd_**: Estimated standard deviation of fragment length. For single end only. Default: '20'.
+- **_params.nb_threads_botwie2_**: number of threads used by Bowtie2. Default: 6.
+- **_params.nb_threads_fastqc_**: number of threads used by FastQC. Default: 2.
+
+
+## 2. Differential Abundance: DA_ATAC
+
+- **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 1.
+- **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 'DBA_DESEQ2'.
+- **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. See the [DiffBind::dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) for details. Default: false.
+- **_params.diffbind__min_count_**: Minimum read count value. Any interval with fewer than this many overlapping reads will be set to have this count. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for details. Default: 0.
+- **_params.diffbind__normalize_**: Normalization method to use. See the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) for options. Default: 'DBA_NORM_RLE'.
+- **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
+- **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
+
+
+## 2. Differential Abundance: DA_mRNA
+
+- **_params.sleuth_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
+- **_params.sleuth_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
+
+
+## 2. Differential Abundance: Split
+
+- **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Options: 'FDR', 'rank'. Default: 'FDR'. 
+- **_params.split__threshold_values_**: Defines the threshold cuttoff value(s). Default: [ 1.3 ].
+- **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all', 'prom', 'distNC' ].
+
+
+## 3. Enrichment: Enrichment
+
+- **_params.do_gene_set_enrichment_**: enable or disable this process. Default: true.
+- **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
+- **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis. Options: 'KEGG', 'GO_CC', 'GO_MF', 'GO_BP'. Default: ['BP', 'KEGG']. 
+- **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
+- **_params.chromatin_state_1_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
+- **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
+- **_params.do_motif_enrichment_**: enable or disable this process. Default: true.
+- **_params.homer__nb_threads_**: number of threads used by Bowtie2. Default: 6.
+- **_params.motifs_test_type_**: The test to use for motif inputs. If 'Binomial' a two-sided binomial test is performed instead of the two-sided Fischer test. Options: 'binomial' or 'fischer' (any value). Default: 'binomial'.
+
+
+## 3. Enrichment: Figures
+
+- **_params.barplots__df_plots_**: An R dataframe that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
+    - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
+    - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
+    - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
+    - **_add_number_**: Write the number count on the plots.  
+    - **_max_terms_**: Number of terms to display.  
+    - **_max_characters_**: The limit of target names length. Longer targt names are cut.   
+    - **_default parameters template_**:  
 ```
-params.references_dir       = '/home/user/workspace/cactus/references'
-singularity_containers_path = '/home/user/workspace/singularity_containers'
+barplots__df_plots = 'data.frame(
+data_type      = c("func_anno", "CHIP" , "motifs", "chrom_states", "genes_self", "peaks_self"),
+padj_threshold = c(     0.05  ,    0.05,    0.05 ,        0.05   ,      0.05   ,       0.05  ),
+signed_padj    = c(     T     ,    T   ,    T    ,        T      ,      T      ,       T     ),
+add_var        = c(    "none" ,  "none",  "none" ,      "none"   ,    "none"   ,     "none"  ),
+add_number     = c(     F     ,    F   ,    F    ,        F      ,      T      ,       T     ),
+max_terms      = c(    30     ,   30   ,   30    ,       30      ,     30      ,      30     ),
+max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,      50     )
+)'
+```
+- **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
+- **_params.heatmaps__df_plots_**: An R dataframe that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
+    - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
+    - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
+    - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
+    - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
+    - **_add_number_**: Write the number count on the plots.  
+    - **_max_characters_**: The limit of target names length. Longer targt names are cut.  
+    - **_default parameters template_**:  
+```
+heatmaps__df_plots = 'data.frame(
+  data_type       = c("func_anno",  "CHIP", "motifs", "chrom_states", "genes_self", "peaks_self"),
+  padj_threshold  = c(     0.05  ,   0.05 ,    0.05 ,        0.05   ,      0.05   ,       0.05  ),
+  up_down_pattern = c(    "UUDD" ,  "UUDD",  "UUDD" ,      "UUDD"   ,    "UUDD"   ,     "UUDD"  ),
+  signed_padj     = c(     T     ,     T  ,    T    ,        T      ,      T      ,       T     ),
+  add_var         = c(    "none" ,  "none",  "none" ,      "none"   ,    "none"   ,     "none"  ),
+  add_number      = c(     F     ,     F  ,    F    ,        F      ,      T      ,       T     ),
+  max_characters  = c(    50     ,    50  ,   50    ,       50      ,     50      ,      50     )
+  )'
+```
 
-tower {
-  accessToken = my_token
-  enabled     = true
-}
-``` 
-
-
-# List of all parameters
-
-Below are all parameters that can be set in the **_.config_** files. The different options are listed in italic, with the first one being the default parameter.
-
-## Tools
- - **cactus_version**: *latest*.  
-Indicates which version of cactus to use.
- - **cactus_dir**: *~/workspace/cactus*.  
-Directory where cactus is installed.
- - **singularity_containers_path**: *~/workspace/singularity_containers*.  
-Directory where containers are downloaded.
-
-## Ressources
-- **executor.queueSize**: *50*.  
-Maximum total number of CPUs that will be used on the server (or local machine) during the run.
-- **executor.$local.memory**: *80 GB*s.  
-Maximum total memory that will be used on the server (or local machine) during the run.
- - **nb_threads**: *6*.  
-Number of CPUs to allocate by task for various steps in the analysis (kallisto, bowtie2, homer, pigz and Deeptools).
- - **memory_picard**: *20G*.  
-Memory allocation for picard tools.
-
-## Output Files
- - **out_dir**: *results/${cactus_version}*.  
-Name of the directory where results will be saved.
- - **pub_mode**: *link, symlink, rellink, link, copy, copyNoFollow,move*.  
-Type of [publication mode](https://www.nextflow.io/docs/latest/process.html#publishdir).
-- **save_fastq_type**: *'none', 'last', 'all'*  
-Saving only the last, none or all fastq files.
-- **save_bam_type**: *'last', 'none', 'all'*  
-Saving only the last, none or all bam files.
-- **save_bed_type**: *'last', 'none', 'all'*  
-Saving only the last, none or all bed files.
-
-## Do or skip analysis
-Booleans that indicates if certain parts of the pipeline should be run or not.
- - **do_motif_enrichment**: *true, false*
- - **do_chip_enrichment**: *true, false*
- - **do_saturation_curve**: *true, false*
- - **do_raw_peak_annotation**: *true, false*
- - **do_diffbind_peak_annotatio**: *true, false*
- - **do_gene_set_enrichment**: *true, false*
- - **do_bigwig**: *true, false*
- - **do_chromatin_state**: *true, false*
-
-## Experiment
- - **specie**: *worm, fly, mouse or human*
- - **experiment_types**: *both, atac or mRNA*.  
-To indicate if the run should analyze ATAC data only, mRNA data only, or both kind of data.
-- **use_input_control**: *false, true*.  
-Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind.
-
-## ATAC reads analysis
-- **sam_MAPQ_threshold**: *30*. MAPQ threshold for filtering low quality reads.
-- **binsize_bigwig_creation**: *10*. Size of the bins for the creation of the bigwig files with DeepTools. Larger numbers will make the analysis faster but the resolution smaller. Bins of 10000 can be used for a fast analysis.
-- **binsize_bigwig_correlation**: *10000*. Size of the bins for the correlation analysis with DeepTools.
-- **nb_1bp_site_to_sample_for_coverage**: *10000*. Number of sites to sample for the coverage plots with DeepTools.
-- **nb_sampled_reads**: *1000000*. Number of reads to sample for the resampling analysis.
-- **macs2_qvalue**: *5e-2*. Number of reads to sample for the resampling analysis.
-- **macs2_mappable_genome_size**: *9e7*. Number of reads to sample for the resampling analysis.
+- **_params.heatmaps__df_filter_terms_**: An R data.frame that contains the parameters to use to filter the `CHIP`, `motifs`, `func_anno` enrichment categories. The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
+  - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.  
+  - **_n_shared_**: Number of shared terms to select. A threshold is defined with the **_threshold_type_** (options: "quantile" or "fixed" (i.e. pvalues)) and the **_threshold_value_** parameters. For each term, the number of `COMP_FC` that are below the threshold is counted. Terms are sorted by this count (with ties sorted randomly) and the top *n_shared* terms are selected.  
+  - **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
+  - **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
+  - **_default parameters template_**: 
+```
+heatmaps__df_plots = 'data.frame(
+                data_type        = c("func_anno",  "CHIP"   , "motifs"   ),
+                remove_similar   = c(     F     ,     T     ,    T       ),
+                remove_similar_n = c(     2     ,     2     ,    2       ),
+                n_shared         = c(     6     ,     8     ,    8       ),
+                threshold_type   = c( "fixed"   , "quantile",  "quantile"),
+                threshold_value  = c(     0.05  ,     0.25  ,    0.25    ),
+                n_unique         = c(    20     ,    25     ,   25       ),
+                n_total          = c(    26     ,    40     ,   40       )
+                )'
+```
 
 
-//// genes quantification
-fragment_len  = '180'
-fragment_sd   = '20'
-bootstrap     = '100'
+## 3. Enrichment: Tables
 
-//// promoters annotation
-promoter_up_macs2_peaks      = 1500
-promoter_down_macs2_peaks    = 500
-promoter_up_diffbind_peaks   = 1500
-promoter_down_diffbind_peaks = 500
-
-//// volcano and MA plots
-fdr_threshold_diffbind_plots = 0.05
-fdr_threshold_sleuth_plots   = 0.05
-
-//// splitting DA results in subset
-split__threshold_type   = 'FDR'  // options: 'FDR' or 'rank'
-split__threshold_values = [ 1.3 ] // rank cuttoff or -log10 FDR thresholds (here: -log10(0.05) ~= 1.3)
-split__fold_changes     = [ 'up', 'down' ] // For now this argument should not be touched. But an 'all' argument may appear in the future
-split__peak_assignment  = [ 'all', 'prom', 'distNC' ] // this argument can be any of: 'all', '8kb', '3kb', '2u1d', 'TSS', 'genProm', 'genic', 'prom' or 'distNC'
-
-//// filtering DA results with too few entries
-min_entries_DA_bed        = 2
-min_entries_DA_genes_sets = 1
-
-//// functional annotation databases; possible values: BP, CC, MF, KEGG
-params.func_anno_databases = ['BP', 'KEGG']
-params.use_nda_as_bg_for_func_anno = 'F'
-
-// motifs test can be eitheir hypergeometric (default, any value) or binomial
-motifs_test_type = 'binomial'
-
-// threshold for saving enrichment results (so 1 allows to save all results)
-fdr_filter_tables =       [  1,    1, 1,     1,             1,            1,          1,              1,    1,             1 ]
-fdr_filter_tables_names = [ 'mRNA_detailed', 'ATAC_detailed', 'res_simple', 'res_filter', 'func_anno', 'genes_self', 'peaks_self', 'chrom_states', 'CHIP', 'motifs' ]
-
-//// heatmaps and barplots
-add_var_to_plot         = 'L2OR' // can be either: 'Log2OddRatios', 'loglog_pvalue' or 'DA_overlap_count'
-threshold_plot_adj_pval = 0.05   // at least one enrichment should have a pvalue lower than that otherwise no plot will be made
-up_down_pattern         = 'UUDD' //  can be either: UDUD (up, down, up, down...) or UUDD (up, up, ..., down, down ...) 
-
-// table output: csv or excel
-// params.tables_output_type = 'excel'
-params.save_tables_as_csv   = false
-params.save_tables_as_excel = true
-// params.save_merged_tables = true
-// params.save_individual_tables = true // => these two parameters should be implemented later
-
-params.excel_add_conditional_formatting = 'T'
-params.excel_max_width = 40
+- **_params.v_fdr_thresholds_**: Vector of thresholds for filtering tables. For each data type, entries with FDR above this threhold will be removed. Default: 
+        'c( mRNA_detailed = 1, ATAC_detailed = 1,
+            res_simple = 1, res_filter = 1, func_anno = 1,
+            genes_self = 1, peaks_self = 1, 
+            chrom_states = 1, CHIP = 1, motifs = 1
+            )'.  
+- **_params.excel__add_conditional_formatting_**: To enable or disable conditional coloring. Default: 'TRUE'.
+- **_params.excel__max_width_**: Maximum column width. Default: 40.
 
 
-nb_threads_pigz       = 6
-nb_threads_botwie2    = 6
-nb_threads_deeptools  = 6
-nb_threads_kallisto   = 6
-nb_threads_homer      = 6

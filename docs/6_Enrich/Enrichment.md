@@ -92,7 +92,7 @@ The input genomic regions are:
  - genomic regions of subsets from the splitting process -> for computing self overlap of genomic regions subsets within the experiment.
 
 ### Parameters
-- **_params.chromatin_state_1_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. No default.
+- **_params.chromatin_state_1_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
 - **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
 
 

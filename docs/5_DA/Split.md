@@ -40,7 +40,7 @@ In additions, two types of tables are produced: res_simple and res_filter. These
   - res_filter: only results passing filters are reported and each passed filter is on a different line (so 'all' and 'prom' would be on two different lines in the previous example). This file should be smaller as it exclude all the non-significant results.
 
 ### Parameters
-- **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Default: 'FDR'. Options: 'FDR', 'rank'.
+- **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Options: 'FDR', 'rank'. Default: 'FDR'. 
 - **_params.split__threshold_values_**: Defines the threshold cuttoff value(s). Default: [ 1.3 ].
 - **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all', 'prom', 'distNC' ].
 
