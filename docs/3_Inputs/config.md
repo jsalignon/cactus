@@ -30,7 +30,7 @@ In addition, it is recommended to set up a [NextFlow Tower token](https://www.ne
 Here are the mandatory and recommended optional global parameters: 
 - **_params.references_dir_**: Directory where references have been downloaded. Mandatory (no default).
 - **_params.singularity_images_dir_**: Directory where containers have been / will be downloaded. Mandatory (no default).
-- **_params.tower_token_**: Tower token to monitor the pipeline on Tower. Default: 'random'. <!-- default set in conf/reports.config -->
+- **_params.tower_token_**: Tower token to monitor the pipeline on Tower. Default: ''. <!-- default set in conf/reports.config -->
 - **_params.enable_tower_**: Directory where containers have been / will be downloaded. Default: false. <!-- default set in conf/reports.config -->
 <!-- - **cactus_version**: which version of cactus to use. Default: *latest*. => To implement later!  -->
 <!-- - **cactus_dir**: Directory where cactus is installed. Default: *~/workspace/cactus*.  => should not be needed by user... or not? -->
@@ -71,7 +71,7 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
 - **_params.use_input_control_**: Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind, and for some quality control analysis steps. Default: false.  
 
 
-# Processes    <!-- run this script: docs/util/get_all_parameters.sh and then use this file: docs/3_Inputs/all_config_entries.txt ; note that the last .md files need manual input for the default since they span multiple lines (for Figures.md and Tables.md)-->
+# Processes    <!-- run this script: docs/util/get_all_parameters.sh and then use this file: docs/3_Inputs/all_config_entries.txt ; note that the last .md files need manual input for the default since they span multiple lines (for Figures.md and Tables.md) ; not also that the macs promoter parameters are duplicated 3 times and need to be removed ; also the memory_picard_ and deeptools__binsize_bigwig_creation_ parameters are duplicated and should be cleaned-->
 
 
 ## 1. Preprocessing: ATAC_peaks
@@ -81,10 +81,6 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
 - **_params.design__regions_to_remove_**: path to the file containing the regions to remove (see the [Design](/docs/3_Inputs/Design.md) section for details). Default: 'Design/regions_to_remove.tsv'.
 - **_params.do_saturation_curve_**: enable or disable this process. Default: true.
 - **_params.do_raw_peak_annotation_**: to enable or disable this process. Default: true.
-- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
-- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
-- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
-- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 - **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
 - **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 
@@ -101,10 +97,7 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
 - **_params.deeptools__nb_threads_**: number of threads used by DeepTools. Default: 6.
 - **_params.deeptools__nb_of_1_bp_samples_**: number of 1 bp sites to sample for the coverage plots. Default: 10000.
 - **_params.deeptools__normalization_method_**: normalization method to use when creating BigWig files. See [here]](https://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html) for options. Default: 'none'.
-- **_params.deeptools__binsize_bigwig_creation_**: size of the bins in the coverage matrix. Smaller values increase computation time. Default: 10000.
-- **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
 - **_params.nb_sampled_aligned_reads_**: Number of aligned reads to sample. Default: 1000000.
-- **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
 - **_params.nb_sampled_trimmed_reads_**: Number of trimmed reads to sample. Default: 1000000.
 - **_params.botwie2__nb_threads_**: number of threads used by Bowtie2. Default: 6.
 
