@@ -14,18 +14,18 @@
 ![](/docs/images/3_Inputs.png "Inputs")
 
 This section covers the inputs files needed by Cactus. There are 4 kind of inputs files: 
- - [data](/docs/3_Inputs/Inputs_data.md): raw *.fastq.gz* sequencing output files
- - [design](/docs/3_Inputs/Design.md): a set of *.tsv* files to indicates how fastq files relate to samples, conditions, comparisons to perform and groups of comparisons to plot together in heatmaps
- - [configuration](/docs/3_Inputs/Configuration.md): two *.config* files that indicates the custom parameters of cactus to use for the current analysis run
- - [configuration](/docs/3_Inputs/Configuration.md): the *.yml* input file to a cactus call
+ - [*.fastq.gz* files](/docs/3_Inputs/fastq.md): raw sequencing output files
+ - [*.tsv* files](/docs/3_Inputs/tsv.md): to indicate the design of the experiment. That is how fastq files relate to samples, conditions, comparisons to perform and groups of comparisons to plot together in the heatmaps
+ - [*.config* files](/docs/3_Inputs/Configuration.md): to indicate the parameters of cactus to use for the current analysis run
+ - [*.yml* file](/docs/3_Inputs/Configuration.md): the input of a cactus call
  
-Here is an overview of the input files at the run directory folder:
+Here is an example of input files at the run directory folder:
 <!-- tree -I "results|work"  (worm folder; then editing the output manually)-->
 ```
 .
 ├── conf
 │   └── run.config
-├── data
+├── fastq
 │   ├── atac
 │   │   ├── sample_1000K_reads_atac_SRX2333004_SRR5000684_R1.fastq.gz
 │   │   ├── sample_1000K_reads_atac_SRX2333004_SRR5000684_R2.fastq.gz
@@ -35,16 +35,18 @@ Here is an overview of the input files at the run directory folder:
 │       ├── sample_50K_reads_mrna_SRX3029112_SRR5860412.fastq.gz
 │       ├── sample_50K_reads_mrna_SRX3029113_SRR5860413.fastq.gz
 │       ├── ...
-└── design
-    ├── atac_fastq.tsv
-    ├── comparisons.tsv
-    ├── groups.tsv
-    ├── mrna_fastq.tsv
-    └── regions_to_remove.tsv
+└── tsv
+│   ├── atac_fastq.tsv
+│   ├── comparisons.tsv
+│   ├── groups.tsv
+│   ├── mrna_fastq.tsv
+│   └── regions_to_remove.tsv
+└── yml
+    ├── test_run.yml
 ```
 
->**_Note_:** There is an additional and optional global.config file that is located in the cactus folder and indicate the global configuration of cactus for all runs of the user.
+>**_Note_:** There is an additional .cactus.config file that is located in the root folder and that indicates the global configuration of cactus for all runs of the user.  
 
->**_Note_:** Input data files do not necessarily be located at the same place as the analysis directory as shown in this directory tree.
+>**_Note_:** Directory structure can be changed arbitrarily as files path are specified in the *.yml* file.  
 
->**_Note_:** The Cactus run will create two additional directories: the results directory and the work directory (a temporary directory created by Nextflow)
+>**_Note_:** The Cactus run will create two additional directories: the results directory and the work directory (a temporary directory created by Nextflow).  
