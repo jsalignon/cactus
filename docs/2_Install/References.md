@@ -10,7 +10,7 @@
 [](END_OF_MENU)
 
 
-# Menu
+## Menu
 
 - [Introduction](#Introduction)
 - [Downloading references](#Downloading-references)
