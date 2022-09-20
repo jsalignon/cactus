@@ -13,7 +13,7 @@
 
 ![](/docs/images/5_DA.png "Differential Abundance")
 
-This section covers Differential Abundance Analysis (DAA), that is differential binding analysis for ATAC-Seq (with [DiffBind](https://doi.org/10.1038/nature10730)) and Differential Gene Expression Analysis for mRNA-Seq (with [sleuth](http://dx.doi.org/10.1038/nmeth.4324)), as well as splitting the DAA results in subsets according to specified filters.
+This section covers Differential Abundance Analysis (DAA), that is differential binding analysis for [ATAC-Seq](/docs/5_DA/DA_ATAC.md) (with [DiffBind](https://doi.org/10.1038/nature10730)) and Differential Gene Expression Analysis for [mRNA-Seq](/docs/5_DA/DA_mRNA.md) (with [sleuth](http://dx.doi.org/10.1038/nmeth.4324)), as well as [splitting](/docs/5_DA/Split.md) the DAA results in subsets according to specified filters.
 
 DAA results are processed in a standardized way to produce homogeneous plots (PCA and volcano) and tables (csv and formatted excel) for the two data types.
 
