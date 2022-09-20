@@ -10,6 +10,18 @@
 [](END_OF_MENU)
 
 
+# Menu
+
+- [Introduction](#Introduction)
+- [Downloading references](#Downloading-references)
+- [Structure of the references folders](#Structure-of-the-references-folders)
+- [Pipeline to get references](#Pipeline-to-get-references)
+- [CHIP-Seq](#CHIP-Seq)
+  - [Worm](#Worm)
+  - [Fly](#Fly)
+  - [Mouse](#Mouse)
+  - [Human](#Human)
+
 
 ## Introduction
 <!-- 
