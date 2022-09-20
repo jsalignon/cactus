@@ -3,9 +3,8 @@
 specie="mouse"
 n_reads_atac=$1
 n_reads_mrna=$2
-run_config_file=$specie/conf/run.config
 prepro_dir="preprocessing/${specie}"
-source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
+source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 
 
 # run.yml

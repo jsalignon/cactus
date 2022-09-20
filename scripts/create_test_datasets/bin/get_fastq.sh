@@ -8,7 +8,7 @@ fastq_dir=${prepro_dir}/fastq
 source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
 
 # making directory structure
-mkdir -p $specie/data/mrna $specie/data/atac $specie/conf $specie/design
+mkdir -p $specie/data/mrna $specie/data/atac $specie/parameters $specie/design
 
 # cleaning up the fastq folder
 if [ -d $fastq_dir ]; then rm -r $fastq_dir ; fi

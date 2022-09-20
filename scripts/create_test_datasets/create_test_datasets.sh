@@ -125,7 +125,7 @@ dataset_name=application_notes
 
 find worm -name conf
 cp -r worm/design 
-mkdir -p $dataset_name/data/mrna $dataset_name/data/atac $dataset_name/conf $dataset_name/design
+mkdir -p $dataset_name/data/mrna $dataset_name/data/atac $dataset_name/parameters $dataset_name/design
 
 ##############################################
 ### The end
@@ -145,14 +145,14 @@ grep -v md5 preprocessing/report/test_datasets_sizes.txt
 ##############################################
 
 specie="worm" ; n_reads_atac=200 ; n_reads_mrna=50
-source $create_test_datasets_bin_dir/3__make_design_files__worm.sh $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads_atac $n_reads_mrna
 
 specie="fly" ; n_reads_atac=300 ; n_reads_mrna=100
-source $create_test_datasets_bin_dir/3__make_design_files__worm.sh $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads_atac $n_reads_mrna
 
 specie="mouse" ; n_reads_atac=6000 ; n_reads_mrna=150
-source $create_test_datasets_bin_dir/3__make_design_files__worm.sh $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads_atac $n_reads_mrna
 
 specie="human" ; n_reads_atac=6000 ; n_reads_mrna=250
-source $create_test_datasets_bin_dir/3__make_design_files__worm.sh $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads_atac $n_reads_mrna
 
