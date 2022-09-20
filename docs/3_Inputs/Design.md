@@ -14,12 +14,12 @@ In this section, we describe how users can define the design of their experiment
 
 >**_Note_:** Fields in all tsv design files should be separated by a space or a tab. 
 
+>**_Note_:** The file name is specified in the yml input file via the params.design__* parameters.
 
 
-## atac_fastq.tsv
+## ATAC fastq
 
-
-**Description:** fastq files for ATAC-Seq. 
+**Description:** fastq files for ATAC-Seq.
 
 **Fields:**
  - *sample_id*: The sample_id is a combination of a condition_id and a replicate_number, united with an underscore. Note that condition_ids can only contain alphanumerical characters (A-Z, a-z and 0-9), and cannot contain special characters (such as underscore). 
@@ -40,13 +40,13 @@ spt16_2 data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
 
 
 
-## mrna_fastq.tsv
+## mRNA fastq
 
 **Description:** fastq files for mRNA-Seq. Same formatting as for atac_fastq.tsv.
 
 
 
-## regions_to_remove.tsv
+## Regions to remove
 
 **Description:** regions to filter out during ATAC-Seq peaks preprocessing. Peaks that overlap with regions defined in this file will be excluded from the analysis. This is particularly useful in experiments involving RNA interference, as this is known to induce a very strong sequencing signal at the repressed locus. 
 
@@ -68,7 +68,7 @@ n301b170 nurf301->3L:233,926-246,912
 
 
 
-## comparisons.tsv
+## Comparisons
 
 **Description:** pairs of conditions to compare during Differential Abundance Analysis.
 
@@ -85,7 +85,7 @@ hmg4 spt16
 
 
 
-## groups.tsv
+## Groups
 **Description:** groups of comparisons to plot together on the heatmaps plots.
 
 **Fields:**

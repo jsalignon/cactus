@@ -10,6 +10,28 @@
 [](END_OF_MENU)
 
 
+# Menu
+
+- [Configuration files](#Configuration-files)
+- [Mandatory parameters](#Mandatory-parameters)
+- [Global configuration file](#Global-configuration-file)
+- [Design files](#Design-files)
+- [Ressources](#Ressources)
+- [Mandatory parameters](#Mandatory-parameters)
+- [Output Files](#Output-Files)
+- [Cache](#Cache)
+- [Experiment](#Experiment)
+- [Processes](#Processes)
+	- [1. Preprocessing: ATAC_peaks](#1.-Preprocessing:-ATAC_peaks)
+	- [1. Preprocessing: ATAC_reads](#1.-Preprocessing:-ATAC_reads)
+	- [1. Preprocessing: mRNA](#1.-Preprocessing:-mRNA)
+	- [2. Differential Abundance: DA_ATAC](2.-Differential-Abundance:-DA_ATAC)
+	- [2. Differential Abundance: DA_mRNA](2.-Differential-Abundance:-DA_mRNA)
+	- [2. Differential Abundance: Split](2.-Differential-Abundance:-Split)
+	- [3. Enrichment: Enrichment](3.-Enrichment:-Enrichment)
+	- [3. Enrichment: Figures](3.-Enrichment:-Figures)
+	- [3. Enrichment: Tables](3.-Enrichment:-Tables)
+
 
 # Configuration files
 
@@ -22,11 +44,15 @@ Parameters can be passed to two different configuration files:
 
 # Mandatory parameters
 
-There are 4 mandatory parameters for a cactus run (without defaults):
 - **_params.references_dir_**: Directory where references have been downloaded. 
 - **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before).
 - **_params.specie_**: specie under study. Options: 'worm', 'fly', 'mouse', 'human'.  
 - **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.specie}/encode_chromatin_states_metadata.csv` file.
+- **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq).
+- **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq).
+- **_params.design__comparisons_**: path to the [comparisons design file](/docs/3_Inputs/Design.md#Comparisons).
+- **_params.design__regions_to_remove_**: path to the [regions to remove design file](/docs/3_Inputs/Design.md#Regions-to-remove).
+- **_params.design__groups_**: path to the [groups design file](/docs/3_Inputs/Design.md#Groups).
 
 
 # Global configuration file
@@ -44,6 +70,15 @@ Here are the recomended mandatory and optional parameters to put in the *~/.cact
 - **_params.enable_tower_**: Directory where containers have been / will be downloaded. Default: false. <!-- default set in conf/reports.config -->
 <!-- - **cactus_version**: which version of cactus to use. Default: *latest*. => To implement later!  -->
 <!-- - **cactus_dir**: Directory where cactus is installed. Default: *~/workspace/cactus*.  => should not be needed by user... or not? -->
+
+
+# Design files
+
+- **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq). Mandatory (no default).
+- **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq). Mandatory (no default).
+- **_params.design__comparisons_**: path to the [comparisons design file](/docs/3_Inputs/Design.md#Comparisons). Mandatory (no default).
+- **_params.design__regions_to_remove_**: path to the [regions to remove design file](/docs/3_Inputs/Design.md#Regions-to-remove). Mandatory (no default).
+- **_params.design__groups_**: path to the [groups design file](/docs/3_Inputs/Design.md#Groups). Mandatory (no default).
 
 
 # Ressources   <!-- default sets in conf/ressources.config -->
