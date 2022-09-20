@@ -144,7 +144,7 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
 - **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
 - **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis. Options: 'KEGG', 'GO_CC', 'GO_MF', 'GO_BP'. Default: ['BP', 'KEGG']. 
 - **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
-- **_params.chromatin_state_1_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
+- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
 - **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
 - **_params.do_motif_enrichment_**: enable or disable this process. Default: true.
 - **_params.homer__nb_threads_**: number of threads used by Bowtie2. Default: 6.

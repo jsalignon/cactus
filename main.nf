@@ -94,8 +94,9 @@ save_all_bed    = params.save_bed_type   == 'all' ?  true : false
 save_last_fastq = params.save_fastq_type in ['last', 'all'] ?  true : false
 save_last_bam   = params.save_bam_type   in ['last', 'all'] ?  true : false
 save_last_bed   = params.save_bed_type   in ['last', 'all'] ?  true : false
-do_atac = params.experiment_types in ['atac', 'both']
-do_mRNA = params.experiment_types in ['mRNA', 'both']
+
+do_atac = params.design__atac_fastq : true : false
+do_mRNA = params.design__mrna_fastq : true : false
 
 
 //// Creating empty channels
@@ -118,7 +119,7 @@ static def returnR2ifExists(r2files) {
 // MRNA_reads_for_merging = Channel.create() // not yet implemented
 MRNA_reads_for_kallisto = Channel.create()
 
-fastq_files = file("design/mrna_fastq.tsv")
+fastq_files = file(params.design__mrna_fastq)
 Channel
   .from(fastq_files.readLines())
   .map{ it.split() }
@@ -139,7 +140,7 @@ Channel
 ATAC_reads_for_merging = Channel.create()
 ATAC_reads_for_trimming_1 = Channel.create()
 
-fastq_files = file("design/atac_fastq.tsv")
+fastq_files = file(params.design__atac_fastq)
 Channel
   .from(fastq_files.readLines())
   .map{ it.split() }
@@ -1636,7 +1637,7 @@ Peaks_without_blacklist_2.without_input_control
 
 //// DIFFENRENTIAL BINDING
  
-comparisons_files = file("design/comparisons.tsv")
+comparisons_files = file(params.design__comparisons)
 Channel
   .from(comparisons_files.readLines())
   .map {
@@ -1656,7 +1657,7 @@ Reads_in_bam_files_for_diffbind
   .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
   .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
 
-regions_to_remove = Channel.fromPath( 'design/regions_to_remove.tsv' )
+regions_to_remove = Channel.fromPath(params.design__regions_to_remove)
 
 comparisons_files_for_merging
   .combine(reads_and_peaks_1)
@@ -3809,7 +3810,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_and_down_for_merging_pdf
 //// importing groups of comparisons to plot together on the overlap matrix and 
 // the heatmaps
 
-comparisons_grouped = file("design/groups.tsv")
+comparisons_grouped = file(params.design__groups)
 Channel
   .from( comparisons_grouped.readLines() )
   .map { it.split() }
