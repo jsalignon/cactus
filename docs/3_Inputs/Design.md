@@ -14,7 +14,7 @@ In this section, we describe how users can define the design of their experiment
 
 >**_Note_:** Fields in all tsv design files should be separated by a space or a tab. 
 
->**_Note_:** The file name is specified in the yml input file via the params.design__* parameters.
+>**_Note_:** The file name is specified in the yml input file via the *params.design__\** parameters.
 
 
 ## ATAC fastq
@@ -42,7 +42,7 @@ spt16_2 data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
 
 ## mRNA fastq
 
-**Description:** fastq files for mRNA-Seq. Same formatting as for atac_fastq.tsv.
+**Description:** fastq files for mRNA-Seq. Same formatting as for [ATAC fastq](#ATAC-fastq).
 
 
 
