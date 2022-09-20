@@ -8,15 +8,18 @@ prepro_dir="preprocessing/${specie}"
 source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
 
 
-# run.config
-cat > ${specie}/conf/run.config <<EOL
-params {
-  specie            = 'human'
-  chip_ontology     = 'cell_type.fibroblast'
-  chromatin_state   = 'ENCFF941SVR'
-  threshold_type_for_splitting_subsets   = 'rank' 
-  threshold_values_for_splitting_subsets = [ 200, 1000 ]
-}
+# run.yml
+cat > ${specie}/parameters/run.yml << EOL
+specie                                 : 'human'
+chromatin_state                        : 'ENCFF941SVR'
+chip_ontology                          : 'cell_type.fibroblast'
+threshold_type_for_splitting_subsets   : 'rank' 
+threshold_values_for_splitting_subsets : [ 200, 1000 ]
+design__mrna_fastq                     : 'design/mrna_fastq.tsv'
+design__atac_fastq                     : 'design/atac_fastq.tsv'
+design__comparisons                    : 'design/comparisons.tsv'
+design__regions_to_remove              : 'design/regions_to_remove.tsv'
+design__groups                         : 'design/groups.tsv'
 EOL
 
 ## details on the cell line:
@@ -70,13 +73,7 @@ ssrp1 ssrp1->chr11:57,325,986-57,335,892
 supt16h supt16h->chr14:21,351,476-21,384,019
 EOL
 
-
-# replacing spaces by tabs in all tsv files
-tsv_files=$(ls ${specie}/design/*.tsv)
-for tsv_file in ${tsv_files[@]}
-do
-  awk -i inplace -v OFS="\t" '$1=$1' $tsv_file
-done
-
-
 replace_spaces_by_tabs_in_the_design_tsv_files $specie
+
+
+

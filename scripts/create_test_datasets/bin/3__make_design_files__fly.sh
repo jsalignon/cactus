@@ -8,14 +8,17 @@ prepro_dir="preprocessing/${specie}"
 source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
 
 
-# run.config
-cat > ${specie}/conf/run.config <<EOL
-params {
-  specie            = 'fly'
-  chromatin_state   = 'iHMM.M1K16.fly_L3'
-  threshold_type_for_splitting_subsets   = 'rank' 
-  threshold_values_for_splitting_subsets = [ 200, 1000 ]
-}
+# run.yml
+cat > ${specie}/parameters/run.yml << EOL
+specie                                 : 'fly'
+chromatin_state                        : 'iHMM.M1K16.fly_L3'
+threshold_type_for_splitting_subsets   : 'rank' 
+threshold_values_for_splitting_subsets : [ 200, 1000 ]
+design__mrna_fastq                     : 'design/mrna_fastq.tsv'
+design__atac_fastq                     : 'design/atac_fastq.tsv'
+design__comparisons                    : 'design/comparisons.tsv'
+design__regions_to_remove              : 'design/regions_to_remove.tsv'
+design__groups                         : 'design/groups.tsv'
 EOL
 
 # atac_fastq.tsv and mrna_fastq.tsv
@@ -55,30 +58,6 @@ b170 bap170->2R:6,636,512-6,642,358
 n301 nurf301->3L:233,926-246,912
 n301b170 bap170->2R:6,636,512-6,642,358
 n301b170 nurf301->3L:233,926-246,912
-EOL
-
-
-# replacing spaces by tabs in all tsv files
-tsv_files=$(ls ${specie}/design/*.tsv)
-for tsv_file in ${tsv_files[@]}
-do
-  awk -i inplace -v OFS="\t" '$1=$1' $tsv_file
-done
-
-
-cat > ${specie}/yml/run.yml << EOL
-specie                                 : 'worm'
-use_input_control                      : false
-save_bed_type                          : 'all'
-chip_ontology                          : 'all'
-chromatin_state                        : 'iHMM.M1K16.worm_L3'
-threshold_type_for_splitting_subsets   : 'rank' 
-threshold_values_for_splitting_subsets : [ 200, 1000 ]
-design__mrna_fastq                     : 'design/mrna_fastq.tsv'
-design__atac_fastq                     : 'design/atac_fastq.tsv'
-design__comparisons                    : 'design/comparisons.tsv'
-design__regions_to_remove              : 'design/regions_to_remove.tsv'
-design__groups                         : 'design/groups.tsv'
 EOL
 
 

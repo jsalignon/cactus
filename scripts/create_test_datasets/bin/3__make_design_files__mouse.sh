@@ -8,14 +8,17 @@ prepro_dir="preprocessing/${specie}"
 source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
 
 
-# run.config
-cat > ${specie}/conf/run.config <<EOL
-params {
-  specie            = 'mouse'
-  chromatin_state   = 'ENCFF809HLK'
-  threshold_type_for_splitting_subsets   = 'rank' 
-  threshold_values_for_splitting_subsets = [ 200, 1000 ]
-}
+# run.yml
+cat > ${specie}/parameters/run.yml << EOL
+specie                                 : 'mouse'
+chromatin_state                        : 'ENCFF809HLK'
+threshold_type_for_splitting_subsets   : 'rank' 
+threshold_values_for_splitting_subsets : [ 200, 1000 ]
+design__mrna_fastq                     : 'design/mrna_fastq.tsv'
+design__atac_fastq                     : 'design/atac_fastq.tsv'
+design__comparisons                    : 'design/comparisons.tsv'
+design__regions_to_remove              : 'design/regions_to_remove.tsv'
+design__groups                         : 'design/groups.tsv'
 EOL
 
 # ENCFF809HLK	mm10	ChromHMM 18 state model for kidney (postnatal 0 days), mesoderm,	excretory system,	mouse
