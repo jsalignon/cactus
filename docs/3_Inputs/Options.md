@@ -81,7 +81,8 @@ Here are the recomended mandatory and optional parameters to put in the *~/.cact
 - **_params.design__groups_**: path to the [groups design file](/docs/3_Inputs/Design.md#Groups). Mandatory (no default).
 
 
-# Ressources   <!-- default sets in conf/ressources.config -->
+# Ressources   
+<!-- default sets in conf/ressources.config -->
 
 This part contains parameters from [Nextflow's executor scope](https://www.nextflow.io/docs/latest/config.html?highlight=queuesize#scope-executor):
 
@@ -102,13 +103,15 @@ This part contains parameters from [Nextflow's executor scope](https://www.nextf
 - **_params.report_dir_**: Directory where reports will be saved. Default: '${params.res_dir}/Run_Info/${params.current_date}'. <!-- default set in conf/reports.config -->
 
 
-# Cache <!-- default set in conf/version.config -->
+# Cache 
+<!-- default set in conf/version.config -->
 
 - **_params.resume_**: Enable or disable resuming of the run with the current cache. Default: true.  
 - **_params.cache_**: Type of cache to make. Options avalable [here](https://www.nextflow.io/docs/latest/process.html?highlight=deep#cache). Default: 'deep'.  
 
 
-# Experiment <!-- default sets in conf/run_base.config -->
+# Experiment 
+<!-- default sets in conf/run_base.config -->
 
 - **_params.specie_**: specie under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory (no default).
 <!-- - **_params.experiment_types_**: *both, atac or mRNA*.  
@@ -116,7 +119,8 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
 - **_params.use_input_control_**: Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind, and for some quality control analysis steps. Default: false.  
 
 
-# Processes    <!-- run this script: docs/util/get_all_parameters.sh and then use this file: docs/3_Inputs/all_config_entries.txt ; note that the last .md files need manual input for the default since they span multiple lines (for Figures.md and Tables.md) ; not also that the macs promoter parameters are duplicated 3 times and need to be removed ; also the memory_picard_ and deeptools__binsize_bigwig_creation_ parameters are duplicated and should be cleaned-->
+# Processes    
+<!-- run this script: docs/util/get_all_parameters.sh and then use this file: docs/3_Inputs/all_config_entries.txt ; note that the last .md files need manual input for the default since they span multiple lines (for Figures.md and Tables.md) ; not also that the macs promoter parameters are duplicated 3 times and need to be removed ; also the memory_picard_ and deeptools__binsize_bigwig_creation_ parameters are duplicated and should be cleaned-->
 
 
 ## 1. Preprocessing: ATAC_peaks
