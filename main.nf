@@ -95,8 +95,8 @@ save_last_fastq = params.save_fastq_type in ['last', 'all'] ?  true : false
 save_last_bam   = params.save_bam_type   in ['last', 'all'] ?  true : false
 save_last_bed   = params.save_bed_type   in ['last', 'all'] ?  true : false
 
-do_atac = params.design__atac_fastq : true : false
-do_mRNA = params.design__mrna_fastq : true : false
+do_atac = params.design__atac_fastq ? true : false
+do_mRNA = params.design__mrna_fastq ? true : false
 
 
 //// Creating empty channels
