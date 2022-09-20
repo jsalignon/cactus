@@ -53,12 +53,12 @@ hmg4 Hmg4->chrIII:7,379,143-7,381,596
 spt16 Spt16->chrI:10,789,130-10,793,152
 EOL
 
-cat > ${specie}/yml/regions_to_remove.tsv << EOL
+cat > ${specie}/yml/run.yml << EOL
 specie                                 : 'worm'
+chromatin_state                        : 'iHMM.M1K16.worm_L3'
 use_input_control                      : false
 save_bed_type                          : 'all'
 chip_ontology                          : 'all'
-chromatin_state                        : 'iHMM.M1K16.worm_L3'
 threshold_type_for_splitting_subsets   : 'rank' 
 threshold_values_for_splitting_subsets : [ 200, 1000 ]
 design__mrna_fastq                     : 'design/mrna_fastq.tsv'

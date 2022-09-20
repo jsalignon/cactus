@@ -66,5 +66,21 @@ do
 done
 
 
+cat > ${specie}/yml/run.yml << EOL
+specie                                 : 'worm'
+use_input_control                      : false
+save_bed_type                          : 'all'
+chip_ontology                          : 'all'
+chromatin_state                        : 'iHMM.M1K16.worm_L3'
+threshold_type_for_splitting_subsets   : 'rank' 
+threshold_values_for_splitting_subsets : [ 200, 1000 ]
+design__mrna_fastq                     : 'design/mrna_fastq.tsv'
+design__atac_fastq                     : 'design/atac_fastq.tsv'
+design__comparisons                    : 'design/comparisons.tsv'
+design__regions_to_remove              : 'design/regions_to_remove.tsv'
+design__groups                         : 'design/groups.tsv'
+EOL
+
+
 replace_spaces_by_tabs_in_the_design_tsv_files $specie
 

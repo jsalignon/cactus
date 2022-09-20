@@ -2,7 +2,7 @@
 
 * [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
-* [Inputs](/docs/3_Inputs/3_Inputs.md): [fastq](/docs/3_Inputs/fastq.md), [tsv](/docs/3_Inputs/tsv.md), [config](/docs/3_Inputs/config.md), [yml](/docs/3_Inputs/yml.md)
+* [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/data.md), [Design](/docs/3_Inputs/design.md), [Options](/docs/3_Inputs/options.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
 * [2. Differential Abundance](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
 * [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Enrichment](/docs/6_Enrich/Enrichment.md), [Figures](/docs/6_Enrich/Figures.md), [Tables](/docs/6_Enrich/Tables.md)
@@ -10,26 +10,36 @@
 [](END_OF_MENU)
 
 
+
 # Configuration files
 
-Two configuration files can be set up:  
+Parameters can be passed to two different configuration files:  
 
--	*~/.cactus.config* (mandatory): global profile that applies to all runs  
+- a global configuration file: that applies to all runs and with name and path: *~/.cactus.config*
 	
--	*conf/run.config* (optional): profile that is specific to a given run. The name of this file can be adjusted freely in the *.yml* input file.  
+- a run-specific configuration file: this file is the only input needed for a cactus run. It can for instance be named like that (relative path from the run folder): *yml/run.yml*.
 
 
-# Global parameters
+# Mandatory parameters
+
+There are 4 mandatory parameters for a cactus run (without defaults):
+- **_params.references_dir_**: Directory where references have been downloaded. 
+- **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before).
+- **_params.specie_**: specie under study. Options: 'worm', 'fly', 'mouse', 'human'.  
+- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.specie}/encode_chromatin_states_metadata.csv` file.
+
+
+# Global configuration file
 
 Any parameter can be set in the *~/.cactus.config* file.  
 
-However, two parameters are mandatory to indicate the path where to download the references and the singularity containers.  
+However, two mandatory parameters are recommended to be put there mandatory to indicate the path where to download the references and the singularity containers.  
 
 In addition, it is recommended to set up a [NextFlow Tower token](https://www.nextflow.io/docs/latest/config.html#scope-tower) here in order to monipor pipelines' execution using [Nextflow Tower](https://cloud.tower.nf/).  
 
-Here are the mandatory and recommended optional global parameters: 
+Here are the recomended mandatory and optional parameters to put in the *~/.cactus.config* file: 
 - **_params.references_dir_**: Directory where references have been downloaded. Mandatory (no default).
-- **_params.singularity_images_dir_**: Directory where containers have been / will be downloaded. Mandatory (no default).
+- **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before). Mandatory (no default).
 - **_params.tower_token_**: Tower token to monitor the pipeline on Tower. Default: ''. <!-- default set in conf/reports.config -->
 - **_params.enable_tower_**: Directory where containers have been / will be downloaded. Default: false. <!-- default set in conf/reports.config -->
 <!-- - **cactus_version**: which version of cactus to use. Default: *latest*. => To implement later!  -->
@@ -144,7 +154,7 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
 - **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
 - **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis. Options: 'KEGG', 'GO_CC', 'GO_MF', 'GO_BP'. Default: ['BP', 'KEGG']. 
 - **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
-- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
+- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.specie}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
 - **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
 - **_params.do_motif_enrichment_**: enable or disable this process. Default: true.
 - **_params.homer__nb_threads_**: number of threads used by Bowtie2. Default: 6.
@@ -223,5 +233,3 @@ heatmaps__df_plots = 'data.frame(
             )'.  
 - **_params.excel__add_conditional_formatting_**: To enable or disable conditional coloring. Default: 'TRUE'.
 - **_params.excel__max_width_**: Maximum column width. Default: 40.
-
-
