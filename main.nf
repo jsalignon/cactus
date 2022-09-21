@@ -73,8 +73,6 @@
 
 
 
-
-
 //// shortening certain oftenly used parameters
 
 res_dir = params.res_dir
@@ -174,7 +172,7 @@ process ATAC_reads__merging_reads {
 
   when: do_atac
 
-  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_merged", \
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_merged",
              mode: "${pub_mode}", enabled: save_all_fastq
 
   input:
@@ -207,11 +205,11 @@ process ATAC_reads__trimming_reads {
   label "skewer_pigz"
 
   publishDir \
-    path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", \
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed",
     mode: "${pub_mode}", pattern: "*.log"
 
   publishDir \
-    path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed", \
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed",
     mode: "${pub_mode}", pattern: "*.fastq.gz", enabled: save_last_fastq
 
   when: do_atac
@@ -222,36 +220,36 @@ process ATAC_reads__trimming_reads {
   output:
     set id, file("*__R1_trimmed.fastq.gz"), file("*__R2_trimmed.fastq.gz") \
              into Trimmed_reads_for_aligning, Trimmed_reads_for_sampling
-    set val('trimmed'), id, file("*__R1_trimmed.fastq.gz"), \
+    set val('trimmed'), id, file("*__R1_trimmed.fastq.gz"),
         file("*__R2_trimmed.fastq.gz") into Trimmed_ATAC_reads_for_running_fastqc
     file("*.log")
 
   shell:
 
-  '''
+    '''
 
-      R1=!{read1}
-      R2=!{read2}
-      id=!{id}
-      pigz__nb_threads=!{params.pigz__nb_threads}
+        R1=!{read1}
+        R2=!{read2}
+        id=!{id}
+        pigz__nb_threads=!{params.pigz__nb_threads}
 
-      R1TRIM=$(basename ${R1} .fastq.gz)__R1_trimmed.fastq
-      R2TRIM=$(basename ${R2} .fastq.gz)__R2_trimmed.fastq
+        R1TRIM=$(basename ${R1} .fastq.gz)__R1_trimmed.fastq
+        R2TRIM=$(basename ${R2} .fastq.gz)__R2_trimmed.fastq
 
-      skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} \
-             -o ${id} > trimer_verbose.txt
+        skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} \
+               -o ${id} > trimer_verbose.txt
 
-      mv ${id}-trimmed.log ${id}__skewer_trimming.log
-      mv ${id}-trimmed-pair1.fastq $R1TRIM
-      mv ${id}-trimmed-pair2.fastq $R2TRIM
+        mv ${id}-trimmed.log ${id}__skewer_trimming.log
+        mv ${id}-trimmed-pair1.fastq $R1TRIM
+        mv ${id}-trimmed-pair2.fastq $R2TRIM
 
-      pigz -p ${pigz__nb_threads} $R1TRIM
-      pigz -p ${pigz__nb_threads} $R2TRIM
+        pigz -p ${pigz__nb_threads} $R1TRIM
+        pigz -p ${pigz__nb_threads} $R2TRIM
 
-      pigz -l $R1TRIM.gz > ${id}__pigz_compression.log
-      pigz -l $R2TRIM.gz >> ${id}__pigz_compression.log
+        pigz -l $R1TRIM.gz > ${id}__pigz_compression.log
+        pigz -l $R2TRIM.gz >> ${id}__pigz_compression.log
 
-  '''
+    '''
 }
 
 // trimming adaptors
@@ -294,134 +292,137 @@ process ATAC_reads__trimming_reads {
 
 
 
-// Raw_ATAC_reads_for_running_fastqc
-//   .map{ [ 'raw', it[0], it[1], it[2] ] }
-//   .mix(Trimmed_ATAC_reads_for_running_fastqc)
-//   .dump(tag:'atac_fastqc') {"ATAC reads for fastqc: ${it}"}
-//   .set{ All_ATAC_reads_for_running_fastqc}
-// 
-// 
-// 
-// process ATAC_reads__aligning_reads {
-//   tag "${id}"
-// 
-//   label "bowtie2_samtools"
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", 
-//              mode: "${pub_mode}", pattern: "*.{txt,qc}"
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam", 
-//              mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
-// 
-//   when: do_atac
-// 
-//   input:
-//     set id, file(read1), file(read2) from Trimmed_reads_for_aligning
-// 
-//   output:
-//     set id, file("*.bam") into Bam_for_removing_low_quality_reads, 
-//                                Bam_for_sampling
-//     file("*.txt")
-//     file("*.qc")
-// 
-//   script:
-//   """
-// 
-//       new_bam="${id}.bam"
-// 
-//       bowtie2 -p ${params.nb_threads_botwie2} \
-//         --very-sensitive \
-//         --end-to-end \
-//         --no-mixed \
-//         -X 2000 \
-//         --met 1 \
-//         --met-file "${id}_bowtie2_align_metrics.txt" \
-//         -x "${params.bowtie2_indexes}" \
-//         -q -1 "${read1}" -2 "${read2}" \
-//         | samtools view -bS -o ${new_bam} -
-// 
-//       samtools flagstat ${new_bam} > "${id}.qc"
-// 
-//   """
-// }
-// 
-// 
-// 
-// process ATAC_reads__removing_low_quality_reads {
-//   tag "${id}"
-// 
-//   label "bowtie2_samtools"
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
-//              mode: "${pub_mode}", pattern: "*.qc"
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
-//              mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
-// 
-//   when: do_atac
-// 
-//   input:
-//     set id, file(bam) from Bam_for_removing_low_quality_reads
-// 
-//   output:
-//     set id, file("*.bam") into Bam_for_marking_duplicated_reads
-//     file("*.qc")
-// 
-//   script:
-//   """
-// 
-//     key="${id}__filter_LQ"
-// 
-//     new_bam="${key}.bam"
-// 
-//     samtools view -F 1804 \
-//                   -b \
-//                   -q "${params.sam_MAPQ_threshold}" \
-//                   ${bam} \
-//                   | samtools sort - -o ${new_bam}
-// 
-//     samtools flagstat ${new_bam} > "${key}.qc"
-// 
-//   """
-// }
-// 
-// // => filtering bad quality reads: unmapped, mate unmapped, 
-// //                                 no primary alignment, low MAPQ
-// 
-// 
-// 
-// process ATAC_reads__marking_duplicated_reads {
-//   tag "${id}"
-// 
-//   label "picard"
-// 
-//   when: do_atac
-// 
-//   input:
-//     set id, file(bam) from Bam_for_marking_duplicated_reads
-// 
-//   output:
-//     set id, file("*.bam") into Bam_for_removing_duplicated_reads
-//     file("*.qc")
-// 
-//   script:
-//   """
-// 
-//     key="${id}__dup_marked"
-// 
-//     picard -Xmx${params.memory_picard} MarkDuplicates \
-//       -INPUT "${bam}" \
-//       -OUTPUT "${key}.bam" \
-//       -METRICS_FILE "${key}.qc" \
-//       -VALIDATION_STRINGENCY LENIENT \
-//       -ASSUME_SORTED true \
-//       -REMOVE_DUPLICATES false \
-//       -TMP_DIR "."
-// 
-// 
-//   """
-// }
-// 
-// 
-// 
+Raw_ATAC_reads_for_running_fastqc
+  .map{ [ 'raw', it[0], it[1], it[2] ] }
+  .mix(Trimmed_ATAC_reads_for_running_fastqc)
+  .dump(tag:'atac_fastqc') {"ATAC reads for fastqc: ${it}"}
+  .set{ All_ATAC_reads_for_running_fastqc}
+
+
+
+process ATAC_reads__aligning_reads {
+  tag "${id}"
+
+  label "bowtie2_samtools"
+
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam",
+             mode: "${pub_mode}", pattern: "*.{txt,qc}"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam",
+             mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
+
+  when: do_atac
+
+  input:
+    set id, file(read1), file(read2) from Trimmed_reads_for_aligning
+
+  output:
+    set id, file("*.bam") into Bam_for_removing_low_quality_reads,
+                               Bam_for_sampling
+    file("*.txt")
+    file("*.qc")
+
+  script:
+    
+    def new_bam = id + ".bam"
+    
+    """
+
+
+        bowtie2 -p ${params.botwie2__nb_threads} \
+          --very-sensitive \
+          --end-to-end \
+          --no-mixed \
+          -X 2000 \
+          --met 1 \
+          --met-file "${id}_bowtie2_align_metrics.txt" \
+          -x "${params.bowtie2_indexes}" \
+          -q -1 "${read1}" -2 "${read2}" \
+          | samtools view -bS -o ${new_bam} -
+
+        samtools flagstat ${new_bam} > "${id}.qc"
+
+    """
+}
+
+
+
+process ATAC_reads__removing_low_quality_reads {
+  tag "${id}"
+
+  label "bowtie2_samtools"
+
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
+             mode: "${pub_mode}", pattern: "*.qc"
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
+             mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
+
+  when: do_atac
+
+  input:
+    set id, file(bam) from Bam_for_removing_low_quality_reads
+
+  output:
+    set id, file("*.bam") into Bam_for_marking_duplicated_reads
+    file("*.qc")
+
+  script:
+    
+    def key = id + "__filter_LQ"
+    def new_bam = key + ".bam"
+    
+    """
+
+      samtools view -F 1804 \
+                    -b \
+                    -q "${params.sam_MAPQ_threshold}" \
+                    ${bam} \
+                    | samtools sort - -o ${new_bam}
+
+      samtools flagstat ${new_bam} > "${key}.qc"
+
+    """
+}
+
+// => filtering bad quality reads: unmapped, mate unmapped, 
+//                                 no primary alignment, low MAPQ
+
+
+
+process ATAC_reads__marking_duplicated_reads {
+  tag "${id}"
+
+  label "picard"
+
+  when: do_atac
+
+  input:
+    set id, file(bam) from Bam_for_marking_duplicated_reads
+
+  output:
+    set id, file("*.bam") into Bam_for_removing_duplicated_reads
+    file("*.qc")
+
+  script:
+
+    def key = id + "__dup_marked"
+
+    """
+
+      picard -Xmx${params.memory_picard} MarkDuplicates \
+        -INPUT "${bam}" \
+        -OUTPUT "${key}.bam" \
+        -METRICS_FILE "${key}.qc" \
+        -VALIDATION_STRINGENCY LENIENT \
+        -ASSUME_SORTED true \
+        -REMOVE_DUPLICATES false \
+        -TMP_DIR "."
+
+
+    """
+}
+
+
+
 // process ATAC_reads__removing_duplicated_reads {
 //   tag "${id}"
 // 
@@ -446,17 +447,19 @@ process ATAC_reads__trimming_reads {
 //     file("*.qc")
 // 
 //   script:
-//   """
+//     def key = id + "__dup_marked"
 // 
-//     key="${id}__dup_rem"
+//     """
 // 
-//     new_bam="${key}.bam"
+//       key="${id}__dup_rem"
 // 
-//     samtools view -F 1804 "${bam}" -b -o ${new_bam}
-//     samtools index -b ${new_bam}
-//     samtools flagstat ${new_bam} > "${key}.qc"
+//       new_bam="${key}.bam"
 // 
-//   """
+//       samtools view -F 1804 "${bam}" -b -o ${new_bam}
+//       samtools index -b ${new_bam}
+//       samtools flagstat ${new_bam} > "${key}.qc"
+// 
+//     """
 // }
 // 
 // // => removing duplicates, index bam files and generates final stat file
