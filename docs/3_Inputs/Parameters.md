@@ -211,15 +211,15 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
     - **_max_characters_**: The limit of target names length. Longer targt names are cut.   
     - **_default parameters template_**:  
 ```
-barplots__df_plots = 'data.frame(
-data_type      = c("func_anno", "CHIP" , "motifs", "chrom_states", "genes_self", "peaks_self"),
-padj_threshold = c(     0.05  ,    0.05,    0.05 ,        0.05   ,      0.05   ,       0.05  ),
-signed_padj    = c(     T     ,    T   ,    T    ,        T      ,      T      ,       T     ),
-add_var        = c(    "none" ,  "none",  "none" ,      "none"   ,    "none"   ,     "none"  ),
-add_number     = c(     F     ,    F   ,    F    ,        F      ,      T      ,       T     ),
-max_terms      = c(    30     ,   30   ,   30    ,       30      ,     30      ,      30     ),
-max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,      50     )
-)'
+barplots__df_plots          = 'data.frame(' +
+	'data_type      = c("func_anno", "CHIP" , "motifs", "chrom_states", "genes_self", "peaks_self"),' +
+	'padj_threshold = c(     0.05  ,    0.05,    0.05 ,        0.05   ,      0.05   ,       0.05  ),' +
+	'signed_padj    = c(     T     ,    T   ,    T    ,        T      ,      T      ,       T     ),' +
+	'add_var        = c(    "none" ,  "none",  "none" ,      "none"   ,    "none"   ,     "none"  ),' +
+	'add_number     = c(     F     ,    F   ,    F    ,        F      ,      T      ,       T     ),' +
+	'max_terms      = c(    30     ,   30   ,   30    ,       30      ,     30      ,      30     ),' +
+	'max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,      50     )' +
+	')'
 ```
 - **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
 - **_params.heatmaps__df_plots_**: An R dataframe that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
@@ -231,15 +231,15 @@ max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,
     - **_max_characters_**: The limit of target names length. Longer targt names are cut.  
     - **_default parameters template_**:  
 ```
-heatmaps__df_plots = 'data.frame(
-  data_type       = c("func_anno",  "CHIP", "motifs", "chrom_states", "genes_self", "peaks_self"),
-  padj_threshold  = c(     0.05  ,   0.05 ,    0.05 ,        0.05   ,      0.05   ,       0.05  ),
-  up_down_pattern = c(    "UUDD" ,  "UUDD",  "UUDD" ,      "UUDD"   ,    "UUDD"   ,     "UUDD"  ),
-  signed_padj     = c(     T     ,     T  ,    T    ,        T      ,      T      ,       T     ),
-  add_var         = c(    "none" ,  "none",  "none" ,      "none"   ,    "none"   ,     "none"  ),
-  add_number      = c(     F     ,     F  ,    F    ,        F      ,      T      ,       T     ),
-  max_characters  = c(    50     ,    50  ,   50    ,       50      ,     50      ,      50     )
-  )'
+heatmaps__df_plots       = 'data.frame(' +
+	'data_type       = c("func_anno",  "CHIP", "motifs", "chrom_states", "genes_self", "peaks_self"),' +
+	'padj_threshold  = c(     0.05  ,   0.05 ,    0.05 ,        0.05   ,      0.05   ,       0.05  ),' +
+	'up_down_pattern = c(    "UUDD" ,  "UUDD",  "UUDD" ,      "UUDD"   ,    "UUDD"   ,     "UUDD"  ),' +
+	'signed_padj     = c(     T     ,     T  ,    T    ,        T      ,      T      ,       T     ),' +
+	'add_var         = c(    "none" ,  "none",  "none" ,      "none"   ,    "none"   ,     "none"  ),' +
+	'add_number      = c(     F     ,     F  ,    F    ,        F      ,      T      ,       T     ),' +
+	'max_characters  = c(    50     ,    50  ,   50    ,       50      ,     50      ,      50     )' +
+	')'
 ```
 
 - **_params.heatmaps__df_filter_terms_**: An R data.frame that contains the parameters to use to filter the `CHIP`, `motifs`, `func_anno` enrichment categories. The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
@@ -249,26 +249,28 @@ heatmaps__df_plots = 'data.frame(
   - **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
   - **_default parameters template_**: 
 ```
-heatmaps__df_plots = 'data.frame(
-                data_type        = c("func_anno",  "CHIP"   , "motifs"   ),
-                remove_similar   = c(     F     ,     T     ,    T       ),
-                remove_similar_n = c(     2     ,     2     ,    2       ),
-                n_shared         = c(     6     ,     8     ,    8       ),
-                threshold_type   = c( "fixed"   , "quantile",  "quantile"),
-                threshold_value  = c(     0.05  ,     0.25  ,    0.25    ),
-                n_unique         = c(    20     ,    25     ,   25       ),
-                n_total          = c(    26     ,    40     ,   40       )
-                )'
+heatmaps__df_filter_terms = 'data.frame(' +
+								'data_type        = c("func_anno",  "CHIP"   , "motifs"   ),' +
+								'n_shared         = c(     6     ,     8     ,    8       ),' +
+								'n_unique         = c(    20     ,    25     ,   25       ),' +
+								'n_total          = c(    26     ,    40     ,   40       ),' +
+								'threshold_type   = c( "fixed"   , "quantile",  "quantile"),' +
+								'threshold_value  = c(     0.05  ,     0.25  ,    0.25    ),' +
+								'remove_similar   = c(     F     ,     T     ,    T       ),' +
+								'remove_similar_n = c(     2     ,     2     ,    2       )' +
+								')'
 ```
 
 
 ## 3. Enrichment: Tables
 
 - **_params.v_fdr_thresholds_**: Vector of thresholds for filtering tables. For each data type, entries with FDR above this threhold will be removed. Default: 
-        'c( mRNA_detailed = 1, ATAC_detailed = 1,
-            res_simple = 1, res_filter = 1, func_anno = 1,
-            genes_self = 1, peaks_self = 1, 
-            chrom_states = 1, CHIP = 1, motifs = 1
-            )'.  
+```
+tables__v_fdr_thresholds = 'c( mRNA_detailed = 1, ATAC_detailed = 1,' +
+															'res_simple = 1, res_filter = 1, func_anno = 1,' +
+															'genes_self = 1, peaks_self = 1, ' +
+															'chrom_states = 1, CHIP = 1, motifs = 1' +
+															')' 
+```
 - **_params.excel__add_conditional_formatting_**: To enable or disable conditional coloring. Default: 'TRUE'.
 - **_params.excel__max_width_**: Maximum column width. Default: 40.

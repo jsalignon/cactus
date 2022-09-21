@@ -307,6 +307,7 @@ process ATAC_reads__aligning_reads {
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam",
              mode: "${pub_mode}", pattern: "*.{txt,qc}"
+             
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam",
              mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
@@ -352,6 +353,7 @@ process ATAC_reads__removing_low_quality_reads {
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
              mode: "${pub_mode}", pattern: "*.qc"
+             
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
              mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
@@ -387,179 +389,174 @@ process ATAC_reads__removing_low_quality_reads {
 
 
 
-// process ATAC_reads__marking_duplicated_reads {
-//   tag "${id}"
-// 
-//   label "picard"
-// 
-//   when: do_atac
-// 
-//   input:
-//     set id, file(bam) from Bam_for_marking_duplicated_reads
-// 
-//   output:
-//     set id, file("*.bam") into Bam_for_removing_duplicated_reads
-//     file("*.qc")
-// 
-//   script:
-// 
-//     def key = id + "__dup_marked"
-// 
-//     """
-// 
-//     picard -Xmx${params.memory_picard} MarkDuplicates \
-//       -INPUT "${bam}" \
-//       -OUTPUT "${key}.bam" \
-//       -METRICS_FILE "${key}.qc" \
-//       -VALIDATION_STRINGENCY LENIENT \
-//       -ASSUME_SORTED true \
-//       -REMOVE_DUPLICATES false \
-//       -TMP_DIR "."
-// 
-// 
-//     """
-// }
-// 
-// 
-// 
-// process ATAC_reads__removing_duplicated_reads {
-//   tag "${id}"
-// 
-//   label "bowtie2_samtools"
-// 
-//   publishDir 
-//     path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", 
-//     mode: "${pub_mode}", pattern: "*.qc"
-//   publishDir 
-//     path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", 
-//     mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
-// 
-//   when: do_atac
-// 
-//   input:
-//     set id, file(bam) from Bam_for_removing_duplicated_reads
-// 
-//   output:
-//     set id, file("*.bam"), file("*.bai") \
-//           into Bam_for_computing_bigwig_tracks_and_plotting_coverage, 
-//                Bam_for_removing_mitochondrial_reads
-//     file("*.qc")
-// 
-//   script:
-//     def key = id + "__dup_marked"
-// 
-//     """
-// 
-//       key="${id}__dup_rem"
-// 
-//       new_bam="${key}.bam"
-// 
-//       samtools view -F 1804 "${bam}" -b -o ${new_bam}
-//       samtools index -b ${new_bam}
-//       samtools flagstat ${new_bam} > "${key}.qc"
-// 
-//     """
-// }
-// 
-// // => removing duplicates, index bam files and generates final stat file
-// 
-// 
-// 
-// 
-// 
-// process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
-//   tag "${id}"
-// 
-//   label "bowtie2_samtools"
-// 
-//   publishDir 
-//    path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", 
-//    mode: "${pub_mode}", pattern: "*.{qc,txt}"
-// 
-//   publishDir 
-//    path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", 
-//    mode: "${pub_mode}", pattern: "*.bam", enabled: save_last_bam
-// 
-//   when: do_atac
-// 
-//   input:
-//     set id, file(bam), file(bai) from Bam_for_removing_mitochondrial_reads
-// 
-//   output:
-//     set id, file("*.bam") 
-//       into Bam_for_plotting_inserts_distribution, 
-//            Bam_for_converting_bam_to_bed_and_adjusting_for_Tn5
-//     file "*_reads_per_chrm_before_removal.txt"
-//     file "*_reads_per_chrm_after_removal.txt"
-//     file("*.qc")
-// 
-//   shell:
-//     '''
-// 
-//     id=!{id}
-//     bam=!{bam}
-//     chromosomes_sizes=!{params.chromosomes_sizes}
-// 
-//     key="${id}__no_mito"
-// 
-//     new_bam="${key}.bam"
-// 
-//     samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c \ 
-//       > "${id}_reads_per_chrm_before_removal.txt"
-// 
-//     regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
-// 
-//     samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} \
-//        | samtools view - | awk '{print $3}' OFS='\t' \
-//        | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
-// 
-//     samtools index -b ${new_bam}
-//     samtools flagstat ${new_bam} > "${key}.qc"
-// 
-//     '''
-// 
-// }
-// 
-// // cut -f1 $chromosomes_sizes
-// // samtools view  ${bam} $regions_to_keep | awk '{print $3}' OFS='\t' - \
-// //     | sort | uniq -c
-// // samtools view  ${bam} | awk '{print $3}' OFS='\t' - | sort | uniq -c
-// 
-// 
-// 
-// process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
-//   tag "${id}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   publishDir 
-//     path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", 
-//     mode: "${pub_mode}", 
-//     enabled: params.save_1bp_bam, 
-//     saveAs: { if (it.indexOf(".bam") > 0) "$it" }
-// 
-//   when: do_atac
-// 
-//   input:
-//     set id, file(bam) from Bam_for_converting_bam_to_bed_and_adjusting_for_Tn5
-// 
-//   output:
-//     set id, file("*.bam*") into Reads_in_bam_files_for_diffbind
-//     set id, file("*.bed") into 
-//       Reads_in_bed_files_for_gathering_reads_stat, 
-//       Reads_in_bed_files_for_calling_peaks, 
-//       Reads_in_bed_files_for_computing_and_plotting_saturation_curve
-// 
-//   script:
-//     """
-// 
-//     key="${id}__1bp_shifted_reads"
-// 
-//     bamToBed_and_atacShift.sh ${bam} ${key} ${params.chromosomes_sizes}
-// 
-//     """
-// }
-// 
+process ATAC_reads__marking_duplicated_reads {
+  tag "${id}"
+
+  label "picard"
+
+  when: do_atac
+
+  input:
+    set id, file(bam) from Bam_for_marking_duplicated_reads
+
+  output:
+    set id, file("*.bam") into Bam_for_removing_duplicated_reads
+    file("*.qc")
+
+  script:
+
+    def key = id + "__dup_marked"
+
+    """
+
+    picard -Xmx${params.memory_picard} MarkDuplicates \
+      -INPUT "${bam}" \
+      -OUTPUT "${key}.bam" \
+      -METRICS_FILE "${key}.qc" \
+      -VALIDATION_STRINGENCY LENIENT \
+      -ASSUME_SORTED true \
+      -REMOVE_DUPLICATES false \
+      -TMP_DIR "."
+
+    """
+}
+
+
+
+process ATAC_reads__removing_duplicated_reads {
+  tag "${id}"
+
+  label "bowtie2_samtools"
+
+  publishDir \
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", 
+    mode: "${pub_mode}", pattern: "*.qc"
+
+  publishDir \
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", 
+    mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
+
+  when: do_atac
+
+  input:
+    set id, file(bam) from Bam_for_removing_duplicated_reads
+
+  output:
+    set id, file("*.bam"), file("*.bai") \
+          into Bam_for_computing_bigwig_tracks_and_plotting_coverage, 
+               Bam_for_removing_mitochondrial_reads
+    file("*.qc")
+
+  script:
+    def key = id + "__dup_rem"
+    def new_bam = key + ".bam"
+
+    """
+
+    samtools view -F 1804 "${bam}" -b -o ${new_bam}
+    samtools index -b ${new_bam}
+    samtools flagstat ${new_bam} > "${key}.qc"
+
+    """
+}
+
+// => removing duplicates, index bam files and generates final stat file
+
+
+
+
+
+process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
+  tag "${id}"
+
+  label "bowtie2_samtools"
+
+  publishDir \
+   path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", 
+   mode: "${pub_mode}", pattern: "*.{qc,txt}"
+
+  publishDir \
+   path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", 
+   mode: "${pub_mode}", pattern: "*.bam", enabled: save_last_bam
+
+  when: do_atac
+
+  input:
+    set id, file(bam), file(bai) from Bam_for_removing_mitochondrial_reads
+
+  output:
+    set id, file("*.bam") \
+      into Bam_for_plotting_inserts_distribution, 
+           Bam_for_converting_bam_to_bed_and_adjusting_for_Tn5
+    file "*_reads_per_chrm_before_removal.txt"
+    file "*_reads_per_chrm_after_removal.txt"
+    file("*.qc")
+
+  shell:
+    '''
+  
+    id=!{id}
+    bam=!{bam}
+    chromosomes_sizes=!{params.chromosomes_sizes}
+  
+    key="${id}__no_mito"
+  
+    new_bam="${key}.bam"
+  
+    samtools view ${bam} | awk " $1 !~ /@/ {print $3}" - | uniq -c \
+      > "${id}_reads_per_chrm_before_removal.txt"
+    
+    regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
+    
+    samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} \
+    | samtools view - | awk '{print $3}' OFS='\t' \
+    | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+    
+    samtools index -b ${new_bam}
+    samtools flagstat ${new_bam} > "${key}.qc"
+    
+    '''
+}
+
+
+// cut -f1 $chromosomes_sizes
+// samtools view  ${bam} $regions_to_keep | awk '{print $3}' OFS='\t' - \
+//     | sort | uniq -c
+// samtools view  ${bam} | awk '{print $3}' OFS='\t' - | sort | uniq -c
+
+
+
+process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
+  tag "${id}"
+
+  label "samtools_bedtools_perl"
+
+  publishDir \
+    path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", 
+    mode: "${pub_mode}", pattern: "*.bam", enabled: params.save_1bp_bam
+
+  when: do_atac
+
+  input:
+    set id, file(bam) from Bam_for_converting_bam_to_bed_and_adjusting_for_Tn5
+
+  output:
+    set id, file("*.bam*") into Reads_in_bam_files_for_diffbind
+    set id, file("*.bed") into 
+      Reads_in_bed_files_for_gathering_reads_stat, 
+      Reads_in_bed_files_for_calling_peaks, 
+      Reads_in_bed_files_for_computing_and_plotting_saturation_curve
+
+  script:
+    """
+
+    key="${id}__1bp_shifted_reads"
+
+    bamToBed_and_atacShift.sh ${bam} ${key} ${params.chromosomes_sizes}
+
+    """
+}
+
 // // Examples of :
 // // input: hmg4_1__no_mito.bam
 // // outpus: hmg4_1__1bp_shifted_reads.bam  hmg4_1__1bp_shifted_reads.bam.bai  
@@ -1211,14 +1208,11 @@ process ATAC_reads__removing_low_quality_reads {
 // 
 //   label "multiqc"
 // 
-//   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
-//       if (it.indexOf(".html") > 0) "Figures_Individual/1_Preprocessing/${it}"
-//       // else "Processed_Data/1_Preprocessing/ATAC__reads__multiQC/${it}"
-//   }
-// 
-//   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
-//       if (it.indexOf(".html") > 0) "Figures_Merged/1_Preprocessing/${it}"
-//   }
+    // publishDir path: "${out_fig_indiv}/1_Preprocessing", 
+    //            mode: "${pub_mode}", pattern: "*.html"
+    // 
+    // publishDir path: "${out_fig_merge}/1_Preprocessing", 
+    //            mode: "${pub_mode}", pattern: "*.html"
 // 
 //   when: do_atac
 // 
@@ -2122,10 +2116,8 @@ process ATAC_reads__removing_low_quality_reads {
 // 
 //   label "fastqc"
 // 
-//   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
-//                if (it.indexOf(".html") > 0) 
-//                "Processed_Data/1_Preprocessing/mRNA__fastqc/${it}"
-//              }
+//   publishDir path: "${out_processed}/1_Preprocessing/mRNA__fastqc", 
+//              mode: "${pub_mode}", pattern: "*.html" 
 // 
 //   when: do_mRNA
 // 
@@ -2149,13 +2141,11 @@ process ATAC_reads__removing_low_quality_reads {
 // 
 //   label "multiqc"
 // 
-//   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
-//     if (it.indexOf(".html") > 0) "Figures_Individual/1_Preprocessing/${it}"
-//     else "Processed_Data/1_Preprocessing/mRNA__multiQC/${it}"
-//   }
-//   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
-//     if (it.indexOf(".html") > 0) "Figures_Merged/1_Preprocessing/${it}"
-//   }
+//   publishDir path: "${out_fig_indiv}/1_Preprocessing", 
+//              mode: "${pub_mode}", pattern: "*.html"
+// 
+//   publishDir path: "${out_fig_merge}/1_Preprocessing", 
+//              mode: "${pub_mode}", pattern: "*.html"
 // 
 //   when: do_mRNA
 // 
@@ -2762,12 +2752,8 @@ process ATAC_reads__removing_low_quality_reads {
 //       else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
 //     }
 // 
-//   publishDir path: "${out_processed}/${out_path}", mode: "${pub_mode}", 
-//     saveAs: {
-//       if (it.indexOf("__ATAC_non_annotated_peaks.txt") > 0) 
-//         "ATAC__non_annotated_peaks/${it}"
-//     }
-// 
+//   publishDir path: "${out_processed}/${out_path}/ATAC__non_annotated_peaks", 
+//              pattern: "*__ATAC_non_annotated_peaks.txt", mode: "${pub_mode}"
 // 
 //   input:
 //     val out_path from Channel.value('2_Differential_Abundance')
@@ -4995,11 +4981,11 @@ process ATAC_reads__removing_low_quality_reads {
 // 
 //     '''
 // }
-// 
-// // documentation for openxlsx
-// // # https://www.rdocumentation.org/packages/openxlsx/versions/4.1.0.1
-// // # https://ycphs.github.io/openxlsx/articles/Introduction.html
-// 
+
+// documentation for openxlsx
+// # https://www.rdocumentation.org/packages/openxlsx/versions/4.1.0.1
+// # https://ycphs.github.io/openxlsx/articles/Introduction.html
+
 
 
 
