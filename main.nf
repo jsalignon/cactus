@@ -1888,11 +1888,33 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 
     library(ChIPseeker)
     library(magrittr)
-    id = '!{id}'
+    id             = '!{id}'
     peaks_bed_file = '!{peaks_bed_file}'
-    upstream = !{params.macs2_peaks__promoter_up}
-    downstream = !{params.macs2_peaks__promoter_down}
-    tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
+    upstream       = !{params.macs2_peaks__promoter_up}
+    downstream     = !{params.macs2_peaks__promoter_down}
+    tx_db          = AnnotationDbi::loadDb('!{params.txdb}')
+
+    check_upstream_and_downstream_1 <- function (upstream, downstream){
+        if (class(upstream) != class(downstream)) {
+            stop("the type of upstream and downstream should be the same...")
+        }
+        if (!is.numeric(upstream) && !is.null(upstream)) {
+            stop("upstream and downstream parameter should be numeric or NULL...")
+        }
+        if (inherits(upstream, "rel")) {
+            if (as.numeric(upstream) < 0 || as.numeric(upstream) >
+                1) {
+                stop("the value of rel object should be in (0,1)...")
+            }
+        }
+        if (is.numeric(upstream) && !inherits(upstream, "rel")) {
+            if (upstream < 1 | downstream < 1) {
+                stop("if upstream or downstream is integer, the value of it should be greater than 1...")
+            }
+        }
+    }
+    
+    assignInNamespace("check_upstream_and_downstream", check_upstream_and_downstream_1, ns="ChIPseeker")
 
     nb_of_peaks = 
       system(paste('wc -l', peaks_bed_file), intern = T) %>% 
@@ -1900,16 +1922,17 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
     if(nb_of_peaks == 0) {quit('no')}
     peaks = readPeakFile('!{peaks_bed_file}')
 
-    promoter <- getPromoters(TxDb = tx_db, upstream   = upstream, 
-                                           downstream = downstream)
+    promoter <- getPromoters(TxDb       = tx_db, 
+                             upstream   = upstream, 
+                             downstream = downstream)
 
     tag_matrix = getTagMatrix(peaks, windows = promoter)
-
+    
     annotated_peaks = annotatePeak(peaks, 
-                                  TxDb = tx_db, 
+                                  TxDb      = tx_db, 
                                   tssRegion = c(-upstream, downstream), 
-                                  level = 'gene', 
-                                  overlap = 'all')
+                                  level     = 'gene', 
+                                  overlap   = 'all')
 
     genes = as.data.frame(annotated_peaks)$geneId
 
@@ -1925,6 +1948,27 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 
     '''
 }
+
+// ChIPseeker v1.30.0 the version present in the container, has a wrong internal function.
+// For this reason we had to overwrite it with the correct function (from v1.30.3) 
+// Here are the details:
+
+// ChIPseeker v1.30.3 
+// ChIPseeker:::check_upstream_and_downstream
+// function (upstream, downstream)
+// {
+//     if (class(upstream) != class(downstream)) {
+//         stop("the type of upstream and downstream should be the same...")
+//     }
+// 
+// ChIPseeker v1.30.0
+// ChIPseeker:::check_upstream_and_downstream
+// function (upstream, downstream)
+// {
+//     if (!identical(upstream, downstream)) {
+//         stop("the type of upstream and downstream should be the same...")
+//     }
+
 
 // these are ATAC-Seq peaks from macs
 
@@ -2271,7 +2315,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
 
     ##### Preparing the metadata table
     use_input_control %<>% toupper %>% as.logical
-    bed_bam_files = list.files(pattern = '*.bam$|*filtered.bed$')
+    bed_bam_files = list.files(pattern = '*.bam$|*.bed$')
     cur_files = grep('diffbind_peaks', bed_bam_files, value = T, invert = T)
     df = data.frame(path = cur_files, stringsAsFactors=F)
     cursplit = sapply(cur_files, strsplit, '_')
@@ -2280,16 +2324,11 @@ process DA_ATAC__doing_differential_abundance_analysis {
     df$id = paste0(df$condition, '_', df$replicate)
     df$id[df$condition == 'input'] = 'input'
     df$type = sapply(df$path, function(c1) {
-      ifelse(
-        length(grep('reads', c1)) == 1, 
-        'reads', 
-        ifelse(
-          length(grep('peaks', c1)) == 1, 
-          'peaks', 
-          ''
-          )
-        )
-      )
+                ifelse(
+                  length(grep('reads', c1)) == 1, 'reads', ifelse(
+                    length(grep('peaks', c1)) == 1, 'peaks', '')
+                )
+              })
 
     names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 
                   'ControlID', 'bamControl', 'Peaks','PeakCaller')
@@ -2399,1653 +2438,1647 @@ process DA_ATAC__doing_differential_abundance_analysis {
 }
 
 
-// // not sure these lines of codes will be needed
-// // string_as_object <- function(x) eval(parse(text = x))
-// // min_overlap     = string_as_object('!params.dba_min_overlap')
-// // analysis_method = string_as_object('!params.dba_analysis_method')
-// // min_count       = string_as_object('!params.dba_min_count')
-// // score           = string_as_object('!params.dba_min_count')
-// 
-// 
-// // => generating the set of all peaks found in all replicates, and a set of 
-// // differentially abundant/accessible peaks (can also be called differentially 
-// // bound regions)
-// 
-// 
-// ////// justification for the parameters used
-// 
-// //// dba: minOverlap = 1
-// // could be set to 1 (any peak), or 2 peaks present in at least 2 peak set. The latter is much more stringent in situations where one has only 2 replicates per condition, which is why I decided to go with 1 for now.
-// // https://support.bioconductor.org/p/57809/
-// 
-// //// grey list is applied only if we have an input control as the greylist is made based on the input control sample. It is applied at the very beginning to filter out the grey regions from the start.
-// 
-// //// dbo$config$AnalysisMethod = DBA_DESEQ2 
-// // https://support.bioconductor.org/p/98736/
-// // For normalization, edgeR uses the TMM method which relies on a core of sites that don't systematically change their binding affinities. While this assumption of usually true for RNA-seq, there are many ChIP-seq experiments where one sample group has a completely different binding profile than the other sample group. Often, in one condition there is very little binding, but in the other condition much additional binding has been induced. ...  This is the reason we changed the default analysis method in DiffBind from edgeR to DESeq2.
-// 
-// //// dba.count: summits = 75
-// // DiffBind Vignette
-// // When forming the global binding matrix consensus peaksets, DiﬀBind ﬁrst identiﬁes all unique
-// // peaks amongst the relevant peaksets. As part of this process, it merges overlapping peaks,
-// // replacing them with a single peak representing the narrowest region that covers all peaks
-// // that overlap by at least one base. There are at least two consequences of this that are worth
-// // noting.
-// // First, as more peaksets are included in analysis, the average peak width tends to become
-// // longer as more overlapping peaks are detected and the start/end points are adjusted outward
-// // to account for them. Secondly, peak counts may not appear to add up as you may expect
-// // due to merging. For example, if one peakset contains two small peaks near to each other,
-// // while a second peakset includes a single peak that overlaps both of these by at least one
-// // base, these will all be replaced in the merged matrix with a single peak. As more peaksets
-// // are added, multiple peaks from multiple peaksets may be merged together to form a single,
-// // wider peak. Use of the "summits" parameter is recommended to control for this widening
-// // eﬀect.
-// // ?dba.count
-// // summits: unless set to ‘FALSE’, summit heights (read pileup) and
-// // locations will be calculated for each peak.  
-// // If the value of ‘summits’ is ‘TRUE’ (or ‘0’), the summits
-// // will be calculated but the peaksets will be unaffected.  If
-// // the value is greater than zero, all consensus peaks will be
-// // re-centered around a consensus summit, with the value of
-// // ‘summits’ indicating how many base pairs to include upstream
-// // and downstream of the summit (so all consensus peaks will be
-// // of the same width, namely ‘2 * summits + 1’).
-// // https://support.bioconductor.org/p/9138959/
-// // "Generally, ATAC-seq benefits from using the summits parameter at a relatively low value (50 or 100) to focus on clear regions of open chromatin with less background signal. Note that often there are two "peaks" in ATAC fragment lengths."
-// // => by setting summits to 75, the summits of the consensus peaks will be extende by 75 bp on both side. 
-// 
-// //// dba.count: fragmentSize = 1, bUseSummarizeOverlaps = F
-// //// dbo$config$singleEnd = T
-// // ?dba.count
-// // bUseSummarizeOverlaps: logical indicating that ‘summarizeOverlaps’
-// //           should be used for counting instead of the built-in counting
-// //           code.  This option is slower but uses the more standard
-// //           counting function. If ‘TRUE’, all read files must be BAM
-// //           (.bam extension), with associated index files (.bam.bai
-// //           extension).  The ‘fragmentSize’ parameter must absent.
-// // fragmentSize: This value will be used as the length of the reads.  Each
-// //           read will be extended from its endpoint along the appropriate
-// //           strand by this many bases.  If set to zero, the read size
-// //           indicated in the BAM/BED file will be used. ‘fragmentSize’
-// //           may also be a vector of values, one for each ChIP sample plus
-// //           one for each unique Control library.
-// // https://support.bioconductor.org/p/9138959/
-// // The fragmentSize parameter is only used if you have single-end data (otherwise the paired-end insert size is used). In that case, it is a good idea to specify a value for this parameter to "extend" the single-end reads by the mean fragment size.
-// // bUseSummarizeOverlaps=TRUE is generally the preferred option. If it is set to FALSE, it will use some internal code that, among other things, does not match paired-end reads, resulting in counts that may be up to double (each end counted separately). That option also gives you more fine-grained control over how the counting is done via $config parameters.
-// // => we do want each pair to be analyzed separately. And we want to keep reads at 1 bp as this is the most precise signal we have (transposase-shifted 5' end of reads)
-// 
-// 
-// 
-// //// dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, )
-// // https://support.bioconductor.org/p/p133577/
-// 
-// //// dba.normalize: 
-// //// dba.normalize: normalize = DBA_NORM_RLE, library = DBA_LIBSIZE_BACKGROUND,  background = TRUE
-// // => background
-// // help(dba.normalize)
-// // background: This parameter controls the option to use "background"
-// //           bins, which should not have differential enrichment between
-// //           samples, as the basis for normalizing (instead of using reads
-// //           counts overlapping consensus peaks).  When enabled, the
-// //           chromosomes for which there are peaks in the consensus
-// //           peakset are tiled into large bins and reads overlapping these
-// //           bins are counted.
-// //
-// // Vignette:
-// // An assumption in RNA-seq analysis, that the read count matrix reﬂects an unbiased repre-
-// // sentation of the experimental data, may be violated when using a narrow set of consensus
-// // peaks that are chosen speciﬁcally based on their rates of enrichment. It is not clear that
-// // using normalization methods developed for RNA-seq count matrices on the consensus reads
-// // will not alter biological signals; it is probably a good idea to avoid using the consensus count matrix (Reads in Peaks) for normalizing unless there is a good prior reason to expect balanced changes in binding.
-// // https://support.bioconductor.org/p/p133577/
-// // If you are getting different results, it is likely that there is a systematic shift in enriched regions in one of the conditions. Unless you have a specific reason to believe this is due to technical issues, this is likely a biological signal you want to retain. In this case, you should NOT use RLE on the binding matrix.
-// // DBA_NORM_LIB is a quick way to perform a minimal normalization. I would try:
-// // normalize <- dba.normalize(CTCF_narrowpeakscount, method = DBA_DESEQ2, 
-// //                            normalize = DBA_NORM_RLE,  background=TRUE)
-// // to run RLE against background bins rather than the binding matrix.
-// // This should probably be the default, but computing the background bins is somewhat compute intensive.
-// // => normalize
-// // Vignette:
-// // # About normalization
-// // DiﬀBind relies on three underlying core methods for normalization. These include the "na-
-// // tive" normalization methods supplied with DESeq2 and edgeR , as well as a simple library-
-// // based method. The normalization method is speciﬁed with the normalize parameter to
-// // dba.normalize
-// // The native DESeq2 normalization method is based on calculating the geometric mean for
-// // each gene across samples[6], and is referred to "RLE" or DBA_NORM_RLE in DiﬀBind .
-// // The native edgeR normalization method is based on the trimmed mean of M-values approach[7],
-// // and is referred to as "TMM" or DBA_NORM_TMM in DiﬀBind .
-// // A third method is also provided that avoids making any assumptions regarding the distribution
-// // of reads between binding sites in diﬀerent samples that may be speciﬁc to RNA-seq analysis
-// // and inappropriate for ChIP-seq analysis. This method ( "lib" or DBA_NORM_LIB ) is based on
-// // the diﬀerent library sizes for each sample, computing normalization factors to weight each
-// // sample so as to appear to have the same library size. For DESeq2 , this is accomplished
-// // by dividing the number of reads in each library by the mean library size. For edgeR , the
-// // normalization factors are all set to 1.0 , indicating that only library-size normalization should occur.
-// // Note that any of these normalization methods can be used with either the DESeq2 or
-// // edgeR analysis methods, as DiﬀBind converts normalization factors to work appropriately
-// // in either DESeq2 or edgeR .
-// 
-// 
-// //// Other references
-// // https://support.bioconductor.org/p/86594/
-// // https://support.bioconductor.org/p/107679/
-// 
-// 
-// // note: it may be better to use a fragment size of 150 together with the slopBed 75 bp shifted reads. Need to check that in more details some day. For now "fragmentSize = 1" should be good enough.
-// 
-// 
-// 
-// 
-// // cut -f1,1 ctl_2_peaks_kept_after_blacklist_removal_filtered.bed | sort | uniq // X
-// 
-// 
-// // I get this error with the fly test dataset:
-// // Error in estimateSizeFactorsForMatrix(counts(object), locfunc = locfunc,  : 
-// //   every gene contains at least one zero, cannot compute log geometric means
-// // https://www.biostars.org/p/440379/
-// 
-// // df_tmp = data.frame(dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_TMM_READS_FULL_CPM))
-// // data.frame(df_tmp)[, 6:ncol(df_tmp)]
-// // which(apply(data.frame(df_tmp)[, 6:ncol(df_tmp)], 1, function(x) all(x == 0)))
-// 
-// // here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
-// 
-// // # cur_greylist <- dba.blacklist(dbo, Retrieve=DBA_GREYLIST)
-// 
-// 
-// // ?dba.count
-// // bSubControl: logical indicating whether Control read counts are
-// //           subtracted for each site in each sample. If there are more
-// //           overlapping control reads than ChIP reads, the count will be
-// //           set to the ‘minCount’ value specified when ‘dba.count’ was
-// //           called, or zero if no value is specified.
-// // 
-// //           If ‘bSubControl’ is not explicitly specified, it will be set
-// //           to ‘TRUE’ unless a greylist has been applied (see
-// //           ‘dba.blacklist’).
-// 
-// 
-// 
-// // adding bUseSummarizeOverlaps = F to the dba.count call. This way we count as before, with 1 bp fragment length as it should be.
-// // https://rdrr.io/bioc/DiffBind/man/dba.count.html
-// 
-// // => removing the creation of a dbo1 object; the score DBA_SCORE_READS is obtained with the subsequent call to dba.peakset
-// // >         dbo1 <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_READS)
-// // Warning message:
-// // In dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1,  :
-// //   No action taken, returning passed object...
-// 
-// 
-// 
-// // # note: I also disable bScaleControl since it is used only to normalize controls reads prior to the substraction with bSubControl. But since we don't do that anymore and use greylist it doesn't matter so we can remove this parameter
-// // https://support.bioconductor.org/p/69924/
-// 
-// // # About normalization
-// // DiﬀBind relies on three underlying core methods for normalization. These include the "na-
-// // tive" normalization methods supplied with DESeq2 and edgeR , as well as a simple library-
-// // based method. The normalization method is speciﬁed with the normalize parameter to
-// // dba.normalize
-// // The native DESeq2 normalization method is based on calculating the geometric mean for
-// // each gene across samples[6], and is referred to "RLE" or DBA_NORM_RLE in DiﬀBind .
-// // The native edgeR normalization method is based on the trimmed mean of M-values approach[7],
-// // and is referred to as "TMM" or DBA_NORM_TMM in DiﬀBind .
-// // A third method is also provided that avoids making any assumptions regarding the distribution
-// // of reads between binding sites in diﬀerent samples that may be speciﬁc to RNA-seq analysis
-// // and inappropriate for ChIP-seq analysis. This method ( "lib" or DBA_NORM_LIB ) is based on
-// // the diﬀerent library sizes for each sample, computing normalization factors to weight each
-// // sample so as to appear to have the same library size. For DESeq2 , this is accomplished
-// // by dividing the number of reads in each library by the mean library size. For edgeR , the
-// // normalization factors are all set to 1.0 , indicating that only library-size normalization should occur.
-// // Note that any of these normalization methods can be used with either the DESeq2 or
-// // edgeR analysis methods, as DiﬀBind converts normalization factors to work appropriately
-// // in either DESeq2 or edgeR .
-// 
-// // DBA_NORM_NATIVE: equal DBA_NORM_TMM for edgeR and DBA_NORM_RLE for DESeq2
-// 
-// 
-// // => it is in fact recommended to use greylist regions instead of substracting controls! We update the code accordingly
-// // https://support.bioconductor.org/p/97717/
-// // https://github.com/crazyhottommy/ChIP-seq-analysis/blob/master/part3_Differential_binding_by_DESeq2.md
-// // https://support.bioconductor.org/p/72098/#72173
-// 
-// // From the Diffbind manual it also says:
-// // Another way of thinking about greylists is that they are one way of using the information in
-// // the control tracks to improve the reliability of the analysis. Prior to version 3.0, the default
-// // in DiﬀBind has been to simply subtract control reads from ChIP reads in order to dampen
-// // the magnitude of enrichment in anomalous regions. Greylists represent a more principled way
-// // of accomplishing this. If a greylist has been applied, the current default in DiﬀBind is to not
-// // subtract control reads.
-// 
-// 
-// // we should keep the bFullLibrarySize parameter to TRUE
-// // The issue is how the data are normalized. Setting bFullLibrarySize=FALSE uses a standard RNA-seq normalization method (based on the number of reads in consensus peaks), which assumes that most of the "genes" don't change expression, and those that do are divided roughly evenly in both directions. Using the default bFullLibrarySize=TRUE avoids these assumptions and does a very simple normalization based on the total number of reads for each library.
-// 
-// // THe bTagwise argument should not be needed but we keep it just in case and to be clearer
-// // Next edgeR::estimateGLMTrendedDisp is called with the DGEList and a design matrix derived
-// // from the design formula. By default, edgeR::estimateGLMTagwiseDisp is called next; this
-// // can be bypassed by setting DBA$config$edgeR$bTagwise=FALSE . 15
-// 
-// // the diffbind package changed a lot since the version I was using. The contrast command should be changed, and the dba.analyze command too. I will need to read in more details the method
-// // dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
-// // Error in dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE,  :
-// //   unused arguments (bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE)
-// 
-// 
-// // here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
-//   // Changes in version 3.0     
-// 
-//   // - Moved edgeR bTagwise parameter to $config option
-//   // - Remove normalization options bSubControl, bFullLibrarySize, filter, and filterFun from dba.analyze(), now set in dba.normalize().
-//   // - dba.normalize(): is a new function; - bSubControl default depend on presence of Greylist
-//   // - Default for bUseSummarizeOverlaps in dba.count is now TRUE
-//   // 
-//   // 	The previous methods for modelling are maintained for backward
-//   // 	compatibility, however they are not the default.  To repeat
-//   // 	earlier analyses, dba.contrast() must be called explicitly with
-//   // 	design=FALSE. See ?DiffBind3 for more information.
-//   // 
-//   //   The default mode for dba.count() is now to center around
-//   //   summits (resulting in 401bp intervals).  To to avoid
-//   //   recentering around summits as was the previous default, set
-//   //   summits=FALSE (or to a more appropriate value).
-//   // 
-//   //   Normalization options have been moved from dba.analyze() to the
-//   //   new interface function dba.normalize(). Any non-default
-//   //   normalization options must be specified using dba.normalize().
-// 
-// // from the manuel:
-// //   2. bFullLibrarySize: This is now part of the library parameter for dba.normalize . li
-// // brary=DBA_LIBSIZE_FULL is equivalent to bFullLibrarySize=TRUE , and library=DBA_LIBSIZE_PEAKREADS
-// // is equivalent to bFullLibrarySize=FALSE .
-// 
-// // from the R help:
-// // DBA_LIBSIZE_FULL: Full library size (all reads in library)
-// // DBA_LIBSIZE_PEAKREADS: Library size is Reads in Peaks
-// 
-// 
-// // rtracklayer::export(promoters, 'promoters.bed')
-// 
-// // note: diffbind_peaks: means the peaks from diffbind, not that these peaks are 
-// // diffbound (differentially bound). This set is in fact all the peaks that 
-// // diffbind found in all replicates. The corresponding bed file will be used 
-// // as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
-// 
-// //// Scores are not for anything besides downstream analysis (i.e. PCA, plots)
-// // https://support.bioconductor.org/p/69924/
-// // 2. Peak scores. Peak scores can be exported, but are mostly used for plotting 
-// // data that doesn't have a differential analysis run via dba.analyze(). For 
-// // example, after calling dba.count(), the heatmaps and PCA plots will use the 
-// // peak scores. You can see the peak scores using dba.peakset() with 
-// // bRetrieve=TRUE. The documentation for dba.count() describes the  different 
-// // scoring methods available (currently 16). These range from using the raw read 
-// // counts (with or without control reads subtracted), to variations of RPKM 
-// // normalized read counts and TMM normalized counts (the normalization method 
-// //   used by edgeR) and some scores based on summits (we do recommend using the 
-// //     summits option in dba.count). When you run an analysis using dba.analyze(), 
-// //     the normalization method used by the underlying differential expression 
-// //     package (edgeR or DESeq2) will be used for plots and reports (ie, when 
-// //       bCounts=TRUE in a call to dba.report).
-// 
-// 
-// process DA_ATAC__annotating_diffbind_peaks {
-//   tag "${COMP}"
-// 
-//   label "bioconductor"
-// 
-//   publishDir path: "${out_processed}/2_Differential_Abundance", 
-//     mode: "${pub_mode}", saveAs: {
-//      if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
-//      else if (it.indexOf("_cs.rds") > 0) "ATAC__all_peaks__ChIPseeker/${it}"
-//    }
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) 
-//       from Diffbind_peaks_for_annotating_them
-// 
-//   output:
-//     file('*.rds')
-//     set COMP, file("*_df.rds") into Annotated_diffbind_peaks_for_saving_tables
-//     set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) 
-//       into Annotated_diffbind_peaks_for_plotting
-// 
-//   // when: params.do_diffbind_peak_annotation
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     ##### loading data, libraries and parameters
-//     library(GenomicFeatures)
-//     library(ChIPseeker)
-//     library(magrittr)
-// 
-//     COMP = '!{COMP}'
-//     tx_db <- loadDb('!{params.txdb}')
-//     upstream = !{params.diffbind_peaks__promoter_up}
-//     downstream = !{params.diffbind_peaks__promoter_down}
-//     diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
-// 
-// 
-//     ##### annotating peaks
-//     anno_peak_cs = annotatePeak(diffbind_peaks_gr, 
-//                                 TxDb = tx_db, 
-//                                 tssRegion = c(-upstream, downstream), 
-//                                 level = 'gene', 
-//                                 overlap = 'all')
-// 
-//     ##### creating the data frame object
-//     anno_peak_gr = anno_peak_cs@anno
-//     df = as.data.frame(anno_peak_gr)
-//     anno_peak_df = cbind(peak_id = rownames(df), df, 
-//       anno_peak_cs@detailGenomicAnnotation)
-//     anno_peak_df$peak_id %<>% as.character %>% as.integer
-// 
-//     ##### saving results
-//     name0 = paste0(COMP, '__diffb_anno_peaks')
-//     saveRDS(anno_peak_df, paste0(name0, '_df.rds'))
-//     saveRDS(anno_peak_cs, paste0(name0, '_cs.rds'))
-// 
-//     '''
-// }
-// 
-// // cs: for ChIPseeker
-// // rtracklayer::export(anno_peak_df, paste0(name0, '.bed'))
-// // these are peaks of differential chromatin accessibility called by DiffBind
-// 
-// // overlap: one of 'TSS' or 'all', if overlap="all", then gene overlap with peak 
-// // will be reported as nearest gene, no matter the overlap is at TSS region or not.
-// 
-// 
-// // note that in df_annotated_peaks: the geneStart and geneEnd field reflect actually the transcript start and transcript end. This is if the level = 'transcript' option is used. If the option level = 'gene' is used then the coordinates correspond to gene. (same goes for distanceToTSS, genLength...)
-// 
-// 
-// 
-// process DA_ATAC__plotting_differential_abundance_results {
-//   tag "${COMP}"
-// 
-//   label "diffbind"
-//   // label "differential_abundance"
-// 
-//   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
-//     saveAs: {
-//       if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
-//       else if (it.indexOf("_PCA_1_2.pdf") > 0) "ATAC__PCA_1_2/${it}"
-//       else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
-//       else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
-//     }
-// 
-//   publishDir path: "${out_processed}/${out_path}/ATAC__non_annotated_peaks", 
-//              pattern: "*__ATAC_non_annotated_peaks.txt", mode: "${pub_mode}"
-// 
-//   input:
-//     val out_path from Channel.value('2_Differential_Abundance')
-//     set COMP, file(annotated_peaks), file(diffbind_object_rds) 
-//       from Annotated_diffbind_peaks_for_plotting
-// 
-//   output:
-//     set val("ATAC__volcano"), out_path, file('*__ATAC_volcano.pdf') 
-//       into ATAC_Volcano_for_merging_pdfs
-//     set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') 
-//       into ATAC_PCA_1_2_for_merging_pdfs
-//     set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') 
-//       into ATAC_PCA_3_4_for_merging_pdfs
-//     set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') 
-//       into ATAC_Other_plot_for_merging_pdfs
-//     file("*__ATAC_non_annotated_peaks.txt")
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-// 
-//     ##### loading data and libraries
-// 
-//     library(ggplot2)
-//     library(magrittr)
-//     library(grid)
-//     library(DiffBind)
-// 
-//     source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
-// 
-//     COMP = '!{COMP}'
-// 
-//     dbo = readRDS('!{diffbind_object_rds}')
-//     fdr_threshold = !{params.diffbind_plots__fdr_threshold}
-//     top_n_labels = !{params.diffbind_plots__top_n_labels}
-//     dbo$config$th = fdr_threshold
-//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-//     df_annotated_peaks = readRDS('!{annotated_peaks}')
-// 
-// 
-//     ##### volcano plots
-// 
-//     res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_id = geneId)
-//     df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
-//     res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
-// 
-//     pdf(paste0(COMP, '__ATAC_volcano.pdf'))
-//       plot_volcano_custom(res, sig_level = fdr_threshold, 
-//           label_column = 'gene_name', title = paste(COMP, 'ATAC'),
-//           top_n_labels = top_n_labels)
-//     dev.off()
-// 
-// 
-//     ##### PCA plots
-// 
-//     # Handling unnanotated peaks
-//     v_gene_names = res$gene_name[match(1:nrow(dbo$binding), res$peak_id)]
-//     sel = which(is.na(v_gene_names))
-//     v_gene_names[is.na(v_gene_names)] = paste0('no_gene_', 1:length(sel))
-//     sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
-//       print(dbo$peaks[[1]][sel,])
-//     sink()
-// 
-//     # doing and plotting the PCA
-//     prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), 
-//       cor = F, bLog = T)$pc
-//     rownames(prcomp1$x) = v_gene_names
-// 
-//     lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
-//     lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
-// 
-//     pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
-//       make_4_plots(lp_1_2)
-//     dev.off()
-// 
-//     pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
-//       make_4_plots(lp_3_4)
-//     dev.off()
-// 
-// 
-//     ##### other plots
-// 
-//     pdf(paste0(COMP, '__ATAC_other_plots.pdf'))
-//         dba.plotMA(dbo, bNormalized = T)
-//         dba.plotHeatmap(dbo, main = 'all reads')
-//         first_2_replicates = sort(c(which(dbo$masks$Replicate.1), 
-//           which(dbo$masks$Replicate.2)))
-//         dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
-//     dev.off()
-// 
-//     '''
-// }
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(ATAC_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
-// 
-// // DiffBind__pv_pcmask__custom was adapted from DiffBind::pv.pcmask. 
-// // This little hacking is necessary because DiffBind functions plots PCA but 
-// // do not return the object.
-// // alternatively, the PCA could be made from scratch as done here: 
-// // https://support.bioconductor.org/p/76346/
-// 
-// 
-// 
-// process DA_ATAC__saving_detailed_results_tables {
-//   tag "${COMP}"
-// 
-//   label "r_basic"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set COMP, file(annotated_peaks) 
-//       from Annotated_diffbind_peaks_for_saving_tables
-// 
-//   output:
-//     set val('ATAC_detailed'), val('2_Differential_Abundance'), file('*.rds') 
-//       into ATAC_detailed_tables_for_formatting_table
-//     set COMP, file("*.rds") into ATAC_detailed_tables_for_splitting_in_subsets
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     ##### loading data and libraries
-//     library(magrittr)
-//     library(purrr)
-// 
-//     COMP = '!{COMP}'
-// 
-//     df_annotated_peaks = readRDS('!{annotated_peaks}')
-//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-// 
-// 
-//     # setting up parameters
-//     conditions = tolower(strsplit(COMP, '_vs_')[[1]])
-//     cond1 = conditions[1]
-//     cond2 = conditions[2]
-// 
-//     # creating the res_detailed table
-//     res_detailed = df_annotated_peaks
-//     # adding gene metadata in a more readable format than what provided by 
-//     # default by ChIPseeker
-//     df_genes_metadata1 = dplyr::rename(df_genes_metadata, gene_chr = chr, 
-//       gene_start = start, gene_end = end, gene_width = width, 
-//       gene_strand = strand)
-//     res_detailed %<>% dplyr::select(-geneChr, -geneStart, -geneEnd, 
-//       -geneLength, -geneStrand)
-//     colnames(res_detailed) %<>% tolower
-//     res_detailed %<>% dplyr::rename(gene_id = geneid)
-//     res_detailed %<>% dplyr::inner_join(df_genes_metadata1, by = 'gene_id')
-// 
-//     # renaming columns
-//     res_detailed %<>% dplyr::rename(chr = seqnames, L2FC = fold, 
-//       pval = p.value, distance_to_tss = distancetotss, five_UTR = fiveutr, 
-//       three_UTR = threeutr)
-//     res_detailed$COMP = COMP
-// 
-//     # collapsing replicates values and renaming these columns as well
-//     colnames(res_detailed)[grep('conc_', colnames(res_detailed))] = 
-//       c('conc_cond1', 'conc_cond2')
-//     colns = colnames(res_detailed)
-//     colns1 = grep(paste0('^', cond1, '_'), colns)
-//     colns2 = grep(paste0('^', cond2, '_'), colns)
-//     res_detailed$counts_cond1 = 
-//       apply(res_detailed[, colns1], 1, paste, collapse = '|')
-//     res_detailed$counts_cond2 = 
-//       apply(res_detailed[, colns2], 1, paste, collapse = '|')
-//     res_detailed[, c(colns1, colns2)] <- NULL
-// 
-//     # reordering columns
-//     res_detailed$strand <- NULL  
-//       # strand information is not available for ATAC-Seq
-//     res_detailed %<>% dplyr::select(COMP, peak_id, chr, start, end, width, 
-//       gene_name, gene_id, pval, padj, L2FC, distance_to_tss, annotation, conc, 
-//       conc_cond1, conc_cond2, counts_cond1, counts_cond2, dplyr::everything())
-// 
-//     # adding the filtering columns
-//     res_detailed %<>% dplyr::mutate(
-//       FC_up = L2FC > 0,
-//       FC_down = L2FC < 0,
-// 
-//       PA_8kb = abs(distance_to_tss) < 8000,
-//       PA_3kb = abs(distance_to_tss) < 3000,
-//       PA_2u1d = distance_to_tss > -2000 & distance_to_tss < 1000,
-//       PA_TSS = distance_to_tss == 0,
-//       PA_genProm = genic | promoter,
-//       PA_genic = genic,
-//       PA_prom = promoter,
-//       PA_distNC = distal_intergenic | ( intron & !promoter & !five_UTR  & 
-//         !three_UTR  & !exon)
-//     )
-// 
-//     # saving table
-//     saveRDS(res_detailed, paste0(COMP, '__res_detailed_atac.rds'))
-// 
-//     '''
-// }
-// 
-// 
-// Formatting_csv_tables_channel = Formatting_csv_tables_channel
-//   .mix(ATAC_detailed_tables_for_formatting_table)
-// 
-// 
-// 
-// 
-// 
-// process DA_mRNA__doing_differential_abundance_analysis {
-//   tag "${COMP}"
-// 
-//   label "sleuth"
-// 
-//   publishDir path: "${out_processed}/2_Differential_Abundance", 
-//     mode: "${pub_mode}", saveAs: {
-//        if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) 
-//           "mRNA__all_genes__rsleuth/${it}"
-//        // else if (it.indexOf("__mRNA_DEG_df.rds") > 0) 
-//        //    "mRNA__all_genes__dataframe/${it}"
-//        else if (it.indexOf("__all_genes_prom.bed") > 0) 
-//           "mRNA__all_genes__bed_promoters/${it}"
-//   }
-// 
-//   when: 
-//     do_mRNA
-// 
-//   input:
-//     set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) 
-//       from Kallisto_results_for_sleuth_4
-// 
-//   output:
-//     set COMP, file('*__mRNA_DEG_rsleuth.rds') into Sleuth_results_for_plotting
-//     set COMP, file('*__mRNA_DEG_df.rds') into Sleuth_results_for_saving_tables
-//     set COMP, file('*__all_genes_prom.bed') 
-//       into All_detected_sleuth_promoters_for_background
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(sleuth)
-//     library(ggplot2)
-//     library(magrittr)
-// 
-//     df_genes_transcripts = readRDS('!{params.df_genes_transcripts}')
-//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-// 
-//     COMP = '!{COMP}'
-//     cond1 = '!{cond1}'
-//     cond2 = '!{cond2}'
-// 
-//     promoters_df = readRDS('!{params.promoters_df}')
-//     source('!{projectDir}/bin/export_df_to_bed.R')
-//     source('!{projectDir}/bin/get_prom_bed_df_table.R')
-// 
-// 
-//     s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), 
-//       stringsAsFactors = F)
-//     s2c$sample = sapply(s2c$path, function(x) strsplit(x, 'kallisto_')[[1]][2])
-//     s2c$condition = sapply(s2c$path, function(x) strsplit(x, '_')[[1]][2])
-//     levels(s2c$condition) = c(cond1, cond2)
-// 
-// 		test_cond = paste0('condition', cond2)
-// 		cond <- factor(s2c$condition)
-// 		cond <- relevel(cond, ref = cond2)
-// 		md <- model.matrix(~cond, s2c)
-// 		colnames(md)[2] <- test_cond
-// 
-//     t2g <- dplyr::rename(df_genes_transcripts, target_id = TXNAME, 
-//         gene_id = GENEID)
-//     t2g$target_id %<>% paste0('transcript:', .)
-// 
-//     # Load the kallisto data, normalize counts and filter genes
-// 	  sleo <- sleuth_prep(sample_to_covariates = s2c, full_model = md, 
-//       target_mapping = t2g, aggregation_column = 'gene_id', 
-//       transform_fun_counts = function(x) log2(x + 0.5), gene_mode = T)
-// 
-//     # Estimate parameters for the sleuth response error measurement (full) model
-//     sleo <- sleuth_fit(sleo)
-// 
-//     # Performing test and saving the sleuth object
-//     sleo <- sleuth_wt(sleo, test_cond)
-//     saveRDS(sleo, file = paste0(COMP, '__mRNA_DEG_rsleuth.rds'))
-// 
-//     # saving as dataframe and recomputing the FDR
-//     res <- sleuth_results(sleo, test_cond, test_type = 'wt', 
-//       pval_aggregate  = F)
-//     res %<>% .[!is.na(.$b), ]
-//     res$padj = p.adjust(res$pval, method = 'BH')
-//     res$qval <- NULL
-//     res %<>% dplyr::rename(gene_id = target_id)
-//     res1 = dplyr::inner_join(df_genes_metadata, res, by = 'gene_id')
-//     saveRDS(res1, file = paste0(COMP, '__mRNA_DEG_df.rds'))
-// 
-//     # exporting promoters of all detected genes
-//     promoters_df1 = promoters_df
-//     promoters_df1 %<>% .[.$gene_id %in% res1$gene_id, ]
-//     prom_bed_df = get_prom_bed_df_table(promoters_df1, res1)
-//     export_df_to_bed(prom_bed_df, paste0(COMP, '__all_genes_prom.bed'))
-// 
-//     '''
-// }
-// 
-// // => doing differential gene expression analysis
-// 
-// 
-// // with rsleuth v0.30
-// // length(which(is.na(res$b))) # 17437
-// 
-// // with rsleuth v0.29
-// // dim(res) # 2754   11 => NA values are automatically filtered out
-// // dim(df_genes_metadata) # 20191     8
-// // 20191 - 2754 # 17437
-// 
-// // sleuth_prep message
-// // 3252 targets passed the filter
-// // 2754 genes passed the filter
-// 
-// // the filtering function is the following:
-// // https://www.rdocumentation.org/packages/sleuth/versions/0.29.0/topics/basic_filter
-// // basic_filter(row, min_reads = 5, min_prop = 0.47)
-// // row        this is a vector of numerics that will be passedin
-// // min_reads  the minimum mean number of reads
-// // min_prop   the minimum proportion of reads to pass this filter
-// 
-// // note: we compute the FDR for both ATAC and mRNA seq to be sure to have consistent values generated by the same FDR method
-// 
-// 
-// 
-// 
-// process DA_mRNA__plotting_differential_abundance_results {
-//   tag "${COMP}"
-// 
-//   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
-//     saveAs: { 
-//       if (it.indexOf("__mRNA_volcano.pdf") > 0) "mRNA__volcano/${it}"
-//       else if (it.indexOf("__mRNA_PCA_1_2.pdf") > 0) "mRNA__PCA_1_2/${it}"
-//       else if (it.indexOf("__mRNA_PCA_3_4.pdf") > 0) "mRNA__PCA_3_4/${it}"
-//       else if (it.indexOf("__mRNA_other_plots.pdf") > 0) "mRNA__other_plots/${it}"
-//     }
-// 
-// 
-//   label "sleuth"
-// 
-//   input:
-//     val out_path from Channel.value('2_Differential_Abundance')
-//     set COMP, file(mRNA_DEG_rsleuth_rds) from Sleuth_results_for_plotting
-// 
-//   output:
-//     set val("mRNA__volcano"), out_path, file('*__mRNA_volcano.pdf') 
-//       into MRNA_Volcano_for_merging_pdfs
-//     set val("mRNA__PCA_1_2"), out_path, file('*__mRNA_PCA_1_2.pdf') 
-//       into MRNA_PCA_1_2_for_merging_pdfs
-//     set val("mRNA__PCA_3_4"), out_path, file('*__mRNA_PCA_3_4.pdf') 
-//       into MRNA_PCA_3_4_for_merging_pdfs
-//     set val("mRNA__other_plots"), out_path, file('*__mRNA_other_plots.pdf') 
-//       into MRNA_Other_plot_for_merging_pdfs
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-// 
-//     ##### Loading libraries and data
-// 
-//     library(sleuth)
-//     library(ggplot2)
-//     library(magrittr)
-//     library(grid)
-// 
-//     source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
-// 
-//     sleo = readRDS('!{mRNA_DEG_rsleuth_rds}')
-//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-// 
-//     COMP = '!{COMP}'
-//     conditions = strsplit(COMP, '_vs_')[[1]]
-//     cond1 = conditions[1]
-//     cond2 = conditions[2]
-//     test_cond = paste0('condition', cond2)
-// 
-//     fdr_threshold = !{params.sleuth_plots__fdr_threshold}
-//     top_n_labels  = !{params.sleuth_plots__top_n_labels}
-// 
-// 
-//     ##### volcano plots
-// 
-//     res_volcano <- sleuth_results(sleo, test_cond)
-//     res_volcano %<>% dplyr::rename(gene_id = target_id, L2FC = b)
-//     df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
-//     res_volcano %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
-//     res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
-// 
-//     pdf(paste0(COMP, '__mRNA_volcano.pdf'))
-//       plot_volcano_custom(res_volcano, sig_level = fdr_threshold, 
-//         label_column = 'gene_name', title = paste(COMP, 'mRNA'),
-//         top_n_labels = top_n_labels
-//         )
-//     dev.off()
-// 
-// 
-//     ##### PCA plots
-// 
-//     # the pca is computed using the default parameters in the sleuth functions 
-//     # sleuth::plot_pca
-//     mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 
-//       'scaled_reads_per_base')
-//     prcomp1 <- prcomp(mat)
-//     v_gene_id_name = df_genes_metadata_1$gene_name %>% 
-//       setNames(., df_genes_metadata_1$gene_id)
-//     rownames(prcomp1$x) %<>% v_gene_id_name[.]
-// 
-//     lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
-//     lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'mRNA'))
-// 
-//     pdf(paste0(COMP, '__mRNA_PCA_1_2.pdf'))
-//       make_4_plots(lp_1_2)
-//     dev.off()
-// 
-//     pdf(paste0(COMP, '__mRNA_PCA_3_4.pdf'))
-//       make_4_plots(lp_3_4)
-//     dev.off()
-// 
-// 
-//     ##### other plots
-// 
-//     pdf(paste0(COMP, '__mRNA_other_plots.pdf'))
-//       plot_ma(sleo, test = test_cond, sig_level = fdr_threshold) + 
-//         ggtitle(paste('MA:', COMP))
-//       plot_group_density(sleo, use_filtered = TRUE, 
-//         units = "scaled_reads_per_base", trans = "log", 
-//         grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), 
-//         offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
-//       # plot_scatter(sleo) + ggtitle(paste('Scatter:', COMP))
-//       # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', 
-//       # COMP))
-//     dev.off()
-// 
-//     '''
-// }
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(MRNA_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(MRNA_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(MRNA_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(MRNA_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
-// 
-// 
-// 
-// 
-// process DA_mRNA__saving_detailed_results_tables {
-//   tag "${COMP}"
-// 
-//   label "r_basic"
-// 
-//   publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", 
-//     mode: pub_mode, enabled: params.tables__save_csv
-// 
-//   when: 
-//     do_mRNA
-// 
-//   input:
-//     set COMP, file(mRNA_DEG_df) from Sleuth_results_for_saving_tables
-// 
-//   output:
-//     set val('mRNA_detailed'), val('2_Differential_Abundance'), file('*.rds') 
-//       into MRNA_detailed_tables_for_formatting_table
-//     set COMP, file('*.rds') into MRNA_detailed_tables_for_splitting_in_subsets
-// 
-//   shell:
-//   '''
-//     #!/usr/bin/env Rscript
-// 
-// 
-//     ## Loading libraries and data
-// 
-//     library(magrittr)
-// 
-//     COMP = '!{COMP}'
-// 
-//     mRNA_DEG_df = readRDS('!{mRNA_DEG_df}')
-// 
-// 
-//     ## Saving a detailed results table
-// 
-//     res_detailed = mRNA_DEG_df
-//     res_detailed %<>% dplyr::rename(L2FC = b)
-//     res_detailed$COMP = COMP
-//     res_detailed %<>% dplyr::select(COMP, chr, start, end, width, strand, 
-//       gene_name, gene_id, entrez_id, pval, padj, L2FC, dplyr::everything())
-//     saveRDS(res_detailed, paste0(COMP, '__res_detailed_mRNA.rds'))
-// 
-//   '''
-// }
-// 
-// 
-// Formatting_csv_tables_channel = Formatting_csv_tables_channel
-//   .mix(MRNA_detailed_tables_for_formatting_table)
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// if(params.experiment_types == 'mRNA'){
-//   MRNA_detailed_tables_for_splitting_in_subsets
-//   .set{ Differational_abundance_results_for_splitting_in_subsets }
-// }
-// 
-// if(params.experiment_types == 'atac'){
-//   ATAC_detailed_tables_for_splitting_in_subsets
-//   .set{ Differational_abundance_results_for_splitting_in_subsets }
-// }
-// 
-// if(params.experiment_types == 'both'){
-//   ATAC_detailed_tables_for_splitting_in_subsets
-//   .mix(MRNA_detailed_tables_for_splitting_in_subsets)
-//   // format: COMP, res_detailed
-//   .groupTuple()
-//   // format: COMP, [ res_detailed_atac, res_detailed_mRNA ]
-//   .filter{ comp, res_files -> 
-//     ( do_atac && !do_mRNA  && res_files.size() == 1) ||
-//     (!do_atac &&  do_mRNA  && res_files.size() == 1) ||
-//     ( do_atac &&  do_mRNA  && res_files.size() == 2)
-//   }
-//   .dump(tag: 'both_data')
-//   .set{ Differational_abundance_results_for_splitting_in_subsets }
-// }
-// 
-// do_mRNA_lgl = do_mRNA.toString().toUpperCase()
-// do_atac_lgl = do_atac.toString().toUpperCase()
-// 
-// 
-// process DA_split__splitting_differential_abundance_results_in_subsets {
-//   tag "${COMP}"
-// 
-//   label "r_basic"
-// 
-//   publishDir path: "${out_processed}/2_Differential_Abundance", 
-//   mode: "${pub_mode}", saveAs: {
-//     if (it.indexOf("__genes.rds") > 0) "DA_split__genes_rds/${it}"
-//     else if   (it.indexOf(".bed") > 0) "DA_split__bed_regions/${it}"
-//   }
-// 
-//   input:
-//     set COMP, file(res_detailed) 
-//       from Differational_abundance_results_for_splitting_in_subsets
-// 
-//   output:
-//     set val('res_simple'), val('2_Differential_Abundance'), 
-//       file("*__res_simple.rds") 
-//       into Res_simple_table_for_formatting_table optional true
-//     set val('res_filter'), val('2_Differential_Abundance'), 
-//       file("*__res_filter.rds") 
-//       into Res_filter_table_for_formatting_table optional true
-//     set COMP, file("*__genes.rds") 
-//       into DA_genes_split_for_doing_enrichment_analysis, 
-//            DA_genes_for_plotting_venn_diagrams optional true
-//     set COMP, file("*__regions.bed") 
-//       into DA_regions_split_for_doing_enrichment_analysis optional true
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-// 
-//     ################################
-//     ## loading data and libraries
-//     library(magrittr)
-//     library(purrr)
-//     library(data.table)
-// 
-//     source('!{projectDir}/bin/splitting_DAR_in_subsets_functions.R')
-//     source('!{projectDir}/bin/export_df_to_bed.R')
-//     source('!{projectDir}/bin/get_prom_bed_df_table.R')
-//     source('!{projectDir}/bin/read_from_nextflow.R')
-// 
-//     COMP = '!{COMP}'
-// 
-//     do_mRNA = !{do_mRNA_lgl}
-//     do_atac = !{do_atac_lgl}
-// 
-//     lf = list.files()
-// 
-//     promoters_df = readRDS('!{params.promoters_df}')
-// 
-//     TT       = '!{params.split__threshold_type}'
-//     TV_split = read_from_nextflow(
-//       '!{params.split__threshold_values}') %>% as.numeric
-//     FC_split = read_from_nextflow(
-//       '!{params.split__fold_changes}')
-//     PA_split = read_from_nextflow(
-//       '!{params.split__peak_assignment}')
-// 
-// 
-//     ################################
-//     ## creating the res_simple table
-// 
-//     # combining atac and mRNA results
-//     if(do_atac) {
-//       res_detailed_atac = readRDS(grep('atac.rds', lf, value = T))
-// 
-//       # adding the aggregated PF filter column
-//       res_detailed_atac$PA_all = T
-//       PA_columns_all = grep('PA_', colnames(res_detailed_atac), value = T)
-//       res_detailed_atac$PF = 
-//         get_merged_columns(res_detailed_atac, paste0('PA_', PA_split), 'PF')
-// 
-//       res_simple_atac = res_detailed_atac %>% 
-//         dplyr::mutate(transcript_id = NA, ET = 'ATAC') %>% 
-//         dplyr::select(COMP, peak_id, chr, gene_name, gene_id, pval, padj, 
-//           L2FC, PF, ET)
-// 
-//       # adding the rank column
-//       res_simple_atac %<>% dplyr::arrange(padj, desc(abs(L2FC)))
-//       dt = data.table(res_simple_atac)
-//       dt[, FC := ifelse(L2FC > 0, 'up', 'down')]
-//       dt[L2FC == 0, FC := 'NA']
-//       dt$rank = 0
-//       dt[(!duplicated(dt[, c('gene_id', 'FC')])), rank := 1:.N]
-//       dt[, rank := rank[1], .(cumsum(rank != 0))]
-//       dt[, FC := NULL]
-//       res_simple_atac = dt %>% copy %>% setDF
-// 
-//       res_simple = res_simple_atac
-//     }
-// 
-//     if(do_mRNA) {
-//       res_detailed_mRNA = readRDS(grep('mRNA.rds', lf, value = T))
-//       res_simple_mRNA = res_detailed_mRNA %>% dplyr::select(COMP, chr, 
-//         gene_name, gene_id, pval, padj, L2FC)
-//       res_simple_mRNA = cbind(peak_id = 'Null', res_simple_mRNA, ET = 'mRNA', 
-//         PF = 'Null', stringsAsFactors = F)
-//       res_simple_mRNA %<>% dplyr::select(COMP, peak_id, chr, gene_name, 
-//         gene_id, pval, padj, L2FC, PF, ET)
-// 
-//       # adding the rank column
-//       res_simple_mRNA %<>% dplyr::arrange(padj, desc(abs(L2FC)))
-//       res_simple_mRNA$rank = 1:nrow(res_simple_mRNA)
-// 
-//       res_simple = res_simple_mRNA
-//     }
-// 
-//     if(do_mRNA & do_atac) res_simple = rbind(res_simple_atac, res_simple_mRNA)
-// 
-//     # adding the aggregated FC filter column
-//     res_simple %<>% dplyr::mutate(FC_all = T, FC_up = L2FC > 0, 
-//       FC_down = L2FC < 0)
-//     res_simple$FC = get_merged_columns(res_simple, paste0('FC_', FC_split), 
-//       'FC')
-// 
-//     # adding the aggregated TV filter column
-//     for(TV in TV_split) res_simple[[paste0('TV_', TV)]] = 
-//       filter_entries_by_threshold(res_simple, TT, TV)
-//     res_simple$TV = 
-//       get_merged_columns(res_simple, paste0('TV_', TV_split), 'TV')
-//     res_simple$TV %<>% gsub('^$', 'NS', .)  # NS: None Significant
-// 
-//     # filtering and reordering columns
-//     res_simple %<>% dplyr::select(ET, PF, FC, TV, COMP, peak_id, chr, 
-//       gene_name, gene_id, pval, padj, L2FC)
-// 
-//     saveRDS(res_simple, paste0(COMP, '__res_simple.rds'))
-// 
-// 
-//     ################################
-//     ## creating the res_filter table
-// 
-//     df_split = expand.grid(TV = TV_split, FC = FC_split, PF = PA_split, 
-//       stringsAsFactors = F)
-//     lres_filter = list()
-// 
-//     for(c1 in 1:nrow(df_split)){
-//       TV1 = df_split$TV[c1]
-//       FC1 = df_split$FC[c1]
-//       PF1 = df_split$PF[c1]
-// 
-//       res_filter_atac = res_simple %>% 
-//         dplyr::filter(grepl(TV1, TV) & 
-//                       grepl(FC1, FC) & grepl(PF1, PF) & ET == 'ATAC')
-//       res_filter_mRNA = res_simple %>% 
-//         dplyr::filter(grepl(TV1, TV) & grepl(FC1, FC) & ET == 'mRNA')
-// 
-//       # adding the Experiment Type "both"
-//       ATAC_genes = res_filter_atac$gene_id
-//       mRNA_genes = res_filter_mRNA$gene_id
-//       both_genes = res_filter_atac$gene_id %>% .[. %in% mRNA_genes]
-// 
-//       res_filter_atac_both = res_filter_atac %>% 
-//         dplyr::filter(gene_id %in% both_genes) %>% 
-//         dplyr::mutate(ET = 'both_ATAC')
-//       res_filter_mRNA_both = res_filter_mRNA %>% 
-//         dplyr::filter(gene_id %in% both_genes) %>% 
-//         dplyr::mutate(ET = 'both_mRNA')
-// 
-//       res_filter_tmp = rbind(res_filter_atac_both, res_filter_mRNA_both, 
-//         res_filter_atac, res_filter_mRNA)
-//       res_filter_tmp %<>% dplyr::mutate(TV = TV1, FC = FC1, PF = PF1)
-//       res_filter_tmp$PF[res_filter_tmp$ET == 'mRNA'] = 'Null'
-// 
-//       lres_filter[[c1]] = res_filter_tmp
-// 
-//     }
-// 
-//     res_filter = do.call(rbind, lres_filter)
-//     res_filter %<>% .[!duplicated(.), ]
-// 
-//     saveRDS(res_filter, paste0(COMP, '__res_filter.rds'))
-// 
-// 
-//     ################################
-//     ## splitting results in subsets and exporting as bed and gene lists
-// 
-//     if(do_atac) {
-//       atac_bed_df = res_detailed_atac
-//       atac_bed_df %<>% dplyr::mutate(score = round(-log10(padj), 2), 
-//                     name = paste(gene_name, peak_id, sep = '_'), strand = '*')
-//       atac_bed_df %<>% dplyr::select(chr, start, end, name, score, strand, 
-//         gene_id)
-//     }
-// 
-//     if(do_mRNA) {
-//       promoters_df1 = promoters_df
-//       prom_bed_df = get_prom_bed_df_table(promoters_df1, res_simple_mRNA)
-//     }
-// 
-//     res_filter$gene_peak = 
-//       apply(res_filter[, c('gene_name', 'peak_id')], 1, paste, collapse = '_')
-// 
-//     df_split1 = res_filter %>% dplyr::select(ET:TV) %>% .[!duplicated(.),]
-// 
-//     for(c1 in 1:nrow(df_split1)){
-//       ET1  = df_split1$ET[c1]
-//       PF1  = df_split1$PF[c1]
-//       FC1  = df_split1$FC[c1]
-//       TV1 = df_split1$TV[c1]
-// 
-//       df = subset(res_filter, ET == ET1 & PF == PF1 & FC == FC1 & TV == TV1)
-//       DA_genes = unique(df$gene_id)
-//       NDA_genes = subset(res_simple, ET == ET1 & !gene_id %in% DA_genes, 
-//         'gene_id')$gene_id
-//       lgenes = list(DA = DA_genes, NDA = NDA_genes)
-// 
-//       key = paste(ET1, PF1, FC1, TV1, COMP, sep = '__')
-// 
-//       # exporting bed files
-//       if(do_mRNA && ET1 %in% c('mRNA', 'both_mRNA')) {
-//         cur_bed = prom_bed_df %>% .[.$gene_id %in% DA_genes, ]
-//       }
-// 
-//       if(do_atac && ET1 %in% c('ATAC', 'both_ATAC')) {
-//         cur_bed = atac_bed_df %>% .[.$name %in% df$gene_peak, ]
-//       }
-// 
-//       bed_name = paste0(key, '__regions.bed')
-//       export_df_to_bed(cur_bed, bed_name)
-// 
-//       # exporting gene list
-//       key %<>% gsub('both_....', 'both', .) # renaming both_{ATAC,mRNA} as both
-//       saveRDS(lgenes, paste0(key, '__genes.rds'))
-// 
-//     }
-// 
-//     '''
-// }
-// 
-// // bed_name = paste0(key, '__diff_expr_genes_prom.bed')
-// // bed_name = paste0(key, '__diff_ab_peaks.bed')
-// 
-// // note that the rank column for atac increase for each peak that is assigned to 
-// // a new gene. This way as many genes are assigned in ATAC-Seq and mRNA-Seq
-// 
-// // commands to check venn diagrams sizes:
-// // dt[rank < 1001][L2FC > 0]$gene_id %>% unique %>% length
-// // dt[rank < 1001][L2FC < 0]$gene_id %>% unique %>% length
-// 
-// 
-// // a=      res_simple %>% .[.$ET == 'ATAC', ] %>% 
-// //     .[.$rank < 1001 & .$FC > 0, ] %>% .$gene_id %>% unique
-// // c = a %>% .[!. %in% b]
-// // dt[gene_id == c[1]]
-// 
-// 
-// // res_simple[, c('ET', 'FC', 'TV_1000')] %>% table
-// // to run after this line:    for(TV in TV_split) res_simple[[paste0('TV_', ...
-// 
-// // res_simple_atac %>% .[.$rank < 1000] %>%  .[.$L2FC < 0 ,]  %>% 
-// // .[!duplicated(.$gene_id),] %>% nrow
-// // res_simple_atac %>%  .[.$L2FC > 0 ,]  %>% .[!duplicated(.$gene_id),] %>% nrow
-// 
-// 
-// Formatting_csv_tables_channel = Formatting_csv_tables_channel
-//   .mix(Res_simple_table_for_formatting_table)
-// Formatting_csv_tables_channel = Formatting_csv_tables_channel
-//   .mix(Res_filter_table_for_formatting_table)
-// 
-// 
-// 
-// 
-// // Note: in the res_filter table, each entry is multiplied at maximum by the 
-// // number of rows in the df_split table times 2 (for the ET column)
-// 
-// // why we remove 1bp at the start for bed export from a grange object
-// // https://www.biostars.org/p/89341/
-// // The only trick is remembering the BED uses 0-based coordinates.
-// // note that the df that are input to the function export_df_to_bed all come 
-// // from a grange object (output of )
-// 
-// 
-// 
-// 
-// 
-// 
-// //// Adding keys to genes sets
-// 
-// // note: there are slightly more items in the peaks channels, since the both 
-// // sets are duplicated (both_ATAC and both_mRNA)
-// 
-// 
-// DA_genes_split_for_doing_enrichment_analysis
-//   // COMP, [ multiple_rds_files ] 
-//   //  (files format: path/ET__PA__FC__TV__COMP__genes.rds)
-//   .map{ it[1] }.flatten().toList()
-//   // [ all_rds_files ]
-//   .into{ 
-//     DA_genes_list_for_computing_genes_self_overlaps ;
-//     DA_genes_for_computing_genes_self_overlaps_1
-//   }
-// 
-// DA_genes_for_computing_genes_self_overlaps_1
-//   .flatten()
-//   // one rds_file per line
-//   .map{ [ it.name.replaceFirst(~/__genes.*/, ''), it ] }
-//   // key (ET__PA__FC__TV__COMP), rds_file
-//   .into{ 
-//     DA_genes_for_computing_genes_self_overlaps_2 ; 
-//     DA_genes_for_computing_functional_annotations_overlaps_1
-//   }
-// 
-// 
-// DA_genes_for_computing_genes_self_overlaps_2
-//   // format: key (ET__PA__FC__TV__COMP), rds_file (lgenes = list(DA, NDA))
-//   .combine(DA_genes_list_for_computing_genes_self_overlaps)
-//   // format: key, rds_file, rds_files
-//   .map{ [ "${it[0]}__genes_self", 'genes_self', it[1], it[2..-1] ] }
-//   // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file, [ rds_files ]
-//   .dump(tag: 'genes_self')
-//   .set{ DA_genes_for_computing_genes_self_overlaps_3 }
-// 
-// 
-// 
-// //// Adding backgrounds to peak sets
-// 
-// // A background is needed for downstream analysis to compare DEG or DBP to all 
-// // genes or all peaks. This background is all_peaks found by DiffBind for the 
-// // ATAC and both_ATAC entries. And it is the promoters of genes detected by 
-// // sleuth for mRNA and both_mRNA entries.
-// 
-// DA_regions_split_for_doing_enrichment_analysis
-//   // COMP, multiple_bed_files 
-//   //   (files format: path/ET__PA__FC__TV__COMP__peaks.bed)
-//   .map{ it[1] }.flatten()
-//   // bed_file
-//   .map{ [ it.name.replaceFirst(~/__regions.bed/, ''), it ] }
-//   // key (ET__PA__FC__TV__COMP), bed_file
-//   .dump(tag:'DA_regions')
-//   .into{ DA_regions_split_ATAC ; DA_regions_split_mRNA }
-// 
-// DA_regions_split_ATAC
-//   // key, DA_regions
-//   .filter{ it[0] =~ /.*ATAC.*/ }
-//   .combine(All_detected_diffbind_peaks_for_background)
-//   // key, DA_regions, COMP, all_peaks
-//   .dump(tag:'DA_regions_ATAC')
-//   .set{ DA_regions_split_ATAC1 }
-// 
-// DA_regions_split_mRNA
-//   .filter{ it[0] =~ /.*mRNA.*/ }
-//   .combine(All_detected_sleuth_promoters_for_background)
-//   // key, diff_expr_prom_bed, COMP, all_genes_prom_bed
-//   .dump(tag:'DA_regions_mRNA')
-//   .set{ DA_regions_split_mRNA1 }
-// 
-// DA_regions_split_ATAC1
-//   .mix(DA_regions_split_mRNA1)
-//   // format: key, DA_regions, all_regions
-//   .filter{ it[0].split('__')[4] ==~ it[2] }
-//   // keeping only entries for which the COMP match with the key
-//   .map{ it[0, 1, 3] }
-//   // key, DA_regions, all_regions
-//   .filter{ it[1].readLines().size() >= params.min_entries_DA_bed }
-//   // keeping only entries with more than N dif bound/expr regions
-//   .dump(tag:'DA_regions_with_bg')
-//   .into{ 
-//     DA_regions_with_bg_for_computing_peaks_overlaps_1
-//     DA_regions_with_bg_for_computing_motifs_overlaps_1
-//   }
-// 
-// 
-// 
-// process DA_split__plotting_venn_diagrams {
-//   tag "${COMP}"
-// 
-//   label "venndiagram"
-// 
-//   publishDir path: "${out_fig_indiv}/2_Differential_Abundance", 
-//     mode: "${pub_mode}", saveAs: {
-//       if (it.indexOf("__venn_up_or_down.pdf") > 0) 
-//         "Venn_diagrams__two_ways/${it}"
-//       else if (it.indexOf("__venn_up_and_down.pdf") > 0) 
-//         "Venn_diagrams__four_ways/${it}"
-//   }
-// 
-//   input:
-//     set COMP, file('*') from DA_genes_for_plotting_venn_diagrams
-// 
-//   output:
-//     set val("Venn_diagrams__two_ways"), val("2_Differential_Abundance"), 
-//       file('*__venn_up_or_down.pdf') 
-//       into Venn_up_or_down_for_merging_pdfs optional true
-//     set val("Venn_diagrams__four_ways"), val("2_Differential_Abundance"), 
-//       file('*__venn_up_and_down.pdf') 
-//       into Venn_up_and_down_for_merging_pdfs optional true
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(VennDiagram)
-// 
-//     source('!{projectDir}/bin/plot_venn_diagrams.R')
-// 
-// 
-//     all_files = list.files(pattern = '*.rds')
-// 
-//     df = data.frame(do.call(rbind, lapply(all_files, 
-//       function(x) strsplit(x, '__')[[1]][-6])), stringsAsFactors = F)
-//     colnames(df) = c('ET', 'PF', 'FC', 'TV', 'COMP')
-// 
-//     PFs = unique(df$PF)
-//     PFs = PFs[PFs != 'Null']
-//     TVs = unique(df$TV)
-//     COMP = df$COMP[1]
-// 
-//     get_file_name <- function(ET, PF, FC, TV){
-//       paste(ET, PF, FC, TV, COMP, 'genes.rds', sep = '__')
-//     }
-// 
-//     for(PF1 in PFs){
-//       for(TV1 in TVs){
-// 
-//         atac_up = get_file_name('ATAC', PF1, 'up', TV1)
-//         atac_down = get_file_name('ATAC', PF1, 'down', TV1)
-//         mrna_up = get_file_name('mRNA', 'Null', 'up', TV1)
-//         mrna_down = get_file_name('mRNA', 'Null', 'down', TV1)
-// 
-//         a_u = file.exists(atac_up)
-//         a_d = file.exists(atac_down)
-//         m_u = file.exists(mrna_up)
-//         m_d = file.exists(mrna_down)
-// 
-//         if(a_u & m_u) {
-//           lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
-//             readRDS(mrna_up)$DA)
-//           prefix = paste(PF1, 'up', TV1, COMP, sep = '__')
-//           plot_venn_diagrams(lgenes, prefix)
-//         }
-// 
-//         if(a_d & m_d) {
-//           lgenes = list(atac_down = readRDS(atac_down)$DA, mrna_down = 
-//             readRDS(mrna_down)$DA)
-//           prefix = paste(PF1, 'down', TV1, COMP, sep = '__')
-//           plot_venn_diagrams(lgenes, prefix)
-//         }
-// 
-//         if(a_u & a_d & m_u & m_d) {
-//           lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
-//             readRDS(mrna_up)$DA, atac_down = readRDS(atac_down)$DA, 
-//             mrna_down = readRDS(mrna_down)$DA)
-//           prefix = paste(PF1, TV1, COMP, sep = '__')
-//           plot_venn_diagrams(lgenes, prefix)
-//         }
-// 
-//       }
-//     }
-// 
-//   '''
-// }
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_or_down_for_merging_pdfs
-//   .groupTuple(by: [0, 1])
-//   .map{ it.flatten() }
-//   .map{ [ it[0], it[1], it[2..-1] ] })
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_and_down_for_merging_pdfs
-//   .groupTuple(by: [0, 1])
-//   .map{ it.flatten() }
-//   .map{ [ it[0], it[1], it[2..-1] ] })
-// 
-// 
-// 
-// 
-// //// importing groups of comparisons to plot together on the overlap matrix and 
-// // the heatmaps
-// 
-// comparisons_grouped = file(params.design__groups)
-// Channel
-//   .from( comparisons_grouped.readLines() )
-//   .map { it.split() }
-//   .map { [ it[0], it[1..-1].join('|') ] }
-//   // format: GRP, [ comp_order ]
-//   .dump(tag:'comp_group') {"comparisons grouped: ${it}"}
-//   // .into { comparisons_grouped_for_overlap_matrix ; 
-//   // comparisons_grouped_for_heatmap }
-//   .set { comparisons_grouped_for_heatmap }
-// 
-// 
-// 
-// 
-// 
-// DA_genes_for_computing_functional_annotations_overlaps_1
-//   // key (ET__PA__FC__TV__COMP), rds_file
-//   .combine(params.func_anno_databases)
-//   // key (ET__PA__FC__TV__COMP), rds_file, func_anno
-//   .map{ key, rds_file, func_anno -> 
-//     data_type = "func_anno_" + func_anno
-//     new_key = key + "__" + data_type
-//     [ new_key, data_type, func_anno, rds_file ]
-//   }
-//   // key (ET__PA__FC__TV__COMP__DT), data_type, func_anno, rds_file 
-//   .dump(tag: 'func_anno')
-//   .set{ DA_genes_for_computing_functional_annotations_overlaps_2 }
-// 
-// 
-// 
-// process Enrichment__computing_functional_annotations_overlaps {
-//   tag "${key}"
-// 
-//   label "bioconductor"
-// 
-//   input:
-//     set key, data_type, func_anno, file(gene_set_rds) 
-//       from DA_genes_for_computing_functional_annotations_overlaps_2
-// 
-//   output:
-//     set key, data_type, file('*__counts.csv') 
-//       into Functional_annotations_overlaps_for_computing_pvalues optional true
-// 
-//   when: 
-//     params.do_gene_set_enrichment
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(clusterProfiler)
-//     library(magrittr)
-// 
-//     key = '!{key}'
-//     lgenes = readRDS('!{gene_set_rds}')
-//     func_anno = '!{func_anno}'
-//     org_db = AnnotationDbi::loadDb('!{params.org_db}')
-//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-//     kegg_environment = readRDS('!{params.kegg_environment}')
-//     use_nda_as_bg_for_func_anno = !{params.use_nda_as_bg_for_func_anno}
-//     simplify_cutoff = !{params.simplify_cutoff}
-// 
-// 
-//     gene_set_enrich <- function(lgenes, type){
-//       DA_genes = lgenes$DA
-//       universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL)
-// 
-//       if(type == 'KEGG') {
-// 
-//         vec = df_genes_metadata$entrez_id %>% 
-//           setNames(., df_genes_metadata$gene_id)
-//         gene_set_entrez = vec[DA_genes]
-// 
-//         res <- clusterProfiler:::enricher_internal(gene_set_entrez, 
-//           pvalueCutoff  = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', 
-//           universe = universe, USER_DATA = kegg_environment)
-// 
-//         if(is.null(res)) error('NULL output')
-//         res
-//       }
-//         else {
-//           simplify( 
-//             enrichGO( 
-//               gene = DA_genes, OrgDb = org_db, keyType = 'ENSEMBL', 
-//               ont = type, pAdjustMethod = 'BH', pvalueCutoff = 1, 
-//               qvalueCutoff  = 1, universe = universe), 
-//             cutoff = simplify_cutoff, by = 'p.adjust', select_fun = min)
-//         }
-//     }
-// 
-//     robust_gene_set_enrich <- function(lgenes, type){
-//       tryCatch(gene_set_enrich(lgenes, type), error = 
-//         function(e) {print(paste('No enrichment found'))})
-//     }
-// 
-//     res = robust_gene_set_enrich(lgenes, func_anno)
-// 
-//     if(class(res) == 'enrichResult') {
-//       df = res@result
-// 
-//       if(nrow(df) != 0) {
-// 
-//           # converting IDs from entrez to Ensembl
-//           if(func_anno == 'KEGG'){
-//             vec = df_genes_metadata$gene_id %>% 
-//               setNames(., df_genes_metadata$entrez_id)
-//             ensembl_ids = purrr::map_chr(strsplit(df$geneID, '/'), 
-//                             ~paste(unname(vec[.x]), collapse = '/'))
-//             df$geneID = ensembl_ids
-//           }
-// 
-//           # extracting count columns, reformatting and saving results
-//           df %<>% tidyr::separate(GeneRatio, c('ov_da', 'tot_da'), sep = '/')
-//           df %<>% tidyr::separate(BgRatio, c('ov_nda', 'tot_nda'), sep = '/')
-//           df[, c('ov_da', 'tot_da', 'ov_nda', 'tot_nda')] %<>% 
-//             apply(2, as.integer)
-// 
-//           df %<>% dplyr::rename(tgt_id = ID, tgt = Description, 
-//             genes_id = geneID)
-//           df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, tgt_id, 
-//             genes_id)
-// 
-//           write.csv(df, paste0(key, '__counts.csv'), row.names = F)
-// 
-//       }
-//     }
-// 
-//     '''
-// }
-// 
-// Overlap_tables_channel = Overlap_tables_channel
-//   .mix(Functional_annotations_overlaps_for_computing_pvalues)
-// 
-// // universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL) # => this fails: "error replacement has length zero"
-// 
-// // https://yulab-smu.top/biomedical-knowledge-mining-book/clusterprofiler-kegg.html
-// // hacking the enrichKEGG function to get it to work offline and inside the containers; otherwise I get the error 
-// // In utils::download.file(url, quiet = TRUE, method = method, ...) :
-// //   URL 'https://rest.kegg.jp/link/cel/pathway': status was 'Failure when receiving data from the peer'
-// // source code: https://rdrr.io/bioc/clusterProfiler/src/R/enrichKEGG.R
-// // KEGG_DATA <- prepare_KEGG(species, "KEGG", keyType)
-// // search_kegg_organism('cel', by='kegg_code')
-// // my_kegg_data = clusterProfiler:::prepare_KEGG('cel', "KEGG")
-// // 
-// // gene_set_entrez = c("176003", "178531", "175223", "177619", "180999", "3565479",
-// // "174059", "180862", "189649", "173657", "185570", "181697", "188978",
-// // "180929", "36805029", "186080", "179225", "179595", "179712",
-// // "179425", "181325", "171788", "178203", "173301", "175423", "178130",
-// // "183903", "179990", "187830", "176278", "176155", "3565939",
-// // "177051", "180901", "174198", "177074", "178191", "188458", "175469",
-// // "182932")
-// // organism_key = 'cel'
-// // universe = NULL
-// // res = enrichKEGG( gene = gene_set_entrez, pvalueCutoff = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', organism = organism_key, keyType = 'ncbi-geneid', universe = universe)
-// // res = enrichKEGG( gene = gene_set_entrez, pvalueCutoff = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', organism = organism_key, keyType = 'ncbi-geneid', universe = universe, use_internal_data = T)
-// // 
-// 
-// // For enrichGO, the go terms are stored into a package and accessed liked that:  goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
-// // so everything is run in local within the clusterProfiler:::get_GO_data function
-// 
-// // for enrichKEGG, the KEGG database is fetched online. We use a preparsed one here instead
-// 
-// 
-// // res <- clusterProfiler:::enricher_internal(gene_set_entrez,
-// //                          pvalueCutoff  = 1,
-// //                          pAdjustMethod = 'BH',
-// //                          universe      = universe,
-// //                          qvalueCutoff  = 1,
-// //                          USER_DATA = my_kegg_data1)
-// // 
-// //  R.utils::setOption("clusterProfiler.download.method",'auto')
-// // 
-// // specie_long = 'caenorhabditis_elegans'
-// // 
-// // 
-// // 
-// // 
-// // options("clusterProfiler.download.method")
-// // 
-// // my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', "KEGG", 'kegg')
-// // 
-// // 
-// // my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', "KEGG", 'kegg')
-// // my_kegg_data1$EXTID2PATHID %>% head
-// // my_kegg_data$EXTID2PATHID %>% head
-// // 
-// // my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', "KEGG")
-// //  my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', 'KEGG', "ENTREZID")
-// // 
-// // res <- clusterProfiler:::enricher_internal(gene_set_entrez,
-// //                           pvalueCutoff  = 1,
-// //                           pAdjustMethod = 'BH',
-// //                           universe      = universe,
-// //                           qvalueCutoff  = 1,
-// //                           USER_DATA = my_kegg_data1)
-// // detach("package:clusterProfiler", unload=TRUE)
-// // library(clusterProfiler)
-// 
-// 
-// 
-// process Enrichment__computing_genes_self_overlaps {
-//   tag "${key}"
-// 
-//   label "r_basic"
-// 
-//   input:
-//     set key, data_type, file(lgenes), file('all_gene_sets/*') 
-//       from DA_genes_for_computing_genes_self_overlaps_3
-// 
-//   output:
-//     set key, data_type, file("*__counts.csv") 
-//       into Genes_self_overlaps_for_computing_pvalues
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(magrittr)
-// 
-//     key = '!{key}'
-//     lgenes = readRDS('!{lgenes}')
-// 
-//     DA = lgenes$DA
-//     NDA = lgenes$NDA
-// 
-//     all_gene_sets = list.files('all_gene_sets')
-//     all_gene_sets %<>% setNames(., gsub('__genes.rds', '', .))
-//     all_DA = purrr::map(all_gene_sets, 
-//       ~readRDS(paste0('all_gene_sets/', .x))$DA)
-// 
-//     df = purrr::imap_dfr(all_DA, function(genes_tgt, target){
-//       tgt = target
-//       tot_tgt = length(genes_tgt)
-//       tot_da = length(DA)
-//       ov_da = length(intersect(DA, genes_tgt))
-//       tot_nda = length(NDA)
-//       ov_nda = length(intersect(NDA, genes_tgt))
-//       data.frame(tgt, tot_tgt, tot_da, ov_da, tot_nda, ov_nda)
-//     })
-// 
-//     write.csv(df, paste0(key, '__genes_self__counts.csv'), row.names = F)
-// 
-//     '''
-// }
-// 
-// Overlap_tables_channel = Overlap_tables_channel
-//   .mix(Genes_self_overlaps_for_computing_pvalues)
-// 
-// 
+// not sure these lines of codes will be needed
+// string_as_object <- function(x) eval(parse(text = x))
+// min_overlap     = string_as_object('!params.dba_min_overlap')
+// analysis_method = string_as_object('!params.dba_analysis_method')
+// min_count       = string_as_object('!params.dba_min_count')
+// score           = string_as_object('!params.dba_min_count')
+
+
+// => generating the set of all peaks found in all replicates, and a set of 
+// differentially abundant/accessible peaks (can also be called differentially 
+// bound regions)
+
+
+////// justification for the parameters used
+
+//// dba: minOverlap = 1
+// could be set to 1 (any peak), or 2 peaks present in at least 2 peak set. The latter is much more stringent in situations where one has only 2 replicates per condition, which is why I decided to go with 1 for now.
+// https://support.bioconductor.org/p/57809/
+
+//// grey list is applied only if we have an input control as the greylist is made based on the input control sample. It is applied at the very beginning to filter out the grey regions from the start.
+
+//// dbo$config$AnalysisMethod = DBA_DESEQ2 
+// https://support.bioconductor.org/p/98736/
+// For normalization, edgeR uses the TMM method which relies on a core of sites that don't systematically change their binding affinities. While this assumption of usually true for RNA-seq, there are many ChIP-seq experiments where one sample group has a completely different binding profile than the other sample group. Often, in one condition there is very little binding, but in the other condition much additional binding has been induced. ...  This is the reason we changed the default analysis method in DiffBind from edgeR to DESeq2.
+
+//// dba.count: summits = 75
+// DiffBind Vignette
+// When forming the global binding matrix consensus peaksets, DiﬀBind ﬁrst identiﬁes all unique
+// peaks amongst the relevant peaksets. As part of this process, it merges overlapping peaks,
+// replacing them with a single peak representing the narrowest region that covers all peaks
+// that overlap by at least one base. There are at least two consequences of this that are worth
+// noting.
+// First, as more peaksets are included in analysis, the average peak width tends to become
+// longer as more overlapping peaks are detected and the start/end points are adjusted outward
+// to account for them. Secondly, peak counts may not appear to add up as you may expect
+// due to merging. For example, if one peakset contains two small peaks near to each other,
+// while a second peakset includes a single peak that overlaps both of these by at least one
+// base, these will all be replaced in the merged matrix with a single peak. As more peaksets
+// are added, multiple peaks from multiple peaksets may be merged together to form a single,
+// wider peak. Use of the "summits" parameter is recommended to control for this widening
+// eﬀect.
+// ?dba.count
+// summits: unless set to ‘FALSE’, summit heights (read pileup) and
+// locations will be calculated for each peak.  
+// If the value of ‘summits’ is ‘TRUE’ (or ‘0’), the summits
+// will be calculated but the peaksets will be unaffected.  If
+// the value is greater than zero, all consensus peaks will be
+// re-centered around a consensus summit, with the value of
+// ‘summits’ indicating how many base pairs to include upstream
+// and downstream of the summit (so all consensus peaks will be
+// of the same width, namely ‘2 * summits + 1’).
+// https://support.bioconductor.org/p/9138959/
+// "Generally, ATAC-seq benefits from using the summits parameter at a relatively low value (50 or 100) to focus on clear regions of open chromatin with less background signal. Note that often there are two "peaks" in ATAC fragment lengths."
+// => by setting summits to 75, the summits of the consensus peaks will be extende by 75 bp on both side. 
+
+//// dba.count: fragmentSize = 1, bUseSummarizeOverlaps = F
+//// dbo$config$singleEnd = T
+// ?dba.count
+// bUseSummarizeOverlaps: logical indicating that ‘summarizeOverlaps’
+//           should be used for counting instead of the built-in counting
+//           code.  This option is slower but uses the more standard
+//           counting function. If ‘TRUE’, all read files must be BAM
+//           (.bam extension), with associated index files (.bam.bai
+//           extension).  The ‘fragmentSize’ parameter must absent.
+// fragmentSize: This value will be used as the length of the reads.  Each
+//           read will be extended from its endpoint along the appropriate
+//           strand by this many bases.  If set to zero, the read size
+//           indicated in the BAM/BED file will be used. ‘fragmentSize’
+//           may also be a vector of values, one for each ChIP sample plus
+//           one for each unique Control library.
+// https://support.bioconductor.org/p/9138959/
+// The fragmentSize parameter is only used if you have single-end data (otherwise the paired-end insert size is used). In that case, it is a good idea to specify a value for this parameter to "extend" the single-end reads by the mean fragment size.
+// bUseSummarizeOverlaps=TRUE is generally the preferred option. If it is set to FALSE, it will use some internal code that, among other things, does not match paired-end reads, resulting in counts that may be up to double (each end counted separately). That option also gives you more fine-grained control over how the counting is done via $config parameters.
+// => we do want each pair to be analyzed separately. And we want to keep reads at 1 bp as this is the most precise signal we have (transposase-shifted 5' end of reads)
+
+
+
+//// dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, )
+// https://support.bioconductor.org/p/p133577/
+
+//// dba.normalize: 
+//// dba.normalize: normalize = DBA_NORM_RLE, library = DBA_LIBSIZE_BACKGROUND,  background = TRUE
+// => background
+// help(dba.normalize)
+// background: This parameter controls the option to use "background"
+//           bins, which should not have differential enrichment between
+//           samples, as the basis for normalizing (instead of using reads
+//           counts overlapping consensus peaks).  When enabled, the
+//           chromosomes for which there are peaks in the consensus
+//           peakset are tiled into large bins and reads overlapping these
+//           bins are counted.
+//
+// Vignette:
+// An assumption in RNA-seq analysis, that the read count matrix reﬂects an unbiased repre-
+// sentation of the experimental data, may be violated when using a narrow set of consensus
+// peaks that are chosen speciﬁcally based on their rates of enrichment. It is not clear that
+// using normalization methods developed for RNA-seq count matrices on the consensus reads
+// will not alter biological signals; it is probably a good idea to avoid using the consensus count matrix (Reads in Peaks) for normalizing unless there is a good prior reason to expect balanced changes in binding.
+// https://support.bioconductor.org/p/p133577/
+// If you are getting different results, it is likely that there is a systematic shift in enriched regions in one of the conditions. Unless you have a specific reason to believe this is due to technical issues, this is likely a biological signal you want to retain. In this case, you should NOT use RLE on the binding matrix.
+// DBA_NORM_LIB is a quick way to perform a minimal normalization. I would try:
+// normalize <- dba.normalize(CTCF_narrowpeakscount, method = DBA_DESEQ2, 
+//                            normalize = DBA_NORM_RLE,  background=TRUE)
+// to run RLE against background bins rather than the binding matrix.
+// This should probably be the default, but computing the background bins is somewhat compute intensive.
+// => normalize
+// Vignette:
+// # About normalization
+// DiﬀBind relies on three underlying core methods for normalization. These include the "na-
+// tive" normalization methods supplied with DESeq2 and edgeR , as well as a simple library-
+// based method. The normalization method is speciﬁed with the normalize parameter to
+// dba.normalize
+// The native DESeq2 normalization method is based on calculating the geometric mean for
+// each gene across samples[6], and is referred to "RLE" or DBA_NORM_RLE in DiﬀBind .
+// The native edgeR normalization method is based on the trimmed mean of M-values approach[7],
+// and is referred to as "TMM" or DBA_NORM_TMM in DiﬀBind .
+// A third method is also provided that avoids making any assumptions regarding the distribution
+// of reads between binding sites in diﬀerent samples that may be speciﬁc to RNA-seq analysis
+// and inappropriate for ChIP-seq analysis. This method ( "lib" or DBA_NORM_LIB ) is based on
+// the diﬀerent library sizes for each sample, computing normalization factors to weight each
+// sample so as to appear to have the same library size. For DESeq2 , this is accomplished
+// by dividing the number of reads in each library by the mean library size. For edgeR , the
+// normalization factors are all set to 1.0 , indicating that only library-size normalization should occur.
+// Note that any of these normalization methods can be used with either the DESeq2 or
+// edgeR analysis methods, as DiﬀBind converts normalization factors to work appropriately
+// in either DESeq2 or edgeR .
+
+
+//// Other references
+// https://support.bioconductor.org/p/86594/
+// https://support.bioconductor.org/p/107679/
+
+
+// note: it may be better to use a fragment size of 150 together with the slopBed 75 bp shifted reads. Need to check that in more details some day. For now "fragmentSize = 1" should be good enough.
+
+
+
+
+// cut -f1,1 ctl_2_peaks_kept_after_blacklist_removal_filtered.bed | sort | uniq // X
+
+
+// I get this error with the fly test dataset:
+// Error in estimateSizeFactorsForMatrix(counts(object), locfunc = locfunc,  : 
+//   every gene contains at least one zero, cannot compute log geometric means
+// https://www.biostars.org/p/440379/
+
+// df_tmp = data.frame(dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_TMM_READS_FULL_CPM))
+// data.frame(df_tmp)[, 6:ncol(df_tmp)]
+// which(apply(data.frame(df_tmp)[, 6:ncol(df_tmp)], 1, function(x) all(x == 0)))
+
+// here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
+
+// # cur_greylist <- dba.blacklist(dbo, Retrieve=DBA_GREYLIST)
+
+
+// ?dba.count
+// bSubControl: logical indicating whether Control read counts are
+//           subtracted for each site in each sample. If there are more
+//           overlapping control reads than ChIP reads, the count will be
+//           set to the ‘minCount’ value specified when ‘dba.count’ was
+//           called, or zero if no value is specified.
+// 
+//           If ‘bSubControl’ is not explicitly specified, it will be set
+//           to ‘TRUE’ unless a greylist has been applied (see
+//           ‘dba.blacklist’).
+
+
+
+// adding bUseSummarizeOverlaps = F to the dba.count call. This way we count as before, with 1 bp fragment length as it should be.
+// https://rdrr.io/bioc/DiffBind/man/dba.count.html
+
+// => removing the creation of a dbo1 object; the score DBA_SCORE_READS is obtained with the subsequent call to dba.peakset
+// >         dbo1 <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_READS)
+// Warning message:
+// In dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1,  :
+//   No action taken, returning passed object...
+
+
+
+// # note: I also disable bScaleControl since it is used only to normalize controls reads prior to the substraction with bSubControl. But since we don't do that anymore and use greylist it doesn't matter so we can remove this parameter
+// https://support.bioconductor.org/p/69924/
+
+// # About normalization
+// DiﬀBind relies on three underlying core methods for normalization. These include the "na-
+// tive" normalization methods supplied with DESeq2 and edgeR , as well as a simple library-
+// based method. The normalization method is speciﬁed with the normalize parameter to
+// dba.normalize
+// The native DESeq2 normalization method is based on calculating the geometric mean for
+// each gene across samples[6], and is referred to "RLE" or DBA_NORM_RLE in DiﬀBind .
+// The native edgeR normalization method is based on the trimmed mean of M-values approach[7],
+// and is referred to as "TMM" or DBA_NORM_TMM in DiﬀBind .
+// A third method is also provided that avoids making any assumptions regarding the distribution
+// of reads between binding sites in diﬀerent samples that may be speciﬁc to RNA-seq analysis
+// and inappropriate for ChIP-seq analysis. This method ( "lib" or DBA_NORM_LIB ) is based on
+// the diﬀerent library sizes for each sample, computing normalization factors to weight each
+// sample so as to appear to have the same library size. For DESeq2 , this is accomplished
+// by dividing the number of reads in each library by the mean library size. For edgeR , the
+// normalization factors are all set to 1.0 , indicating that only library-size normalization should occur.
+// Note that any of these normalization methods can be used with either the DESeq2 or
+// edgeR analysis methods, as DiﬀBind converts normalization factors to work appropriately
+// in either DESeq2 or edgeR .
+
+// DBA_NORM_NATIVE: equal DBA_NORM_TMM for edgeR and DBA_NORM_RLE for DESeq2
+
+
+// => it is in fact recommended to use greylist regions instead of substracting controls! We update the code accordingly
+// https://support.bioconductor.org/p/97717/
+// https://github.com/crazyhottommy/ChIP-seq-analysis/blob/master/part3_Differential_binding_by_DESeq2.md
+// https://support.bioconductor.org/p/72098/#72173
+
+// From the Diffbind manual it also says:
+// Another way of thinking about greylists is that they are one way of using the information in
+// the control tracks to improve the reliability of the analysis. Prior to version 3.0, the default
+// in DiﬀBind has been to simply subtract control reads from ChIP reads in order to dampen
+// the magnitude of enrichment in anomalous regions. Greylists represent a more principled way
+// of accomplishing this. If a greylist has been applied, the current default in DiﬀBind is to not
+// subtract control reads.
+
+
+// we should keep the bFullLibrarySize parameter to TRUE
+// The issue is how the data are normalized. Setting bFullLibrarySize=FALSE uses a standard RNA-seq normalization method (based on the number of reads in consensus peaks), which assumes that most of the "genes" don't change expression, and those that do are divided roughly evenly in both directions. Using the default bFullLibrarySize=TRUE avoids these assumptions and does a very simple normalization based on the total number of reads for each library.
+
+// THe bTagwise argument should not be needed but we keep it just in case and to be clearer
+// Next edgeR::estimateGLMTrendedDisp is called with the DGEList and a design matrix derived
+// from the design formula. By default, edgeR::estimateGLMTagwiseDisp is called next; this
+// can be bypassed by setting DBA$config$edgeR$bTagwise=FALSE . 15
+
+// the diffbind package changed a lot since the version I was using. The contrast command should be changed, and the dba.analyze command too. I will need to read in more details the method
+// dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
+// Error in dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE,  :
+//   unused arguments (bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE)
+
+
+// here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
+  // Changes in version 3.0     
+
+  // - Moved edgeR bTagwise parameter to $config option
+  // - Remove normalization options bSubControl, bFullLibrarySize, filter, and filterFun from dba.analyze(), now set in dba.normalize().
+  // - dba.normalize(): is a new function; - bSubControl default depend on presence of Greylist
+  // - Default for bUseSummarizeOverlaps in dba.count is now TRUE
+  // 
+  // 	The previous methods for modelling are maintained for backward
+  // 	compatibility, however they are not the default.  To repeat
+  // 	earlier analyses, dba.contrast() must be called explicitly with
+  // 	design=FALSE. See ?DiffBind3 for more information.
+  // 
+  //   The default mode for dba.count() is now to center around
+  //   summits (resulting in 401bp intervals).  To to avoid
+  //   recentering around summits as was the previous default, set
+  //   summits=FALSE (or to a more appropriate value).
+  // 
+  //   Normalization options have been moved from dba.analyze() to the
+  //   new interface function dba.normalize(). Any non-default
+  //   normalization options must be specified using dba.normalize().
+
+// from the manuel:
+//   2. bFullLibrarySize: This is now part of the library parameter for dba.normalize . li
+// brary=DBA_LIBSIZE_FULL is equivalent to bFullLibrarySize=TRUE , and library=DBA_LIBSIZE_PEAKREADS
+// is equivalent to bFullLibrarySize=FALSE .
+
+// from the R help:
+// DBA_LIBSIZE_FULL: Full library size (all reads in library)
+// DBA_LIBSIZE_PEAKREADS: Library size is Reads in Peaks
+
+
+// rtracklayer::export(promoters, 'promoters.bed')
+
+// note: diffbind_peaks: means the peaks from diffbind, not that these peaks are 
+// diffbound (differentially bound). This set is in fact all the peaks that 
+// diffbind found in all replicates. The corresponding bed file will be used 
+// as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
+
+//// Scores are not for anything besides downstream analysis (i.e. PCA, plots)
+// https://support.bioconductor.org/p/69924/
+// 2. Peak scores. Peak scores can be exported, but are mostly used for plotting 
+// data that doesn't have a differential analysis run via dba.analyze(). For 
+// example, after calling dba.count(), the heatmaps and PCA plots will use the 
+// peak scores. You can see the peak scores using dba.peakset() with 
+// bRetrieve=TRUE. The documentation for dba.count() describes the  different 
+// scoring methods available (currently 16). These range from using the raw read 
+// counts (with or without control reads subtracted), to variations of RPKM 
+// normalized read counts and TMM normalized counts (the normalization method 
+//   used by edgeR) and some scores based on summits (we do recommend using the 
+//     summits option in dba.count). When you run an analysis using dba.analyze(), 
+//     the normalization method used by the underlying differential expression 
+//     package (edgeR or DESeq2) will be used for plots and reports (ie, when 
+//       bCounts=TRUE in a call to dba.report).
+
+
+process DA_ATAC__annotating_diffbind_peaks {
+  tag "${COMP}"
+
+  label "bioconductor"
+
+  publishDir path: "${out_processed}/2_Differential_Abundance", 
+    mode: "${pub_mode}", saveAs: {
+     if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
+     else if (it.indexOf("_cs.rds") > 0) "ATAC__all_peaks__ChIPseeker/${it}"
+   }
+
+  when: 
+    do_atac
+
+  input:
+    set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) \
+      from Diffbind_peaks_for_annotating_them
+
+  output:
+    file('*.rds')
+    set COMP, file("*_df.rds") into Annotated_diffbind_peaks_for_saving_tables
+    set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) \
+      into Annotated_diffbind_peaks_for_plotting
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    ##### loading data, libraries and parameters
+    library(GenomicFeatures)
+    library(ChIPseeker)
+    library(magrittr)
+
+    COMP = '!{COMP}'
+    tx_db <- loadDb('!{params.txdb}')
+    upstream = !{params.diffbind_peaks__promoter_up}
+    downstream = !{params.diffbind_peaks__promoter_down}
+    diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
+
+
+    ##### annotating peaks
+    anno_peak_cs = annotatePeak(diffbind_peaks_gr, 
+                                TxDb = tx_db, 
+                                tssRegion = c(-upstream, downstream), 
+                                level = 'gene', 
+                                overlap = 'all')
+
+    ##### creating the data frame object
+    anno_peak_gr = anno_peak_cs@anno
+    df = as.data.frame(anno_peak_gr)
+    anno_peak_df = cbind(peak_id = rownames(df), df, 
+      anno_peak_cs@detailGenomicAnnotation)
+    anno_peak_df$peak_id %<>% as.character %>% as.integer
+
+    ##### saving results
+    name0 = paste0(COMP, '__diffb_anno_peaks')
+    saveRDS(anno_peak_df, paste0(name0, '_df.rds'))
+    saveRDS(anno_peak_cs, paste0(name0, '_cs.rds'))
+
+    '''
+}
+
+// cs: for ChIPseeker
+// rtracklayer::export(anno_peak_df, paste0(name0, '.bed'))
+// these are peaks of differential chromatin accessibility called by DiffBind
+
+// overlap: one of 'TSS' or 'all', if overlap="all", then gene overlap with peak 
+// will be reported as nearest gene, no matter the overlap is at TSS region or not.
+
+
+// note that in df_annotated_peaks: the geneStart and geneEnd field reflect actually the transcript start and transcript end. This is if the level = 'transcript' option is used. If the option level = 'gene' is used then the coordinates correspond to gene. (same goes for distanceToTSS, genLength...)
+
+
+
+process DA_ATAC__plotting_differential_abundance_results {
+  tag "${COMP}"
+
+  label "diffbind"
+  // label "differential_abundance"
+
+  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
+    saveAs: {
+      if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
+      else if (it.indexOf("_PCA_1_2.pdf") > 0) "ATAC__PCA_1_2/${it}"
+      else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
+      else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
+    }
+
+  publishDir path: "${out_processed}/${out_path}/ATAC__non_annotated_peaks", 
+             pattern: "*__ATAC_non_annotated_peaks.txt", mode: "${pub_mode}"
+
+  input:
+    val out_path from Channel.value('2_Differential_Abundance')
+    set COMP, file(annotated_peaks), file(diffbind_object_rds) \
+      from Annotated_diffbind_peaks_for_plotting
+
+  output:
+    set val("ATAC__volcano"), out_path, file('*__ATAC_volcano.pdf') \
+      into ATAC_Volcano_for_merging_pdfs
+    set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') \
+      into ATAC_PCA_1_2_for_merging_pdfs
+    set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') \
+      into ATAC_PCA_3_4_for_merging_pdfs
+    set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') \
+      into ATAC_Other_plot_for_merging_pdfs
+    file("*__ATAC_non_annotated_peaks.txt")
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+
+    ##### loading data and libraries
+
+    library(ggplot2)
+    library(magrittr)
+    library(grid)
+    library(DiffBind)
+
+    source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
+
+    COMP = '!{COMP}'
+
+    dbo = readRDS('!{diffbind_object_rds}')
+    fdr_threshold = !{params.diffbind_plots__fdr_threshold}
+    top_n_labels = !{params.diffbind_plots__top_n_labels}
+    dbo$config$th = fdr_threshold
+    df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+    df_annotated_peaks = readRDS('!{annotated_peaks}')
+
+
+    ##### volcano plots
+
+    res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_id = geneId)
+    df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
+    res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
+
+    pdf(paste0(COMP, '__ATAC_volcano.pdf'))
+      plot_volcano_custom(res, sig_level = fdr_threshold, 
+          label_column = 'gene_name', title = paste(COMP, 'ATAC'),
+          top_n_labels = top_n_labels)
+    dev.off()
+
+
+    ##### PCA plots
+
+    # Handling unnanotated peaks
+    v_gene_names = res$gene_name[match(1:nrow(dbo$binding), res$peak_id)]
+    sel = which(is.na(v_gene_names))
+    v_gene_names[is.na(v_gene_names)] = paste0('no_gene_', 1:length(sel))
+    sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
+      print(dbo$peaks[[1]][sel,])
+    sink()
+
+    # doing and plotting the PCA
+    prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), 
+      cor = F, bLog = T)$pc
+    rownames(prcomp1$x) = v_gene_names
+
+    lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
+    lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
+
+    pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
+      make_4_plots(lp_1_2)
+    dev.off()
+
+    pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
+      make_4_plots(lp_3_4)
+    dev.off()
+
+
+    ##### other plots
+
+    pdf(paste0(COMP, '__ATAC_other_plots.pdf'))
+        dba.plotMA(dbo, bNormalized = T)
+        dba.plotHeatmap(dbo, main = 'all reads')
+        first_2_replicates = sort(c(which(dbo$masks$Replicate.1), 
+          which(dbo$masks$Replicate.2)))
+        dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
+    dev.off()
+
+    '''
+}
+
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+// DiffBind__pv_pcmask__custom was adapted from DiffBind::pv.pcmask. 
+// This little hacking is necessary because DiffBind functions plots PCA but 
+// do not return the object.
+// alternatively, the PCA could be made from scratch as done here: 
+// https://support.bioconductor.org/p/76346/
+
+
+
+process DA_ATAC__saving_detailed_results_tables {
+  tag "${COMP}"
+
+  label "r_basic"
+
+  when: 
+    do_atac
+
+  input:
+    set COMP, file(annotated_peaks) \
+      from Annotated_diffbind_peaks_for_saving_tables
+
+  output:
+    set val('ATAC_detailed'), val('2_Differential_Abundance'), file('*.rds') \
+      into ATAC_detailed_tables_for_formatting_table
+    set COMP, file("*.rds") into ATAC_detailed_tables_for_splitting_in_subsets
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    ##### loading data and libraries
+    library(magrittr)
+    library(purrr)
+
+    COMP = '!{COMP}'
+
+    df_annotated_peaks = readRDS('!{annotated_peaks}')
+    df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+
+
+    # setting up parameters
+    conditions = tolower(strsplit(COMP, '_vs_')[[1]])
+    cond1 = conditions[1]
+    cond2 = conditions[2]
+
+    # creating the res_detailed table
+    res_detailed = df_annotated_peaks
+    # adding gene metadata in a more readable format than what provided by 
+    # default by ChIPseeker
+    df_genes_metadata1 = dplyr::rename(df_genes_metadata, gene_chr = chr, 
+      gene_start = start, gene_end = end, gene_width = width, 
+      gene_strand = strand)
+    res_detailed %<>% dplyr::select(-geneChr, -geneStart, -geneEnd, 
+      -geneLength, -geneStrand)
+    colnames(res_detailed) %<>% tolower
+    res_detailed %<>% dplyr::rename(gene_id = geneid)
+    res_detailed %<>% dplyr::inner_join(df_genes_metadata1, by = 'gene_id')
+
+    # renaming columns
+    res_detailed %<>% dplyr::rename(chr = seqnames, L2FC = fold, 
+      pval = p.value, distance_to_tss = distancetotss, five_UTR = fiveutr, 
+      three_UTR = threeutr)
+    res_detailed$COMP = COMP
+
+    # collapsing replicates values and renaming these columns as well
+    colnames(res_detailed)[grep('conc_', colnames(res_detailed))] = 
+      c('conc_cond1', 'conc_cond2')
+    colns = colnames(res_detailed)
+    colns1 = grep(paste0('^', cond1, '_'), colns)
+    colns2 = grep(paste0('^', cond2, '_'), colns)
+    res_detailed$counts_cond1 = 
+      apply(res_detailed[, colns1], 1, paste, collapse = '|')
+    res_detailed$counts_cond2 = 
+      apply(res_detailed[, colns2], 1, paste, collapse = '|')
+    res_detailed[, c(colns1, colns2)] <- NULL
+
+    # reordering columns
+    res_detailed$strand <- NULL  
+      # strand information is not available for ATAC-Seq
+    res_detailed %<>% dplyr::select(COMP, peak_id, chr, start, end, width, 
+      gene_name, gene_id, pval, padj, L2FC, distance_to_tss, annotation, conc, 
+      conc_cond1, conc_cond2, counts_cond1, counts_cond2, dplyr::everything())
+
+    # adding the filtering columns
+    res_detailed %<>% dplyr::mutate(
+      FC_up = L2FC > 0,
+      FC_down = L2FC < 0,
+
+      PA_8kb = abs(distance_to_tss) < 8000,
+      PA_3kb = abs(distance_to_tss) < 3000,
+      PA_2u1d = distance_to_tss > -2000 & distance_to_tss < 1000,
+      PA_TSS = distance_to_tss == 0,
+      PA_genProm = genic | promoter,
+      PA_genic = genic,
+      PA_prom = promoter,
+      PA_distNC = distal_intergenic | ( intron & !promoter & !five_UTR  & 
+        !three_UTR  & !exon)
+    )
+
+    # saving table
+    saveRDS(res_detailed, paste0(COMP, '__res_detailed_atac.rds'))
+
+    '''
+}
+
+
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(ATAC_detailed_tables_for_formatting_table)
+
+
+
+
+
+process DA_mRNA__doing_differential_abundance_analysis {
+  tag "${COMP}"
+
+  label "sleuth"
+
+  publishDir path: "${out_processed}/2_Differential_Abundance", 
+    mode: "${pub_mode}", saveAs: {
+       if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) 
+          "mRNA__all_genes__rsleuth/${it}"
+       // else if (it.indexOf("__mRNA_DEG_df.rds") > 0) 
+       //    "mRNA__all_genes__dataframe/${it}"
+       else if (it.indexOf("__all_genes_prom.bed") > 0) 
+          "mRNA__all_genes__bed_promoters/${it}"
+  }
+
+  when: 
+    do_mRNA
+
+  input:
+    set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) \
+      from Kallisto_results_for_sleuth_4
+
+  output:
+    set COMP, file('*__mRNA_DEG_rsleuth.rds') into Sleuth_results_for_plotting
+    set COMP, file('*__mRNA_DEG_df.rds') into Sleuth_results_for_saving_tables
+    set COMP, file('*__all_genes_prom.bed') \
+      into All_detected_sleuth_promoters_for_background
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(sleuth)
+    library(ggplot2)
+    library(magrittr)
+
+    df_genes_transcripts = readRDS('!{params.df_genes_transcripts}')
+    df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+
+    COMP = '!{COMP}'
+    cond1 = '!{cond1}'
+    cond2 = '!{cond2}'
+
+    promoters_df = readRDS('!{params.promoters_df}')
+    source('!{projectDir}/bin/export_df_to_bed.R')
+    source('!{projectDir}/bin/get_prom_bed_df_table.R')
+
+
+    s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), 
+      stringsAsFactors = F)
+    s2c$sample = sapply(s2c$path, function(x) strsplit(x, 'kallisto_')[[1]][2])
+    s2c$condition = sapply(s2c$path, function(x) strsplit(x, '_')[[1]][2])
+    levels(s2c$condition) = c(cond1, cond2)
+
+		test_cond = paste0('condition', cond2)
+		cond <- factor(s2c$condition)
+		cond <- relevel(cond, ref = cond2)
+		md <- model.matrix(~cond, s2c)
+		colnames(md)[2] <- test_cond
+
+    t2g <- dplyr::rename(df_genes_transcripts, target_id = TXNAME, 
+        gene_id = GENEID)
+    t2g$target_id %<>% paste0('transcript:', .)
+
+    # Load the kallisto data, normalize counts and filter genes
+	  sleo <- sleuth_prep(sample_to_covariates = s2c, full_model = md, 
+      target_mapping = t2g, aggregation_column = 'gene_id', 
+      transform_fun_counts = function(x) log2(x + 0.5), gene_mode = T)
+
+    # Estimate parameters for the sleuth response error measurement (full) model
+    sleo <- sleuth_fit(sleo)
+
+    # Performing test and saving the sleuth object
+    sleo <- sleuth_wt(sleo, test_cond)
+    saveRDS(sleo, file = paste0(COMP, '__mRNA_DEG_rsleuth.rds'))
+
+    # saving as dataframe and recomputing the FDR
+    res <- sleuth_results(sleo, test_cond, test_type = 'wt', 
+      pval_aggregate  = F)
+    res %<>% .[!is.na(.$b), ]
+    res$padj = p.adjust(res$pval, method = 'BH')
+    res$qval <- NULL
+    res %<>% dplyr::rename(gene_id = target_id)
+    res1 = dplyr::inner_join(df_genes_metadata, res, by = 'gene_id')
+    saveRDS(res1, file = paste0(COMP, '__mRNA_DEG_df.rds'))
+
+    # exporting promoters of all detected genes
+    promoters_df1 = promoters_df
+    promoters_df1 %<>% .[.$gene_id %in% res1$gene_id, ]
+    prom_bed_df = get_prom_bed_df_table(promoters_df1, res1)
+    export_df_to_bed(prom_bed_df, paste0(COMP, '__all_genes_prom.bed'))
+
+    '''
+}
+
+// => doing differential gene expression analysis
+
+
+// with rsleuth v0.30
+// length(which(is.na(res$b))) # 17437
+
+// with rsleuth v0.29
+// dim(res) # 2754   11 => NA values are automatically filtered out
+// dim(df_genes_metadata) # 20191     8
+// 20191 - 2754 # 17437
+
+// sleuth_prep message
+// 3252 targets passed the filter
+// 2754 genes passed the filter
+
+// the filtering function is the following:
+// https://www.rdocumentation.org/packages/sleuth/versions/0.29.0/topics/basic_filter
+// basic_filter(row, min_reads = 5, min_prop = 0.47)
+// row        this is a vector of numerics that will be passedin
+// min_reads  the minimum mean number of reads
+// min_prop   the minimum proportion of reads to pass this filter
+
+// note: we compute the FDR for both ATAC and mRNA seq to be sure to have consistent values generated by the same FDR method
+
+
+
+
+process DA_mRNA__plotting_differential_abundance_results {
+  tag "${COMP}"
+
+  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
+    saveAs: { 
+      if (it.indexOf("__mRNA_volcano.pdf") > 0) "mRNA__volcano/${it}"
+      else if (it.indexOf("__mRNA_PCA_1_2.pdf") > 0) "mRNA__PCA_1_2/${it}"
+      else if (it.indexOf("__mRNA_PCA_3_4.pdf") > 0) "mRNA__PCA_3_4/${it}"
+      else if (it.indexOf("__mRNA_other_plots.pdf") > 0) "mRNA__other_plots/${it}"
+    }
+
+
+  label "sleuth"
+
+  input:
+    val out_path from Channel.value('2_Differential_Abundance')
+    set COMP, file(mRNA_DEG_rsleuth_rds) from Sleuth_results_for_plotting
+
+  output:
+    set val("mRNA__volcano"), out_path, file('*__mRNA_volcano.pdf') \
+      into MRNA_Volcano_for_merging_pdfs
+    set val("mRNA__PCA_1_2"), out_path, file('*__mRNA_PCA_1_2.pdf') \
+      into MRNA_PCA_1_2_for_merging_pdfs
+    set val("mRNA__PCA_3_4"), out_path, file('*__mRNA_PCA_3_4.pdf') \
+      into MRNA_PCA_3_4_for_merging_pdfs
+    set val("mRNA__other_plots"), out_path, file('*__mRNA_other_plots.pdf') \
+      into MRNA_Other_plot_for_merging_pdfs
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    ##### Loading libraries and data
+
+    library(sleuth)
+    library(ggplot2)
+    library(magrittr)
+    library(grid)
+
+    source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
+
+    sleo = readRDS('!{mRNA_DEG_rsleuth_rds}')
+    df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+
+    COMP = '!{COMP}'
+    conditions = strsplit(COMP, '_vs_')[[1]]
+    cond1 = conditions[1]
+    cond2 = conditions[2]
+    test_cond = paste0('condition', cond2)
+
+    fdr_threshold = !{params.sleuth_plots__fdr_threshold}
+    top_n_labels  = !{params.sleuth_plots__top_n_labels}
+
+
+    ##### volcano plots
+
+    res_volcano <- sleuth_results(sleo, test_cond)
+    res_volcano %<>% dplyr::rename(gene_id = target_id, L2FC = b)
+    df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
+    res_volcano %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
+    res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
+
+    pdf(paste0(COMP, '__mRNA_volcano.pdf'))
+      plot_volcano_custom(res_volcano, sig_level = fdr_threshold, 
+        label_column = 'gene_name', title = paste(COMP, 'mRNA'),
+        top_n_labels = top_n_labels
+        )
+    dev.off()
+
+
+    ##### PCA plots
+
+    # the pca is computed using the default parameters in the sleuth functions 
+    # sleuth::plot_pca
+    mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 
+      'scaled_reads_per_base')
+    prcomp1 <- prcomp(mat)
+    v_gene_id_name = df_genes_metadata_1$gene_name %>% 
+      setNames(., df_genes_metadata_1$gene_id)
+    rownames(prcomp1$x) %<>% v_gene_id_name[.]
+
+    lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
+    lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'mRNA'))
+
+    pdf(paste0(COMP, '__mRNA_PCA_1_2.pdf'))
+      make_4_plots(lp_1_2)
+    dev.off()
+
+    pdf(paste0(COMP, '__mRNA_PCA_3_4.pdf'))
+      make_4_plots(lp_3_4)
+    dev.off()
+
+
+    ##### other plots
+
+    pdf(paste0(COMP, '__mRNA_other_plots.pdf'))
+      plot_ma(sleo, test = test_cond, sig_level = fdr_threshold) + 
+        ggtitle(paste('MA:', COMP))
+      plot_group_density(sleo, use_filtered = TRUE, 
+        units = "scaled_reads_per_base", trans = "log", 
+        grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), 
+        offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
+      # plot_scatter(sleo) + ggtitle(paste('Scatter:', COMP))
+      # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', 
+      # COMP))
+    dev.off()
+
+    '''
+}
+
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(MRNA_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(MRNA_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(MRNA_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(MRNA_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+
+
+
+process DA_mRNA__saving_detailed_results_tables {
+  tag "${COMP}"
+
+  label "r_basic"
+
+  publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", 
+    mode: pub_mode, enabled: params.tables__save_csv
+
+  when: 
+    do_mRNA
+
+  input:
+    set COMP, file(mRNA_DEG_df) from Sleuth_results_for_saving_tables
+
+  output:
+    set val('mRNA_detailed'), val('2_Differential_Abundance'), file('*.rds') \
+      into MRNA_detailed_tables_for_formatting_table
+    set COMP, file('*.rds') into MRNA_detailed_tables_for_splitting_in_subsets
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    ## Loading libraries and data
+
+    library(magrittr)
+
+    COMP = '!{COMP}'
+
+    mRNA_DEG_df = readRDS('!{mRNA_DEG_df}')
+
+
+    ## Saving a detailed results table
+
+    res_detailed = mRNA_DEG_df
+    res_detailed %<>% dplyr::rename(L2FC = b)
+    res_detailed$COMP = COMP
+    res_detailed %<>% dplyr::select(COMP, chr, start, end, width, strand, 
+      gene_name, gene_id, entrez_id, pval, padj, L2FC, dplyr::everything())
+    saveRDS(res_detailed, paste0(COMP, '__res_detailed_mRNA.rds'))
+
+    '''
+}
+
+
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(MRNA_detailed_tables_for_formatting_table)
+
+
+
+  
+
+
+if(!do_atac & do_mRNA){
+  MRNA_detailed_tables_for_splitting_in_subsets
+  .set{ Differational_abundance_results_for_splitting_in_subsets }
+}
+
+if(do_atac & !do_mRNA){
+  ATAC_detailed_tables_for_splitting_in_subsets
+  .set{ Differational_abundance_results_for_splitting_in_subsets }
+}
+
+if(do_atac & do_mRNA){
+  ATAC_detailed_tables_for_splitting_in_subsets
+  .mix(MRNA_detailed_tables_for_splitting_in_subsets)
+  // format: COMP, res_detailed
+  .groupTuple()
+  // format: COMP, [ res_detailed_atac, res_detailed_mRNA ]
+  .filter{ comp, res_files -> 
+    ( do_atac && !do_mRNA  && res_files.size() == 1) ||
+    (!do_atac &&  do_mRNA  && res_files.size() == 1) ||
+    ( do_atac &&  do_mRNA  && res_files.size() == 2)
+  }
+  .dump(tag: 'both_data')
+  .set{ Differational_abundance_results_for_splitting_in_subsets }
+}
+
+do_mRNA_lgl = do_mRNA.toString().toUpperCase()
+do_atac_lgl = do_atac.toString().toUpperCase()
+
+
+process DA_split__splitting_differential_abundance_results_in_subsets {
+  tag "${COMP}"
+
+  label "r_basic"
+
+  publishDir path: "${out_processed}/2_Differential_Abundance", 
+  mode: "${pub_mode}", saveAs: {
+    if (it.indexOf("__genes.rds") > 0) "DA_split__genes_rds/${it}"
+    else if   (it.indexOf(".bed") > 0) "DA_split__bed_regions/${it}"
+  }
+
+  input:
+    set COMP, file(res_detailed) \
+      from Differational_abundance_results_for_splitting_in_subsets
+
+  output:
+    set val('res_simple'), val('2_Differential_Abundance'), 
+      file("*__res_simple.rds") \
+      into Res_simple_table_for_formatting_table optional true
+    set val('res_filter'), val('2_Differential_Abundance'), 
+      file("*__res_filter.rds") \
+      into Res_filter_table_for_formatting_table optional true
+    set COMP, file("*__genes.rds") \
+      into DA_genes_split_for_doing_enrichment_analysis, 
+           DA_genes_for_plotting_venn_diagrams optional true
+    set COMP, file("*__regions.bed") \
+      into DA_regions_split_for_doing_enrichment_analysis optional true
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+
+    ################################
+    ## loading data and libraries
+    library(magrittr)
+    library(purrr)
+    library(data.table)
+
+    source('!{projectDir}/bin/splitting_DAR_in_subsets_functions.R')
+    source('!{projectDir}/bin/export_df_to_bed.R')
+    source('!{projectDir}/bin/get_prom_bed_df_table.R')
+    source('!{projectDir}/bin/read_from_nextflow.R')
+
+    COMP = '!{COMP}'
+
+    do_mRNA = !{do_mRNA_lgl}
+    do_atac = !{do_atac_lgl}
+
+    lf = list.files()
+
+    promoters_df = readRDS('!{params.promoters_df}')
+
+    TT       = '!{params.split__threshold_type}'
+    TV_split = read_from_nextflow(
+      '!{params.split__threshold_values}') %>% as.numeric
+    FC_split = read_from_nextflow(
+      '!{params.split__fold_changes}')
+    PA_split = read_from_nextflow(
+      '!{params.split__peak_assignment}')
+
+
+    ################################
+    ## creating the res_simple table
+
+    # combining atac and mRNA results
+    if(do_atac) {
+      res_detailed_atac = readRDS(grep('atac.rds', lf, value = T))
+
+      # adding the aggregated PF filter column
+      res_detailed_atac$PA_all = T
+      PA_columns_all = grep('PA_', colnames(res_detailed_atac), value = T)
+      res_detailed_atac$PF = 
+        get_merged_columns(res_detailed_atac, paste0('PA_', PA_split), 'PF')
+
+      res_simple_atac = res_detailed_atac %>% 
+        dplyr::mutate(transcript_id = NA, ET = 'ATAC') %>% 
+        dplyr::select(COMP, peak_id, chr, gene_name, gene_id, pval, padj, 
+          L2FC, PF, ET)
+
+      # adding the rank column
+      res_simple_atac %<>% dplyr::arrange(padj, desc(abs(L2FC)))
+      dt = data.table(res_simple_atac)
+      dt[, FC := ifelse(L2FC > 0, 'up', 'down')]
+      dt[L2FC == 0, FC := 'NA']
+      dt$rank = 0
+      dt[(!duplicated(dt[, c('gene_id', 'FC')])), rank := 1:.N]
+      dt[, rank := rank[1], .(cumsum(rank != 0))]
+      dt[, FC := NULL]
+      res_simple_atac = dt %>% copy %>% setDF
+
+      res_simple = res_simple_atac
+    }
+
+    if(do_mRNA) {
+      res_detailed_mRNA = readRDS(grep('mRNA.rds', lf, value = T))
+      res_simple_mRNA = res_detailed_mRNA %>% dplyr::select(COMP, chr, 
+        gene_name, gene_id, pval, padj, L2FC)
+      res_simple_mRNA = cbind(peak_id = 'Null', res_simple_mRNA, ET = 'mRNA', 
+        PF = 'Null', stringsAsFactors = F)
+      res_simple_mRNA %<>% dplyr::select(COMP, peak_id, chr, gene_name, 
+        gene_id, pval, padj, L2FC, PF, ET)
+
+      # adding the rank column
+      res_simple_mRNA %<>% dplyr::arrange(padj, desc(abs(L2FC)))
+      res_simple_mRNA$rank = 1:nrow(res_simple_mRNA)
+
+      res_simple = res_simple_mRNA
+    }
+
+    if(do_mRNA & do_atac) res_simple = rbind(res_simple_atac, res_simple_mRNA)
+
+    # adding the aggregated FC filter column
+    res_simple %<>% dplyr::mutate(FC_all = T, FC_up = L2FC > 0, 
+      FC_down = L2FC < 0)
+    res_simple$FC = get_merged_columns(res_simple, paste0('FC_', FC_split), 
+      'FC')
+
+    # adding the aggregated TV filter column
+    for(TV in TV_split) res_simple[[paste0('TV_', TV)]] = 
+      filter_entries_by_threshold(res_simple, TT, TV)
+    res_simple$TV = 
+      get_merged_columns(res_simple, paste0('TV_', TV_split), 'TV')
+    res_simple$TV %<>% gsub('^$', 'NS', .)  # NS: None Significant
+
+    # filtering and reordering columns
+    res_simple %<>% dplyr::select(ET, PF, FC, TV, COMP, peak_id, chr, 
+      gene_name, gene_id, pval, padj, L2FC)
+
+    saveRDS(res_simple, paste0(COMP, '__res_simple.rds'))
+
+
+    ################################
+    ## creating the res_filter table
+
+    df_split = expand.grid(TV = TV_split, FC = FC_split, PF = PA_split, 
+      stringsAsFactors = F)
+    lres_filter = list()
+
+    for(c1 in 1:nrow(df_split)){
+      TV1 = df_split$TV[c1]
+      FC1 = df_split$FC[c1]
+      PF1 = df_split$PF[c1]
+
+      res_filter_atac = res_simple %>% 
+        dplyr::filter(grepl(TV1, TV) & 
+                      grepl(FC1, FC) & grepl(PF1, PF) & ET == 'ATAC')
+      res_filter_mRNA = res_simple %>% 
+        dplyr::filter(grepl(TV1, TV) & grepl(FC1, FC) & ET == 'mRNA')
+
+      # adding the Experiment Type "both"
+      ATAC_genes = res_filter_atac$gene_id
+      mRNA_genes = res_filter_mRNA$gene_id
+      both_genes = res_filter_atac$gene_id %>% .[. %in% mRNA_genes]
+
+      res_filter_atac_both = res_filter_atac %>% 
+        dplyr::filter(gene_id %in% both_genes) %>% 
+        dplyr::mutate(ET = 'both_ATAC')
+      res_filter_mRNA_both = res_filter_mRNA %>% 
+        dplyr::filter(gene_id %in% both_genes) %>% 
+        dplyr::mutate(ET = 'both_mRNA')
+
+      res_filter_tmp = rbind(res_filter_atac_both, res_filter_mRNA_both, 
+        res_filter_atac, res_filter_mRNA)
+      res_filter_tmp %<>% dplyr::mutate(TV = TV1, FC = FC1, PF = PF1)
+      res_filter_tmp$PF[res_filter_tmp$ET == 'mRNA'] = 'Null'
+
+      lres_filter[[c1]] = res_filter_tmp
+
+    }
+
+    res_filter = do.call(rbind, lres_filter)
+    res_filter %<>% .[!duplicated(.), ]
+
+    saveRDS(res_filter, paste0(COMP, '__res_filter.rds'))
+
+
+    ################################
+    ## splitting results in subsets and exporting as bed and gene lists
+
+    if(do_atac) {
+      atac_bed_df = res_detailed_atac
+      atac_bed_df %<>% dplyr::mutate(score = round(-log10(padj), 2), 
+                    name = paste(gene_name, peak_id, sep = '_'), strand = '*')
+      atac_bed_df %<>% dplyr::select(chr, start, end, name, score, strand, 
+        gene_id)
+    }
+
+    if(do_mRNA) {
+      promoters_df1 = promoters_df
+      prom_bed_df = get_prom_bed_df_table(promoters_df1, res_simple_mRNA)
+    }
+
+    res_filter$gene_peak = 
+      apply(res_filter[, c('gene_name', 'peak_id')], 1, paste, collapse = '_')
+
+    df_split1 = res_filter %>% dplyr::select(ET:TV) %>% .[!duplicated(.),]
+
+    for(c1 in 1:nrow(df_split1)){
+      ET1  = df_split1$ET[c1]
+      PF1  = df_split1$PF[c1]
+      FC1  = df_split1$FC[c1]
+      TV1 = df_split1$TV[c1]
+
+      df = subset(res_filter, ET == ET1 & PF == PF1 & FC == FC1 & TV == TV1)
+      DA_genes = unique(df$gene_id)
+      NDA_genes = subset(res_simple, ET == ET1 & !gene_id %in% DA_genes, 
+        'gene_id')$gene_id
+      lgenes = list(DA = DA_genes, NDA = NDA_genes)
+
+      key = paste(ET1, PF1, FC1, TV1, COMP, sep = '__')
+
+      # exporting bed files
+      if(do_mRNA && ET1 %in% c('mRNA', 'both_mRNA')) {
+        cur_bed = prom_bed_df %>% .[.$gene_id %in% DA_genes, ]
+      }
+
+      if(do_atac && ET1 %in% c('ATAC', 'both_ATAC')) {
+        cur_bed = atac_bed_df %>% .[.$name %in% df$gene_peak, ]
+      }
+
+      bed_name = paste0(key, '__regions.bed')
+      export_df_to_bed(cur_bed, bed_name)
+
+      # exporting gene list
+      key %<>% gsub('both_....', 'both', .) # renaming both_{ATAC,mRNA} as both
+      saveRDS(lgenes, paste0(key, '__genes.rds'))
+
+    }
+
+    '''
+}
+
+// bed_name = paste0(key, '__diff_expr_genes_prom.bed')
+// bed_name = paste0(key, '__diff_ab_peaks.bed')
+
+// note that the rank column for atac increase for each peak that is assigned to 
+// a new gene. This way as many genes are assigned in ATAC-Seq and mRNA-Seq
+
+// commands to check venn diagrams sizes:
+// dt[rank < 1001][L2FC > 0]$gene_id %>% unique %>% length
+// dt[rank < 1001][L2FC < 0]$gene_id %>% unique %>% length
+
+
+// a=      res_simple %>% .[.$ET == 'ATAC', ] %>% 
+//     .[.$rank < 1001 & .$FC > 0, ] %>% .$gene_id %>% unique
+// c = a %>% .[!. %in% b]
+// dt[gene_id == c[1]]
+
+
+// res_simple[, c('ET', 'FC', 'TV_1000')] %>% table
+// to run after this line:    for(TV in TV_split) res_simple[[paste0('TV_', ...
+
+// res_simple_atac %>% .[.$rank < 1000] %>%  .[.$L2FC < 0 ,]  %>% 
+// .[!duplicated(.$gene_id),] %>% nrow
+// res_simple_atac %>%  .[.$L2FC > 0 ,]  %>% .[!duplicated(.$gene_id),] %>% nrow
+
+
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(Res_simple_table_for_formatting_table)
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(Res_filter_table_for_formatting_table)
+
+
+
+
+// Note: in the res_filter table, each entry is multiplied at maximum by the 
+// number of rows in the df_split table times 2 (for the ET column)
+
+// why we remove 1bp at the start for bed export from a grange object
+// https://www.biostars.org/p/89341/
+// The only trick is remembering the BED uses 0-based coordinates.
+// note that the df that are input to the function export_df_to_bed all come 
+// from a grange object (output of )
+
+
+
+
+
+
+//// Adding keys to genes sets
+
+// note: there are slightly more items in the peaks channels, since the both 
+// sets are duplicated (both_ATAC and both_mRNA)
+
+
+DA_genes_split_for_doing_enrichment_analysis
+  // COMP, [ multiple_rds_files ] 
+  //  (files format: path/ET__PA__FC__TV__COMP__genes.rds)
+  .map{ it[1] }.flatten().toList()
+  // [ all_rds_files ]
+  .into{ 
+    DA_genes_list_for_computing_genes_self_overlaps ;
+    DA_genes_for_computing_genes_self_overlaps_1
+  }
+
+DA_genes_for_computing_genes_self_overlaps_1
+  .flatten()
+  // one rds_file per line
+  .map{ [ it.name.replaceFirst(~/__genes.*/, ''), it ] }
+  // key (ET__PA__FC__TV__COMP), rds_file
+  .into{ 
+    DA_genes_for_computing_genes_self_overlaps_2 ; 
+    DA_genes_for_computing_functional_annotations_overlaps_1
+  }
+
+
+DA_genes_for_computing_genes_self_overlaps_2
+  // format: key (ET__PA__FC__TV__COMP), rds_file (lgenes = list(DA, NDA))
+  .combine(DA_genes_list_for_computing_genes_self_overlaps)
+  // format: key, rds_file, rds_files
+  .map{ [ "${it[0]}__genes_self", 'genes_self', it[1], it[2..-1] ] }
+  // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file, [ rds_files ]
+  .dump(tag: 'genes_self')
+  .set{ DA_genes_for_computing_genes_self_overlaps_3 }
+
+
+
+//// Adding backgrounds to peak sets
+
+// A background is needed for downstream analysis to compare DEG or DBP to all 
+// genes or all peaks. This background is all_peaks found by DiffBind for the 
+// ATAC and both_ATAC entries. And it is the promoters of genes detected by 
+// sleuth for mRNA and both_mRNA entries.
+
+DA_regions_split_for_doing_enrichment_analysis
+  // COMP, multiple_bed_files 
+  //   (files format: path/ET__PA__FC__TV__COMP__peaks.bed)
+  .map{ it[1] }.flatten()
+  // bed_file
+  .map{ [ it.name.replaceFirst(~/__regions.bed/, ''), it ] }
+  // key (ET__PA__FC__TV__COMP), bed_file
+  .dump(tag:'DA_regions')
+  .into{ DA_regions_split_ATAC ; DA_regions_split_mRNA }
+
+DA_regions_split_ATAC
+  // key, DA_regions
+  .filter{ it[0] =~ /.*ATAC.*/ }
+  .combine(All_detected_diffbind_peaks_for_background)
+  // key, DA_regions, COMP, all_peaks
+  .dump(tag:'DA_regions_ATAC')
+  .set{ DA_regions_split_ATAC1 }
+
+DA_regions_split_mRNA
+  .filter{ it[0] =~ /.*mRNA.*/ }
+  .combine(All_detected_sleuth_promoters_for_background)
+  // key, diff_expr_prom_bed, COMP, all_genes_prom_bed
+  .dump(tag:'DA_regions_mRNA')
+  .set{ DA_regions_split_mRNA1 }
+
+DA_regions_split_ATAC1
+  .mix(DA_regions_split_mRNA1)
+  // format: key, DA_regions, all_regions
+  .filter{ it[0].split('__')[4] ==~ it[2] }
+  // keeping only entries for which the COMP match with the key
+  .map{ it[0, 1, 3] }
+  // key, DA_regions, all_regions
+  .filter{ it[1].readLines().size() >= params.min_entries_DA_bed }
+  // keeping only entries with more than N dif bound/expr regions
+  .dump(tag:'DA_regions_with_bg')
+  .into{ 
+    DA_regions_with_bg_for_computing_peaks_overlaps_1
+    DA_regions_with_bg_for_computing_motifs_overlaps_1
+  }
+
+
+
+process DA_split__plotting_venn_diagrams {
+  tag "${COMP}"
+
+  label "venndiagram"
+
+  publishDir path: "${out_fig_indiv}/2_Differential_Abundance", 
+    mode: "${pub_mode}", saveAs: {
+      if (it.indexOf("__venn_up_or_down.pdf") > 0) 
+        "Venn_diagrams__two_ways/${it}"
+      else if (it.indexOf("__venn_up_and_down.pdf") > 0) 
+        "Venn_diagrams__four_ways/${it}"
+  }
+
+  input:
+    set COMP, file('*') from DA_genes_for_plotting_venn_diagrams
+
+  output:
+    set val("Venn_diagrams__two_ways"), val("2_Differential_Abundance"), 
+      file('*__venn_up_or_down.pdf') \
+      into Venn_up_or_down_for_merging_pdfs optional true
+    set val("Venn_diagrams__four_ways"), val("2_Differential_Abundance"), 
+      file('*__venn_up_and_down.pdf') \
+      into Venn_up_and_down_for_merging_pdfs optional true
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(VennDiagram)
+
+    source('!{projectDir}/bin/plot_venn_diagrams.R')
+
+
+    all_files = list.files(pattern = '*.rds')
+
+    df = data.frame(do.call(rbind, lapply(all_files, 
+      function(x) strsplit(x, '__')[[1]][-6])), stringsAsFactors = F)
+    colnames(df) = c('ET', 'PF', 'FC', 'TV', 'COMP')
+
+    PFs = unique(df$PF)
+    PFs = PFs[PFs != 'Null']
+    TVs = unique(df$TV)
+    COMP = df$COMP[1]
+
+    get_file_name <- function(ET, PF, FC, TV){
+      paste(ET, PF, FC, TV, COMP, 'genes.rds', sep = '__')
+    }
+
+    for(PF1 in PFs){
+      for(TV1 in TVs){
+
+        atac_up = get_file_name('ATAC', PF1, 'up', TV1)
+        atac_down = get_file_name('ATAC', PF1, 'down', TV1)
+        mrna_up = get_file_name('mRNA', 'Null', 'up', TV1)
+        mrna_down = get_file_name('mRNA', 'Null', 'down', TV1)
+
+        a_u = file.exists(atac_up)
+        a_d = file.exists(atac_down)
+        m_u = file.exists(mrna_up)
+        m_d = file.exists(mrna_down)
+
+        if(a_u & m_u) {
+          lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
+            readRDS(mrna_up)$DA)
+          prefix = paste(PF1, 'up', TV1, COMP, sep = '__')
+          plot_venn_diagrams(lgenes, prefix)
+        }
+
+        if(a_d & m_d) {
+          lgenes = list(atac_down = readRDS(atac_down)$DA, mrna_down = 
+            readRDS(mrna_down)$DA)
+          prefix = paste(PF1, 'down', TV1, COMP, sep = '__')
+          plot_venn_diagrams(lgenes, prefix)
+        }
+
+        if(a_u & a_d & m_u & m_d) {
+          lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
+            readRDS(mrna_up)$DA, atac_down = readRDS(atac_down)$DA, 
+            mrna_down = readRDS(mrna_down)$DA)
+          prefix = paste(PF1, TV1, COMP, sep = '__')
+          plot_venn_diagrams(lgenes, prefix)
+        }
+
+      }
+    }
+
+  '''
+}
+
+Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_or_down_for_merging_pdfs
+  .groupTuple(by: [0, 1])
+  .map{ it.flatten() }
+  .map{ [ it[0], it[1], it[2..-1] ] })
+
+Merging_pdfs_channel = Merging_pdfs_channel.mix(Venn_up_and_down_for_merging_pdfs
+  .groupTuple(by: [0, 1])
+  .map{ it.flatten() }
+  .map{ [ it[0], it[1], it[2..-1] ] })
+
+
+
+
+//// importing groups of comparisons to plot together on the overlap matrix and 
+// the heatmaps
+
+comparisons_grouped = file(params.design__groups)
+Channel
+  .from( comparisons_grouped.readLines() )
+  .map { it.split() }
+  .map { [ it[0], it[1..-1].join('|') ] }
+  // format: GRP, [ comp_order ]
+  .dump(tag:'comp_group') {"comparisons grouped: ${it}"}
+  // .into { comparisons_grouped_for_overlap_matrix ; 
+  // comparisons_grouped_for_heatmap }
+  .set { comparisons_grouped_for_heatmap }
+
+
+
+
+
+DA_genes_for_computing_functional_annotations_overlaps_1
+  // key (ET__PA__FC__TV__COMP), rds_file
+  .combine(params.func_anno_databases)
+  // key (ET__PA__FC__TV__COMP), rds_file, func_anno
+  .map{ key, rds_file, func_anno -> 
+    data_type = "func_anno_" + func_anno
+    new_key = key + "__" + data_type
+    [ new_key, data_type, func_anno, rds_file ]
+  }
+  // key (ET__PA__FC__TV__COMP__DT), data_type, func_anno, rds_file 
+  .dump(tag: 'func_anno')
+  .set{ DA_genes_for_computing_functional_annotations_overlaps_2 }
+
+
+
+process Enrichment__computing_functional_annotations_overlaps {
+  tag "${key}"
+
+  label "bioconductor"
+
+  input:
+    set key, data_type, func_anno, file(gene_set_rds) \
+      from DA_genes_for_computing_functional_annotations_overlaps_2
+
+  output:
+    set key, data_type, file('*__counts.csv') \
+      into Functional_annotations_overlaps_for_computing_pvalues optional true
+
+  when: 
+    params.do_gene_set_enrichment
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(clusterProfiler)
+    library(magrittr)
+
+    key = '!{key}'
+    lgenes = readRDS('!{gene_set_rds}')
+    func_anno = '!{func_anno}'
+    org_db = AnnotationDbi::loadDb('!{params.org_db}')
+    df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+    kegg_environment = readRDS('!{params.kegg_environment}')
+    use_nda_as_bg_for_func_anno = !{params.use_nda_as_bg_for_func_anno}
+    simplify_cutoff = !{params.simplify_cutoff}
+
+
+    gene_set_enrich <- function(lgenes, type){
+      DA_genes = lgenes$DA
+      universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL)
+
+      if(type == 'KEGG') {
+
+        vec = df_genes_metadata$entrez_id %>% 
+          setNames(., df_genes_metadata$gene_id)
+        gene_set_entrez = vec[DA_genes]
+
+        res <- clusterProfiler:::enricher_internal(gene_set_entrez, 
+          pvalueCutoff  = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', 
+          universe = universe, USER_DATA = kegg_environment)
+
+        if(is.null(res)) error('NULL output')
+        res
+      }
+        else {
+          simplify( 
+            enrichGO( 
+              gene = DA_genes, OrgDb = org_db, keyType = 'ENSEMBL', 
+              ont = type, pAdjustMethod = 'BH', pvalueCutoff = 1, 
+              qvalueCutoff  = 1, universe = universe), 
+            cutoff = simplify_cutoff, by = 'p.adjust', select_fun = min)
+        }
+    }
+
+    robust_gene_set_enrich <- function(lgenes, type){
+      tryCatch(gene_set_enrich(lgenes, type), error = 
+        function(e) {print(paste('No enrichment found'))})
+    }
+
+    res = robust_gene_set_enrich(lgenes, func_anno)
+
+    if(class(res) == 'enrichResult') {
+      df = res@result
+
+      if(nrow(df) != 0) {
+
+          # converting IDs from entrez to Ensembl
+          if(func_anno == 'KEGG'){
+            vec = df_genes_metadata$gene_id %>% 
+              setNames(., df_genes_metadata$entrez_id)
+            ensembl_ids = purrr::map_chr(strsplit(df$geneID, '/'), 
+                            ~paste(unname(vec[.x]), collapse = '/'))
+            df$geneID = ensembl_ids
+          }
+
+          # extracting count columns, reformatting and saving results
+          df %<>% tidyr::separate(GeneRatio, c('ov_da', 'tot_da'), sep = '/')
+          df %<>% tidyr::separate(BgRatio, c('ov_nda', 'tot_nda'), sep = '/')
+          df[, c('ov_da', 'tot_da', 'ov_nda', 'tot_nda')] %<>% 
+            apply(2, as.integer)
+
+          df %<>% dplyr::rename(tgt_id = ID, tgt = Description, 
+            genes_id = geneID)
+          df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, tgt_id, 
+            genes_id)
+
+          write.csv(df, paste0(key, '__counts.csv'), row.names = F)
+
+      }
+    }
+
+    '''
+}
+
+Overlap_tables_channel = Overlap_tables_channel
+  .mix(Functional_annotations_overlaps_for_computing_pvalues)
+
+// universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL) # => this fails: "error replacement has length zero"
+
+// https://yulab-smu.top/biomedical-knowledge-mining-book/clusterprofiler-kegg.html
+// hacking the enrichKEGG function to get it to work offline and inside the containers; otherwise I get the error 
+// In utils::download.file(url, quiet = TRUE, method = method, ...) :
+//   URL 'https://rest.kegg.jp/link/cel/pathway': status was 'Failure when receiving data from the peer'
+// source code: https://rdrr.io/bioc/clusterProfiler/src/R/enrichKEGG.R
+// KEGG_DATA <- prepare_KEGG(species, "KEGG", keyType)
+// search_kegg_organism('cel', by='kegg_code')
+// my_kegg_data = clusterProfiler:::prepare_KEGG('cel', "KEGG")
+// 
+// gene_set_entrez = c("176003", "178531", "175223", "177619", "180999", "3565479",
+// "174059", "180862", "189649", "173657", "185570", "181697", "188978",
+// "180929", "36805029", "186080", "179225", "179595", "179712",
+// "179425", "181325", "171788", "178203", "173301", "175423", "178130",
+// "183903", "179990", "187830", "176278", "176155", "3565939",
+// "177051", "180901", "174198", "177074", "178191", "188458", "175469",
+// "182932")
+// organism_key = 'cel'
+// universe = NULL
+// res = enrichKEGG( gene = gene_set_entrez, pvalueCutoff = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', organism = organism_key, keyType = 'ncbi-geneid', universe = universe)
+// res = enrichKEGG( gene = gene_set_entrez, pvalueCutoff = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', organism = organism_key, keyType = 'ncbi-geneid', universe = universe, use_internal_data = T)
+// 
+
+// For enrichGO, the go terms are stored into a package and accessed liked that:  goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
+// so everything is run in local within the clusterProfiler:::get_GO_data function
+
+// for enrichKEGG, the KEGG database is fetched online. We use a preparsed one here instead
+
+
+// res <- clusterProfiler:::enricher_internal(gene_set_entrez,
+//                          pvalueCutoff  = 1,
+//                          pAdjustMethod = 'BH',
+//                          universe      = universe,
+//                          qvalueCutoff  = 1,
+//                          USER_DATA = my_kegg_data1)
+// 
+//  R.utils::setOption("clusterProfiler.download.method",'auto')
+// 
+// specie_long = 'caenorhabditis_elegans'
+// 
+// 
+// 
+// 
+// options("clusterProfiler.download.method")
+// 
+// my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', "KEGG", 'kegg')
+// 
+// 
+// my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', "KEGG", 'kegg')
+// my_kegg_data1$EXTID2PATHID %>% head
+// my_kegg_data$EXTID2PATHID %>% head
+// 
+// my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', "KEGG")
+//  my_kegg_data1 = clusterProfiler:::prepare_KEGG('cel', 'KEGG', "ENTREZID")
+// 
+// res <- clusterProfiler:::enricher_internal(gene_set_entrez,
+//                           pvalueCutoff  = 1,
+//                           pAdjustMethod = 'BH',
+//                           universe      = universe,
+//                           qvalueCutoff  = 1,
+//                           USER_DATA = my_kegg_data1)
+// detach("package:clusterProfiler", unload=TRUE)
+// library(clusterProfiler)
+
+
+
+process Enrichment__computing_genes_self_overlaps {
+  tag "${key}"
+
+  label "r_basic"
+
+  input:
+    set key, data_type, file(lgenes), file('all_gene_sets/*') 
+      from DA_genes_for_computing_genes_self_overlaps_3
+
+  output:
+    set key, data_type, file("*__counts.csv") 
+      into Genes_self_overlaps_for_computing_pvalues
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(magrittr)
+
+    key = '!{key}'
+    lgenes = readRDS('!{lgenes}')
+
+    DA = lgenes$DA
+    NDA = lgenes$NDA
+
+    all_gene_sets = list.files('all_gene_sets')
+    all_gene_sets %<>% setNames(., gsub('__genes.rds', '', .))
+    all_DA = purrr::map(all_gene_sets, 
+      ~readRDS(paste0('all_gene_sets/', .x))$DA)
+
+    df = purrr::imap_dfr(all_DA, function(genes_tgt, target){
+      tgt = target
+      tot_tgt = length(genes_tgt)
+      tot_da = length(DA)
+      ov_da = length(intersect(DA, genes_tgt))
+      tot_nda = length(NDA)
+      ov_nda = length(intersect(NDA, genes_tgt))
+      data.frame(tgt, tot_tgt, tot_da, ov_da, tot_nda, ov_nda)
+    })
+
+    write.csv(df, paste0(key, '__genes_self__counts.csv'), row.names = F)
+
+    '''
+}
+
+Overlap_tables_channel = Overlap_tables_channel
+  .mix(Genes_self_overlaps_for_computing_pvalues)
+
+
 // 
 // 
 // 
