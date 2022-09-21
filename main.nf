@@ -4036,11 +4036,11 @@ process Enrichment__computing_genes_self_overlaps {
   label "r_basic"
 
   input:
-    set key, data_type, file(lgenes), file('all_gene_sets/*') 
+    set key, data_type, file(lgenes), file('all_gene_sets/*') \
       from DA_genes_for_computing_genes_self_overlaps_3
 
   output:
-    set key, data_type, file("*__counts.csv") 
+    set key, data_type, file("*__counts.csv") \
       into Genes_self_overlaps_for_computing_pvalues
 
   shell:
@@ -4051,6 +4051,7 @@ process Enrichment__computing_genes_self_overlaps {
 
     key = '!{key}'
     lgenes = readRDS('!{lgenes}')
+
 
     DA = lgenes$DA
     NDA = lgenes$NDA
@@ -4079,969 +4080,968 @@ Overlap_tables_channel = Overlap_tables_channel
   .mix(Genes_self_overlaps_for_computing_pvalues)
 
 
-// 
-// 
-// 
-// DA_regions_with_bg_for_computing_peaks_overlaps_1
-//   .into{ 
-//     DA_regions_with_bg_for_computing_peaks_overlaps_2
-//     DA_regions_with_bg_for_computing_peaks_overlaps_3
-//   }
-// DA_regions_channel = DA_regions_with_bg_for_computing_peaks_overlaps_2
-//   .map{ it[1] }
-//   .toList()
-//   .map{ [ 'peaks_self'  , it ] }
-//   .dump(tag:'peaks_self')
-// 
-// // filtering the selected chromatin state file with the parameter 
-// // "params.chromatin_state_1"
-// Chrom_states_channel = 
-//   Channel.fromPath( "${params.chromatin_state_1}/*bed" )
-//   .toList()
-//   .map{ [ 'chrom_states', it ] }
-//   .dump(tag:'chrom_states')
-// 
-// // filtering the selected CHIP ontology group with the parameter 
-// // "params.chip_ontology"
-// CHIP_channel_all = Channel.fromPath( "${params.encode_chip_files}/*bed" )
-// 
-// Channel
-//   .fromPath( params.chip_ontology_groups )
-//   .splitCsv( header: false, sep: '\t' )
-//   .filter{ group, chip_bed -> group == params.chip_ontology }
-//   .map{ [it[1], it[0] ] }
-//   .map{ [it[0] ] }
-//   .dump(tag:'chip_ontology')
-//   .set{ chip_files_to_keep }
-// 
-// CHIP_channel_all
-//   .map{ [ it.name, it ] }
-//   .join(chip_files_to_keep)
-//   .map{ it[1] }
-//   .toList()
-//   .map{ [ 'CHIP', it ] }
-//   .set{ CHIP_channel_filtered }
-// 
-// 
-// if( ! params.do_chromatin_state ) Chrom_states_channel.close()
-// 
-// 
-// Bed_regions_to_overlap_with = 
-//   CHIP_channel_filtered
-//   .mix(Chrom_states_channel)
-//   .mix(DA_regions_channel)
-// 
-// DA_regions_with_bg_for_computing_peaks_overlaps_3
-//   // format: key (ET__PA__FC__TV__COMP), DA_regions, all_regions
-//   .combine(Bed_regions_to_overlap_with)
-//   // format: key, DA_regions, all_regions, data_type, bed_files
-//   .map{ [ it[0,3].join('__'), it[3], it[1], it[2], it[4] ] }
-//   .dump(tag:'bed_overlap')
-//   // format: key (ET__PA__FC__TV__COMP__DT), data_type, DA_regions, 
-//   //        all_regions, bed_files
-//   .set{ DA_regions_with_bg_and_bed_for_computing_peaks_overlaps }
-// 
-// 
-// process Enrichment__computing_peaks_overlaps {
-//   tag "${key}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
-//   maxRetries 3
-// 
-//   input:
-//     set key, data_type, file(DA_regions), file(all_regions), file("BED_FILES/*") 
-//       from DA_regions_with_bg_and_bed_for_computing_peaks_overlaps
-// 
-//   output:
-//     set key, data_type, file("*__counts.csv") 
-//       into Peaks_self_overlaps_for_computing_pvalues
-// 
-//   shell:
-//     '''
-// 
-//     DB=!{DA_regions}
-//     ALL=!{all_regions}
-//     KEY=!{key}
-// 
-//     intersectBed -v -a ${ALL} -b ${DB} > not_diffbound.bed
-//     NDB="not_diffbound.bed"
-// 
-//     tot_da=`wc -l < ${DB}`
-//     tot_nda=`wc -l < ${NDB}`
-// 
-//     OUTPUT_FILE="${KEY}__counts.csv"
-// 
-//     echo "tgt, tot_tgt, tot_da, ov_da, tot_nda, ov_nda" > $OUTPUT_FILE
-// 
-//     BEDS=($(ls BED_FILES))
-// 
-//     for BED1 in ${BEDS[@]}
-//       do
-//       	BED=BED_FILES/$BED1
-//         tgt=`basename ${BED} .bed`
-//         tgt=`basename ${tgt} __regions`
-//         tot_tgt=`wc -l < ${BED}`
-//         intersectBed -u -a ${DB} -b ${BED} > overlap_DB.tmp
-//         ov_da=`wc -l < overlap_DB.tmp`
-//         intersectBed -u -a ${NDB} -b ${BED} > overlap_NDB.tmp
-//         ov_nda=`wc -l < overlap_NDB.tmp`
-//         echo \
-//           "${tgt}, ${tot_tgt}, ${tot_da}, ${ov_da}, ${tot_nda}, ${ov_nda}" \
-//           >> $OUTPUT_FILE
-//       done
-// 
-//     '''
-// }
-// 
-// Overlap_tables_channel = Overlap_tables_channel
-//   .mix(Peaks_self_overlaps_for_computing_pvalues)
-// 
-// 
-// // note: we need to save tmp files (overlap_DB.tmp and overlap_NDB.tmp, 
-// // otherwise it crashes when there is zero overlap)
-// 
-// // note: here we use the option intersectBed -u instead of -wa to just indicate 
-// // if at least one chip peak overlap with a given atac seq peak. Thus the number 
-// // of overlap cannot be higher than the number of atac peaks.
-// 
-// 
-// 
-// 
-// 
-// DA_regions_with_bg_for_computing_motifs_overlaps_1
-//   // key (ET__PA__FC__TV__COMP), DA_regions, all_regions
-//   .map{ [ "${it[0]}__motifs", "motifs", it[1], it[2] ] }
-//   .dump(tag:'peaks_for_homer')
-//   // format: key (ET__PA__FC__TV__COMP__DT), data_type, DA_regions, all_regions
-//   .set{ DA_regions_with_bg_for_computing_motifs_overlaps_2 }
-// 
-// 
-// 
-// process Enrichment__computing_motifs_overlaps {
-//   tag "${key}"
-// 
-//   label "homer"
-// 
-//   publishDir path: "${out_processed}/3_Enrichment/${data_type}/${key}", 
-//              mode: "${pub_mode}"
-// 
-//   when: 
-//     params.do_motif_enrichment
-// 
-//   input:
-//     set key, data_type, file(DA_regions), file(all_regions) 
-//       from DA_regions_with_bg_for_computing_motifs_overlaps_2
-// 
-//   output:
-//     file("**")
-//     set key, data_type, file("*__homer_results.txt") optional true 
-//       into Motifs_overlaps_for_reformatting_results
-// 
-//   shell:
-//     '''
-// 
-//     findMotifsGenome.pl !{DA_regions} !{params.homer_genome} "." \
-//       -size given \
-//       -p !{params.homer__nb_threads} \
-//       -bg !{all_regions} \
-//       -mknown !{params.pwms_motifs} \
-//       -nomotif
-// 
-//     FILE="knownResults.txt"
-//     if [ -f $FILE ]; then
-//        mv $FILE "!{key}__homer_results.txt"
-//     fi
-// 
-//     '''
-// }
-// 
-// // note: homer automatically removes overlapping peaks between input and bg, 
-// // so it doesn't matter that we don't separtate them.
-// 
-// 
-// 
-// process Enrichment__reformatting_motifs_results {
-//   tag "${key}"
-// 
-//   label "r_basic"
-// 
-//   input:
-//     set key, data_type, file(motifs_results) 
-//       from Motifs_overlaps_for_reformatting_results
-// 
-//   output:
-//     set key, data_type, file("*__counts.csv") 
-//       into Formatted_motifs_results_for_computing_pvalues
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(magrittr)
-// 
-//     key = '!{key}'
-//     filename = '!{motifs_results}'
-// 
-// 
-//     df = read.csv(file = filename, sep = '\t', stringsAsFactors = F)
-// 
-//     total = purrr::map_chr(strsplit(names(df), 'Motif.of.')[c(6,8)], 2) %>% 
-//               gsub('.', '', ., fixed = T) %>% as.integer
-// 
-//     names(df) = c('tgt', 'consensus', 'pvalue', 'log_pval', 'qval', 'ov_da', 
-//                   'pt_da', 'ov_nda', 'pt_nda')
-//     df$tot_da  = total[1]
-//     df$tot_nda = total[2]
-//     df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, consensus)
-// 
-//     ov_da_too_high = which(df$ov_da > df$tot_da)
-//     if(length(ov_da_too_high) > 0) df$ov_da[ov_da_too_high] = 
-//       df$tot_da[ov_da_too_high]
-//     ov_nda_too_high = which(df$ov_nda > df$tot_nda)
-//     if(length(ov_nda_too_high) > 0) df$ov_nda[ov_nda_too_high] = 
-//       df$tot_nda[ov_nda_too_high]
-// 
-//     write.csv(df, paste0(key, '__motifs__counts.csv'), row.names = F)
-// 
-//     '''
-// }
-// 
-// Overlap_tables_channel = Overlap_tables_channel
-//   .mix(Formatted_motifs_results_for_computing_pvalues)
-// 
-// // Overlap_tables_channel = Overlap_tables_channel.view()
-// 
-// // note : the "wrong_entries" variable is used because ov_nda is sometimes 
-// // slightly higher (by a decimal) than tot_nda; i.e.: tot_nda = 4374 and 
-// // ov_nda = 4374.6. This makes the Fischer test crash later on. This change 
-// // is minimal so we just fix it like that.
-// 
-// // This one liner works and is cleaner but it fails in nextflow due to the 
-// // double escape string
-// // total = as.integer(stringr::str_extract_all(paste0(names(df), collapse = ' '),
-// //          "\\(?[0-9]+\\)?")[[1]])
-// 
-// 
-// 
-// 
-// 
-// Overlap_tables_channel = Overlap_tables_channel.dump(tag: 'overlap_tables')
-// 
-// process Enrichment__computing_enrichment_pvalues {
-//   tag "${key}"
-// 
-//   label "r_basic"
-// 
-//   input:
-//     set key, data_type, file(df_count_csv) from Overlap_tables_channel
-// 
-//   output:
-//     file("*.rds") into Enrichment_results_for_plotting optional true
-//     set data_type, val("3_Enrichment"), file("*.rds") 
-//       into Enrichment_results_for_formatting_table optional true
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(magrittr)
-//     source('!{projectDir}/bin/get_chrom_states_names_vec.R')
-// 
-//     key = '!{key}'
-//     data_type = '!{data_type}'
-//     df1 = read.csv('!{df_count_csv}', stringsAsFactors = F)
-//     motifs_test_type = '!{params.motifs_test_type}'
-// 
-// 
-// 
-//     # computing pvalue and L2OR
-//     df = df1
-//     for(c1 in 1:nrow(df)){
-//       ov_da   =   df$ov_da[c1]
-//       tot_da  =  df$tot_da[c1]
-//       ov_nda  =  df$ov_nda[c1]
-//       tot_nda = df$tot_nda[c1]
-//       mat = rbind(c(ov_da, ov_nda), c(tot_da - ov_da, tot_nda - ov_nda))
-//       fisher_test = fisher.test(mat, alternative = 'two.sided')
-//       df$pval[c1] = fisher_test$p.value
-//       df$L2OR[c1] = log2(fisher_test$estimate)
-//       if(data_type == 'motifs' & motifs_test_type == 'binomial') {
-//         df$pval[c1] = binom.test(ov_da, tot_da, ov_nda / tot_nda, 
-//           alternative = 'two.sided')$p.value
-//       }
-//     }
-// 
-//     # adding padj and percentage of overlap
-//     df$padj = p.adjust(df$pval, method = 'BH')
-//     df %<>% dplyr::mutate(pt_da = ov_da  / tot_da  )
-//     df %<>% dplyr::mutate(pt_nda = ov_nda / tot_nda )
-//     df$pt_da %<>% {. * 100 } %>% round(2) %>% paste0(., '%')
-//     df$pt_nda %<>% {. * 100 } %>% round(2) %>% paste0(., '%')
-// 
-//     # renaming chromatin states
-//     if(data_type == 'chrom_states'){
-//       vec = get_chrom_states_names_vec(df$tgt)
-//       df$tgt %<>% vec[.]
-//     }
-// 
-//     # reordering columns
-//     df %<>% dplyr::select(tgt, pval, padj, L2OR, pt_da, ov_da, tot_da, 
-//       pt_nda, ov_nda, tot_nda, dplyr::everything())
-// 
-//     # adding a Gene Enrichment Type column for func_anno
-//     if(grepl('func_anno', data_type)) {
-//       GE = gsub('func_anno_', '', data_type)
-//       data_type1 = 'func_anno'
-//     } else { data_type1 = data_type }
-// 
-//     # sorting by padj and then overlap counts
-//     df %<>% dplyr::arrange(padj, desc(ov_da))
-// 
-//     # adding the key and saving for plots
-//     key_split = strsplit(key, '__')[[1]]
-//     key_df = as.data.frame(t(key_split[-length(key_split)]), 
-//       stringsAsFactors = F)
-//     cln = c('ET', 'PF', 'FC', 'TV', 'COMP')
-//     key_df %<>% set_colnames(cln)
-//     if(data_type1 == 'func_anno') key_df %<>% cbind(GE = GE, .)
-//     df2 = cbind(key_df, df)
-//     saveRDS(df2, paste0(key, '__enrich.rds'))
-// 
-//     '''
-// }
-// 
-// 
-// // => the input should be a df with these columns: tgt tot_da ov_da tot_nda ov_nda
-// // other extra columns are facultatory. These are: tot_tgt for bed_overlap, 
-// // consensus for motifs, geneIds for ontologies/pathways
-// 
-// // data_types can be either of: func_anno(BP|CC|MF|KEGG), genes_self, 
-// // peaks_self, chrom_states, CHIP, motifs
-// 
-// // df$tgt %>% .[. %in% names(vec)]
-// // df$tgt %>% .[!. %in% names(vec)]
-// 
-// 
-// 
-// Formatting_csv_tables_channel = Formatting_csv_tables_channel
-//   .mix(Enrichment_results_for_formatting_table)
-// 
-// 
-// 
-// 
-// // note DT stands for Data_Type. It can be either 'genes_(BP|CC|MF|KEGG)', 
-// // 'CHIP', 'motif' or 'chrom_states'
-// // comp_order has this format: 
-// // Eri1Daf2_vs_Eri1|Eri1Eat2_vs_Eri1|Eri1Isp1_vs_Eri1|...
-// 
-// 
-// Enrichment_results_for_plotting
-//   // format: rds_file (key__enrich.rds)
-//   .flatten()
-//   // we need to flatten since the genes_sets
-//   .map{ [ it.name.replaceFirst(~/__enrich.rds/, ''), it ] }
-//   // format: key (ET__PA__FC__TV__COMP__DT), rds_file
-//   .tap{ Enrichment_results_for_plotting_barplots_1 }
-//   .combine(comparisons_grouped_for_heatmap)
-//   // format: key, rds_file, GRP, comp_order
-//   .dump(tag:'enrichment')
-//   .map{ [ it[0].split('__')[4], it ].flatten() }
-//   // format: COMP, key, rds_file, GRP, comp_order
-//   .filter{ it[0] in it[4].split('\\|') }
-//   // keeping only COMP that are in the group
-//   .map{ [ it[1].split('__'), it[2..4] ].flatten() }
-//   // format: ET, PF, FC, TV, COMP, DT, rds_file, GRP, comp_order
-//   .map{ [ it[0, 1, 3, 7, 5].join('__'), it[5, 8, 3, 6] ].flatten() }
-//   // format: key (ET__PA__TV__GRP__DT), DT, comp_order, TV, rds_file
-//   .groupTuple(by: [0, 1, 2, 3])
-//   // format: key, DT, comp_order, TV, rds_files
-//   .filter{ it[4].size() > 1 }
-//   // .map{ it[0, 1, 2, 4] }
-//   .dump(tag:'heatmap')
-//   .set{ Enrichment_results_for_plotting_heatmaps }
-// 
-// 
-// 
-// 
-// Enrichment_results_for_plotting_barplots_1
-//   // format: key (ET__PA__FC__TV__COMP__DT), rds_file
-//   .map{ [ it[0], it[0].split('__')[5], it[1] ]  }
-//   // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file
-//   .dump(tag: 'barplot')
-//   .set{ Enrichment_results_for_plotting_barplots_2 }
-// 
-// 
-// 
-// process Figures__making_enrichment_barplots {
-//   tag "${key}"
-// 
-//   label "figures"
-// 
-//   publishDir path: "${out_fig_indiv}/3_Enrichment/Barplots__${data_type}", 
-//     mode: "${pub_mode}"
-// 
-//   input:
-//     set key, data_type, file(res_gene_set_enrichment_rds) 
-//       from Enrichment_results_for_plotting_barplots_2
-// 
-//   output:
-//     set val("Barplots__${data_type}"), val("3_Enrichment"), file("*.pdf") 
-//       optional true into Barplots_for_merging_pdfs
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(ggplot2)
-//     library(grid)
-//     library(gridExtra)
-//     library(RColorBrewer)
-//     library(magrittr)
-// 
-//     key       = '!{key}'
-//     data_type = '!{data_type}'
-//     df1       = readRDS('!{res_gene_set_enrichment_rds}')
-//     df_plots  = parse(eval(text = '!{params.heatmaps__df_plots}'))
-// 
-//     source('!{projectDir}/bin/get_new_name_by_unique_character.R')
-//     source('!{projectDir}/bin/functions_pvalue_plots.R')
-// 
-// 
-//     # getting parameters
-//     if(grepl('func_anno', data_type)) data_type = 'func_anno'
-//     df          = df1
-//     df_p        = df_plots %>% .[.$data_type == data_type, ]
-//     signed_padj = df_p$signed_padj
-// 
-//     # quitting if there are no significant results to show
-//     if(all(df$padj > df_plots$padj_threshold)) quit(save = 'no')
-// 
-//     # removing the genes_id column from func_anno enrichments 
-//     # (for easier debugging)
-//     df %<>% .[, names(.) != 'genes_id']
-// 
-//     # adding the loglog and binned padj columns
-//     df %<>% getting_padj_loglog_and_binned(data_type, signed_padj)
-// 
-//     # adding the yaxis_terms column with shortened and unique names
-//     df$yaxis_terms = df$tgt %>% get_shorter_names(df_p$max_characters)
-// 
-//     # selecting lowest pvalues
-//     df = df[seq_len(min(nrow(df), df_p$max_terms)), ]
-//     df$yaxis_terms %<>% factor(., levels = rev(.))
-// 
-//     bed_data_types = c('CHIP', 'chrom_states', 'peaks_self', 'genes_self')
-//     is_bed_overlap = data_type %in% bed_data_types
-//     if(is_bed_overlap){
-//       xlab = paste0('Overlap (DA: ', df$tot_da[1], ', NDA: ', df$tot_nda[1], ')')
-//     } else {
-//       xlab = paste0('Overlap (DA: ', df$tot_da[1], ')')
-//     }
-// 
-//     p1 = ggplot(df, aes(x = yaxis_terms, y = ov_da)) + coord_flip() + 
-//       geom_bar(stat = 'identity') + ggtitle(key) + theme_bw() + 
-//       theme(axis.title.y = element_blank(), 
-//         axis.text = element_text(size = 11, color = 'black'), 
-//         plot.title = element_text(hjust = 0.9, size = 10), 
-//         legend.text = element_text(size = 7)
-//        ) + ylab(xlab)
-// 
-//     point_size = scales::rescale(c(nrow(df), seq(0, 30, len = 5)), c(6, 3))[1]
-//     p_binned = get_plot_binned(p1, signed_padj = signed_padj, 
-//                     add_var = df_p$add_var, add_number  = df_p$add_number, 
-//                     point_size  = point_size)
-// 
-//     pdf(paste0(key, '__barplot.pdf'), paper = 'a4r')
-//       print(p_binned)
-//     dev.off()
-// 
-//     '''
-// }
-// 
-// // # signed_padj = ifelse(data_type %in% c('CHIP', 'chrom_states'), T, F)
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel.mix(Barplots_for_merging_pdfs
-//   .groupTuple(by: [0, 1]))
-// 
-// 
-// 
-// 
-// process Figures__making_enrichment_heatmap {
-//   tag "${key}"
-// 
-//   label "figures"
-// 
-//   errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
-//   maxRetries 3
-// 
-//   publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", 
-//              mode: "${pub_mode}"
-// 
-//   input:
-//     set key, data_type, comp_order, tv, file('*') 
-//       from Enrichment_results_for_plotting_heatmaps
-// 
-//   output:
-//     set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") 
-//       optional true into Heatmaps_for_merging_pdfs
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(magrittr)
-//     library(ggplot2)
-//     library(RColorBrewer)
-//     library(data.table)
-// 
-//     key        = '!{key}'
-//     comp_order = '!{comp_order}'
-//     data_type  = '!{data_type}'
-// 
-//     seed            = '!{params.heatmaps__seed}'
-//     df_filter_terms = parse(eval(text = '!{params.heatmaps__df_filter_terms}'))
-//     df_plots        = parse(eval(text = '!{params.heatmaps__df_plots}'))
-// 
-//     source('!{projectDir}/bin/get_new_name_by_unique_character.R')
-//     source('!{projectDir}/bin/get_chrom_states_names_vec.R')
-//     source('!{projectDir}/bin/functions_pvalue_plots.R')
-//     source('!{projectDir}/bin/functions_grouped_plot.R')
-// 
-// 
-//     # getting parameters
-//     if(grepl('func_anno', data_type)) data_type = 'func_anno'
-//     df_p  = df_plots        %>% .[.$data_type == data_type, ]
-//     df_ft = df_filter_terms %>% .[.$data_type == data_type, ]
-//     signed_padj = df_p$signed_padj
-// 
-//     # loading, merging and processing data
-//     rds_files = list.files(pattern = '*.rds')
-//     ldf = lapply(rds_files, readRDS)
-//     df = do.call(rbind, ldf)
-// 
-//     # filtering table
-//     if(data_type %in% c('genes_self', 'peaks_self')){
-//       key1 = paste(df[1, c('ET', 'PF', 'TV')], collapse = '__')
-//       df$tgt_key = sapply(strsplit(df$tgt, '__'), 
-//                           function(x) paste(x[c(1,2,4)], collapse = '__'))
-//       df %<>% .[.$tgt_key %in% key1, ]
-//       df$tgt_key <- NULL
-//     }
-// 
-//     ## quitting if there are no significant results to show
-//     if(all(df$padj > df_p$padj_threshold)) quit(save = 'no')
-// 
-//     # adding the comp_FC
-//     df$comp_FC = apply(df[, c('COMP', 'FC')], 1, paste, collapse = '_') %>% 
-//                  gsub('_vs_', '_', .)
-// 
-//     # ordering the x-axis comparisons
-//     comp_order_levels = get_comp_order_levels(comp_order, df_p$up_down_pattern)
-//     comp_order1 = comp_order_levels %>% .[. %in% unique(df$comp_FC)]
-// 
-//     # adding the yaxis terms column
-//     df$yaxis_terms = df$tgt
-// 
-//     # adding loglog and binned padj columns
-//     df %<>% getting_padj_loglog_and_binned(data_type, signed_padj = signed_padj)
-// 
-//     purrr__map_chr <- function(x, c1) lapply(x, function(y) y[c1]) %>% 
-//                       as.character
-// 
-//     # if plotting self overlap keeping only targets in the group
-//     if(data_type %in% c('genes_self', 'peaks_self')) {
-//       terms_levels = rev(comp_order1)
-//       strs = strsplit(df$tgt, '__')
-//       tgt_ET   = purrr__map_chr(strs, 1)
-//       tgt_PF   = purrr__map_chr(strs, 2)
-//       tgt_FC   = purrr__map_chr(strs, 3)
-//       tgt_TV   = purrr__map_chr(strs, 4)
-//       tgt_COMP = purrr__map_chr(strs, 5)
-//       ET = unique(df$ET)
-//       PF = unique(df$PF)
-//       TV = unique(df$TV)
-//       df$tgt_comp_FC = paste0(tgt_COMP, '_', tgt_FC) %>% gsub('_vs_', '_', .)
-//       df = subset(df, tgt_comp_FC %in% comp_FC & tgt_ET == ET & tgt_PF == PF)
-//       df$yaxis_terms = df$tgt_comp_FC
-//     }
-// 
-//     # reformatting df to a matrix
-//     mat_dt = dcast(as.data.table(df), yaxis_terms ~ comp_FC, 
-//                     value.var = 'padj_loglog', fill = get_pval_loglog(1))
-//     mat = as.matrix(mat_dt[,-1]) %>% set_rownames(mat_dt$yaxis_terms)
-// 
-//     # selecting and ordering the y-axis terms
-//     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
-// 
-//       terms_levels = select_y_axis_terms_grouped_plot(mat, 
-//         n_shared = df_ft$n_shared, n_unique = df_ft$n_unique, n_total = df_ft$n_total, 
-//         threshold_type = df_ft$threshold_type, 
-//         threshold_value = df_ft$threshold_value, 
-//         remove_similar = df_ft$remove_similar, 
-//         remove_similar_n = df_ft$remove_similar_n, seed = seed)
-// 
-//     }
-// 
-//     if(data_type == 'chrom_states') {
-//       vec = unique(df$tgt)
-//       vec_order = vec %>% gsub('.', '', ., fixed = T) %>% gsub(' .*', '', .) %>% 
-//                   as.integer %>% order
-//       terms_levels = vec[vec_order] %>% rev
-//     }
-// 
-//     # making the matrix of selected terms and with the right order of conditions
-//     mat_final = mat[terms_levels, comp_order1]
-// 
-//     # shortening the long terms names while keeping them unique
-//     rownames(terms_levels) %<>% get_shorter_names(df_p$max_characters)
-// 
-//     # creating a data.frame with row and column indexes for plotting
-//     df_final = add_matrix_indexes_to_df(mat_final, df, nrow(mat_final), 
-//                     ncol(mat_final), data_type, signed_padj = signed_padj)
-// 
-//     # making and saving plots
-//     p1 = getting_heatmap_base(df_final, rows, cols, title = key, 
-//       cur_mat = mat_final)
-//     point_size = scales::rescale(c(rows, seq(0, 40, len = 5)), c(3, 0.8))[1]
-//     p_binned = get_plot_binned(p1, signed_padj = signed_padj, df_p$add_var, 
-//       df_p$add_number, point_size = point_size)
-// 
-//     pdf(paste0(key, '__heatmap.pdf'))
-//       print(p_binned)
-//     dev.off()
-// 
-//     '''
-// }
-// 
-// // note that: gtools::mixedsort(df$tgt) would be simpler for chromatin states 
-// // if gtools was in the container
-// 
-// // signed_padj = data_type %in% c('CHIP', 'chrom_states')
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel.mix(Heatmaps_for_merging_pdfs
-//   .groupTuple(by: [0, 1]))
-// 
-// 
-// // 
-// // signed_padj = F;  add_loglog = F; add_L2OR = F
-// // signed_padj = T;  add_loglog = T; add_L2OR = T
-// // 
-// // 
-// // ## Some explainations on the selection of terms to display (with the example 
-// // of the algorithm for genes)
-// // # 26 terms at max will be plotted since it is the maximum to keep a readable 
-// // plot
-// // # the first 6 slots will be attributed to terms that are the most shared 
-// // amoung groups (if any term is shared)
-// // # then the top_N term for each group will be selected, aiming at 20 terms max
-// // # then the lowest pvalues overall will fill the rest of the terms (since 
-// // shared terms will leave empty gaps)
-// // # Note that there should be at maximum 10 comparisons in each grouping plot 
-// // (10 * 2 for up and down means at least 1 pvalue for each comparison)
-// 
-// 
-// 
-// 
-// 
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel.dump(tag: 'merging_pdf')
-// 
-// process Figures__merging_pdfs {
-//   tag "${file_name}"
-// 
-//   label "pdftk"
-// 
-//   publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
-// 
-//   input:
-//     set file_name, out_path, file("*") from Merging_pdfs_channel
-// 
-//   output:
-//     file("*.pdf") optional true
-// 
-//   script:
-//     """
-// 
-//     pdftk `ls *pdf | sort` cat output ${file_name}.pdf
-// 
-//     """
-// }
-// 
-// 
-// 
-// 
-// 
-// Formatting_csv_tables_channel = Formatting_csv_tables_channel
-//   .dump(tag: 'csv_tables')
-// 
-// process Tables__formatting_csv_tables {
-//   tag "${out_folder}__${data_type}"
-// 
-//   label "r_basic"
-// 
-//   publishDir path: "${out_tab_indiv}/${out_folder}/${data_type}", 
-//     mode: "${pub_mode}", enabled: params.tables__save_csv
-// 
-//   input:
-//     set data_type, out_folder, file(rds_file) from Formatting_csv_tables_channel
-// 
-//   output:
-//     set data_type, out_folder, file('*.csv') 
-//       into Formatted_csv_tables_for_merging optional true
-//     set val("Tables_Individual/${out_folder}/${data_type}"), file('*.csv') 
-//       into Formatted_csv_tables_for_saving_Excel_tables optional true
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-// 
-//     library(magrittr)
-// 
-//     source('!{projectDir}/bin/get_formatted_table.R')
-// 
-//     data_type = '!{data_type}'
-//     rds_file = '!{rds_file}'
-// 
-//     v_fdr_thresholds = 
-//     parse(eval(text = '!{params.tables__v_fdr_thresholds}'))
-// 
-// 
-// 
-//     # reading
-//     df = readRDS(rds_file)
-// 
-//     # filtering
-//     data_type1 = data_type
-//     if(grepl('func_anno', data_type)) data_type1 = 'func_anno'
-//     fdr_threshold = v_fdr_thresholds[data_type]
-//     df = subset(df, padj <= fdr_threshold)
-// 
-//     # formating
-//     df %<>% get_formatted_table
-// 
-//     # saving
-//     if(nrow(df) > 0) {
-//       output_file_name = paste0(gsub('.rds', '', rds_file), '.csv')
-//       write.csv(df, output_file_name, row.names = F)
-//     }
-// 
-//     '''
-// }
-// 
-// // => reformatting tables without breaking the cache
-// 
-// 
-// Exporting_to_Excel_channel = Exporting_to_Excel_channel
-//   .mix(Formatted_csv_tables_for_saving_Excel_tables)
-// 
-// 
-// Formatted_csv_tables_for_merging
-//   .groupTuple(by: [0, 1])
-//   .dump(tag: 'merge_tables')
-//   .set{ Formatted_tables_grouped_for_merging_tables }
-// 
-// process Tables__merging_csv_tables {
-//   tag "${out_folder}__${data_type}"
-// 
-//   label "r_basic"
-// 
-//   publishDir path: "${out_tab_merge}/${out_folder}", mode: "${pub_mode}", 
-//              enabled: params.tables__save_csv
-// 
-//   input:
-//     set data_type, out_folder, file(csv_file) 
-//       from Formatted_tables_grouped_for_merging_tables
-// 
-//   output:
-//     set val("Tables_Merged/${out_folder}"), file("*.csv") 
-//       into Merged_csv_tables_for_Excel optional true
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(magrittr)
-//     library(dplyr)
-//     source('!{projectDir}/bin/get_formatted_table.R')
-// 
-//     data_type = '!{data_type}'
-// 
-// 
-//     # merging tables, 
-//     all_files = list.files(pattern = '*.csv')
-//     ldf = lapply(all_files, read.csv, stringsAsFactors = F, as.is = T)
-//     df = do.call(rbind, ldf)
-// 
-//     # formatting and saving merged table
-//     df %<>% get_formatted_table
-//     write.csv(df, paste0(data_type, '.csv'), row.names = F)
-// 
-//     '''
-// }
-// 
-// Exporting_to_Excel_channel = Exporting_to_Excel_channel
-//   .mix(Merged_csv_tables_for_Excel)
-// 
-// 
-// 
-// Exporting_to_Excel_channel = Exporting_to_Excel_channel.dump(tag: 'excel')
-// 
-// process Tables__saving_excel_tables {
-//   tag "${csv_file}"
-// 
-//   // label "openxlsx" => sh: : Permission denied ; Error: zipping up workbook 
-//   // failed. Please make sure Rtools is installed or a zip application is 
-//   // available to R.
-// 
-//   label "differential_abundance"
-// 
-//   publishDir path: "${res_dir}/${out_path}", mode: "${pub_mode}" 
-// 
-//   when: 
-//     params.tables__save_excel
-// 
-//   input:
-//     set out_path, file(csv_file) from Exporting_to_Excel_channel
-// 
-//   output:
-//     file("*.xlsx")
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(openxlsx)
-// 
-//     csv_file = '!{csv_file}'
-//     excel__add_conditional_formatting = !{params.excel__add_conditional_formatting}
-//     excel__max_width = !{params.excel__max_width}
-// 
-// 
-//     options(digits = 1)
-// 
-//     df = read.csv(csv_file, stringsAsFactors = T, as.is = T)
-//     output_file_name = paste0(gsub('.csv', '', csv_file), '.xlsx')
-// 
-//     nms = names(df)
-// 
-//     class(df$pval) = 'scientific'
-//     class(df$padj) = 'scientific'
-// 
-//     if('pt_da' %in% nms){
-//       class(df$pt_da) = 'percentage'
-//       class(df$pt_nda) = 'percentage'
-//       L2OR_Inf_up   = which(df$L2OR == 'Inf')
-//       L2OR_Inf_down = which(df$L2OR == '-Inf')
-//       L2OR_not_Inf  = which(abs(df$L2OR) != 'Inf')
-//       df$L2OR[L2OR_Inf_up]   = 1e99
-//       df$L2OR[L2OR_Inf_down] = -1e99
-//     }
-// 
-//     names_colors_1  = c( 'filter',  'target',    'fold',  'pvalue',   'da'   )
-//     # color type           red        green     purple     orange     gold     
-//     header_colors_1 = c('#963634', '#76933c', '#60497a', '#e26b0a', '#9d821f')
-//     body_colors_1   = c('#f2dcdb', '#ebf1de', '#e4dfec', '#fde9d9', '#f1edcb')
-// 
-//     names_colors_2  = c(  'nda',    'other',    'gene', 'coordinate')
-//     # color type       pale_blue    grey     darkblue   darkolive
-//     header_colors_2 = c('#31869b', '#808080', '#16365c',  '#494529' )
-//     body_colors_2   = c('#daeef3', '#f2f2f2', '#c5d9f1',  '#ddd9c4' )
-// 
-//     names_colors = c(names_colors_1, names_colors_2)
-//     header_colors = c(header_colors_1, header_colors_2)
-//     body_colors = c(body_colors_1, body_colors_2)
-// 
-//     names(header_colors) = names_colors
-//     names(body_colors)   = names_colors
-// 
-// 
-//     get_nms_type <- function(nms){
-//       nms_coordinates = c('chr','start', 'end',	'width', 'strand')
-//       nms_coordinates = c(nms_coordinates, paste0('gene_', nms_coordinates))
-// 
-//       if(nms %in% c('GE', 'ET', 'PF', 'FC', 'TV', 'COMP')) return('filter') else
-//       if(nms %in% c('gene_name', 'gene_id', 'entrez_id'))  return('gene') else
-//       if(nms %in% c('pval', 'padj'))                       return('pvalue') else
-//       if(nms %in% c('L2FC', 'L2OR'))                       return('fold') else
-//       if(nms %in% c('tgt'))                                return('target') else
-//       if(nms %in% c('pt_da', 'tot_da', 'ov_da'))           return('da') else
-//       if(nms %in% c('pt_nda', 'tot_nda', 'ov_nda'))        return('nda') else
-//       if(nms %in% nms_coordinates)                         return('coordinate') else
-//                                                            return('other')
-//     }
-//     nms_types = sapply(names(df), get_nms_type)
-//     nms_color_header = unname(header_colors[nms_types])
-//     nms_color_body   = unname(body_colors  [nms_types])
-// 
-//     sheet = 1
-//     cols = seq_len(ncol(df))
-//     rows = seq_len(nrow(df) + 1)
-// 
-//     # create the workbook
-//     wb = write.xlsx(df, output_file_name, borders = 'rows', keepNA = F)
-// 
-//     # add filter, set width and height
-//     addFilter(wb, sheet, 1, cols)
-//     setRowHeights(wb, sheet, 1, heights = 50)
-//     widths = apply(df, 2, function(x) {
-//       if(all(is.na(x))) return(5)
-//       width = max(nchar(x), na.rm = T) + 2.5
-//       width = ifelse(width > excel__max_width, excel__max_width, width)
-//       return(width)
-//     })
-//     setColWidths(wb, sheet, cols, widths = widths)
-// 
-//     for(col in cols) {
-//       col_nm = nms[col]
-//       halign = ifelse('GE' %in% nms & col_nm %in% c('tgt', 'genes_id'), 
-//                       'left', 'center')
-//       header_style = createStyle(fontColour = '#ffffff', 
-//         fgFill = nms_color_header[col], halign = halign, valign = 'center', 
-//         textDecoration = 'Bold', border = 'TopBottomLeftRight', wrapText = T)
-//       addStyle(wb, sheet, header_style, rows = 1, col)
-// 
-//       body_style = createStyle(halign = halign, valign = 'center', 
-//         fgFill = nms_color_body[col])
-//       addStyle(wb, sheet, body_style, rows = rows[-1], col)
-// 
-//       if(excel__add_conditional_formatting){
-//         if(col_nm == 'padj') conditionalFormatting(wb, sheet, cols = col, 
-//           rows = rows[-1], type = 'colourScale', 
-//           style = c('#e26b0a', '#fde9d9')) 
-//         vec = df[[col]]
-//         if(col_nm == 'L2FC') {
-//           conditionalFormatting(wb, sheet, cols = col, rows = rows[-1], 
-//             type = 'colourScale', 
-//             style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), 
-//             rule = c(min(vec), 0, max(vec)))
-//         }
-//         if(col_nm == 'L2OR') {
-//           if(length(L2OR_not_Inf) > 0) {
-//             vec1 = vec[L2OR_not_Inf]
-//             vec1 = vec1[!is.na(vec1)]
-//             conditionalFormatting(wb, sheet, cols = col, 
-//               rows = L2OR_not_Inf + 1, type = 'colourScale', 
-//               style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), 
-//               rule = c(min(vec1), 0, max(vec1)))
-//           }
-//           if(length(L2OR_Inf_up) > 0) addStyle(wb, sheet, 
-//             createStyle(fgFill = c(lightblue = '#ff7c80'), halign = 'center', 
-//             valign = 'center'), rows = L2OR_Inf_up + 1, col)
-//           if(length(L2OR_Inf_down) > 0) addStyle(wb, sheet, 
-//             createStyle(fgFill = c(lightred = '#6699ff'), halign = 'center', 
-//             valign = 'center'), rows = L2OR_Inf_down + 1, col)
-//         }
-//       }
-//     }
-// 
-//     # save the final workbook
-//     saveWorkbook(wb, output_file_name, overwrite = TRUE)
-// 
-//     '''
-// }
+
+
+
+DA_regions_with_bg_for_computing_peaks_overlaps_1
+  .into{ 
+    DA_regions_with_bg_for_computing_peaks_overlaps_2
+    DA_regions_with_bg_for_computing_peaks_overlaps_3
+  }
+DA_regions_channel = DA_regions_with_bg_for_computing_peaks_overlaps_2
+  .map{ it[1] }
+  .toList()
+  .map{ [ 'peaks_self'  , it ] }
+  .dump(tag:'peaks_self')
+
+// filtering the selected chromatin state file with the parameter 
+// "params.chromatin_state_1"
+Chrom_states_channel = 
+  Channel.fromPath( "${params.chromatin_state_1}/*bed" )
+  .toList()
+  .map{ [ 'chrom_states', it ] }
+  .dump(tag:'chrom_states')
+
+// filtering the selected CHIP ontology group with the parameter 
+// "params.chip_ontology"
+CHIP_channel_all = Channel.fromPath( "${params.encode_chip_files}/*bed" )
+
+Channel
+  .fromPath( params.chip_ontology_groups )
+  .splitCsv( header: false, sep: '\t' )
+  .filter{ group, chip_bed -> group == params.chip_ontology }
+  .map{ [it[1], it[0] ] }
+  .map{ [it[0] ] }
+  .dump(tag:'chip_ontology')
+  .set{ chip_files_to_keep }
+
+CHIP_channel_all
+  .map{ [ it.name, it ] }
+  .join(chip_files_to_keep)
+  .map{ it[1] }
+  .toList()
+  .map{ [ 'CHIP', it ] }
+  .set{ CHIP_channel_filtered }
+
+
+if( ! params.do_chromatin_state ) Chrom_states_channel.close()
+
+
+Bed_regions_to_overlap_with = 
+  CHIP_channel_filtered
+  .mix(Chrom_states_channel)
+  .mix(DA_regions_channel)
+
+DA_regions_with_bg_for_computing_peaks_overlaps_3
+  // format: key (ET__PA__FC__TV__COMP), DA_regions, all_regions
+  .combine(Bed_regions_to_overlap_with)
+  // format: key, DA_regions, all_regions, data_type, bed_files
+  .map{ [ it[0,3].join('__'), it[3], it[1], it[2], it[4] ] }
+  .dump(tag:'bed_overlap')
+  // format: key (ET__PA__FC__TV__COMP__DT), data_type, DA_regions, 
+  //        all_regions, bed_files
+  .set{ DA_regions_with_bg_and_bed_for_computing_peaks_overlaps }
+
+
+process Enrichment__computing_peaks_overlaps {
+  tag "${key}"
+
+  label "samtools_bedtools_perl"
+
+  errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+  maxRetries 3
+
+  input:
+    set key, data_type, file(DA_regions), file(all_regions), file("BED_FILES/*") \
+      from DA_regions_with_bg_and_bed_for_computing_peaks_overlaps
+
+  output:
+    set key, data_type, file("*__counts.csv") \
+      into Peaks_self_overlaps_for_computing_pvalues
+
+  shell:
+    '''
+
+    DB=!{DA_regions}
+    ALL=!{all_regions}
+    KEY=!{key}
+
+
+    intersectBed -v -a ${ALL} -b ${DB} > not_diffbound.bed
+    NDB="not_diffbound.bed"
+
+    tot_da=`wc -l < ${DB}`
+    tot_nda=`wc -l < ${NDB}`
+
+    OUTPUT_FILE="${KEY}__counts.csv"
+
+    echo "tgt, tot_tgt, tot_da, ov_da, tot_nda, ov_nda" > $OUTPUT_FILE
+
+    BEDS=($(ls BED_FILES))
+
+    for BED1 in ${BEDS[@]}
+      do
+      	BED=BED_FILES/$BED1
+        tgt=`basename ${BED} .bed`
+        tgt=`basename ${tgt} __regions`
+        tot_tgt=`wc -l < ${BED}`
+        intersectBed -u -a ${DB} -b ${BED} > overlap_DB.tmp
+        ov_da=`wc -l < overlap_DB.tmp`
+        intersectBed -u -a ${NDB} -b ${BED} > overlap_NDB.tmp
+        ov_nda=`wc -l < overlap_NDB.tmp`
+        echo \
+          "${tgt}, ${tot_tgt}, ${tot_da}, ${ov_da}, ${tot_nda}, ${ov_nda}" \
+          >> $OUTPUT_FILE
+      done
+
+    '''
+}
+
+Overlap_tables_channel = Overlap_tables_channel
+  .mix(Peaks_self_overlaps_for_computing_pvalues)
+
+
+// note: we need to save tmp files (overlap_DB.tmp and overlap_NDB.tmp, 
+// otherwise it crashes when there is zero overlap)
+
+// note: here we use the option intersectBed -u instead of -wa to just indicate 
+// if at least one chip peak overlap with a given atac seq peak. Thus the number 
+// of overlap cannot be higher than the number of atac peaks.
+
+
+
+
+
+DA_regions_with_bg_for_computing_motifs_overlaps_1
+  // key (ET__PA__FC__TV__COMP), DA_regions, all_regions
+  .map{ [ "${it[0]}__motifs", "motifs", it[1], it[2] ] }
+  .dump(tag:'peaks_for_homer')
+  // format: key (ET__PA__FC__TV__COMP__DT), data_type, DA_regions, all_regions
+  .set{ DA_regions_with_bg_for_computing_motifs_overlaps_2 }
+
+
+
+process Enrichment__computing_motifs_overlaps {
+  tag "${key}"
+
+  label "homer"
+
+  publishDir path: "${out_processed}/3_Enrichment/${data_type}/${key}", 
+             mode: "${pub_mode}"
+
+  when: 
+    params.do_motif_enrichment
+
+  input:
+    set key, data_type, file(DA_regions), file(all_regions) \
+      from DA_regions_with_bg_for_computing_motifs_overlaps_2
+
+  output:
+    file("**")
+    set key, data_type, file("*__homer_results.txt") optional true \
+      into Motifs_overlaps_for_reformatting_results
+
+  shell:
+    '''
+
+    findMotifsGenome.pl !{DA_regions} !{params.homer_genome} "." \
+      -size given \
+      -p !{params.homer__nb_threads} \
+      -bg !{all_regions} \
+      -mknown !{params.pwms_motifs} \
+      -nomotif
+
+    FILE="knownResults.txt"
+    if [ -f $FILE ]; then
+       mv $FILE "!{key}__homer_results.txt"
+    fi
+
+    '''
+}
+
+// note: homer automatically removes overlapping peaks between input and bg, 
+// so it doesn't matter that we don't separtate them.
+
+
+
+process Enrichment__reformatting_motifs_results {
+  tag "${key}"
+
+  label "r_basic"
+
+  input:
+    set key, data_type, file(motifs_results) \
+      from Motifs_overlaps_for_reformatting_results
+
+  output:
+    set key, data_type, file("*__counts.csv") \
+      into Formatted_motifs_results_for_computing_pvalues
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(magrittr)
+
+    key = '!{key}'
+    filename = '!{motifs_results}'
+
+
+    df = read.csv(file = filename, sep = '\t', stringsAsFactors = F)
+
+    total = purrr::map_chr(strsplit(names(df), 'Motif.of.')[c(6,8)], 2) %>% 
+              gsub('.', '', ., fixed = T) %>% as.integer
+
+    names(df) = c('tgt', 'consensus', 'pvalue', 'log_pval', 'qval', 'ov_da', 
+                  'pt_da', 'ov_nda', 'pt_nda')
+    df$tot_da  = total[1]
+    df$tot_nda = total[2]
+    df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, consensus)
+
+    ov_da_too_high = which(df$ov_da > df$tot_da)
+    if(length(ov_da_too_high) > 0) df$ov_da[ov_da_too_high] = 
+      df$tot_da[ov_da_too_high]
+    ov_nda_too_high = which(df$ov_nda > df$tot_nda)
+    if(length(ov_nda_too_high) > 0) df$ov_nda[ov_nda_too_high] = 
+      df$tot_nda[ov_nda_too_high]
+
+    write.csv(df, paste0(key, '__motifs__counts.csv'), row.names = F)
+
+    '''
+}
+
+Overlap_tables_channel = Overlap_tables_channel
+  .mix(Formatted_motifs_results_for_computing_pvalues)
+
+// Overlap_tables_channel = Overlap_tables_channel.view()
+
+// note : the "wrong_entries" variable is used because ov_nda is sometimes 
+// slightly higher (by a decimal) than tot_nda; i.e.: tot_nda = 4374 and 
+// ov_nda = 4374.6. This makes the Fischer test crash later on. This change 
+// is minimal so we just fix it like that.
+
+// This one liner works and is cleaner but it fails in nextflow due to the 
+// double escape string
+// total = as.integer(stringr::str_extract_all(paste0(names(df), collapse = ' '),
+//          "\\(?[0-9]+\\)?")[[1]])
+
+
+
+
+
+Overlap_tables_channel = Overlap_tables_channel.dump(tag: 'overlap_tables')
+
+process Enrichment__computing_enrichment_pvalues {
+  tag "${key}"
+
+  label "r_basic"
+
+  input:
+    set key, data_type, file(df_count_csv) from Overlap_tables_channel
+
+  output:
+    file("*.rds") into Enrichment_results_for_plotting optional true
+    set data_type, val("3_Enrichment"), file("*.rds") \
+      into Enrichment_results_for_formatting_table optional true
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(magrittr)
+    source('!{projectDir}/bin/get_chrom_states_names_vec.R')
+
+    key = '!{key}'
+    data_type = '!{data_type}'
+    df1 = read.csv('!{df_count_csv}', stringsAsFactors = F)
+    motifs_test_type = '!{params.motifs_test_type}'
+
+
+    # computing pvalue and L2OR
+    df = df1
+    for(c1 in 1:nrow(df)){
+      ov_da   =   df$ov_da[c1]
+      tot_da  =  df$tot_da[c1]
+      ov_nda  =  df$ov_nda[c1]
+      tot_nda = df$tot_nda[c1]
+      mat = rbind(c(ov_da, ov_nda), c(tot_da - ov_da, tot_nda - ov_nda))
+      fisher_test = fisher.test(mat, alternative = 'two.sided')
+      df$pval[c1] = fisher_test$p.value
+      df$L2OR[c1] = log2(fisher_test$estimate)
+      if(data_type == 'motifs' & motifs_test_type == 'binomial') {
+        df$pval[c1] = binom.test(ov_da, tot_da, ov_nda / tot_nda, 
+          alternative = 'two.sided')$p.value
+      }
+    }
+
+    # adding padj and percentage of overlap
+    df$padj = p.adjust(df$pval, method = 'BH')
+    df %<>% dplyr::mutate(pt_da = ov_da  / tot_da  )
+    df %<>% dplyr::mutate(pt_nda = ov_nda / tot_nda )
+    df$pt_da %<>% {. * 100 } %>% round(2) %>% paste0(., '%')
+    df$pt_nda %<>% {. * 100 } %>% round(2) %>% paste0(., '%')
+
+    # renaming chromatin states
+    if(data_type == 'chrom_states'){
+      vec = get_chrom_states_names_vec(df$tgt)
+      df$tgt %<>% vec[.]
+    }
+
+    # reordering columns
+    df %<>% dplyr::select(tgt, pval, padj, L2OR, pt_da, ov_da, tot_da, 
+      pt_nda, ov_nda, tot_nda, dplyr::everything())
+
+    # adding a Gene Enrichment Type column for func_anno
+    if(grepl('func_anno', data_type)) {
+      GE = gsub('func_anno_', '', data_type)
+      data_type1 = 'func_anno'
+    } else { data_type1 = data_type }
+
+    # sorting by padj and then overlap counts
+    df %<>% dplyr::arrange(padj, desc(ov_da))
+
+    # adding the key and saving for plots
+    key_split = strsplit(key, '__')[[1]]
+    key_df = as.data.frame(t(key_split[-length(key_split)]), 
+      stringsAsFactors = F)
+    cln = c('ET', 'PF', 'FC', 'TV', 'COMP')
+    key_df %<>% set_colnames(cln)
+    if(data_type1 == 'func_anno') key_df %<>% cbind(GE = GE, .)
+    df2 = cbind(key_df, df)
+    saveRDS(df2, paste0(key, '__enrich.rds'))
+
+    '''
+}
+
+
+// => the input should be a df with these columns: tgt tot_da ov_da tot_nda ov_nda
+// other extra columns are facultatory. These are: tot_tgt for bed_overlap, 
+// consensus for motifs, geneIds for ontologies/pathways
+
+// data_types can be either of: func_anno(BP|CC|MF|KEGG), genes_self, 
+// peaks_self, chrom_states, CHIP, motifs
+
+// df$tgt %>% .[. %in% names(vec)]
+// df$tgt %>% .[!. %in% names(vec)]
+
+
+
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .mix(Enrichment_results_for_formatting_table)
+
+
+
+
+// note DT stands for Data_Type. It can be either 'genes_(BP|CC|MF|KEGG)', 
+// 'CHIP', 'motif' or 'chrom_states'
+// comp_order has this format: 
+// Eri1Daf2_vs_Eri1|Eri1Eat2_vs_Eri1|Eri1Isp1_vs_Eri1|...
+
+
+Enrichment_results_for_plotting
+  // format: rds_file (key__enrich.rds)
+  .flatten()
+  // we need to flatten since the genes_sets
+  .map{ [ it.name.replaceFirst(~/__enrich.rds/, ''), it ] }
+  // format: key (ET__PA__FC__TV__COMP__DT), rds_file
+  .tap{ Enrichment_results_for_plotting_barplots_1 }
+  .combine(comparisons_grouped_for_heatmap)
+  // format: key, rds_file, GRP, comp_order
+  .dump(tag:'enrichment')
+  .map{ [ it[0].split('__')[4], it ].flatten() }
+  // format: COMP, key, rds_file, GRP, comp_order
+  .filter{ it[0] in it[4].split('\\|') }
+  // keeping only COMP that are in the group
+  .map{ [ it[1].split('__'), it[2..4] ].flatten() }
+  // format: ET, PF, FC, TV, COMP, DT, rds_file, GRP, comp_order
+  .map{ [ it[0, 1, 3, 7, 5].join('__'), it[5, 8, 3, 6] ].flatten() }
+  // format: key (ET__PA__TV__GRP__DT), DT, comp_order, TV, rds_file
+  .groupTuple(by: [0, 1, 2, 3])
+  // format: key, DT, comp_order, TV, rds_files
+  .filter{ it[4].size() > 1 }
+  // .map{ it[0, 1, 2, 4] }
+  .dump(tag:'heatmap')
+  .set{ Enrichment_results_for_plotting_heatmaps }
+
+
+
+
+Enrichment_results_for_plotting_barplots_1
+  // format: key (ET__PA__FC__TV__COMP__DT), rds_file
+  .map{ [ it[0], it[0].split('__')[5], it[1] ]  }
+  // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file
+  .dump(tag: 'barplot')
+  .set{ Enrichment_results_for_plotting_barplots_2 }
+
+
+
+process Figures__making_enrichment_barplots {
+  tag "${key}"
+
+  label "figures"
+
+  publishDir path: "${out_fig_indiv}/3_Enrichment/Barplots__${data_type}", 
+             mode: "${pub_mode}"
+
+  input:
+    set key, data_type, file(res_gene_set_enrichment_rds) \
+      from Enrichment_results_for_plotting_barplots_2
+
+  output:
+    set val("Barplots__${data_type}"), val("3_Enrichment"), file("*.pdf") \
+      optional true into Barplots_for_merging_pdfs
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(ggplot2)
+    library(grid)
+    library(gridExtra)
+    library(RColorBrewer)
+    library(magrittr)
+
+    key       = '!{key}'
+    data_type = '!{data_type}'
+    df1       = readRDS('!{res_gene_set_enrichment_rds}')
+    df_plots  = eval(parse(text = '!{params.barplots__df_plots}'))
+
+    source('!{projectDir}/bin/get_new_name_by_unique_character.R')
+    source('!{projectDir}/bin/functions_pvalue_plots.R')
+
+
+    # getting parameters
+    if(grepl('func_anno', data_type)) data_type = 'func_anno'
+    df          = df1
+    df_p        = df_plots %>% .[.$data_type == data_type, ]
+    signed_padj = df_p$signed_padj
+
+    # quitting if there are no significant results to show
+    if(all(df$padj > df_plots$padj_threshold)) quit(save = 'no')
+
+    # removing the genes_id column from func_anno enrichments 
+    # (for easier debugging)
+    df %<>% .[, names(.) != 'genes_id']
+
+    # adding the loglog and binned padj columns
+    df %<>% getting_padj_loglog_and_binned(data_type, signed_padj)
+
+    # adding the yaxis_terms column with shortened and unique names
+    df$yaxis_terms = df$tgt %>% get_shorter_names(df_p$max_characters)
+
+    # selecting lowest pvalues
+    df = df[seq_len(min(nrow(df), df_p$max_terms)), ]
+    df$yaxis_terms %<>% factor(., levels = rev(.))
+
+    bed_data_types = c('CHIP', 'chrom_states', 'peaks_self', 'genes_self')
+    is_bed_overlap = data_type %in% bed_data_types
+    if(is_bed_overlap){
+      xlab = paste0('Overlap (DA: ', df$tot_da[1], ', NDA: ', df$tot_nda[1], ')')
+    } else {
+      xlab = paste0('Overlap (DA: ', df$tot_da[1], ')')
+    }
+
+    p1 = ggplot(df, aes(x = yaxis_terms, y = ov_da)) + coord_flip() + 
+      geom_bar(stat = 'identity') + ggtitle(key) + theme_bw() + 
+      theme(axis.title.y = element_blank(), 
+        axis.text = element_text(size = 11, color = 'black'), 
+        plot.title = element_text(hjust = 0.9, size = 10), 
+        legend.text = element_text(size = 7)
+       ) + ylab(xlab)
+
+    point_size = scales::rescale(c(nrow(df), seq(0, 30, len = 5)), c(6, 3))[1]
+    p_binned = get_plot_binned(p1, signed_padj = signed_padj, 
+                    add_var = df_p$add_var, add_number  = df_p$add_number, 
+                    point_size  = point_size)
+
+    pdf(paste0(key, '__barplot.pdf'), paper = 'a4r')
+      print(p_binned)
+    dev.off()
+
+    '''
+}
+
+// # signed_padj = ifelse(data_type %in% c('CHIP', 'chrom_states'), T, F)
+
+Merging_pdfs_channel = Merging_pdfs_channel.mix(Barplots_for_merging_pdfs
+  .groupTuple(by: [0, 1]))
+
+
+
+
+process Figures__making_enrichment_heatmap {
+  tag "${key}"
+
+  label "figures"
+
+  errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+  maxRetries 3
+
+  publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", 
+             mode: "${pub_mode}"
+
+  input:
+    set key, data_type, comp_order, tv, file('*') \
+      from Enrichment_results_for_plotting_heatmaps
+
+  output:
+    set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") \
+      optional true into Heatmaps_for_merging_pdfs
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(magrittr)
+    library(ggplot2)
+    library(RColorBrewer)
+    library(data.table)
+
+    key        = '!{key}'
+    comp_order = '!{comp_order}'
+    data_type  = '!{data_type}'
+
+    seed            = '!{params.heatmaps__seed}'
+    df_filter_terms = eval(parse(text = '!{params.heatmaps__df_filter_terms}'))
+    df_plots        = eval(parse(text = '!{params.heatmaps__df_plots}'))
+
+    source('!{projectDir}/bin/get_new_name_by_unique_character.R')
+    source('!{projectDir}/bin/get_chrom_states_names_vec.R')
+    source('!{projectDir}/bin/functions_pvalue_plots.R')
+    source('!{projectDir}/bin/functions_grouped_plot.R')
+
+
+    # getting parameters
+    if(grepl('func_anno', data_type)) data_type = 'func_anno'
+    df_p  = df_plots        %>% .[.$data_type == data_type, ]
+    df_ft = df_filter_terms %>% .[.$data_type == data_type, ]
+    signed_padj = df_p$signed_padj
+
+    # loading, merging and processing data
+    rds_files = list.files(pattern = '*.rds')
+    ldf = lapply(rds_files, readRDS)
+    df = do.call(rbind, ldf)
+
+    # filtering table
+    if(data_type %in% c('genes_self', 'peaks_self')){
+      key1 = paste(df[1, c('ET', 'PF', 'TV')], collapse = '__')
+      df$tgt_key = sapply(strsplit(df$tgt, '__'), 
+                          function(x) paste(x[c(1,2,4)], collapse = '__'))
+      df %<>% .[.$tgt_key %in% key1, ]
+      df$tgt_key <- NULL
+    }
+
+    ## quitting if there are no significant results to show
+    if(all(df$padj > df_p$padj_threshold)) quit(save = 'no')
+
+    # adding the comp_FC
+    df$comp_FC = apply(df[, c('COMP', 'FC')], 1, paste, collapse = '_') %>% 
+                 gsub('_vs_', '_', .)
+
+    # ordering the x-axis comparisons
+    comp_order_levels = get_comp_order_levels(comp_order, df_p$up_down_pattern)
+    comp_order1 = comp_order_levels %>% .[. %in% unique(df$comp_FC)]
+
+    # adding the yaxis terms column
+    df$yaxis_terms = df$tgt
+
+    # adding loglog and binned padj columns
+    df %<>% getting_padj_loglog_and_binned(data_type, signed_padj = signed_padj)
+
+    purrr__map_chr <- function(x, c1) lapply(x, function(y) y[c1]) %>% 
+                      as.character
+
+    # if plotting self overlap keeping only targets in the group
+    if(data_type %in% c('genes_self', 'peaks_self')) {
+      terms_levels = rev(comp_order1)
+      strs = strsplit(df$tgt, '__')
+      tgt_ET   = purrr__map_chr(strs, 1)
+      tgt_PF   = purrr__map_chr(strs, 2)
+      tgt_FC   = purrr__map_chr(strs, 3)
+      tgt_TV   = purrr__map_chr(strs, 4)
+      tgt_COMP = purrr__map_chr(strs, 5)
+      ET = unique(df$ET)
+      PF = unique(df$PF)
+      TV = unique(df$TV)
+      df$tgt_comp_FC = paste0(tgt_COMP, '_', tgt_FC) %>% gsub('_vs_', '_', .)
+      df = subset(df, tgt_comp_FC %in% comp_FC & tgt_ET == ET & tgt_PF == PF)
+      df$yaxis_terms = df$tgt_comp_FC
+    }
+
+    # reformatting df to a matrix
+    mat_dt = dcast(as.data.table(df), yaxis_terms ~ comp_FC, 
+                    value.var = 'padj_loglog', fill = get_pval_loglog(1))
+    mat = as.matrix(mat_dt[,-1]) %>% set_rownames(mat_dt$yaxis_terms)
+
+    # selecting and ordering the y-axis terms
+    if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
+
+      terms_levels = select_y_axis_terms_grouped_plot(mat, 
+        n_shared = df_ft$n_shared, n_unique = df_ft$n_unique, n_total = df_ft$n_total, 
+        threshold_type = df_ft$threshold_type, 
+        threshold_value = df_ft$threshold_value, 
+        remove_similar = df_ft$remove_similar, 
+        remove_similar_n = df_ft$remove_similar_n, seed = seed)
+
+    }
+
+    if(data_type == 'chrom_states') {
+      vec = unique(df$tgt)
+      vec_order = vec %>% gsub('.', '', ., fixed = T) %>% gsub(' .*', '', .) %>% 
+                  as.integer %>% order
+      terms_levels = vec[vec_order] %>% rev
+    }
+
+    # making the matrix of selected terms and with the right order of conditions
+    mat_final = mat[terms_levels, comp_order1]
+    nrows = nrow(mat_final) ; ncols = ncol(mat_final)
+
+    # shortening the long terms names while keeping them unique
+    rownames(mat_final) %<>% get_shorter_names(df_p$max_characters)
+
+    # creating a data.frame with row and column indexes for plotting
+    df_final = add_matrix_indexes_to_df(mat_final, df, nrows, 
+                    ncols, data_type)
+
+    # making and saving plots
+    p1 = getting_heatmap_base(df_final, nrows, ncols, title = key, 
+      cur_mat = mat_final)
+    point_size = scales::rescale(c(nrows, seq(0, 40, len = 5)), c(3, 0.8))[1]
+    p_binned = get_plot_binned(p1, signed_padj = signed_padj, df_p$add_var, 
+      df_p$add_number, point_size = point_size)
+
+    pdf(paste0(key, '__heatmap.pdf'))
+      print(p_binned)
+    dev.off()
+
+    '''
+}
+
+// note that: gtools::mixedsort(df$tgt) would be simpler for chromatin states 
+// if gtools was in the container
+
+// signed_padj = data_type %in% c('CHIP', 'chrom_states')
+
+Merging_pdfs_channel = Merging_pdfs_channel.mix(Heatmaps_for_merging_pdfs
+  .groupTuple(by: [0, 1]))
+
+
+// 
+// signed_padj = F;  add_loglog = F; add_L2OR = F
+// signed_padj = T;  add_loglog = T; add_L2OR = T
+// 
+// 
+// ## Some explainations on the selection of terms to display (with the example 
+// of the algorithm for genes)
+// # 26 terms at max will be plotted since it is the maximum to keep a readable 
+// plot
+// # the first 6 slots will be attributed to terms that are the most shared 
+// amoung groups (if any term is shared)
+// # then the top_N term for each group will be selected, aiming at 20 terms max
+// # then the lowest pvalues overall will fill the rest of the terms (since 
+// shared terms will leave empty gaps)
+// # Note that there should be at maximum 10 comparisons in each grouping plot 
+// (10 * 2 for up and down means at least 1 pvalue for each comparison)
+
+
+
+
+
+
+Merging_pdfs_channel = Merging_pdfs_channel.dump(tag: 'merging_pdf')
+
+process Figures__merging_pdfs {
+  tag "${file_name}"
+
+  label "pdftk"
+
+  publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
+
+  input:
+    set file_name, out_path, file("*") from Merging_pdfs_channel
+
+  output:
+    file("*.pdf") optional true
+
+  script:
+    """
+
+    pdftk `ls *pdf | sort` cat output ${file_name}.pdf
+
+    """
+}
+
+
+
+
+
+Formatting_csv_tables_channel = Formatting_csv_tables_channel
+  .dump(tag: 'csv_tables')
+
+process Tables__formatting_csv_tables {
+  tag "${out_folder}__${data_type}"
+
+  label "r_basic"
+
+  publishDir path: "${out_tab_indiv}/${out_folder}/${data_type}", 
+    mode: "${pub_mode}", enabled: params.tables__save_csv
+
+  input:
+    set data_type, out_folder, file(rds_file) from Formatting_csv_tables_channel
+
+  output:
+    set data_type, out_folder, file('*.csv') \
+      into Formatted_csv_tables_for_merging optional true
+    set val("Tables_Individual/${out_folder}/${data_type}"), file('*.csv') \
+      into Formatted_csv_tables_for_saving_Excel_tables optional true
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(magrittr)
+
+    source('!{projectDir}/bin/get_formatted_table.R')
+
+    data_type = '!{data_type}'
+    rds_file = '!{rds_file}'
+
+    v_fdr_thresholds = 
+    eval(parse(text = '!{params.tables__v_fdr_thresholds}'))
+
+
+    # reading
+    df = readRDS(rds_file)
+
+    # filtering
+    data_type1 = data_type
+    if(grepl('func_anno', data_type)) data_type1 = 'func_anno'
+    fdr_threshold = v_fdr_thresholds[data_type]
+    df = subset(df, padj <= fdr_threshold)
+
+    # formating
+    df %<>% get_formatted_table
+
+    # saving
+    if(nrow(df) > 0) {
+      output_file_name = paste0(gsub('.rds', '', rds_file), '.csv')
+      write.csv(df, output_file_name, row.names = F)
+    }
+
+    '''
+}
+
+// => this process allows to reformat tables without breaking the cache
+
+
+Exporting_to_Excel_channel = Exporting_to_Excel_channel
+  .mix(Formatted_csv_tables_for_saving_Excel_tables)
+
+
+Formatted_csv_tables_for_merging
+  .groupTuple(by: [0, 1])
+  .dump(tag: 'merge_tables')
+  .set{ Formatted_tables_grouped_for_merging_tables }
+
+process Tables__merging_csv_tables {
+  tag "${out_folder}__${data_type}"
+
+  label "r_basic"
+
+  publishDir path: "${out_tab_merge}/${out_folder}", mode: "${pub_mode}", 
+             enabled: params.tables__save_csv
+
+  input:
+    set data_type, out_folder, file(csv_file) \
+      from Formatted_tables_grouped_for_merging_tables
+
+  output:
+    set val("Tables_Merged/${out_folder}"), file("*.csv") \
+      into Merged_csv_tables_for_Excel optional true
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(magrittr)
+    library(dplyr)
+    source('!{projectDir}/bin/get_formatted_table.R')
+
+    data_type = '!{data_type}'
+
+
+    # merging tables, 
+    all_files = list.files(pattern = '*.csv')
+    ldf = lapply(all_files, read.csv, stringsAsFactors = F, as.is = T)
+    df = do.call(rbind, ldf)
+
+    # formatting and saving merged table
+    df %<>% get_formatted_table
+    write.csv(df, paste0(data_type, '.csv'), row.names = F)
+
+    '''
+}
+
+Exporting_to_Excel_channel = Exporting_to_Excel_channel
+  .mix(Merged_csv_tables_for_Excel)
+
+
+
+Exporting_to_Excel_channel = Exporting_to_Excel_channel.dump(tag: 'excel')
+
+process Tables__saving_excel_tables {
+  tag "${csv_file}"
+
+  // label "openxlsx" => sh: : Permission denied ; Error: zipping up workbook 
+  // failed. Please make sure Rtools is installed or a zip application is 
+  // available to R.
+
+  label "differential_abundance"
+
+  publishDir path: "${res_dir}/${out_path}", mode: "${pub_mode}" 
+
+  when: 
+    params.tables__save_excel
+
+  input:
+    set out_path, file(csv_file) from Exporting_to_Excel_channel
+
+  output:
+    file("*.xlsx")
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(openxlsx)
+
+    csv_file = '!{csv_file}'
+    excel__add_conditional_formatting = !{params.excel__add_conditional_formatting}
+    excel__max_width = !{params.excel__max_width}
+
+
+    options(digits = 1)
+
+    df = read.csv(csv_file, stringsAsFactors = T, as.is = T)
+    output_file_name = paste0(gsub('.csv', '', csv_file), '.xlsx')
+
+    nms = names(df)
+
+    class(df$pval) = 'scientific'
+    class(df$padj) = 'scientific'
+
+    if('pt_da' %in% nms){
+      class(df$pt_da) = 'percentage'
+      class(df$pt_nda) = 'percentage'
+      L2OR_Inf_up   = which(df$L2OR == 'Inf')
+      L2OR_Inf_down = which(df$L2OR == '-Inf')
+      L2OR_not_Inf  = which(abs(df$L2OR) != 'Inf')
+      df$L2OR[L2OR_Inf_up]   = 1e99
+      df$L2OR[L2OR_Inf_down] = -1e99
+    }
+
+    names_colors_1  = c( 'filter',  'target',    'fold',  'pvalue',   'da'   )
+    # color type           red        green     purple     orange     gold     
+    header_colors_1 = c('#963634', '#76933c', '#60497a', '#e26b0a', '#9d821f')
+    body_colors_1   = c('#f2dcdb', '#ebf1de', '#e4dfec', '#fde9d9', '#f1edcb')
+
+    names_colors_2  = c(  'nda',    'other',    'gene', 'coordinate')
+    # color type       pale_blue    grey     darkblue   darkolive
+    header_colors_2 = c('#31869b', '#808080', '#16365c',  '#494529' )
+    body_colors_2   = c('#daeef3', '#f2f2f2', '#c5d9f1',  '#ddd9c4' )
+
+    names_colors = c(names_colors_1, names_colors_2)
+    header_colors = c(header_colors_1, header_colors_2)
+    body_colors = c(body_colors_1, body_colors_2)
+
+    names(header_colors) = names_colors
+    names(body_colors)   = names_colors
+
+
+    get_nms_type <- function(nms){
+      nms_coordinates = c('chr','start', 'end',	'width', 'strand')
+      nms_coordinates = c(nms_coordinates, paste0('gene_', nms_coordinates))
+
+      if(nms %in% c('GE', 'ET', 'PF', 'FC', 'TV', 'COMP')) return('filter') else
+      if(nms %in% c('gene_name', 'gene_id', 'entrez_id'))  return('gene') else
+      if(nms %in% c('pval', 'padj'))                       return('pvalue') else
+      if(nms %in% c('L2FC', 'L2OR'))                       return('fold') else
+      if(nms %in% c('tgt'))                                return('target') else
+      if(nms %in% c('pt_da', 'tot_da', 'ov_da'))           return('da') else
+      if(nms %in% c('pt_nda', 'tot_nda', 'ov_nda'))        return('nda') else
+      if(nms %in% nms_coordinates)                         return('coordinate') else
+                                                           return('other')
+    }
+    nms_types = sapply(names(df), get_nms_type)
+    nms_color_header = unname(header_colors[nms_types])
+    nms_color_body   = unname(body_colors  [nms_types])
+
+    sheet = 1
+    cols = seq_len(ncol(df))
+    rows = seq_len(nrow(df) + 1)
+
+    # create the workbook
+    wb = write.xlsx(df, output_file_name, borders = 'rows', keepNA = F)
+
+    # add filter, set width and height
+    addFilter(wb, sheet, 1, cols)
+    setRowHeights(wb, sheet, 1, heights = 50)
+    widths = apply(df, 2, function(x) {
+      if(all(is.na(x))) return(5)
+      width = max(nchar(x), na.rm = T) + 2.5
+      width = ifelse(width > excel__max_width, excel__max_width, width)
+      return(width)
+    })
+    setColWidths(wb, sheet, cols, widths = widths)
+
+    for(col in cols) {
+      col_nm = nms[col]
+      halign = ifelse('GE' %in% nms & col_nm %in% c('tgt', 'genes_id'), 
+                      'left', 'center')
+      header_style = createStyle(fontColour = '#ffffff', 
+        fgFill = nms_color_header[col], halign = halign, valign = 'center', 
+        textDecoration = 'Bold', border = 'TopBottomLeftRight', wrapText = T)
+      addStyle(wb, sheet, header_style, rows = 1, col)
+
+      body_style = createStyle(halign = halign, valign = 'center', 
+        fgFill = nms_color_body[col])
+      addStyle(wb, sheet, body_style, rows = rows[-1], col)
+
+      if(excel__add_conditional_formatting){
+        if(col_nm == 'padj') conditionalFormatting(wb, sheet, cols = col, 
+          rows = rows[-1], type = 'colourScale', 
+          style = c('#e26b0a', '#fde9d9')) 
+        vec = df[[col]]
+        if(col_nm == 'L2FC') {
+          conditionalFormatting(wb, sheet, cols = col, rows = rows[-1], 
+            type = 'colourScale', 
+            style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), 
+            rule = c(min(vec), 0, max(vec)))
+        }
+        if(col_nm == 'L2OR') {
+          if(length(L2OR_not_Inf) > 0) {
+            vec1 = vec[L2OR_not_Inf]
+            vec1 = vec1[!is.na(vec1)]
+            conditionalFormatting(wb, sheet, cols = col, 
+              rows = L2OR_not_Inf + 1, type = 'colourScale', 
+              style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), 
+              rule = c(min(vec1), 0, max(vec1)))
+          }
+          if(length(L2OR_Inf_up) > 0) addStyle(wb, sheet, 
+            createStyle(fgFill = c(lightblue = '#ff7c80'), halign = 'center', 
+            valign = 'center'), rows = L2OR_Inf_up + 1, col)
+          if(length(L2OR_Inf_down) > 0) addStyle(wb, sheet, 
+            createStyle(fgFill = c(lightred = '#6699ff'), halign = 'center', 
+            valign = 'center'), rows = L2OR_Inf_down + 1, col)
+        }
+      }
+    }
+
+    # save the final workbook
+    saveWorkbook(wb, output_file_name, overwrite = TRUE)
+
+    '''
+}
 
 // documentation for openxlsx
 // # https://www.rdocumentation.org/packages/openxlsx/versions/4.1.0.1
