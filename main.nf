@@ -183,11 +183,12 @@ process ATAC_reads__merging_reads {
              into ATAC_reads_for_trimming_2
 
   script:
-  """
-      cat `ls *R1* | sort` > ${id}__R1_merged.fastq.gz
-      cat `ls *R2* | sort` > ${id}__R2_merged.fastq.gz
-  """
-
+    """
+    
+    cat `ls *R1* | sort` > ${id}__R1_merged.fastq.gz
+    cat `ls *R2* | sort` > ${id}__R2_merged.fastq.gz
+    
+    """
 }
 
 
@@ -225,29 +226,28 @@ process ATAC_reads__trimming_reads {
     file("*.log")
 
   shell:
-
     '''
 
-        R1=!{read1}
-        R2=!{read2}
-        id=!{id}
-        pigz__nb_threads=!{params.pigz__nb_threads}
+    R1=!{read1}
+    R2=!{read2}
+    id=!{id}
+    pigz__nb_threads=!{params.pigz__nb_threads}
 
-        R1TRIM=$(basename ${R1} .fastq.gz)__R1_trimmed.fastq
-        R2TRIM=$(basename ${R2} .fastq.gz)__R2_trimmed.fastq
+    R1TRIM=$(basename ${R1} .fastq.gz)__R1_trimmed.fastq
+    R2TRIM=$(basename ${R2} .fastq.gz)__R2_trimmed.fastq
 
-        skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} \
-               -o ${id} > trimer_verbose.txt
+    skewer --quiet -x CTGTCTCTTATA -y CTGTCTCTTATA -m pe ${R1} ${R2} \
+           -o ${id} > trimer_verbose.txt
 
-        mv ${id}-trimmed.log ${id}__skewer_trimming.log
-        mv ${id}-trimmed-pair1.fastq $R1TRIM
-        mv ${id}-trimmed-pair2.fastq $R2TRIM
+    mv ${id}-trimmed.log ${id}__skewer_trimming.log
+    mv ${id}-trimmed-pair1.fastq $R1TRIM
+    mv ${id}-trimmed-pair2.fastq $R2TRIM
 
-        pigz -p ${pigz__nb_threads} $R1TRIM
-        pigz -p ${pigz__nb_threads} $R2TRIM
+    pigz -p ${pigz__nb_threads} $R1TRIM
+    pigz -p ${pigz__nb_threads} $R2TRIM
 
-        pigz -l $R1TRIM.gz > ${id}__pigz_compression.log
-        pigz -l $R2TRIM.gz >> ${id}__pigz_compression.log
+    pigz -l $R1TRIM.gz > ${id}__pigz_compression.log
+    pigz -l $R2TRIM.gz >> ${id}__pigz_compression.log
 
     '''
 }
@@ -327,19 +327,18 @@ process ATAC_reads__aligning_reads {
     
     """
 
+    bowtie2 -p ${params.botwie2__nb_threads} \
+      --very-sensitive \
+      --end-to-end \
+      --no-mixed \
+      -X 2000 \
+      --met 1 \
+      --met-file "${id}_bowtie2_align_metrics.txt" \
+      -x "${params.bowtie2_indexes}" \
+      -q -1 "${read1}" -2 "${read2}" \
+      | samtools view -bS -o ${new_bam} -
 
-        bowtie2 -p ${params.botwie2__nb_threads} \
-          --very-sensitive \
-          --end-to-end \
-          --no-mixed \
-          -X 2000 \
-          --met 1 \
-          --met-file "${id}_bowtie2_align_metrics.txt" \
-          -x "${params.bowtie2_indexes}" \
-          -q -1 "${read1}" -2 "${read2}" \
-          | samtools view -bS -o ${new_bam} -
-
-        samtools flagstat ${new_bam} > "${id}.qc"
+    samtools flagstat ${new_bam} > "${id}.qc"
 
     """
 }
@@ -372,13 +371,13 @@ process ATAC_reads__removing_low_quality_reads {
     
     """
 
-      samtools view -F 1804 \
-                    -b \
-                    -q "${params.sam_MAPQ_threshold}" \
-                    ${bam} \
-                    | samtools sort - -o ${new_bam}
+    samtools view -F 1804 \
+                  -b \
+                  -q "${params.sam_MAPQ_threshold}" \
+                  ${bam} \
+                  | samtools sort - -o ${new_bam}
 
-      samtools flagstat ${new_bam} > "${key}.qc"
+    samtools flagstat ${new_bam} > "${key}.qc"
 
     """
 }
@@ -388,41 +387,41 @@ process ATAC_reads__removing_low_quality_reads {
 
 
 
-process ATAC_reads__marking_duplicated_reads {
-  tag "${id}"
-
-  label "picard"
-
-  when: do_atac
-
-  input:
-    set id, file(bam) from Bam_for_marking_duplicated_reads
-
-  output:
-    set id, file("*.bam") into Bam_for_removing_duplicated_reads
-    file("*.qc")
-
-  script:
-
-    def key = id + "__dup_marked"
-
-    """
-
-      picard -Xmx${params.memory_picard} MarkDuplicates \
-        -INPUT "${bam}" \
-        -OUTPUT "${key}.bam" \
-        -METRICS_FILE "${key}.qc" \
-        -VALIDATION_STRINGENCY LENIENT \
-        -ASSUME_SORTED true \
-        -REMOVE_DUPLICATES false \
-        -TMP_DIR "."
-
-
-    """
-}
-
-
-
+// process ATAC_reads__marking_duplicated_reads {
+//   tag "${id}"
+// 
+//   label "picard"
+// 
+//   when: do_atac
+// 
+//   input:
+//     set id, file(bam) from Bam_for_marking_duplicated_reads
+// 
+//   output:
+//     set id, file("*.bam") into Bam_for_removing_duplicated_reads
+//     file("*.qc")
+// 
+//   script:
+// 
+//     def key = id + "__dup_marked"
+// 
+//     """
+// 
+//     picard -Xmx${params.memory_picard} MarkDuplicates \
+//       -INPUT "${bam}" \
+//       -OUTPUT "${key}.bam" \
+//       -METRICS_FILE "${key}.qc" \
+//       -VALIDATION_STRINGENCY LENIENT \
+//       -ASSUME_SORTED true \
+//       -REMOVE_DUPLICATES false \
+//       -TMP_DIR "."
+// 
+// 
+//     """
+// }
+// 
+// 
+// 
 // process ATAC_reads__removing_duplicated_reads {
 //   tag "${id}"
 // 
@@ -463,11 +462,11 @@ process ATAC_reads__marking_duplicated_reads {
 // }
 // 
 // // => removing duplicates, index bam files and generates final stat file
-
-
-
-
-
+// 
+// 
+// 
+// 
+// 
 // process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
 //   tag "${id}"
 // 
@@ -497,25 +496,25 @@ process ATAC_reads__marking_duplicated_reads {
 //   shell:
 //     '''
 // 
-//         id=!{id}
-//         bam=!{bam}
-//         chromosomes_sizes=!{params.chromosomes_sizes}
+//     id=!{id}
+//     bam=!{bam}
+//     chromosomes_sizes=!{params.chromosomes_sizes}
 // 
-//         key="${id}__no_mito"
+//     key="${id}__no_mito"
 // 
-//         new_bam="${key}.bam"
+//     new_bam="${key}.bam"
 // 
-//         samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c \ 
-//           > "${id}_reads_per_chrm_before_removal.txt"
+//     samtools view ${bam} | awk ' $1 !~ /@/ {print $3}' - | uniq -c \ 
+//       > "${id}_reads_per_chrm_before_removal.txt"
 // 
-//         regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
+//     regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
 // 
-//         samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} \
-//            | samtools view - | awk '{print $3}' OFS='\t' \
-//            | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
+//     samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} \
+//        | samtools view - | awk '{print $3}' OFS='\t' \
+//        | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
 // 
-//         samtools index -b ${new_bam}
-//         samtools flagstat ${new_bam} > "${key}.qc"
+//     samtools index -b ${new_bam}
+//     samtools flagstat ${new_bam} > "${key}.qc"
 // 
 //     '''
 // 
@@ -552,13 +551,13 @@ process ATAC_reads__marking_duplicated_reads {
 //       Reads_in_bed_files_for_computing_and_plotting_saturation_curve
 // 
 //   script:
-//   """
+//     """
 // 
-//       key="${id}__1bp_shifted_reads"
+//     key="${id}__1bp_shifted_reads"
 // 
-//       bamToBed_and_atacShift.sh ${bam} ${key} ${params.chromosomes_sizes}
+//     bamToBed_and_atacShift.sh ${bam} ${key} ${params.chromosomes_sizes}
 // 
-//   """
+//     """
 // }
 // 
 // // Examples of :
@@ -640,11 +639,11 @@ process ATAC_reads__marking_duplicated_reads {
 //     file("*.{zip, html}") into ATAC_fastqc_reports_for_multiqc
 // 
 //   script:
-//   """
+//     """
 // 
 //     fastqc -t ${params.fastqc__nb_threads} ${read1} ${read2}
 // 
-//   """
+//     """
 // }
 // 
 // 
@@ -673,28 +672,28 @@ process ATAC_reads__marking_duplicated_reads {
 //     file("*.bw") into Bigwigs_for_correlation_1 optional true
 // 
 //   script:
-//   """
+//     """
 // 
-//       bamCoverage \
-//         --bam ${bam} \
-//         --outFileName ${id}.bw \
-//         --binSize             ${params.deeptools__binsize_bigwig_creation} \
-//         --normalizeUsing      ${params.deeptools__normalization_method}
-//         --numberOfProcessors  ${params.deeptools__nb_threads} \
-//         --blackListFileName   ${params.blacklisted_regions} \
-//         --effectiveGenomeSize ${params.effective_genome_size} \
+//     bamCoverage \
+//       --bam ${bam} \
+//       --outFileName ${id}.bw \
+//       --binSize             ${params.deeptools__binsize_bigwig_creation} \
+//       --normalizeUsing      ${params.deeptools__normalization_method}
+//       --numberOfProcessors  ${params.deeptools__nb_threads} \
+//       --blackListFileName   ${params.blacklisted_regions} \
+//       --effectiveGenomeSize ${params.effective_genome_size} \
 // 
-//       key="${id}__coverage"
+//     key="${id}__coverage"
 // 
-//       plotCoverage \
-//         --bam ${bam} \
-//         --numberOfSamples    ${params.deeptools__nb_of_1_bp_samples} \
-//         --numberOfProcessors ${params.deeptools__nb_threads} \
-//         --blackListFileName  ${params.blacklisted_regions} \
-//         --plotTitle ${key} \
-//         --plotFile ${key}.pdf
+//     plotCoverage \
+//       --bam ${bam} \
+//       --numberOfSamples    ${params.deeptools__nb_of_1_bp_samples} \
+//       --numberOfProcessors ${params.deeptools__nb_threads} \
+//       --blackListFileName  ${params.blacklisted_regions} \
+//       --plotTitle ${key} \
+//       --plotFile ${key}.pdf
 // 
-//   """
+//     """
 // }
 // 
 // Merging_pdfs_channel = Merging_pdfs_channel
@@ -746,16 +745,14 @@ process ATAC_reads__marking_duplicated_reads {
 //         ATAC_reads_correlation_plots_for_merging_pdfs
 // 
 //   script:
-//   """
+//     """
 // 
+//     plotPCAandCorMat.sh \
+//       ${input_control_present} \
+//       ${params.deeptools__binsize_bigwig_correlation} \
+//       ${params.blacklisted_regions}
 // 
-//       plotPCAandCorMat.sh \
-//         ${input_control_present} \
-//         ${params.deeptools__binsize_bigwig_correlation} \
-//         ${params.blacklisted_regions}
-// 
-// 
-//   """
+//     """
 // }
 // 
 // Merging_pdfs_channel = Merging_pdfs_channel
@@ -795,19 +792,18 @@ process ATAC_reads__marking_duplicated_reads {
 //       into ATAC_reads_insert_size_plots_for_merging_pdfs
 // 
 //   script:
-//   """
+//     """
 // 
-//       key="${id}__insert_size"
+//     key="${id}__insert_size"
 // 
-//       picard -Xmx${params.memory_picard} CollectInsertSizeMetrics \
-//         -INPUT "${bam}" \
-//         -OUTPUT "${key}.txt" \
-//         -METRIC_ACCUMULATION_LEVEL ALL_READS \
-//         -Histogram_FILE "${key}.pdf" \
-//         -TMP_DIR .
+//     picard -Xmx${params.memory_picard} CollectInsertSizeMetrics \
+//       -INPUT "${bam}" \
+//       -OUTPUT "${key}.txt" \
+//       -METRIC_ACCUMULATION_LEVEL ALL_READS \
+//       -Histogram_FILE "${key}.pdf" \
+//       -TMP_DIR .
 // 
-// 
-//   """
+//     """
 // }
 // 
 // Merging_pdfs_channel = Merging_pdfs_channel
@@ -835,33 +831,32 @@ process ATAC_reads__marking_duplicated_reads {
 //         into Number_of_aligned_pairs_for_gathering_reads_stat
 // 
 //   script:
+//     """
+// 
+//     key="${id}__sampled"
+//     new_sam="${key}.sam"
+//     new_bam="${key}.bam"
+// 
+//     # saving the header
+//     samtools view -F 0x904 -H ${bam} > ${new_sam}
+// 
+//     # sampling a certain number of reads
+//     samtools view -F 0x904 ${bam} \
+//       | shuf - -n ${params.nb_sampled_aligned_reads} >> ${new_sam}
+// 
+//     # conversion to bam, sorting and indexing of sampled reads
+//     samtools view -Sb ${new_sam} \
+//       | samtools sort - -o ${new_bam}
+//     samtools index ${new_bam}
+// 
+//     NB_ALIGNED_PAIRS=`samtools view -F 0x4 ${bam} | cut -f 1 | sort -T . \
+//                                                   | uniq | wc -l`
+//     RAW_PAIRS=`samtools view ${bam}| cut -f 1 | sort -T . | uniq | wc -l`
+// 
+//     touch \$NB_ALIGNED_PAIRS.NB_ALIGNED_PAIRS_${id}
+//     touch \$RAW_PAIRS.RAW_PAIRS_${id}
+// 
 //   """
-// 
-//       key="${id}__sampled"
-//       new_sam="${key}.sam"
-//       new_bam="${key}.bam"
-// 
-//       # saving the header
-//       samtools view -F 0x904 -H ${bam} > ${new_sam}
-// 
-//       # sampling a certain number of reads
-//       samtools view -F 0x904 ${bam} \
-//         | shuf - -n ${params.nb_sampled_aligned_reads} >> ${new_sam}
-// 
-//       # conversion to bam, sorting and indexing of sampled reads
-//       samtools view -Sb ${new_sam} \
-//         | samtools sort - -o ${new_bam}
-//       samtools index ${new_bam}
-// 
-//       NB_ALIGNED_PAIRS=`samtools view -F 0x4 ${bam} | cut -f 1 | sort -T . \
-//                                                     | uniq | wc -l`
-//       RAW_PAIRS=`samtools view ${bam}| cut -f 1 | sort -T . | uniq | wc -l`
-// 
-//       touch \$NB_ALIGNED_PAIRS.NB_ALIGNED_PAIRS_${id}
-//       touch \$RAW_PAIRS.RAW_PAIRS_${id}
-// 
-//   """
-// 
 // }
 // 
 // 
@@ -878,54 +873,54 @@ process ATAC_reads__marking_duplicated_reads {
 //   when: do_atac
 // 
 //   input:
-//   set id, file(bam), file(bai) 
-//     from Bam_for_measuring_overlap_with_genomic_regions
+//     set id, file(bam), file(bai) 
+//       from Bam_for_measuring_overlap_with_genomic_regions
 // 
 //   output:
-//   set id, file("*.txt") 
-//     into Overlap_with_genomic_regions_results_for_gathering_reads_stat
+//     set id, file("*.txt") 
+//       into Overlap_with_genomic_regions_results_for_gathering_reads_stat
 // 
 //   shell:
-//   '''
+//     '''
 // 
-//       id=!{id}
-//       bam=!{bam}
-//       BED_PATH=!{params.bed_regions}
+//     id=!{id}
+//     bam=!{bam}
+//     BED_PATH=!{params.bed_regions}
 // 
-//       new_txt="${id}_reads_overlap_with_genomic_regions.txt"
+//     new_txt="${id}_reads_overlap_with_genomic_regions.txt"
 // 
-//       getTotalReadsMappedToBedFile () { 
-//         bedtools coverage -a $1 -b $2 | cut -f 4 \
-//         | awk '{ sum+=$1} END {print sum}'
-//         }
-// 
-// 
-//       PROMOTER=`getTotalReadsMappedToBedFile $BED_PATH/promoters.bed ${bam}`
-//       EXONS=`getTotalReadsMappedToBedFile $BED_PATH/exons.bed ${bam}`
-//       INTRONS=`getTotalReadsMappedToBedFile $BED_PATH/introns.bed ${bam}`
-//       INTERGENIC=`getTotalReadsMappedToBedFile $BED_PATH/intergenic.bed ${bam}`
-//       GENES=`getTotalReadsMappedToBedFile $BED_PATH/genes.bed ${bam}`
-//       BAM_NB_READS=`samtools view -c ${bam}`
-// 
-//       echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" > ${new_txt}
-//       echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" \
-//         >> ${new_txt}
-// 
-//       awkDecimalDivision () { 
-//         awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }'
+//     getTotalReadsMappedToBedFile () { 
+//       bedtools coverage -a $1 -b $2 | cut -f 4 \
+//       | awk '{ sum+=$1} END {print sum}'
 //       }
 // 
-//       P_PROM=$(awkDecimalDivision $PROMOTER $BAM_NB_READS)
-//       P_EXONS=$(awkDecimalDivision $EXONS $BAM_NB_READS)
-//       P_INTRONS=$(awkDecimalDivision $INTRONS $BAM_NB_READS)
-//       P_INTERGENIC=$(awkDecimalDivision $INTERGENIC $BAM_NB_READS)
-//       P_GENES=$(awkDecimalDivision $GENES $BAM_NB_READS)
-//       P_READS=$(awkDecimalDivision $BAM_NB_READS $BAM_NB_READS)
 // 
-//       echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" \
-//         >> ${new_txt}
+//     PROMOTER=`getTotalReadsMappedToBedFile $BED_PATH/promoters.bed ${bam}`
+//     EXONS=`getTotalReadsMappedToBedFile $BED_PATH/exons.bed ${bam}`
+//     INTRONS=`getTotalReadsMappedToBedFile $BED_PATH/introns.bed ${bam}`
+//     INTERGENIC=`getTotalReadsMappedToBedFile $BED_PATH/intergenic.bed ${bam}`
+//     GENES=`getTotalReadsMappedToBedFile $BED_PATH/genes.bed ${bam}`
+//     BAM_NB_READS=`samtools view -c ${bam}`
 // 
-//   '''
+//     echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" > ${new_txt}
+//     echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" \
+//       >> ${new_txt}
+// 
+//     awkDecimalDivision () { 
+//       awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }'
+//     }
+// 
+//     P_PROM=$(awkDecimalDivision $PROMOTER $BAM_NB_READS)
+//     P_EXONS=$(awkDecimalDivision $EXONS $BAM_NB_READS)
+//     P_INTRONS=$(awkDecimalDivision $INTRONS $BAM_NB_READS)
+//     P_INTERGENIC=$(awkDecimalDivision $INTERGENIC $BAM_NB_READS)
+//     P_GENES=$(awkDecimalDivision $GENES $BAM_NB_READS)
+//     P_READS=$(awkDecimalDivision $BAM_NB_READS $BAM_NB_READS)
+// 
+//     echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" \
+//       >> ${new_txt}
+// 
+//     '''
 // 
 // }
 // 
@@ -945,21 +940,20 @@ process ATAC_reads__marking_duplicated_reads {
 //   when: do_atac
 // 
 //   input:
-//   set id, file(sam) from Bam_for_estimating_library_complexity
+//     set id, file(sam) from Bam_for_estimating_library_complexity
 // 
 //   output:
-//   set id, file("*.txt") 
-//     into Library_complexity_for_gathering_reads_stat
+//     set id, file("*.txt") 
+//       into Library_complexity_for_gathering_reads_stat
 // 
 //   script:
-//   """
+//     """
 // 
-//       picard -Xmx${params.memory_picard} EstimateLibraryComplexity \
-//         -INPUT ${sam} \
-//         -OUTPUT ${id}_library_complexity.txt
+//     picard -Xmx${params.memory_picard} EstimateLibraryComplexity \
+//       -INPUT ${sam} \
+//       -OUTPUT ${id}_library_complexity.txt
 // 
-//   """
-// 
+//     """
 // }
 // 
 // 
@@ -979,7 +973,7 @@ process ATAC_reads__marking_duplicated_reads {
 //       into Sampled_trimmed_reads_for_alignment
 // 
 //   script:
-//   """
+//     """
 // 
 //       reformat.sh \
 //         in1=${read1} \
@@ -988,7 +982,7 @@ process ATAC_reads__marking_duplicated_reads {
 //         out2=${id}_subsampled_R2.fastq \
 //         samplereadstarget=${params.nb_sampled_trimmed_reads}
 // 
-//   """
+//     """
 // }
 // 
 // 
@@ -1009,40 +1003,40 @@ process ATAC_reads__marking_duplicated_reads {
 //     set file("*_ref.bam"), file("*_conta.bam")
 // 
 //   script:
-//   """
+//     """
 // 
-//       key_ref="${id}_ref"
-//       new_bam_ref="${key_ref}.bam"
+//     key_ref="${id}_ref"
+//     new_bam_ref="${key_ref}.bam"
 // 
-//       key_conta="${id}_conta"
-//       new_bam_conta="${key_conta}.bam"
+//     key_conta="${id}_conta"
+//     new_bam_conta="${key_conta}.bam"
 // 
 // 
-//       bowtie2 -p ${params.nb_threads_botwie2} \
-//         --very-sensitive \
-//         --end-to-end \
-//         --no-mixed \
-//         -X 2000 \
-//         --met 1 \
-//         -x "${params.bowtie2_indexes}" \
-//         -q -1 "${read1}" -2 "${read2}" \
-//         | samtools view -bS -o ${new_bam_ref} -
+//     bowtie2 -p ${params.nb_threads_botwie2} \
+//       --very-sensitive \
+//       --end-to-end \
+//       --no-mixed \
+//       -X 2000 \
+//       --met 1 \
+//       -x "${params.bowtie2_indexes}" \
+//       -q -1 "${read1}" -2 "${read2}" \
+//       | samtools view -bS -o ${new_bam_ref} -
 // 
-//       samtools flagstat ${new_bam_ref} > "${key_ref}.qc"
+//     samtools flagstat ${new_bam_ref} > "${key_ref}.qc"
 // 
-//       bowtie2 -p ${params.nb_threads_botwie2} \
-//         --very-sensitive \
-//         --end-to-end \
-//         --no-mixed \
-//         -X 2000 \
-//         --met 1 \
-//         -x "${params.bowtie2_indexes_contam}" \
-//         -q -1 "${read1}" -2 "${read2}" \
-//         | samtools view -bS -o ${new_bam_conta} -
+//     bowtie2 -p ${params.nb_threads_botwie2} \
+//       --very-sensitive \
+//       --end-to-end \
+//       --no-mixed \
+//       -X 2000 \
+//       --met 1 \
+//       -x "${params.bowtie2_indexes_contam}" \
+//       -q -1 "${read1}" -2 "${read2}" \
+//       | samtools view -bS -o ${new_bam_conta} -
 // 
-//       samtools flagstat ${new_bam_conta} > "${key_conta}.qc"
+//     samtools flagstat ${new_bam_conta} > "${key_conta}.qc"
 // 
-//   """
+//     """
 // }
 // 
 // 
@@ -1073,7 +1067,7 @@ process ATAC_reads__marking_duplicated_reads {
 //     file("*.txt") into Stats_on_aligned_reads_for_gathering
 // 
 //   shell:
-//   '''
+//     '''
 // 
 //     id=!{id}
 //     overlap_genomic_regions=!{overlap_genomic_regions}
@@ -1126,7 +1120,7 @@ process ATAC_reads__marking_duplicated_reads {
 // $PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" \
 //       > ${id}_bam_stats.txt
 // 
-//   '''
+//     '''
 // }
 // // library size = library complexity
 // // # (=> needs aligned but not filtered reads)
@@ -1149,17 +1143,18 @@ process ATAC_reads__marking_duplicated_reads {
 //     file("*.csv") into Bam_stat_for_splitting
 // 
 //   shell:
-//   '''
-//       OUTFILE="ATAC__alignment_statistics.csv"
+//     '''
 // 
-//       echo \ 
-//         "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,\
+//     OUTFILE="ATAC__alignment_statistics.csv"
+// 
+//     echo \ 
+//       "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,\
 // PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_REF,\
 // PERCENT_ALIGN_CONTA,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,\
 // FINAL_PAIRS" \
-//         > ${OUTFILE}
+//       > ${OUTFILE}
 // 
-//       cat *_bam_stats.txt >> ${OUTFILE}
+//     cat *_bam_stats.txt >> ${OUTFILE}
 // 
 //    '''
 // }
@@ -1181,33 +1176,32 @@ process ATAC_reads__marking_duplicated_reads {
 //     file("*") into Bam_stat_for_multiqc
 // 
 //   shell:
-//   '''
+//     '''
 // 
-//       #!/usr/bin/env Rscript
-// 
-// 
-//       library(magrittr)
-//       library(dplyr)
-// 
-//       bam_stat_csv = '!{bam_stat_csv}'
+//     #!/usr/bin/env Rscript
 // 
 // 
-//       df = read.csv(bam_stat_csv, stringsAsFactors = F)
-//       colnames(df) %<>% tolower %>% gsub('percent', 'percentage', .)
+//     library(magrittr)
+//     library(dplyr)
 // 
-//       df %<>% rename(
-//         percentage_mitochondrial   = percentage_mito, 
-//         percentage_align_reference = percentage_align_ref, 
-//         percentage_aligned_CONTA   = percentage_align_contaminant, 
-//         percentage_duplications    = percentage_dupli
-//         )
+//     bam_stat_csv = '!{bam_stat_csv}'
 // 
-//       colnames = colnames(df)[2:ncol(df)]
-//       for(colname in colnames){
-//         df1 = df[, c('library_name', colname)]
-//         write.csv(df1, row.names = F, file = paste0(colname, '_mqc.csv'))
-//       }
 // 
+//     df = read.csv(bam_stat_csv, stringsAsFactors = F)
+//     colnames(df) %<>% tolower %>% gsub('percent', 'percentage', .)
+// 
+//     df %<>% rename(
+//       percentage_mitochondrial   = percentage_mito, 
+//       percentage_align_reference = percentage_align_ref, 
+//       percentage_aligned_CONTA   = percentage_align_contaminant, 
+//       percentage_duplications    = percentage_dupli
+//       )
+// 
+//     colnames = colnames(df)[2:ncol(df)]
+//     for(colname in colnames){
+//       df1 = df[, c('library_name', colname)]
+//       write.csv(df1, row.names = F, file = paste0(colname, '_mqc.csv'))
+//     }
 // 
 //    '''
 // }
@@ -1237,12 +1231,12 @@ process ATAC_reads__marking_duplicated_reads {
 //     // file "*multiqc_data"
 // 
 //   script:
-//   """
+//     """
 // 
-//       multiqc -f .
-//       mv multiqc_report.html ATAC__multiQC.html
+//     multiqc -f .
+//     mv multiqc_report.html ATAC__multiQC.html
 // 
-//   """
+//     """
 // }
 // 
 // // This kind of commands could maybe make a more pretty multiqc report, 
@@ -1280,7 +1274,7 @@ process ATAC_reads__marking_duplicated_reads {
 //     set id, file("*.narrowPeak") into Peaks_for_sub_peaks_calling
 // 
 //   script:
-//   """
+//     """
 // 
 //     export TMPDIR="." PYTHON_EGG_CACHE="."
 // 
@@ -1296,7 +1290,7 @@ process ATAC_reads__marking_duplicated_reads {
 //         --keep-dup all \
 //         --call-summits
 // 
-//   """
+//     """
 // }
 // 
 // 
@@ -1471,12 +1465,12 @@ process ATAC_reads__marking_duplicated_reads {
 //       into Peaks_for_removing_blacklisted_regions
 // 
 //   script:
-//   """
+//     """
 // 
-//       perl "${projectDir}/bin/splitMACS2SubPeaks.pl" "${peaks}" \
-//         > "${id}__split_peaks.narrowPeak"
+//     perl "${projectDir}/bin/splitMACS2SubPeaks.pl" "${peaks}" \
+//       > "${id}__split_peaks.narrowPeak"
 // 
-//   """
+//     """
 // }
 // 
 // // This scripts comes from Anshul Kundaje, and was made for the Daugherty et al 
@@ -1534,17 +1528,15 @@ process ATAC_reads__marking_duplicated_reads {
 // 
 // 
 //   script:
-//   """
+//     """
 // 
-//       intersectBed -v -a "${peaks}" -b "${params.blacklisted_regions}" \
-//         > "${id}__peaks_kept_after_blacklist_removal.bed"
+//     intersectBed -v -a "${peaks}" -b "${params.blacklisted_regions}" \
+//       > "${id}__peaks_kept_after_blacklist_removal.bed"
 // 
-//       intersectBed -u -a "${peaks}" -b "${params.blacklisted_regions}" \
-//         > "${id}__peaks_lost_after_blacklist_removal.bed"
+//     intersectBed -u -a "${peaks}" -b "${params.blacklisted_regions}" \
+//       > "${id}__peaks_lost_after_blacklist_removal.bed"
 // 
-// 
-//   """
-// 
+//     """
 // }
 // 
 // // there are two output channels because:
@@ -1606,17 +1598,17 @@ process ATAC_reads__marking_duplicated_reads {
 //       into Peaks_for_removing_specific_regions_1
 // 
 //   script:
-//   """
+//     """
 // 
-//       intersectBed -wa -v -f ${params.input_control_overlap_portion} \
-//         -a "${peaks}" -b "${input_control_peaks}" \
-//         > "${id}__peaks_kept_after_input_control_removal.bed"
+//     intersectBed -wa -v -f ${params.input_control_overlap_portion} \
+//       -a "${peaks}" -b "${input_control_peaks}" \
+//       > "${id}__peaks_kept_after_input_control_removal.bed"
 // 
-//       intersectBed -wa -u -f ${params.input_control_overlap_portion} \
-//         -a "${peaks}" -b "${input_control_peaks}" \
-//         > "${id}__peaks_lost_after_input_control_removal.bed"
+//     intersectBed -wa -u -f ${params.input_control_overlap_portion} \
+//       -a "${peaks}" -b "${input_control_peaks}" \
+//       > "${id}__peaks_lost_after_input_control_removal.bed"
 // 
-//   """
+//     """
 // }
 // 
 // // https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
@@ -1694,49 +1686,47 @@ process ATAC_reads__marking_duplicated_reads {
 //   when: do_atac
 // 
 //   input:
-//       set COMP, file(bed_files), regions_to_remove 
-//         from Peaks_for_removing_specific_regions_3
+//     set COMP, file(bed_files), regions_to_remove 
+//       from Peaks_for_removing_specific_regions_3
 // 
 //   output:
-//       file("*.bed")
-//       set COMP, file("*__peaks_kept_after_specific_regions_removal.bed") 
-//         into Peaks_for_diffbind
+//     file("*.bed")
+//     set COMP, file("*__peaks_kept_after_specific_regions_removal.bed") 
+//       into Peaks_for_diffbind
 // 
 // 
 //   shell:
-//   '''
+//     '''
 // 
-//       COMP=!{COMP}
-//       RTR=!{regions_to_remove}
-//       BED_FILES="!{bed_files}"
+//     COMP=!{COMP}
+//     RTR=!{regions_to_remove}
+//     BED_FILES="!{bed_files}"
 // 
-//       COMP1=${COMP/_vs_/|}
-//       echo $COMP1 | grep -E -f - $RTR || true > rtr_filtered.txt
+//     COMP1=${COMP/_vs_/|}
+//     echo $COMP1 | grep -E -f - $RTR || true > rtr_filtered.txt
 // 
-//       if [ ! -s rtr_filtered.txt ]; then
-//         for FILE in ${BED_FILES}
-//         do
-//           id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
-//           cp $FILE "${id}__peaks_kept_after_specific_regions_removal.bed"
-//         done
-//       else
-//         cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" \
-//           | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
+//     if [ ! -s rtr_filtered.txt ]; then
+//       for FILE in ${BED_FILES}
+//       do
+//         id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
+//         cp $FILE "${id}__peaks_kept_after_specific_regions_removal.bed"
+//       done
+//     else
+//       cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" \
+//         | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
 // 
-//         for FILE in ${BED_FILES}
-//         do
-//           id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
+//       for FILE in ${BED_FILES}
+//       do
+//         id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
 // 
-//           intersectBed -v -a $FILE -b rtr_filtered_formatted.txt \
-//             > "${id}__peaks_kept_after_specific_regions_removal.bed"
-//           intersectBed -u -a $FILE -b rtr_filtered_formatted.txt \
-//             > "${id}__peaks_lost_after_specific_regions_removal.bed"
-//         done
-//       fi
+//         intersectBed -v -a $FILE -b rtr_filtered_formatted.txt \
+//           > "${id}__peaks_kept_after_specific_regions_removal.bed"
+//         intersectBed -u -a $FILE -b rtr_filtered_formatted.txt \
+//           > "${id}__peaks_lost_after_specific_regions_removal.bed"
+//       done
+//     fi
 // 
-// 
-//   '''
-// 
+//     '''
 // }
 // 
 // // really weird nextflow bug: this command makes all commands below ignored 
@@ -1817,38 +1807,38 @@ process ATAC_reads__marking_duplicated_reads {
 //   when: do_atac & params.do_saturation_curve
 // 
 //   script:
-//   """
+//     """
 // 
-//       export TMPDIR="." PYTHON_EGG_CACHE="."
+//     export TMPDIR="." PYTHON_EGG_CACHE="."
 // 
-//       PERCENTS=`seq 10 10 100`
+//     PERCENTS=`seq 10 10 100`
 // 
-//       for PERCENT in \${PERCENTS}
-//       do
-//         BED_FILE="${id}_sampled_\${PERCENT}_percent.bed"
+//     for PERCENT in \${PERCENTS}
+//     do
+//       BED_FILE="${id}_sampled_\${PERCENT}_percent.bed"
 // 
-//         macs2 randsample -i ${bed} \
-//           --seed 38 \
-//           -o \${BED_FILE} \
-//           --percentage \${PERCENT} \
-//           -f BED
+//       macs2 randsample -i ${bed} \
+//         --seed 38 \
+//         -o \${BED_FILE} \
+//         --percentage \${PERCENT} \
+//         -f BED
 // 
-//         macs2 callpeak \
-//           --treatment \${BED_FILE} \
-//           --format BED \
-//           --name \${BED_FILE}__macs2 \
-//           --qvalue "${params.macs2__qvalue}" \
-//           --gsize "${params.effective_genome_size}" \
-//           --nomodel \
-//           --shift -75 \
-//           --extsize 150 \
-//           --keep-dup all \
-//           --call-summits
-//       done
+//       macs2 callpeak \
+//         --treatment \${BED_FILE} \
+//         --format BED \
+//         --name \${BED_FILE}__macs2 \
+//         --qvalue "${params.macs2__qvalue}" \
+//         --gsize "${params.effective_genome_size}" \
+//         --nomodel \
+//         --shift -75 \
+//         --extsize 150 \
+//         --keep-dup all \
+//         --call-summits
+//     done
 // 
-//       Rscript "${projectDir}/bin/plot_saturation_curve.R" ${id}
+//     Rscript "${projectDir}/bin/plot_saturation_curve.R" ${id}
 // 
-//   """
+//     """
 // }
 // 
 // Merging_pdfs_channel = Merging_pdfs_channel
@@ -1869,59 +1859,58 @@ process ATAC_reads__marking_duplicated_reads {
 //   when: do_atac
 // 
 //   input:
-//     set id, file(peaks_bed_file) 
+//     set id, file(peaks_bed_file) \
 //       from Macs2_Peaks_without_blacklist_1_for_annotating_them
 // 
 //   output: 
-//     set id, file("*.rds") 
+//     set id, file("*.rds") \
 //       into Annotated_macs2_peaks_for_plotting_each_sample, 
-//            Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 
+//            Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 \
 //            optional true
 // 
 //   when: params.do_raw_peak_annotation
 // 
 //   shell:
-//   '''
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//       #!/usr/bin/env Rscript
+//     library(ChIPseeker)
+//     id = '!{id}'
+//     peaks_bed_file = '!{peaks_bed_file}'
+//     upstream = !{params.macs2_peaks__promoter_up}
+//     downstream = !{params.macs2_peaks__promoter_down}
+//     tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
 // 
-//       library(ChIPseeker)
-//       id = '!{id}'
-//       peaks_bed_file = '!{peaks_bed_file}'
-//       upstream = !{params.macs2_peaks__promoter_up}
-//       downstream = !{params.macs2_peaks__promoter_down}
-//       tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
+//     nb_of_peaks = 
+//       system(paste('wc -l', peaks_bed_file), intern = T) %>% 
+//       gsub(' .*', '', .)
+//     if(nb_of_peaks == 0) {quit('no')}
+//     peaks = readPeakFile('!{peaks_bed_file}')
 // 
-//       nb_of_peaks = 
-//         system(paste('wc -l', peaks_bed_file), intern = T) %>% 
-//         gsub(' .*', '', .)
-//       if(nb_of_peaks == 0) {quit('no')}
-//       peaks = readPeakFile('!{peaks_bed_file}')
+//     promoter <- getPromoters(TxDb = tx_db, upstream   = upstream, 
+//                                            downstream = downstream)
 // 
-//       promoter <- getPromoters(TxDb = tx_db, upstream   = upstream, 
-//                                              downstream = downstream)
+//     tag_matrix = getTagMatrix(peaks, windows = promoter)
 // 
-//       tag_matrix = getTagMatrix(peaks, windows = promoter)
+//     annotated_peaks = annotatePeak(peaks, 
+//                                   TxDb = tx_db, 
+//                                   tssRegion = c(-upstream, downstream), 
+//                                   level = 'gene', 
+//                                   overlap = 'all')
 // 
-//       annotated_peaks = annotatePeak(peaks, 
-//                                     TxDb = tx_db, 
-//                                     tssRegion = c(-upstream, downstream), 
-//                                     level = 'gene', 
-//                                     overlap = 'all')
+//     genes = as.data.frame(annotated_peaks)$geneId
 // 
-//       genes = as.data.frame(annotated_peaks)$geneId
+//     lres = list(
+//       id = id,
+//       peaks = peaks,
+//       tag_matrix = tag_matrix,
+//       annotated_peaks = annotated_peaks,
+//       genes = genes
+//     )
 // 
-//       lres = list(
-//         id = id,
-//         peaks = peaks,
-//         tag_matrix = tag_matrix,
-//         annotated_peaks = annotated_peaks,
-//         genes = genes
-//       )
+//     saveRDS(lres, file = paste0(id, '__annotated_peaks.rds'))
 // 
-//       saveRDS(lres, file = paste0(id, '__annotated_peaks.rds'))
-// 
-//   '''
+//     '''
 // }
 // 
 // // these are ATAC-Seq peaks from macs
@@ -1983,29 +1972,29 @@ process ATAC_reads__marking_duplicated_reads {
 //       into ATAC_peaks_average_profile_for_merging_pdfs
 // 
 //   shell:
-//   '''
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//       #!/usr/bin/env Rscript
-//       library(ChIPseeker)
-//       library(ggplot2)
+//     library(ChIPseeker)
+//     library(ggplot2)
 // 
-//       id = '!{id}'
-//       upstream = !{params.macs2_peaks__promoter_up}
-//       downstream = !{params.macs2_peaks__promoter_down}
-//       lres = readRDS('!{annotated_peaks_objects_rds}')
+//     id = '!{id}'
+//     upstream = !{params.macs2_peaks__promoter_up}
+//     downstream = !{params.macs2_peaks__promoter_down}
+//     lres = readRDS('!{annotated_peaks_objects_rds}')
 // 
-//       pdf(paste0(id, '__coverage.pdf'))
-//         covplot(lres$peaks, weightCol="V5") + ggtitle(id) + 
-//           theme(plot.title = element_text(hjust = 0.5))
-//       dev.off()
+//     pdf(paste0(id, '__coverage.pdf'))
+//       covplot(lres$peaks, weightCol="V5") + ggtitle(id) + 
+//         theme(plot.title = element_text(hjust = 0.5))
+//     dev.off()
 // 
-//       pdf(paste0(id, '__average_profile.pdf'))
-//         plotAvgProf(lres$tag_matrix, xlim=c(-upstream, downstream), 
-//           xlab="Genomic Region (5'->3')", ylab = "Read Count Frequency") + 
-//           ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
-//       dev.off()
+//     pdf(paste0(id, '__average_profile.pdf'))
+//       plotAvgProf(lres$tag_matrix, xlim=c(-upstream, downstream), 
+//         xlab="Genomic Region (5'->3')", ylab = "Read Count Frequency") + 
+//         ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
+//     dev.off()
 // 
-//   '''
+//     '''
 // }
 // 
 // Merging_pdfs_channel = Merging_pdfs_channel
@@ -2035,92 +2024,92 @@ process ATAC_reads__marking_duplicated_reads {
 //     file("*.pdf")
 // 
 //   shell:
-//   '''
-//       #!/usr/bin/env Rscript
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//       upstream = !{params.macs2_peaks__promoter_up}
-//       downstream = !{params.macs2_peaks__promoter_down}
+//     upstream = !{params.macs2_peaks__promoter_up}
+//     downstream = !{params.macs2_peaks__promoter_down}
 // 
-//       library(ChIPseeker)
-//       library(ggplot2)
-//       library(purrr)
+//     library(ChIPseeker)
+//     library(ggplot2)
+//     library(purrr)
 // 
-//       rds_files = list.files(pattern = '*.rds')
-//       lres = lapply(rds_files, readRDS)
+//     rds_files = list.files(pattern = '*.rds')
+//     lres = lapply(rds_files, readRDS)
 // 
-//       names0 = map_chr(lres, 'id')
-//       tag_matrix_list = map(lres, 'tag_matrix') %>% setNames(., names0)
-//       annotated_peaks_list = map(lres, 'annotated_peaks') %>% setNames(., names0)
+//     names0 = map_chr(lres, 'id')
+//     tag_matrix_list = map(lres, 'tag_matrix') %>% setNames(., names0)
+//     annotated_peaks_list = map(lres, 'annotated_peaks') %>% setNames(., names0)
 // 
-//       size_facet = ifelse(length(tag_matrix_list) > 12, 2.8, 5.5)
+//     size_facet = ifelse(length(tag_matrix_list) > 12, 2.8, 5.5)
 // 
-//       p1 = plotAvgProf(tag_matrix_list, c(-upstream, downstream), facet='row')
-//       p1 = p1 + theme(axis.text.y = element_text(size = 3.5), 
-//             strip.text.y = element_text(size = size_facet))
+//     p1 = plotAvgProf(tag_matrix_list, c(-upstream, downstream), facet='row')
+//     p1 = p1 + theme(axis.text.y = element_text(size = 3.5), 
+//           strip.text.y = element_text(size = size_facet))
 // 
-//       pdf('ATAC__peaks__average_profile.pdf', font = 'mono')
-//         print(p1)
-//       dev.off()
+//     pdf('ATAC__peaks__average_profile.pdf', font = 'mono')
+//       print(p1)
+//     dev.off()
 // 
-//       pdf('ATAC__peaks__annotation_barplot.pdf')
-//         plotAnnoBar(annotated_peaks_list)
-//       dev.off()
+//     pdf('ATAC__peaks__annotation_barplot.pdf')
+//       plotAnnoBar(annotated_peaks_list)
+//     dev.off()
 // 
-//       pdf('ATAC__peaks__distance_to_TSS.pdf')
-//         plotDistToTSS(annotated_peaks_list)
-//       dev.off()
+//     pdf('ATAC__peaks__distance_to_TSS.pdf')
+//       plotDistToTSS(annotated_peaks_list)
+//     dev.off()
 // 
-// 
-//   '''
+//     '''
 // }
 // 
 // 
 // 
 // 
 // process MRNA__quantifying_transcripts_abundances {
-//     tag "${id}"
+//   tag "${id}"
 // 
-//     label "kallisto"
+//   label "kallisto"
 // 
-//     publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", 
-//                mode: "${pub_mode}"
+//   publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", 
+//              mode: "${pub_mode}"
 // 
-//     when: do_mRNA
+//   when: do_mRNA
 // 
-//     input:
+//   input:
 //     set id, file(reads) from MRNA_reads_for_kallisto
 // 
-//     output:
+//   output:
 //     set id, file("kallisto_${id}") into Kallisto_results_for_sleuth_1
 // 
-//     script:
+//   script:
 // 
-//         def single = reads instanceof Path
-//         if( single ) {
-//             """
-//               mkdir kallisto_${id}
-//               kallisto quant \
-//                 --single \
-//                 -l ${params.kallisto__fragment_len} \
-//                 -s ${params.kallisto__fragment_sd} \
-//                 -b ${params.kallisto__bootstrap} \
-//                 -t ${params.kallisto__nb_threads} \
-//                 -i ${params.kallisto_transcriptome} \
-//                 -o kallisto_${id} \
-//                 ${reads}
-//             """
-//         }
-//         else {
-//             """
-//               mkdir kallisto_${id}
-//               kallisto quant \
-//                 -b ${params.kallisto__bootstrap} \
-//                 -t ${params.kallisto__nb_threads} \
-//                 -i ${params.kallisto_transcriptome} \
-//                 -o kallisto_${id} \
-//                 ${reads}
-//             """
-//         }
+//     def single = reads instanceof Path
+// 
+//     if( single ) {
+//       """
+//         mkdir kallisto_${id}
+//         kallisto quant \
+//           --single \
+//           -l ${params.kallisto__fragment_len} \
+//           -s ${params.kallisto__fragment_sd} \
+//           -b ${params.kallisto__bootstrap} \
+//           -t ${params.kallisto__nb_threads} \
+//           -i ${params.kallisto_transcriptome} \
+//           -o kallisto_${id} \
+//           ${reads}
+//       """
+//     }
+//     else {
+//       """
+//         mkdir kallisto_${id}
+//         kallisto quant \
+//           -b ${params.kallisto__bootstrap} \
+//           -t ${params.kallisto__nb_threads} \
+//           -i ${params.kallisto_transcriptome} \
+//           -o kallisto_${id} \
+//           ${reads}
+//       """
+//     }
 // }
 // 
 // // note: I adapted a basic mRNA-Seq pipeline from 
@@ -2147,12 +2136,11 @@ process ATAC_reads__marking_duplicated_reads {
 //     file("*.{zip, html}") into MRNA_fastqc_reports_for_multiqc
 // 
 //   script:
-//   """
+//     """
 // 
-//   fastqc -t ${params.fastqc__nb_threads} ${reads}
+//     fastqc -t ${params.fastqc__nb_threads} ${reads}
 // 
-//   """
-// 
+//     """
 // }
 // 
 // 
@@ -2178,12 +2166,12 @@ process ATAC_reads__marking_duplicated_reads {
 //     set "mRNA__multiQC.html", "*multiqc_data" optional true
 // 
 //   script:
-//   """
+//     """
 // 
 //     multiqc -f .
 //     mv multiqc_report.html mRNA__multiQC.html
 // 
-//   """
+//     """
 // }
 // 
 // 
@@ -2232,167 +2220,165 @@ process ATAC_reads__marking_duplicated_reads {
 //   when: do_atac
 // 
 //   input:
-//       set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
+//     set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
 // 
 //   output:
-//       set COMP, file('*__diffbind_peaks_gr.rds'), 
-//         file('*__diffbind_peaks_dbo.rds') 
-//         into Diffbind_peaks_for_annotating_them optional true
-//       set COMP, file('*__all_peaks.bed') 
-//         into All_detected_diffbind_peaks_for_background optional true
+//     set COMP, file('*__diffbind_peaks_gr.rds'), 
+//       file('*__diffbind_peaks_dbo.rds') 
+//       into Diffbind_peaks_for_annotating_them optional true
+//     set COMP, file('*__all_peaks.bed') 
+//       into All_detected_diffbind_peaks_for_background optional true
 // 
 //   shell:
-//   '''
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//         #!/usr/bin/env Rscript
+//     ##### loading data and libraries
 // 
-//         ##### loading data and libraries
+//     library(DiffBind)
+//     library(magrittr)
+//     library(parallel)
 // 
-//         library(DiffBind)
-//         library(magrittr)
-//         library(parallel)
+//     COMP = '!{COMP}'
+//     use_input_control = '!{params.use_input_control}'
+//     source('!{projectDir}/bin/export_df_to_bed.R')
+//     cur_seqinfo = readRDS('!{params.cur_seqinfo}')
 // 
-//         COMP = '!{COMP}'
-//         use_input_control = '!{params.use_input_control}'
-//         source('!{projectDir}/bin/export_df_to_bed.R')
-//         cur_seqinfo = readRDS('!{params.cur_seqinfo}')
+//     min_overlap     = !{params.diffbind__min_overlap}
+//     min_count       = !{params.diffbind__min_count}
+//     analysis_method = !{params.diffbind__analysis_method}
+//     normalization   = !{params.diffbind__normalize}
 // 
-//         min_overlap     = !{params.diffbind__min_overlap}
-//         min_count       = !{params.diffbind__min_count}
-//         analysis_method = !{params.diffbind__analysis_method}
-//         normalization   = !{params.diffbind__normalize}
-// 
-//         conditions = strsplit(COMP, '_vs_')[[1]]
-//         cond1 = conditions[1]
-//         cond2 = conditions[2]
+//     conditions = strsplit(COMP, '_vs_')[[1]]
+//     cond1 = conditions[1]
+//     cond2 = conditions[2]
 // 
 // 
-//         ##### Preparing the metadata table
-//         use_input_control %<>% toupper %>% as.logical
-//         bed_bam_files = list.files(pattern = '*.bam$|*filtered.bed$')
-//         cur_files = grep('diffbind_peaks', bed_bam_files, value = T, invert = T)
-//         df = data.frame(path = cur_files, stringsAsFactors=F)
-//         cursplit = sapply(cur_files, strsplit, '_')
-//         df$condition = sapply(cursplit, '[[', 1)
-//         df$replicate = sapply(cursplit, '[[', 2)
-//         df$id = paste0(df$condition, '_', df$replicate)
-//         df$id[df$condition == 'input'] = 'input'
-//         df$type = sapply(df$path, function(c1) {
-//           ifelse(
-//             length(grep('reads', c1)) == 1, 
-//             'reads', 
-//             ifelse(
-//               length(grep('peaks', c1)) == 1, 
-//               'peaks', 
-//               ''
-//               )
-//             )
+//     ##### Preparing the metadata table
+//     use_input_control %<>% toupper %>% as.logical
+//     bed_bam_files = list.files(pattern = '*.bam$|*filtered.bed$')
+//     cur_files = grep('diffbind_peaks', bed_bam_files, value = T, invert = T)
+//     df = data.frame(path = cur_files, stringsAsFactors=F)
+//     cursplit = sapply(cur_files, strsplit, '_')
+//     df$condition = sapply(cursplit, '[[', 1)
+//     df$replicate = sapply(cursplit, '[[', 2)
+//     df$id = paste0(df$condition, '_', df$replicate)
+//     df$id[df$condition == 'input'] = 'input'
+//     df$type = sapply(df$path, function(c1) {
+//       ifelse(
+//         length(grep('reads', c1)) == 1, 
+//         'reads', 
+//         ifelse(
+//           length(grep('peaks', c1)) == 1, 
+//           'peaks', 
+//           ''
 //           )
-// 
-//         names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 
-//                       'ControlID', 'bamControl', 'Peaks','PeakCaller')
-//         all_id = unique(df$id) %>% .[. != 'input']
-//         df1 = data.frame(matrix(nrow = length(all_id), 
-//                          ncol = length(names_df1)), stringsAsFactors=F)
-//         names(df1) = names_df1
-// 
-//         for(c1 in 1:length(all_id)){
-//           cur_id = all_id[c1]
-//           sel_reads = which(df$id == cur_id & df$type == 'reads')
-//           sel_peaks = which(df$id == cur_id & df$type == 'peaks')
-// 
-//           df1$SampleID[c1]   = cur_id
-//           df1$Condition[c1]  = df$condition[sel_reads]
-//           df1$Replicate[c1]  = df$replicate[sel_reads]
-//           df1$bamReads[c1]   = df$path[sel_reads]
-//           df1$Peaks[c1]      = df$path[sel_peaks]
-//           df1$PeakCaller[c1] = 'bed'
-// 
-//           if(use_input_control){
-//             sel_input_control_reads = which(
-//                 df$condition == 'input' & df$type == 'reads')
-//             df1$ControlID[c1] = df$id[sel_input_control_reads]
-//             df1$bamControl[c1] = df$path[sel_input_control_reads]
-//           } else {
-//             df1$ControlID <- NULL
-//             df1$bamControl <- NULL
-//           }
-//         }
-// 
-//         empty_peaks = which(sapply(df1$Peaks, file.size) == 0)
-//         if(length(empty_peaks) > 0) df1$Peaks[empty_peaks] = ''
-//         if(length(empty_peaks) == nrow(df1)) { quit('no') }
-// 
-// 
-// 
-//         ##### Running DiffBind
-// 
-//         dbo = tryCatch(
-//           expr = {
-// 
-//             config = data.frame(AnalysisMethod = analysis_method, 
-//                     RunParallel = F, singleEnd = F)
-// 
-//             dbo <- dba(sampleSheet = df1, minOverlap = min_overlap, 
-//                       config = config)
-// 
-//             if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, 
-//               greylist = cur_seqinfo)
-// 
-//             dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = F, 
-//               fragmentSize = 1, minOverlap = min_overlap, 
-//               score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, 
-//               bSubControl = F, minCount = min_count, summits = 75)
-// 
-//             dbo <- dba.normalize(dbo, normalize = normalization, 
-//               library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
-// 
-//             dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
-// 
-//             dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
-//               bReduceObjects = F)
-// 
-//           }, error = function(e) {
-//             print(e$message)
-//             quit('no')
-//           }
 //         )
+//       )
 // 
-//         saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
+//     names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 
+//                   'ControlID', 'bamControl', 'Peaks','PeakCaller')
+//     all_id = unique(df$id) %>% .[. != 'input']
+//     df1 = data.frame(matrix(nrow = length(all_id), 
+//                      ncol = length(names_df1)), stringsAsFactors=F)
+//     names(df1) = names_df1
+// 
+//     for(c1 in 1:length(all_id)){
+//       cur_id = all_id[c1]
+//       sel_reads = which(df$id == cur_id & df$type == 'reads')
+//       sel_peaks = which(df$id == cur_id & df$type == 'peaks')
+// 
+//       df1$SampleID[c1]   = cur_id
+//       df1$Condition[c1]  = df$condition[sel_reads]
+//       df1$Replicate[c1]  = df$replicate[sel_reads]
+//       df1$bamReads[c1]   = df$path[sel_reads]
+//       df1$Peaks[c1]      = df$path[sel_peaks]
+//       df1$PeakCaller[c1] = 'bed'
+// 
+//       if(use_input_control){
+//         sel_input_control_reads = which(
+//             df$condition == 'input' & df$type == 'reads')
+//         df1$ControlID[c1] = df$id[sel_input_control_reads]
+//         df1$bamControl[c1] = df$path[sel_input_control_reads]
+//       } else {
+//         df1$ControlID <- NULL
+//         df1$bamControl <- NULL
+//       }
+//     }
+// 
+//     empty_peaks = which(sapply(df1$Peaks, file.size) == 0)
+//     if(length(empty_peaks) > 0) df1$Peaks[empty_peaks] = ''
+//     if(length(empty_peaks) == nrow(df1)) { quit('no') }
 // 
 // 
-//         ##### Exporting all peaks as a data frame
 // 
-//         # extracting all peaks (note: th is the fdr threshold, so with th = 1 
-//         # we keep all peaks)
-//         all_peaks_gr = suppressWarnings(dba.report(dbo, th = 1))
+//     ##### Running DiffBind
 // 
-//         # recomputing the FDR to have more precise values (DiffBind round them 
-//         # at 3 digits)
-//         all_peaks_gr$FDR <- NULL
-//         all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, 
-//                                      method = 'BH')
+//     dbo = tryCatch(
+//       expr = {
 // 
-//         # adding the raw reads counts of each replicate
-//         cp_raw = dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_READS)
-//         mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
-//         m <- findOverlaps(all_peaks_gr, cp_raw)
-//         names_subject = names(mcols(cp_raw))
-//         mcols(all_peaks_gr)[queryHits(m), names_subject] = 
-//             mcols(cp_raw)[subjectHits(m), names_subject]
-//         saveRDS(all_peaks_gr, paste0(COMP, '__diffbind_peaks_gr.rds'))
+//         config = data.frame(AnalysisMethod = analysis_method, 
+//                 RunParallel = F, singleEnd = F)
+// 
+//         dbo <- dba(sampleSheet = df1, minOverlap = min_overlap, 
+//                   config = config)
+// 
+//         if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, 
+//           greylist = cur_seqinfo)
+// 
+//         dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = F, 
+//           fragmentSize = 1, minOverlap = min_overlap, 
+//           score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, 
+//           bSubControl = F, minCount = min_count, summits = 75)
+// 
+//         dbo <- dba.normalize(dbo, normalize = normalization, 
+//           library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
+// 
+//         dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
+// 
+//         dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
+//           bReduceObjects = F)
+// 
+//       }, error = function(e) {
+//         print(e$message)
+//         quit('no')
+//       }
+//     )
+// 
+//     saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
 // 
 // 
-//         ##### Exporting all peaks as a bed file
+//     ##### Exporting all peaks as a data frame
 // 
-//         all_peaks_df = as.data.frame(all_peaks_gr)
-//         all_peaks_df %<>% dplyr::mutate(
-//           name = rownames(.), 
-//           score = round(-log10(p.value), 2))
-//         all_peaks_df %<>% dplyr::rename(chr = seqnames)
-//         all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
-//         export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
+//     # extracting all peaks (note: th is the fdr threshold, so with th = 1 
+//     # we keep all peaks)
+//     all_peaks_gr = suppressWarnings(dba.report(dbo, th = 1))
 // 
+//     # recomputing the FDR to have more precise values (DiffBind round them 
+//     # at 3 digits)
+//     all_peaks_gr$FDR <- NULL
+//     all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, 
+//                                  method = 'BH')
+// 
+//     # adding the raw reads counts of each replicate
+//     cp_raw = dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_READS)
+//     mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
+//     m <- findOverlaps(all_peaks_gr, cp_raw)
+//     names_subject = names(mcols(cp_raw))
+//     mcols(all_peaks_gr)[queryHits(m), names_subject] = 
+//         mcols(cp_raw)[subjectHits(m), names_subject]
+//     saveRDS(all_peaks_gr, paste0(COMP, '__diffbind_peaks_gr.rds'))
+// 
+// 
+//     ##### Exporting all peaks as a bed file
+// 
+//     all_peaks_df = as.data.frame(all_peaks_gr)
+//     all_peaks_df %<>% dplyr::mutate(
+//       name = rownames(.), 
+//       score = round(-log10(p.value), 2))
+//     all_peaks_df %<>% dplyr::rename(chr = seqnames)
+//     all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
+//     export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
 // 
 //     '''
 // }
@@ -2713,43 +2699,41 @@ process ATAC_reads__marking_duplicated_reads {
 //   // when: params.do_diffbind_peak_annotation
 // 
 //   shell:
-//   '''
-//       #!/usr/bin/env Rscript
+//     '''
+//     #!/usr/bin/env Rscript
+// 
+//     ##### loading data, libraries and parameters
+//     library(GenomicFeatures)
+//     library(ChIPseeker)
+//     library(magrittr)
+// 
+//     COMP = '!{COMP}'
+//     tx_db <- loadDb('!{params.txdb}')
+//     upstream = !{params.diffbind_peaks__promoter_up}
+//     downstream = !{params.diffbind_peaks__promoter_down}
+//     diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
 // 
 // 
-//       ##### loading data, libraries and parameters
+//     ##### annotating peaks
+//     anno_peak_cs = annotatePeak(diffbind_peaks_gr, 
+//                                 TxDb = tx_db, 
+//                                 tssRegion = c(-upstream, downstream), 
+//                                 level = 'gene', 
+//                                 overlap = 'all')
 // 
-//       library(GenomicFeatures)
-//       library(ChIPseeker)
-//       library(magrittr)
+//     ##### creating the data frame object
+//     anno_peak_gr = anno_peak_cs@anno
+//     df = as.data.frame(anno_peak_gr)
+//     anno_peak_df = cbind(peak_id = rownames(df), df, 
+//       anno_peak_cs@detailGenomicAnnotation)
+//     anno_peak_df$peak_id %<>% as.character %>% as.integer
 // 
-//       COMP = '!{COMP}'
-//       tx_db <- loadDb('!{params.txdb}')
-//       upstream = !{params.diffbind_peaks__promoter_up}
-//       downstream = !{params.diffbind_peaks__promoter_down}
-//       diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
+//     ##### saving results
+//     name0 = paste0(COMP, '__diffb_anno_peaks')
+//     saveRDS(anno_peak_df, paste0(name0, '_df.rds'))
+//     saveRDS(anno_peak_cs, paste0(name0, '_cs.rds'))
 // 
-// 
-//       ##### annotating peaks
-//       anno_peak_cs = annotatePeak(diffbind_peaks_gr, 
-//                                   TxDb = tx_db, 
-//                                   tssRegion = c(-upstream, downstream), 
-//                                   level = 'gene', 
-//                                   overlap = 'all')
-// 
-//       ##### creating the data frame object
-//       anno_peak_gr = anno_peak_cs@anno
-//       df = as.data.frame(anno_peak_gr)
-//       anno_peak_df = cbind(peak_id = rownames(df), df, 
-//         anno_peak_cs@detailGenomicAnnotation)
-//       anno_peak_df$peak_id %<>% as.character %>% as.integer
-// 
-//       ##### saving results
-//       name0 = paste0(COMP, '__diffb_anno_peaks')
-//       saveRDS(anno_peak_df, paste0(name0, '_df.rds'))
-//       saveRDS(anno_peak_cs, paste0(name0, '_cs.rds'))
-// 
-//   '''
+//     '''
 // }
 // 
 // // cs: for ChIPseeker
@@ -2802,84 +2786,80 @@ process ATAC_reads__marking_duplicated_reads {
 //     file("*__ATAC_non_annotated_peaks.txt")
 // 
 //   shell:
-//   '''
-// 
-//       #!/usr/bin/env Rscript
-// 
-// 
-//       ##### loading data and libraries
-// 
-//       library(ggplot2)
-//       library(magrittr)
-//       library(grid)
-//       library(DiffBind)
-// 
-//       source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
-// 
-//       COMP = '!{COMP}'
-// 
-//       dbo = readRDS('!{diffbind_object_rds}')
-//       fdr_threshold = !{params.diffbind_plots__fdr_threshold}
-//       top_n_labels = !{params.diffbind_plots__top_n_labels}
-//       dbo$config$th = fdr_threshold
-//       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-//       df_annotated_peaks = readRDS('!{annotated_peaks}')
+//     '''
+//     #!/usr/bin/env Rscript
 // 
 // 
+//     ##### loading data and libraries
 // 
-//       ##### volcano plots
+//     library(ggplot2)
+//     library(magrittr)
+//     library(grid)
+//     library(DiffBind)
 // 
-//       res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_id = geneId)
-//       df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
-//       res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
+//     source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
 // 
-//       pdf(paste0(COMP, '__ATAC_volcano.pdf'))
-//         plot_volcano_custom(res, sig_level = fdr_threshold, 
-//             label_column = 'gene_name', title = paste(COMP, 'ATAC'),
-//             top_n_labels = top_n_labels)
-//       dev.off()
+//     COMP = '!{COMP}'
 // 
-// 
-//       ##### PCA plots
-// 
-//       # Handling unnanotated peaks
-//       v_gene_names = res$gene_name[match(1:nrow(dbo$binding), res$peak_id)]
-//       sel = which(is.na(v_gene_names))
-//       v_gene_names[is.na(v_gene_names)] = paste0('no_gene_', 1:length(sel))
-//       sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
-//         print(dbo$peaks[[1]][sel,])
-//       sink()
-// 
-//       # doing and plotting the PCA
-//       prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), 
-//         cor = F, bLog = T)$pc
-//       rownames(prcomp1$x) = v_gene_names
-// 
-//       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
-//       lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
-// 
-//       pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
-//         make_4_plots(lp_1_2)
-//       dev.off()
-// 
-//       pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
-//         make_4_plots(lp_3_4)
-//       dev.off()
+//     dbo = readRDS('!{diffbind_object_rds}')
+//     fdr_threshold = !{params.diffbind_plots__fdr_threshold}
+//     top_n_labels = !{params.diffbind_plots__top_n_labels}
+//     dbo$config$th = fdr_threshold
+//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+//     df_annotated_peaks = readRDS('!{annotated_peaks}')
 // 
 // 
-//       ##### other plots
+//     ##### volcano plots
 // 
-//       pdf(paste0(COMP, '__ATAC_other_plots.pdf'))
-//           dba.plotMA(dbo, bNormalized = T)
-//           dba.plotHeatmap(dbo, main = 'all reads')
-//           first_2_replicates = sort(c(which(dbo$masks$Replicate.1), 
-//             which(dbo$masks$Replicate.2)))
-//           dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
-//       dev.off()
+//     res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_id = geneId)
+//     df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
+//     res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
+// 
+//     pdf(paste0(COMP, '__ATAC_volcano.pdf'))
+//       plot_volcano_custom(res, sig_level = fdr_threshold, 
+//           label_column = 'gene_name', title = paste(COMP, 'ATAC'),
+//           top_n_labels = top_n_labels)
+//     dev.off()
 // 
 // 
-//   '''
+//     ##### PCA plots
 // 
+//     # Handling unnanotated peaks
+//     v_gene_names = res$gene_name[match(1:nrow(dbo$binding), res$peak_id)]
+//     sel = which(is.na(v_gene_names))
+//     v_gene_names[is.na(v_gene_names)] = paste0('no_gene_', 1:length(sel))
+//     sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
+//       print(dbo$peaks[[1]][sel,])
+//     sink()
+// 
+//     # doing and plotting the PCA
+//     prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), 
+//       cor = F, bLog = T)$pc
+//     rownames(prcomp1$x) = v_gene_names
+// 
+//     lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
+//     lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
+// 
+//     pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
+//       make_4_plots(lp_1_2)
+//     dev.off()
+// 
+//     pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
+//       make_4_plots(lp_3_4)
+//     dev.off()
+// 
+// 
+//     ##### other plots
+// 
+//     pdf(paste0(COMP, '__ATAC_other_plots.pdf'))
+//         dba.plotMA(dbo, bNormalized = T)
+//         dba.plotHeatmap(dbo, main = 'all reads')
+//         first_2_replicates = sort(c(which(dbo$masks$Replicate.1), 
+//           which(dbo$masks$Replicate.2)))
+//         dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
+//     dev.off()
+// 
+//     '''
 // }
 // 
 // Merging_pdfs_channel = Merging_pdfs_channel
@@ -2916,86 +2896,82 @@ process ATAC_reads__marking_duplicated_reads {
 //     set COMP, file("*.rds") into ATAC_detailed_tables_for_splitting_in_subsets
 // 
 //   shell:
-//   '''
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//       #!/usr/bin/env Rscript
+//     ##### loading data and libraries
+//     library(magrittr)
+//     library(purrr)
 // 
-//       ##### loading data and libraries
+//     COMP = '!{COMP}'
 // 
-//       library(magrittr)
-//       library(purrr)
-// 
-//       COMP = '!{COMP}'
-// 
-//       df_annotated_peaks = readRDS('!{annotated_peaks}')
-//       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+//     df_annotated_peaks = readRDS('!{annotated_peaks}')
+//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
 // 
 // 
-//       # setting up parameters
-//       conditions = tolower(strsplit(COMP, '_vs_')[[1]])
-//       cond1 = conditions[1]
-//       cond2 = conditions[2]
+//     # setting up parameters
+//     conditions = tolower(strsplit(COMP, '_vs_')[[1]])
+//     cond1 = conditions[1]
+//     cond2 = conditions[2]
 // 
-//       # creating the res_detailed table
-//       res_detailed = df_annotated_peaks
-//       # adding gene metadata in a more readable format than what provided by 
-//       # default by ChIPseeker
-//       df_genes_metadata1 = dplyr::rename(df_genes_metadata, gene_chr = chr, 
-//         gene_start = start, gene_end = end, gene_width = width, 
-//         gene_strand = strand)
-//       res_detailed %<>% dplyr::select(-geneChr, -geneStart, -geneEnd, 
-//         -geneLength, -geneStrand)
-//       colnames(res_detailed) %<>% tolower
-//       res_detailed %<>% dplyr::rename(gene_id = geneid)
-//       res_detailed %<>% dplyr::inner_join(df_genes_metadata1, by = 'gene_id')
+//     # creating the res_detailed table
+//     res_detailed = df_annotated_peaks
+//     # adding gene metadata in a more readable format than what provided by 
+//     # default by ChIPseeker
+//     df_genes_metadata1 = dplyr::rename(df_genes_metadata, gene_chr = chr, 
+//       gene_start = start, gene_end = end, gene_width = width, 
+//       gene_strand = strand)
+//     res_detailed %<>% dplyr::select(-geneChr, -geneStart, -geneEnd, 
+//       -geneLength, -geneStrand)
+//     colnames(res_detailed) %<>% tolower
+//     res_detailed %<>% dplyr::rename(gene_id = geneid)
+//     res_detailed %<>% dplyr::inner_join(df_genes_metadata1, by = 'gene_id')
 // 
-//       # renaming columns
-//       res_detailed %<>% dplyr::rename(chr = seqnames, L2FC = fold, 
-//         pval = p.value, distance_to_tss = distancetotss, five_UTR = fiveutr, 
-//         three_UTR = threeutr)
-//       res_detailed$COMP = COMP
+//     # renaming columns
+//     res_detailed %<>% dplyr::rename(chr = seqnames, L2FC = fold, 
+//       pval = p.value, distance_to_tss = distancetotss, five_UTR = fiveutr, 
+//       three_UTR = threeutr)
+//     res_detailed$COMP = COMP
 // 
-//       # collapsing replicates values and renaming these columns as well
-//       colnames(res_detailed)[grep('conc_', colnames(res_detailed))] = 
-//         c('conc_cond1', 'conc_cond2')
-//       colns = colnames(res_detailed)
-//       colns1 = grep(paste0('^', cond1, '_'), colns)
-//       colns2 = grep(paste0('^', cond2, '_'), colns)
-//       res_detailed$counts_cond1 = 
-//         apply(res_detailed[, colns1], 1, paste, collapse = '|')
-//       res_detailed$counts_cond2 = 
-//         apply(res_detailed[, colns2], 1, paste, collapse = '|')
-//       res_detailed[, c(colns1, colns2)] <- NULL
+//     # collapsing replicates values and renaming these columns as well
+//     colnames(res_detailed)[grep('conc_', colnames(res_detailed))] = 
+//       c('conc_cond1', 'conc_cond2')
+//     colns = colnames(res_detailed)
+//     colns1 = grep(paste0('^', cond1, '_'), colns)
+//     colns2 = grep(paste0('^', cond2, '_'), colns)
+//     res_detailed$counts_cond1 = 
+//       apply(res_detailed[, colns1], 1, paste, collapse = '|')
+//     res_detailed$counts_cond2 = 
+//       apply(res_detailed[, colns2], 1, paste, collapse = '|')
+//     res_detailed[, c(colns1, colns2)] <- NULL
 // 
-//       # reordering columns
-//       res_detailed$strand <- NULL  
-//         # strand information is not available for ATAC-Seq
-//       res_detailed %<>% dplyr::select(COMP, peak_id, chr, start, end, width, 
-//         gene_name, gene_id, pval, padj, L2FC, distance_to_tss, annotation, conc, 
-//         conc_cond1, conc_cond2, counts_cond1, counts_cond2, dplyr::everything())
+//     # reordering columns
+//     res_detailed$strand <- NULL  
+//       # strand information is not available for ATAC-Seq
+//     res_detailed %<>% dplyr::select(COMP, peak_id, chr, start, end, width, 
+//       gene_name, gene_id, pval, padj, L2FC, distance_to_tss, annotation, conc, 
+//       conc_cond1, conc_cond2, counts_cond1, counts_cond2, dplyr::everything())
 // 
-//       # adding the filtering columns
-//       res_detailed %<>% dplyr::mutate(
-//         FC_up = L2FC > 0,
-//         FC_down = L2FC < 0,
+//     # adding the filtering columns
+//     res_detailed %<>% dplyr::mutate(
+//       FC_up = L2FC > 0,
+//       FC_down = L2FC < 0,
 // 
-//         PA_8kb = abs(distance_to_tss) < 8000,
-//         PA_3kb = abs(distance_to_tss) < 3000,
-//         PA_2u1d = distance_to_tss > -2000 & distance_to_tss < 1000,
-//         PA_TSS = distance_to_tss == 0,
-//         PA_genProm = genic | promoter,
-//         PA_genic = genic,
-//         PA_prom = promoter,
-//         PA_distNC = distal_intergenic | ( intron & !promoter & !five_UTR  & 
-//           !three_UTR  & !exon)
-//       )
+//       PA_8kb = abs(distance_to_tss) < 8000,
+//       PA_3kb = abs(distance_to_tss) < 3000,
+//       PA_2u1d = distance_to_tss > -2000 & distance_to_tss < 1000,
+//       PA_TSS = distance_to_tss == 0,
+//       PA_genProm = genic | promoter,
+//       PA_genic = genic,
+//       PA_prom = promoter,
+//       PA_distNC = distal_intergenic | ( intron & !promoter & !five_UTR  & 
+//         !three_UTR  & !exon)
+//     )
 // 
-//       # saving table
-//       saveRDS(res_detailed, paste0(COMP, '__res_detailed_atac.rds'))
+//     # saving table
+//     saveRDS(res_detailed, paste0(COMP, '__res_detailed_atac.rds'))
 // 
-// 
-//   '''
-// 
+//     '''
 // }
 // 
 // 
@@ -3007,96 +2983,95 @@ process ATAC_reads__marking_duplicated_reads {
 // 
 // 
 // process DA_mRNA__doing_differential_abundance_analysis {
-//     tag "${COMP}"
+//   tag "${COMP}"
 // 
-//     label "sleuth"
+//   label "sleuth"
 // 
-//     publishDir path: "${out_processed}/2_Differential_Abundance", 
-//       mode: "${pub_mode}", saveAs: {
-//          if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) 
-//             "mRNA__all_genes__rsleuth/${it}"
-//          // else if (it.indexOf("__mRNA_DEG_df.rds") > 0) 
-//          //    "mRNA__all_genes__dataframe/${it}"
-//          else if (it.indexOf("__all_genes_prom.bed") > 0) 
-//             "mRNA__all_genes__bed_promoters/${it}"
-//     }
+//   publishDir path: "${out_processed}/2_Differential_Abundance", 
+//     mode: "${pub_mode}", saveAs: {
+//        if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) 
+//           "mRNA__all_genes__rsleuth/${it}"
+//        // else if (it.indexOf("__mRNA_DEG_df.rds") > 0) 
+//        //    "mRNA__all_genes__dataframe/${it}"
+//        else if (it.indexOf("__all_genes_prom.bed") > 0) 
+//           "mRNA__all_genes__bed_promoters/${it}"
+//   }
 // 
-//     when: do_mRNA
+//   when: do_mRNA
 // 
-//     input:
-//       set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) 
-//         from Kallisto_results_for_sleuth_4
+//   input:
+//     set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) 
+//       from Kallisto_results_for_sleuth_4
 // 
-//     output:
-//       set COMP, file('*__mRNA_DEG_rsleuth.rds') into Sleuth_results_for_plotting
-//       set COMP, file('*__mRNA_DEG_df.rds') into Sleuth_results_for_saving_tables
-//       set COMP, file('*__all_genes_prom.bed') 
-//         into All_detected_sleuth_promoters_for_background
+//   output:
+//     set COMP, file('*__mRNA_DEG_rsleuth.rds') into Sleuth_results_for_plotting
+//     set COMP, file('*__mRNA_DEG_df.rds') into Sleuth_results_for_saving_tables
+//     set COMP, file('*__all_genes_prom.bed') 
+//       into All_detected_sleuth_promoters_for_background
 // 
-//     shell:
+//   shell:
 //     '''
-//       #!/usr/bin/env Rscript
+//     #!/usr/bin/env Rscript
 // 
-//       library(sleuth)
-//       library(ggplot2)
-//       library(magrittr)
+//     library(sleuth)
+//     library(ggplot2)
+//     library(magrittr)
 // 
-//       df_genes_transcripts = readRDS('!{params.df_genes_transcripts}')
-//       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+//     df_genes_transcripts = readRDS('!{params.df_genes_transcripts}')
+//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
 // 
-//       COMP = '!{COMP}'
-//       cond1 = '!{cond1}'
-//       cond2 = '!{cond2}'
+//     COMP = '!{COMP}'
+//     cond1 = '!{cond1}'
+//     cond2 = '!{cond2}'
 // 
-//       promoters_df = readRDS('!{params.promoters_df}')
-//       source('!{projectDir}/bin/export_df_to_bed.R')
-//       source('!{projectDir}/bin/get_prom_bed_df_table.R')
+//     promoters_df = readRDS('!{params.promoters_df}')
+//     source('!{projectDir}/bin/export_df_to_bed.R')
+//     source('!{projectDir}/bin/get_prom_bed_df_table.R')
 // 
 // 
-//       s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), 
-//         stringsAsFactors = F)
-//       s2c$sample = sapply(s2c$path, function(x) strsplit(x, 'kallisto_')[[1]][2])
-//       s2c$condition = sapply(s2c$path, function(x) strsplit(x, '_')[[1]][2])
-//       levels(s2c$condition) = c(cond1, cond2)
+//     s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), 
+//       stringsAsFactors = F)
+//     s2c$sample = sapply(s2c$path, function(x) strsplit(x, 'kallisto_')[[1]][2])
+//     s2c$condition = sapply(s2c$path, function(x) strsplit(x, '_')[[1]][2])
+//     levels(s2c$condition) = c(cond1, cond2)
 // 
-//   		test_cond = paste0('condition', cond2)
-//   		cond <- factor(s2c$condition)
-//   		cond <- relevel(cond, ref = cond2)
-//   		md <- model.matrix(~cond, s2c)
-//   		colnames(md)[2] <- test_cond
+// 		test_cond = paste0('condition', cond2)
+// 		cond <- factor(s2c$condition)
+// 		cond <- relevel(cond, ref = cond2)
+// 		md <- model.matrix(~cond, s2c)
+// 		colnames(md)[2] <- test_cond
 // 
-//       t2g <- dplyr::rename(df_genes_transcripts, target_id = TXNAME, 
-//           gene_id = GENEID)
-//       t2g$target_id %<>% paste0('transcript:', .)
+//     t2g <- dplyr::rename(df_genes_transcripts, target_id = TXNAME, 
+//         gene_id = GENEID)
+//     t2g$target_id %<>% paste0('transcript:', .)
 // 
-//       # Load the kallisto data, normalize counts and filter genes
-// 		  sleo <- sleuth_prep(sample_to_covariates = s2c, full_model = md, 
-//         target_mapping = t2g, aggregation_column = 'gene_id', 
-//         transform_fun_counts = function(x) log2(x + 0.5), gene_mode = T)
+//     # Load the kallisto data, normalize counts and filter genes
+// 	  sleo <- sleuth_prep(sample_to_covariates = s2c, full_model = md, 
+//       target_mapping = t2g, aggregation_column = 'gene_id', 
+//       transform_fun_counts = function(x) log2(x + 0.5), gene_mode = T)
 // 
-//       # Estimate parameters for the sleuth response error measurement (full) model
-//       sleo <- sleuth_fit(sleo)
+//     # Estimate parameters for the sleuth response error measurement (full) model
+//     sleo <- sleuth_fit(sleo)
 // 
-//       # Performing test and saving the sleuth object
-//       sleo <- sleuth_wt(sleo, test_cond)
-//       saveRDS(sleo, file = paste0(COMP, '__mRNA_DEG_rsleuth.rds'))
+//     # Performing test and saving the sleuth object
+//     sleo <- sleuth_wt(sleo, test_cond)
+//     saveRDS(sleo, file = paste0(COMP, '__mRNA_DEG_rsleuth.rds'))
 // 
-//       # saving as dataframe and recomputing the FDR
-//       res <- sleuth_results(sleo, test_cond, test_type = 'wt', 
-//         pval_aggregate  = F)
-//       res %<>% .[!is.na(.$b), ]
-//       res$padj = p.adjust(res$pval, method = 'BH')
-//       res$qval <- NULL
-//       res %<>% dplyr::rename(gene_id = target_id)
-//       res1 = dplyr::inner_join(df_genes_metadata, res, by = 'gene_id')
-//       saveRDS(res1, file = paste0(COMP, '__mRNA_DEG_df.rds'))
+//     # saving as dataframe and recomputing the FDR
+//     res <- sleuth_results(sleo, test_cond, test_type = 'wt', 
+//       pval_aggregate  = F)
+//     res %<>% .[!is.na(.$b), ]
+//     res$padj = p.adjust(res$pval, method = 'BH')
+//     res$qval <- NULL
+//     res %<>% dplyr::rename(gene_id = target_id)
+//     res1 = dplyr::inner_join(df_genes_metadata, res, by = 'gene_id')
+//     saveRDS(res1, file = paste0(COMP, '__mRNA_DEG_df.rds'))
 // 
-//       # exporting promoters of all detected genes
-//       promoters_df1 = promoters_df
-//       promoters_df1 %<>% .[.$gene_id %in% res1$gene_id, ]
-//       prom_bed_df = get_prom_bed_df_table(promoters_df1, res1)
-//       export_df_to_bed(prom_bed_df, paste0(COMP, '__all_genes_prom.bed'))
-// 
+//     # exporting promoters of all detected genes
+//     promoters_df1 = promoters_df
+//     promoters_df1 %<>% .[.$gene_id %in% res1$gene_id, ]
+//     prom_bed_df = get_prom_bed_df_table(promoters_df1, res1)
+//     export_df_to_bed(prom_bed_df, paste0(COMP, '__all_genes_prom.bed'))
 // 
 //     '''
 // }
@@ -3129,113 +3104,112 @@ process ATAC_reads__marking_duplicated_reads {
 // 
 // 
 // process DA_mRNA__plotting_differential_abundance_results {
-//     tag "${COMP}"
+//   tag "${COMP}"
 // 
-//     publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
-//       saveAs: { 
-//         if (it.indexOf("__mRNA_volcano.pdf") > 0) "mRNA__volcano/${it}"
-//         else if (it.indexOf("__mRNA_PCA_1_2.pdf") > 0) "mRNA__PCA_1_2/${it}"
-//         else if (it.indexOf("__mRNA_PCA_3_4.pdf") > 0) "mRNA__PCA_3_4/${it}"
-//         else if (it.indexOf("__mRNA_other_plots.pdf") > 0) "mRNA__other_plots/${it}"
-//       }
+//   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
+//     saveAs: { 
+//       if (it.indexOf("__mRNA_volcano.pdf") > 0) "mRNA__volcano/${it}"
+//       else if (it.indexOf("__mRNA_PCA_1_2.pdf") > 0) "mRNA__PCA_1_2/${it}"
+//       else if (it.indexOf("__mRNA_PCA_3_4.pdf") > 0) "mRNA__PCA_3_4/${it}"
+//       else if (it.indexOf("__mRNA_other_plots.pdf") > 0) "mRNA__other_plots/${it}"
+//     }
 // 
 // 
-//     label "sleuth"
+//   label "sleuth"
 // 
-//     input:
-//       val out_path from Channel.value('2_Differential_Abundance')
-//       set COMP, file(mRNA_DEG_rsleuth_rds) from Sleuth_results_for_plotting
+//   input:
+//     val out_path from Channel.value('2_Differential_Abundance')
+//     set COMP, file(mRNA_DEG_rsleuth_rds) from Sleuth_results_for_plotting
 // 
-//     output:
-//       set val("mRNA__volcano"), out_path, file('*__mRNA_volcano.pdf') 
-//         into MRNA_Volcano_for_merging_pdfs
-//       set val("mRNA__PCA_1_2"), out_path, file('*__mRNA_PCA_1_2.pdf') 
-//         into MRNA_PCA_1_2_for_merging_pdfs
-//       set val("mRNA__PCA_3_4"), out_path, file('*__mRNA_PCA_3_4.pdf') 
-//         into MRNA_PCA_3_4_for_merging_pdfs
-//       set val("mRNA__other_plots"), out_path, file('*__mRNA_other_plots.pdf') 
-//         into MRNA_Other_plot_for_merging_pdfs
+//   output:
+//     set val("mRNA__volcano"), out_path, file('*__mRNA_volcano.pdf') 
+//       into MRNA_Volcano_for_merging_pdfs
+//     set val("mRNA__PCA_1_2"), out_path, file('*__mRNA_PCA_1_2.pdf') 
+//       into MRNA_PCA_1_2_for_merging_pdfs
+//     set val("mRNA__PCA_3_4"), out_path, file('*__mRNA_PCA_3_4.pdf') 
+//       into MRNA_PCA_3_4_for_merging_pdfs
+//     set val("mRNA__other_plots"), out_path, file('*__mRNA_other_plots.pdf') 
+//       into MRNA_Other_plot_for_merging_pdfs
 // 
-//     shell:
+//   shell:
 //     '''
-//       #!/usr/bin/env Rscript
+//     #!/usr/bin/env Rscript
 // 
 // 
-//       ##### Loading libraries and data
+//     ##### Loading libraries and data
 // 
-//       library(sleuth)
-//       library(ggplot2)
-//       library(magrittr)
-//       library(grid)
+//     library(sleuth)
+//     library(ggplot2)
+//     library(magrittr)
+//     library(grid)
 // 
-//       source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
+//     source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
 // 
-//       sleo = readRDS('!{mRNA_DEG_rsleuth_rds}')
-//       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+//     sleo = readRDS('!{mRNA_DEG_rsleuth_rds}')
+//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
 // 
-//       COMP = '!{COMP}'
-//       conditions = strsplit(COMP, '_vs_')[[1]]
-//       cond1 = conditions[1]
-//       cond2 = conditions[2]
-//       test_cond = paste0('condition', cond2)
+//     COMP = '!{COMP}'
+//     conditions = strsplit(COMP, '_vs_')[[1]]
+//     cond1 = conditions[1]
+//     cond2 = conditions[2]
+//     test_cond = paste0('condition', cond2)
 // 
-//       fdr_threshold = !{params.sleuth_plots__fdr_threshold}
-//       top_n_labels  = !{params.sleuth_plots__top_n_labels}
-// 
-// 
-//       ##### volcano plots
-// 
-//       res_volcano <- sleuth_results(sleo, test_cond)
-//       res_volcano %<>% dplyr::rename(gene_id = target_id, L2FC = b)
-//       df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
-//       res_volcano %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
-//       res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
-// 
-//       pdf(paste0(COMP, '__mRNA_volcano.pdf'))
-//         plot_volcano_custom(res_volcano, sig_level = fdr_threshold, 
-//           label_column = 'gene_name', title = paste(COMP, 'mRNA'),
-//           top_n_labels = top_n_labels
-//           )
-//       dev.off()
+//     fdr_threshold = !{params.sleuth_plots__fdr_threshold}
+//     top_n_labels  = !{params.sleuth_plots__top_n_labels}
 // 
 // 
-//       ##### PCA plots
+//     ##### volcano plots
 // 
-//       # the pca is computed using the default parameters in the sleuth functions 
-//       # sleuth::plot_pca
-//       mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 
-//         'scaled_reads_per_base')
-//       prcomp1 <- prcomp(mat)
-//       v_gene_id_name = df_genes_metadata_1$gene_name %>% 
-//         setNames(., df_genes_metadata_1$gene_id)
-//       rownames(prcomp1$x) %<>% v_gene_id_name[.]
+//     res_volcano <- sleuth_results(sleo, test_cond)
+//     res_volcano %<>% dplyr::rename(gene_id = target_id, L2FC = b)
+//     df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
+//     res_volcano %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
+//     res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
 // 
-//       lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
-//       lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'mRNA'))
-// 
-//       pdf(paste0(COMP, '__mRNA_PCA_1_2.pdf'))
-//         make_4_plots(lp_1_2)
-//       dev.off()
-// 
-//       pdf(paste0(COMP, '__mRNA_PCA_3_4.pdf'))
-//         make_4_plots(lp_3_4)
-//       dev.off()
+//     pdf(paste0(COMP, '__mRNA_volcano.pdf'))
+//       plot_volcano_custom(res_volcano, sig_level = fdr_threshold, 
+//         label_column = 'gene_name', title = paste(COMP, 'mRNA'),
+//         top_n_labels = top_n_labels
+//         )
+//     dev.off()
 // 
 // 
-//       ##### other plots
+//     ##### PCA plots
 // 
-//       pdf(paste0(COMP, '__mRNA_other_plots.pdf'))
-//         plot_ma(sleo, test = test_cond, sig_level = fdr_threshold) + 
-//           ggtitle(paste('MA:', COMP))
-//         plot_group_density(sleo, use_filtered = TRUE, 
-//           units = "scaled_reads_per_base", trans = "log", 
-//           grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), 
-//           offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
-//         # plot_scatter(sleo) + ggtitle(paste('Scatter:', COMP))
-//         # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', 
-//         # COMP))
-//       dev.off()
+//     # the pca is computed using the default parameters in the sleuth functions 
+//     # sleuth::plot_pca
+//     mat = sleuth:::spread_abundance_by(sleo$obs_norm_filt, 
+//       'scaled_reads_per_base')
+//     prcomp1 <- prcomp(mat)
+//     v_gene_id_name = df_genes_metadata_1$gene_name %>% 
+//       setNames(., df_genes_metadata_1$gene_id)
+//     rownames(prcomp1$x) %<>% v_gene_id_name[.]
 // 
+//     lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
+//     lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'mRNA'))
+// 
+//     pdf(paste0(COMP, '__mRNA_PCA_1_2.pdf'))
+//       make_4_plots(lp_1_2)
+//     dev.off()
+// 
+//     pdf(paste0(COMP, '__mRNA_PCA_3_4.pdf'))
+//       make_4_plots(lp_3_4)
+//     dev.off()
+// 
+// 
+//     ##### other plots
+// 
+//     pdf(paste0(COMP, '__mRNA_other_plots.pdf'))
+//       plot_ma(sleo, test = test_cond, sig_level = fdr_threshold) + 
+//         ggtitle(paste('MA:', COMP))
+//       plot_group_density(sleo, use_filtered = TRUE, 
+//         units = "scaled_reads_per_base", trans = "log", 
+//         grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), 
+//         offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
+//       # plot_scatter(sleo) + ggtitle(paste('Scatter:', COMP))
+//       # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', 
+//       # COMP))
+//     dev.off()
 // 
 //     '''
 // }
@@ -3253,47 +3227,47 @@ process ATAC_reads__marking_duplicated_reads {
 // 
 // 
 // process DA_mRNA__saving_detailed_results_tables {
-//     tag "${COMP}"
+//   tag "${COMP}"
 // 
-//     label "r_basic"
+//   label "r_basic"
 // 
-//     publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", 
-//       mode: pub_mode, enabled: params.tables__save_csv
+//   publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", 
+//     mode: pub_mode, enabled: params.tables__save_csv
 // 
-//     when: do_mRNA
+//   when: do_mRNA
 // 
-//     input:
+//   input:
 //     set COMP, file(mRNA_DEG_df) from Sleuth_results_for_saving_tables
 // 
-//     output:
+//   output:
 //     set val('mRNA_detailed'), val('2_Differential_Abundance'), file('*.rds') 
 //       into MRNA_detailed_tables_for_formatting_table
 //     set COMP, file('*.rds') into MRNA_detailed_tables_for_splitting_in_subsets
 // 
-//     shell:
-//     '''
-//       #!/usr/bin/env Rscript
+//   shell:
+//   '''
+//     #!/usr/bin/env Rscript
 // 
 // 
-//       ##### Loading libraries and data
+//     ## Loading libraries and data
 // 
-//       library(magrittr)
+//     library(magrittr)
 // 
-//       COMP = '!{COMP}'
+//     COMP = '!{COMP}'
 // 
-//       mRNA_DEG_df = readRDS('!{mRNA_DEG_df}')
-// 
-// 
-//       ##### Saving a detailed results table
-//       res_detailed = mRNA_DEG_df
-//       res_detailed %<>% dplyr::rename(L2FC = b)
-//       res_detailed$COMP = COMP
-//       res_detailed %<>% dplyr::select(COMP, chr, start, end, width, strand, 
-//         gene_name, gene_id, entrez_id, pval, padj, L2FC, dplyr::everything())
-//       saveRDS(res_detailed, paste0(COMP, '__res_detailed_mRNA.rds'))
+//     mRNA_DEG_df = readRDS('!{mRNA_DEG_df}')
 // 
 // 
-//     '''
+//     ## Saving a detailed results table
+// 
+//     res_detailed = mRNA_DEG_df
+//     res_detailed %<>% dplyr::rename(L2FC = b)
+//     res_detailed$COMP = COMP
+//     res_detailed %<>% dplyr::select(COMP, chr, start, end, width, strand, 
+//       gene_name, gene_id, entrez_id, pval, padj, L2FC, dplyr::everything())
+//     saveRDS(res_detailed, paste0(COMP, '__res_detailed_mRNA.rds'))
+// 
+//   '''
 // }
 // 
 // 
@@ -3366,209 +3340,208 @@ process ATAC_reads__marking_duplicated_reads {
 // 
 // 
 //   shell:
-//   '''
-// 
-//       #!/usr/bin/env Rscript
-// 
-//       ##### loading data and libraries
-//       library(magrittr)
-//       library(purrr)
-//       library(data.table)
-// 
-//       source('!{projectDir}/bin/splitting_DAR_in_subsets_functions.R')
-//       source('!{projectDir}/bin/export_df_to_bed.R')
-//       source('!{projectDir}/bin/get_prom_bed_df_table.R')
-//       source('!{projectDir}/bin/read_from_nextflow.R')
-// 
-//       COMP = '!{COMP}'
-// 
-//       do_mRNA = !{do_mRNA_lgl}
-//       do_atac = !{do_atac_lgl}
-// 
-//       lf = list.files()
-// 
-//       promoters_df = readRDS('!{params.promoters_df}')
-// 
-//       TT       = '!{params.split__threshold_type}'
-//       TV_split = read_from_nextflow(
-//         '!{params.split__threshold_values}') %>% as.numeric
-//       FC_split = read_from_nextflow(
-//         '!{params.split__fold_changes}')
-//       PA_split = read_from_nextflow(
-//         '!{params.split__peak_assignment}')
+//     '''
+//     #!/usr/bin/env Rscript
 // 
 // 
-//       ################################
-//       # creating the res_simple table
+//     ################################
+//     ## loading data and libraries
+//     library(magrittr)
+//     library(purrr)
+//     library(data.table)
 // 
-//       # combining atac and mRNA results
-//       if(do_atac) {
-//         res_detailed_atac = readRDS(grep('atac.rds', lf, value = T))
+//     source('!{projectDir}/bin/splitting_DAR_in_subsets_functions.R')
+//     source('!{projectDir}/bin/export_df_to_bed.R')
+//     source('!{projectDir}/bin/get_prom_bed_df_table.R')
+//     source('!{projectDir}/bin/read_from_nextflow.R')
 // 
-//         # adding the aggregated PF filter column
-//         res_detailed_atac$PA_all = T
-//         PA_columns_all = grep('PA_', colnames(res_detailed_atac), value = T)
-//         res_detailed_atac$PF = 
-//           get_merged_columns(res_detailed_atac, paste0('PA_', PA_split), 'PF')
+//     COMP = '!{COMP}'
 // 
-//         res_simple_atac = res_detailed_atac %>% 
-//           dplyr::mutate(transcript_id = NA, ET = 'ATAC') %>% 
-//           dplyr::select(COMP, peak_id, chr, gene_name, gene_id, pval, padj, 
-//             L2FC, PF, ET)
+//     do_mRNA = !{do_mRNA_lgl}
+//     do_atac = !{do_atac_lgl}
 // 
-//         # adding the rank column
-//         res_simple_atac %<>% dplyr::arrange(padj, desc(abs(L2FC)))
-//         dt = data.table(res_simple_atac)
-//         dt[, FC := ifelse(L2FC > 0, 'up', 'down')]
-//         dt[L2FC == 0, FC := 'NA']
-//         dt$rank = 0
-//         dt[(!duplicated(dt[, c('gene_id', 'FC')])), rank := 1:.N]
-//         dt[, rank := rank[1], .(cumsum(rank != 0))]
-//         dt[, FC := NULL]
-//         res_simple_atac = dt %>% copy %>% setDF
+//     lf = list.files()
 // 
-//         res_simple = res_simple_atac
-//       }
+//     promoters_df = readRDS('!{params.promoters_df}')
 // 
-//       if(do_mRNA) {
-//         res_detailed_mRNA = readRDS(grep('mRNA.rds', lf, value = T))
-//         res_simple_mRNA = res_detailed_mRNA %>% dplyr::select(COMP, chr, 
-//           gene_name, gene_id, pval, padj, L2FC)
-//         res_simple_mRNA = cbind(peak_id = 'Null', res_simple_mRNA, ET = 'mRNA', 
-//           PF = 'Null', stringsAsFactors = F)
-//         res_simple_mRNA %<>% dplyr::select(COMP, peak_id, chr, gene_name, 
-//           gene_id, pval, padj, L2FC, PF, ET)
+//     TT       = '!{params.split__threshold_type}'
+//     TV_split = read_from_nextflow(
+//       '!{params.split__threshold_values}') %>% as.numeric
+//     FC_split = read_from_nextflow(
+//       '!{params.split__fold_changes}')
+//     PA_split = read_from_nextflow(
+//       '!{params.split__peak_assignment}')
 // 
-//         # adding the rank column
-//         res_simple_mRNA %<>% dplyr::arrange(padj, desc(abs(L2FC)))
-//         res_simple_mRNA$rank = 1:nrow(res_simple_mRNA)
 // 
-//         res_simple = res_simple_mRNA
-//       }
+//     ################################
+//     ## creating the res_simple table
 // 
-//       if(do_mRNA & do_atac) res_simple = rbind(res_simple_atac, res_simple_mRNA)
+//     # combining atac and mRNA results
+//     if(do_atac) {
+//       res_detailed_atac = readRDS(grep('atac.rds', lf, value = T))
 // 
-//       # adding the aggregated FC filter column
-//       res_simple %<>% dplyr::mutate(FC_all = T, FC_up = L2FC > 0, 
-//         FC_down = L2FC < 0)
-//       res_simple$FC = get_merged_columns(res_simple, paste0('FC_', FC_split), 
-//         'FC')
+//       # adding the aggregated PF filter column
+//       res_detailed_atac$PA_all = T
+//       PA_columns_all = grep('PA_', colnames(res_detailed_atac), value = T)
+//       res_detailed_atac$PF = 
+//         get_merged_columns(res_detailed_atac, paste0('PA_', PA_split), 'PF')
 // 
-//       # adding the aggregated TV filter column
-//       for(TV in TV_split) res_simple[[paste0('TV_', TV)]] = 
-//         filter_entries_by_threshold(res_simple, TT, TV)
-//       res_simple$TV = 
-//         get_merged_columns(res_simple, paste0('TV_', TV_split), 'TV')
-//       res_simple$TV %<>% gsub('^$', 'NS', .)  # NS: None Significant
+//       res_simple_atac = res_detailed_atac %>% 
+//         dplyr::mutate(transcript_id = NA, ET = 'ATAC') %>% 
+//         dplyr::select(COMP, peak_id, chr, gene_name, gene_id, pval, padj, 
+//           L2FC, PF, ET)
 // 
-//       # filtering and reordering columns
-//       res_simple %<>% dplyr::select(ET, PF, FC, TV, COMP, peak_id, chr, 
+//       # adding the rank column
+//       res_simple_atac %<>% dplyr::arrange(padj, desc(abs(L2FC)))
+//       dt = data.table(res_simple_atac)
+//       dt[, FC := ifelse(L2FC > 0, 'up', 'down')]
+//       dt[L2FC == 0, FC := 'NA']
+//       dt$rank = 0
+//       dt[(!duplicated(dt[, c('gene_id', 'FC')])), rank := 1:.N]
+//       dt[, rank := rank[1], .(cumsum(rank != 0))]
+//       dt[, FC := NULL]
+//       res_simple_atac = dt %>% copy %>% setDF
+// 
+//       res_simple = res_simple_atac
+//     }
+// 
+//     if(do_mRNA) {
+//       res_detailed_mRNA = readRDS(grep('mRNA.rds', lf, value = T))
+//       res_simple_mRNA = res_detailed_mRNA %>% dplyr::select(COMP, chr, 
 //         gene_name, gene_id, pval, padj, L2FC)
+//       res_simple_mRNA = cbind(peak_id = 'Null', res_simple_mRNA, ET = 'mRNA', 
+//         PF = 'Null', stringsAsFactors = F)
+//       res_simple_mRNA %<>% dplyr::select(COMP, peak_id, chr, gene_name, 
+//         gene_id, pval, padj, L2FC, PF, ET)
 // 
-//       saveRDS(res_simple, paste0(COMP, '__res_simple.rds'))
+//       # adding the rank column
+//       res_simple_mRNA %<>% dplyr::arrange(padj, desc(abs(L2FC)))
+//       res_simple_mRNA$rank = 1:nrow(res_simple_mRNA)
+// 
+//       res_simple = res_simple_mRNA
+//     }
+// 
+//     if(do_mRNA & do_atac) res_simple = rbind(res_simple_atac, res_simple_mRNA)
+// 
+//     # adding the aggregated FC filter column
+//     res_simple %<>% dplyr::mutate(FC_all = T, FC_up = L2FC > 0, 
+//       FC_down = L2FC < 0)
+//     res_simple$FC = get_merged_columns(res_simple, paste0('FC_', FC_split), 
+//       'FC')
+// 
+//     # adding the aggregated TV filter column
+//     for(TV in TV_split) res_simple[[paste0('TV_', TV)]] = 
+//       filter_entries_by_threshold(res_simple, TT, TV)
+//     res_simple$TV = 
+//       get_merged_columns(res_simple, paste0('TV_', TV_split), 'TV')
+//     res_simple$TV %<>% gsub('^$', 'NS', .)  # NS: None Significant
+// 
+//     # filtering and reordering columns
+//     res_simple %<>% dplyr::select(ET, PF, FC, TV, COMP, peak_id, chr, 
+//       gene_name, gene_id, pval, padj, L2FC)
+// 
+//     saveRDS(res_simple, paste0(COMP, '__res_simple.rds'))
 // 
 // 
-//       ################################
-//       ## creating the res_filter table
+//     ################################
+//     ## creating the res_filter table
 // 
-//       df_split = expand.grid(TV = TV_split, FC = FC_split, PF = PA_split, 
-//         stringsAsFactors = F)
-//       lres_filter = list()
+//     df_split = expand.grid(TV = TV_split, FC = FC_split, PF = PA_split, 
+//       stringsAsFactors = F)
+//     lres_filter = list()
 // 
-//       for(c1 in 1:nrow(df_split)){
-//         TV1 = df_split$TV[c1]
-//         FC1 = df_split$FC[c1]
-//         PF1 = df_split$PF[c1]
+//     for(c1 in 1:nrow(df_split)){
+//       TV1 = df_split$TV[c1]
+//       FC1 = df_split$FC[c1]
+//       PF1 = df_split$PF[c1]
 // 
-//         res_filter_atac = res_simple %>% 
-//           dplyr::filter(grepl(TV1, TV) & 
-//                         grepl(FC1, FC) & grepl(PF1, PF) & ET == 'ATAC')
-//         res_filter_mRNA = res_simple %>% 
-//           dplyr::filter(grepl(TV1, TV) & grepl(FC1, FC) & ET == 'mRNA')
+//       res_filter_atac = res_simple %>% 
+//         dplyr::filter(grepl(TV1, TV) & 
+//                       grepl(FC1, FC) & grepl(PF1, PF) & ET == 'ATAC')
+//       res_filter_mRNA = res_simple %>% 
+//         dplyr::filter(grepl(TV1, TV) & grepl(FC1, FC) & ET == 'mRNA')
 // 
-//         # adding the Experiment Type "both"
-//         ATAC_genes = res_filter_atac$gene_id
-//         mRNA_genes = res_filter_mRNA$gene_id
-//         both_genes = res_filter_atac$gene_id %>% .[. %in% mRNA_genes]
+//       # adding the Experiment Type "both"
+//       ATAC_genes = res_filter_atac$gene_id
+//       mRNA_genes = res_filter_mRNA$gene_id
+//       both_genes = res_filter_atac$gene_id %>% .[. %in% mRNA_genes]
 // 
-//         res_filter_atac_both = res_filter_atac %>% 
-//           dplyr::filter(gene_id %in% both_genes) %>% 
-//           dplyr::mutate(ET = 'both_ATAC')
-//         res_filter_mRNA_both = res_filter_mRNA %>% 
-//           dplyr::filter(gene_id %in% both_genes) %>% 
-//           dplyr::mutate(ET = 'both_mRNA')
+//       res_filter_atac_both = res_filter_atac %>% 
+//         dplyr::filter(gene_id %in% both_genes) %>% 
+//         dplyr::mutate(ET = 'both_ATAC')
+//       res_filter_mRNA_both = res_filter_mRNA %>% 
+//         dplyr::filter(gene_id %in% both_genes) %>% 
+//         dplyr::mutate(ET = 'both_mRNA')
 // 
-//         res_filter_tmp = rbind(res_filter_atac_both, res_filter_mRNA_both, 
-//           res_filter_atac, res_filter_mRNA)
-//         res_filter_tmp %<>% dplyr::mutate(TV = TV1, FC = FC1, PF = PF1)
-//         res_filter_tmp$PF[res_filter_tmp$ET == 'mRNA'] = 'Null'
+//       res_filter_tmp = rbind(res_filter_atac_both, res_filter_mRNA_both, 
+//         res_filter_atac, res_filter_mRNA)
+//       res_filter_tmp %<>% dplyr::mutate(TV = TV1, FC = FC1, PF = PF1)
+//       res_filter_tmp$PF[res_filter_tmp$ET == 'mRNA'] = 'Null'
 // 
-//         lres_filter[[c1]] = res_filter_tmp
+//       lres_filter[[c1]] = res_filter_tmp
 // 
+//     }
+// 
+//     res_filter = do.call(rbind, lres_filter)
+//     res_filter %<>% .[!duplicated(.), ]
+// 
+//     saveRDS(res_filter, paste0(COMP, '__res_filter.rds'))
+// 
+// 
+//     ################################
+//     ## splitting results in subsets and exporting as bed and gene lists
+// 
+//     if(do_atac) {
+//       atac_bed_df = res_detailed_atac
+//       atac_bed_df %<>% dplyr::mutate(score = round(-log10(padj), 2), 
+//                     name = paste(gene_name, peak_id, sep = '_'), strand = '*')
+//       atac_bed_df %<>% dplyr::select(chr, start, end, name, score, strand, 
+//         gene_id)
+//     }
+// 
+//     if(do_mRNA) {
+//       promoters_df1 = promoters_df
+//       prom_bed_df = get_prom_bed_df_table(promoters_df1, res_simple_mRNA)
+//     }
+// 
+//     res_filter$gene_peak = 
+//       apply(res_filter[, c('gene_name', 'peak_id')], 1, paste, collapse = '_')
+// 
+//     df_split1 = res_filter %>% dplyr::select(ET:TV) %>% .[!duplicated(.),]
+// 
+//     for(c1 in 1:nrow(df_split1)){
+//       ET1  = df_split1$ET[c1]
+//       PF1  = df_split1$PF[c1]
+//       FC1  = df_split1$FC[c1]
+//       TV1 = df_split1$TV[c1]
+// 
+//       df = subset(res_filter, ET == ET1 & PF == PF1 & FC == FC1 & TV == TV1)
+//       DA_genes = unique(df$gene_id)
+//       NDA_genes = subset(res_simple, ET == ET1 & !gene_id %in% DA_genes, 
+//         'gene_id')$gene_id
+//       lgenes = list(DA = DA_genes, NDA = NDA_genes)
+// 
+//       key = paste(ET1, PF1, FC1, TV1, COMP, sep = '__')
+// 
+//       # exporting bed files
+//       if(do_mRNA && ET1 %in% c('mRNA', 'both_mRNA')) {
+//         cur_bed = prom_bed_df %>% .[.$gene_id %in% DA_genes, ]
 //       }
 // 
-//       res_filter = do.call(rbind, lres_filter)
-//       res_filter %<>% .[!duplicated(.), ]
-// 
-//       saveRDS(res_filter, paste0(COMP, '__res_filter.rds'))
-// 
-// 
-//       ################################
-//       ## splitting results in subsets and exporting as bed and gene lists
-// 
-//       if(do_atac) {
-//         atac_bed_df = res_detailed_atac
-//         atac_bed_df %<>% dplyr::mutate(score = round(-log10(padj), 2), 
-//                       name = paste(gene_name, peak_id, sep = '_'), strand = '*')
-//         atac_bed_df %<>% dplyr::select(chr, start, end, name, score, strand, 
-//           gene_id)
+//       if(do_atac && ET1 %in% c('ATAC', 'both_ATAC')) {
+//         cur_bed = atac_bed_df %>% .[.$name %in% df$gene_peak, ]
 //       }
 // 
-//       if(do_mRNA) {
-//         promoters_df1 = promoters_df
-//         prom_bed_df = get_prom_bed_df_table(promoters_df1, res_simple_mRNA)
-//       }
+//       bed_name = paste0(key, '__regions.bed')
+//       export_df_to_bed(cur_bed, bed_name)
 // 
-//       res_filter$gene_peak = 
-//         apply(res_filter[, c('gene_name', 'peak_id')], 1, paste, collapse = '_')
+//       # exporting gene list
+//       key %<>% gsub('both_....', 'both', .) # renaming both_{ATAC,mRNA} as both
+//       saveRDS(lgenes, paste0(key, '__genes.rds'))
 // 
-//       df_split1 = res_filter %>% dplyr::select(ET:TV) %>% .[!duplicated(.),]
+//     }
 // 
-//       for(c1 in 1:nrow(df_split1)){
-//         ET1  = df_split1$ET[c1]
-//         PF1  = df_split1$PF[c1]
-//         FC1  = df_split1$FC[c1]
-//         TV1 = df_split1$TV[c1]
-// 
-//         df = subset(res_filter, ET == ET1 & PF == PF1 & FC == FC1 & TV == TV1)
-//         DA_genes = unique(df$gene_id)
-//         NDA_genes = subset(res_simple, ET == ET1 & !gene_id %in% DA_genes, 
-//           'gene_id')$gene_id
-//         lgenes = list(DA = DA_genes, NDA = NDA_genes)
-// 
-//         key = paste(ET1, PF1, FC1, TV1, COMP, sep = '__')
-// 
-//         # exporting bed files
-//         if(do_mRNA && ET1 %in% c('mRNA', 'both_mRNA')) {
-//           cur_bed = prom_bed_df %>% .[.$gene_id %in% DA_genes, ]
-//         }
-// 
-//         if(do_atac && ET1 %in% c('ATAC', 'both_ATAC')) {
-//           cur_bed = atac_bed_df %>% .[.$name %in% df$gene_peak, ]
-//         }
-// 
-//         bed_name = paste0(key, '__regions.bed')
-//         export_df_to_bed(cur_bed, bed_name)
-// 
-//         # exporting gene list
-//         key %<>% gsub('both_....', 'both', .) # renaming both_{ATAC,mRNA} as both
-//         saveRDS(lgenes, paste0(key, '__genes.rds'))
-// 
-//       }
-// 
-// 
-//   '''
-// 
+//     '''
 // }
 // 
 // // bed_name = paste0(key, '__diff_expr_genes_prom.bed')
@@ -3730,69 +3703,66 @@ process ATAC_reads__marking_duplicated_reads {
 //       into Venn_up_and_down_for_merging_pdfs optional true
 // 
 //   shell:
-//   '''
-//       #!/usr/bin/env Rscript
+//     '''
+//     #!/usr/bin/env Rscript
+// 
+//     library(VennDiagram)
+// 
+//     source('!{projectDir}/bin/plot_venn_diagrams.R')
 // 
 // 
-//       library(VennDiagram)
+//     all_files = list.files(pattern = '*.rds')
 // 
-//       source('!{projectDir}/bin/plot_venn_diagrams.R')
+//     df = data.frame(do.call(rbind, lapply(all_files, 
+//       function(x) strsplit(x, '__')[[1]][-6])), stringsAsFactors = F)
+//     colnames(df) = c('ET', 'PF', 'FC', 'TV', 'COMP')
 // 
+//     PFs = unique(df$PF)
+//     PFs = PFs[PFs != 'Null']
+//     TVs = unique(df$TV)
+//     COMP = df$COMP[1]
 // 
-//       all_files = list.files(pattern = '*.rds')
+//     get_file_name <- function(ET, PF, FC, TV){
+//       paste(ET, PF, FC, TV, COMP, 'genes.rds', sep = '__')
+//     }
 // 
+//     for(PF1 in PFs){
+//       for(TV1 in TVs){
 // 
-//       df = data.frame(do.call(rbind, lapply(all_files, 
-//         function(x) strsplit(x, '__')[[1]][-6])), stringsAsFactors = F)
-//       colnames(df) = c('ET', 'PF', 'FC', 'TV', 'COMP')
+//         atac_up = get_file_name('ATAC', PF1, 'up', TV1)
+//         atac_down = get_file_name('ATAC', PF1, 'down', TV1)
+//         mrna_up = get_file_name('mRNA', 'Null', 'up', TV1)
+//         mrna_down = get_file_name('mRNA', 'Null', 'down', TV1)
 // 
-//       PFs = unique(df$PF)
-//       PFs = PFs[PFs != 'Null']
-//       TVs = unique(df$TV)
-//       COMP = df$COMP[1]
+//         a_u = file.exists(atac_up)
+//         a_d = file.exists(atac_down)
+//         m_u = file.exists(mrna_up)
+//         m_d = file.exists(mrna_down)
 // 
-//       get_file_name <- function(ET, PF, FC, TV){
-//         paste(ET, PF, FC, TV, COMP, 'genes.rds', sep = '__')
-//       }
-// 
-//       for(PF1 in PFs){
-//         for(TV1 in TVs){
-// 
-//           atac_up = get_file_name('ATAC', PF1, 'up', TV1)
-//           atac_down = get_file_name('ATAC', PF1, 'down', TV1)
-//           mrna_up = get_file_name('mRNA', 'Null', 'up', TV1)
-//           mrna_down = get_file_name('mRNA', 'Null', 'down', TV1)
-// 
-//           a_u = file.exists(atac_up)
-//           a_d = file.exists(atac_down)
-//           m_u = file.exists(mrna_up)
-//           m_d = file.exists(mrna_down)
-// 
-//           if(a_u & m_u) {
-//             lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
-//               readRDS(mrna_up)$DA)
-//             prefix = paste(PF1, 'up', TV1, COMP, sep = '__')
-//             plot_venn_diagrams(lgenes, prefix)
-//           }
-// 
-//           if(a_d & m_d) {
-//             lgenes = list(atac_down = readRDS(atac_down)$DA, mrna_down = 
-//               readRDS(mrna_down)$DA)
-//             prefix = paste(PF1, 'down', TV1, COMP, sep = '__')
-//             plot_venn_diagrams(lgenes, prefix)
-//           }
-// 
-//           if(a_u & a_d & m_u & m_d) {
-//             lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
-//               readRDS(mrna_up)$DA, atac_down = readRDS(atac_down)$DA, 
-//               mrna_down = readRDS(mrna_down)$DA)
-//             prefix = paste(PF1, TV1, COMP, sep = '__')
-//             plot_venn_diagrams(lgenes, prefix)
-//           }
-// 
+//         if(a_u & m_u) {
+//           lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
+//             readRDS(mrna_up)$DA)
+//           prefix = paste(PF1, 'up', TV1, COMP, sep = '__')
+//           plot_venn_diagrams(lgenes, prefix)
 //         }
-//       }
 // 
+//         if(a_d & m_d) {
+//           lgenes = list(atac_down = readRDS(atac_down)$DA, mrna_down = 
+//             readRDS(mrna_down)$DA)
+//           prefix = paste(PF1, 'down', TV1, COMP, sep = '__')
+//           plot_venn_diagrams(lgenes, prefix)
+//         }
+// 
+//         if(a_u & a_d & m_u & m_d) {
+//           lgenes = list(atac_up = readRDS(atac_up)$DA, mrna_up = 
+//             readRDS(mrna_up)$DA, atac_down = readRDS(atac_down)$DA, 
+//             mrna_down = readRDS(mrna_down)$DA)
+//           prefix = paste(PF1, TV1, COMP, sep = '__')
+//           plot_venn_diagrams(lgenes, prefix)
+//         }
+// 
+//       }
+//     }
 // 
 //   '''
 // }
@@ -3859,88 +3829,87 @@ process ATAC_reads__marking_duplicated_reads {
 //   when: params.do_gene_set_enrichment
 // 
 //   shell:
-//   '''
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//       #!/usr/bin/env Rscript
+//     library(clusterProfiler)
+//     library(magrittr)
 // 
-//       library(clusterProfiler)
-//       library(magrittr)
-// 
-//       key = '!{key}'
-//       lgenes = readRDS('!{gene_set_rds}')
-//       func_anno = '!{func_anno}'
-//       org_db = AnnotationDbi::loadDb('!{params.org_db}')
-//       df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-//       kegg_environment = readRDS('!{params.kegg_environment}')
-//       use_nda_as_bg_for_func_anno = !{params.use_nda_as_bg_for_func_anno}
-//       simplify_cutoff = !{params.simplify_cutoff}
+//     key = '!{key}'
+//     lgenes = readRDS('!{gene_set_rds}')
+//     func_anno = '!{func_anno}'
+//     org_db = AnnotationDbi::loadDb('!{params.org_db}')
+//     df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+//     kegg_environment = readRDS('!{params.kegg_environment}')
+//     use_nda_as_bg_for_func_anno = !{params.use_nda_as_bg_for_func_anno}
+//     simplify_cutoff = !{params.simplify_cutoff}
 // 
 // 
-//       gene_set_enrich <- function(lgenes, type){
-//         DA_genes = lgenes$DA
-//         universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL)
+//     gene_set_enrich <- function(lgenes, type){
+//       DA_genes = lgenes$DA
+//       universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL)
 // 
-//         if(type == 'KEGG') {
+//       if(type == 'KEGG') {
 // 
-//           vec = df_genes_metadata$entrez_id %>% 
-//             setNames(., df_genes_metadata$gene_id)
-//           gene_set_entrez = vec[DA_genes]
+//         vec = df_genes_metadata$entrez_id %>% 
+//           setNames(., df_genes_metadata$gene_id)
+//         gene_set_entrez = vec[DA_genes]
 // 
-//           res <- clusterProfiler:::enricher_internal(gene_set_entrez, 
-//             pvalueCutoff  = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', 
-//             universe = universe, USER_DATA = kegg_environment)
+//         res <- clusterProfiler:::enricher_internal(gene_set_entrez, 
+//           pvalueCutoff  = 1, qvalueCutoff  = 1, pAdjustMethod = 'BH', 
+//           universe = universe, USER_DATA = kegg_environment)
 // 
-//           if(is.null(res)) error('NULL output')
-//           res
+//         if(is.null(res)) error('NULL output')
+//         res
+//       }
+//         else {
+//           simplify( 
+//             enrichGO( 
+//               gene = DA_genes, OrgDb = org_db, keyType = 'ENSEMBL', 
+//               ont = type, pAdjustMethod = 'BH', pvalueCutoff = 1, 
+//               qvalueCutoff  = 1, universe = universe), 
+//             cutoff = simplify_cutoff, by = 'p.adjust', select_fun = min)
 //         }
-//           else {
-//             simplify( 
-//               enrichGO( 
-//                 gene = DA_genes, OrgDb = org_db, keyType = 'ENSEMBL', 
-//                 ont = type, pAdjustMethod = 'BH', pvalueCutoff = 1, 
-//                 qvalueCutoff  = 1, universe = universe), 
-//               cutoff = simplify_cutoff, by = 'p.adjust', select_fun = min)
+//     }
+// 
+//     robust_gene_set_enrich <- function(lgenes, type){
+//       tryCatch(gene_set_enrich(lgenes, type), error = 
+//         function(e) {print(paste('No enrichment found'))})
+//     }
+// 
+//     res = robust_gene_set_enrich(lgenes, func_anno)
+// 
+//     if(class(res) == 'enrichResult') {
+//       df = res@result
+// 
+//       if(nrow(df) != 0) {
+// 
+//           # converting IDs from entrez to Ensembl
+//           if(func_anno == 'KEGG'){
+//             vec = df_genes_metadata$gene_id %>% 
+//               setNames(., df_genes_metadata$entrez_id)
+//             ensembl_ids = purrr::map_chr(strsplit(df$geneID, '/'), 
+//                             ~paste(unname(vec[.x]), collapse = '/'))
+//             df$geneID = ensembl_ids
 //           }
+// 
+//           # extracting count columns, reformatting and saving results
+//           df %<>% tidyr::separate(GeneRatio, c('ov_da', 'tot_da'), sep = '/')
+//           df %<>% tidyr::separate(BgRatio, c('ov_nda', 'tot_nda'), sep = '/')
+//           df[, c('ov_da', 'tot_da', 'ov_nda', 'tot_nda')] %<>% 
+//             apply(2, as.integer)
+// 
+//           df %<>% dplyr::rename(tgt_id = ID, tgt = Description, 
+//             genes_id = geneID)
+//           df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, tgt_id, 
+//             genes_id)
+// 
+//           write.csv(df, paste0(key, '__counts.csv'), row.names = F)
+// 
 //       }
+//     }
 // 
-//       robust_gene_set_enrich <- function(lgenes, type){
-//         tryCatch(gene_set_enrich(lgenes, type), error = 
-//           function(e) {print(paste('No enrichment found'))})
-//       }
-// 
-//       res = robust_gene_set_enrich(lgenes, func_anno)
-// 
-//       if(class(res) == 'enrichResult') {
-//         df = res@result
-// 
-//         if(nrow(df) != 0) {
-// 
-//             # converting IDs from entrez to Ensembl
-//             if(func_anno == 'KEGG'){
-//               vec = df_genes_metadata$gene_id %>% 
-//                 setNames(., df_genes_metadata$entrez_id)
-//               ensembl_ids = purrr::map_chr(strsplit(df$geneID, '/'), 
-//                               ~paste(unname(vec[.x]), collapse = '/'))
-//               df$geneID = ensembl_ids
-//             }
-// 
-//             # extracting count columns, reformatting and saving results
-//             df %<>% tidyr::separate(GeneRatio, c('ov_da', 'tot_da'), sep = '/')
-//             df %<>% tidyr::separate(BgRatio, c('ov_nda', 'tot_nda'), sep = '/')
-//             df[, c('ov_da', 'tot_da', 'ov_nda', 'tot_nda')] %<>% 
-//               apply(2, as.integer)
-// 
-//             df %<>% dplyr::rename(tgt_id = ID, tgt = Description, 
-//               genes_id = geneID)
-//             df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, tgt_id, 
-//               genes_id)
-// 
-//             write.csv(df, paste0(key, '__counts.csv'), row.names = F)
-// 
-//         }
-//       }
-// 
-//   '''
+//     '''
 // }
 // 
 // Overlap_tables_channel = Overlap_tables_channel
@@ -4027,37 +3996,35 @@ process ATAC_reads__marking_duplicated_reads {
 //       into Genes_self_overlaps_for_computing_pvalues
 // 
 //   shell:
-//   '''
-//         #!/usr/bin/env Rscript
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//         library(magrittr)
+//     library(magrittr)
 // 
-//         key = '!{key}'
-//         lgenes = readRDS('!{lgenes}')
+//     key = '!{key}'
+//     lgenes = readRDS('!{lgenes}')
 // 
-//         DA = lgenes$DA
-//         NDA = lgenes$NDA
+//     DA = lgenes$DA
+//     NDA = lgenes$NDA
 // 
-//         all_gene_sets = list.files('all_gene_sets')
-//         all_gene_sets %<>% setNames(., gsub('__genes.rds', '', .))
-//         all_DA = purrr::map(all_gene_sets, 
-//           ~readRDS(paste0('all_gene_sets/', .x))$DA)
+//     all_gene_sets = list.files('all_gene_sets')
+//     all_gene_sets %<>% setNames(., gsub('__genes.rds', '', .))
+//     all_DA = purrr::map(all_gene_sets, 
+//       ~readRDS(paste0('all_gene_sets/', .x))$DA)
 // 
-//         df = purrr::imap_dfr(all_DA, function(genes_tgt, target){
-//           tgt = target
-//           tot_tgt = length(genes_tgt)
-//           tot_da = length(DA)
-//           ov_da = length(intersect(DA, genes_tgt))
-//           tot_nda = length(NDA)
-//           ov_nda = length(intersect(NDA, genes_tgt))
-//           data.frame(tgt, tot_tgt, tot_da, ov_da, tot_nda, ov_nda)
-//         })
+//     df = purrr::imap_dfr(all_DA, function(genes_tgt, target){
+//       tgt = target
+//       tot_tgt = length(genes_tgt)
+//       tot_da = length(DA)
+//       ov_da = length(intersect(DA, genes_tgt))
+//       tot_nda = length(NDA)
+//       ov_nda = length(intersect(NDA, genes_tgt))
+//       data.frame(tgt, tot_tgt, tot_da, ov_da, tot_nda, ov_nda)
+//     })
 // 
-//         write.csv(df, paste0(key, '__genes_self__counts.csv'), row.names = F)
+//     write.csv(df, paste0(key, '__genes_self__counts.csv'), row.names = F)
 // 
-// 
-// 
-//   '''
+//     '''
 // }
 // 
 // Overlap_tables_channel = Overlap_tables_channel
@@ -4144,41 +4111,40 @@ process ATAC_reads__marking_duplicated_reads {
 //       into Peaks_self_overlaps_for_computing_pvalues
 // 
 //   shell:
-//   '''
+//     '''
 // 
-//         DB=!{DA_regions}
-//         ALL=!{all_regions}
-//         KEY=!{key}
+//     DB=!{DA_regions}
+//     ALL=!{all_regions}
+//     KEY=!{key}
 // 
-//         intersectBed -v -a ${ALL} -b ${DB} > not_diffbound.bed
-//         NDB="not_diffbound.bed"
+//     intersectBed -v -a ${ALL} -b ${DB} > not_diffbound.bed
+//     NDB="not_diffbound.bed"
 // 
-//         tot_da=`wc -l < ${DB}`
-//         tot_nda=`wc -l < ${NDB}`
+//     tot_da=`wc -l < ${DB}`
+//     tot_nda=`wc -l < ${NDB}`
 // 
-//         OUTPUT_FILE="${KEY}__counts.csv"
+//     OUTPUT_FILE="${KEY}__counts.csv"
 // 
-//         echo "tgt, tot_tgt, tot_da, ov_da, tot_nda, ov_nda" > $OUTPUT_FILE
+//     echo "tgt, tot_tgt, tot_da, ov_da, tot_nda, ov_nda" > $OUTPUT_FILE
 // 
-//         BEDS=($(ls BED_FILES))
+//     BEDS=($(ls BED_FILES))
 // 
-//         for BED1 in ${BEDS[@]}
-//           do
-//           	BED=BED_FILES/$BED1
-//             tgt=`basename ${BED} .bed`
-//             tgt=`basename ${tgt} __regions`
-//             tot_tgt=`wc -l < ${BED}`
-//             intersectBed -u -a ${DB} -b ${BED} > overlap_DB.tmp
-//             ov_da=`wc -l < overlap_DB.tmp`
-//             intersectBed -u -a ${NDB} -b ${BED} > overlap_NDB.tmp
-//             ov_nda=`wc -l < overlap_NDB.tmp`
-//             echo \
-//               "${tgt}, ${tot_tgt}, ${tot_da}, ${ov_da}, ${tot_nda}, ${ov_nda}" \
-//               >> $OUTPUT_FILE
-//           done
+//     for BED1 in ${BEDS[@]}
+//       do
+//       	BED=BED_FILES/$BED1
+//         tgt=`basename ${BED} .bed`
+//         tgt=`basename ${tgt} __regions`
+//         tot_tgt=`wc -l < ${BED}`
+//         intersectBed -u -a ${DB} -b ${BED} > overlap_DB.tmp
+//         ov_da=`wc -l < overlap_DB.tmp`
+//         intersectBed -u -a ${NDB} -b ${BED} > overlap_NDB.tmp
+//         ov_nda=`wc -l < overlap_NDB.tmp`
+//         echo \
+//           "${tgt}, ${tot_tgt}, ${tot_da}, ${ov_da}, ${tot_nda}, ${ov_nda}" \
+//           >> $OUTPUT_FILE
+//       done
 // 
-// 
-//   '''
+//     '''
 // }
 // 
 // Overlap_tables_channel = Overlap_tables_channel
@@ -4225,8 +4191,7 @@ process ATAC_reads__marking_duplicated_reads {
 //   when: params.do_motif_enrichment
 // 
 //   shell:
-//   '''
-// 
+//     '''
 // 
 //     findMotifsGenome.pl !{DA_regions} !{params.homer_genome} "." \
 //       -size given \
@@ -4240,8 +4205,7 @@ process ATAC_reads__marking_duplicated_reads {
 //        mv $FILE "!{key}__homer_results.txt"
 //     fi
 // 
-//   '''
-// 
+//     '''
 // }
 // 
 // // note: homer automatically removes overlapping peaks between input and bg, 
@@ -4263,36 +4227,36 @@ process ATAC_reads__marking_duplicated_reads {
 //       into Formatted_motifs_results_for_computing_pvalues
 // 
 //   shell:
-//   '''
-//       #!/usr/bin/env Rscript
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//       library(magrittr)
+//     library(magrittr)
 // 
-//       key = '!{key}'
-//       filename = '!{motifs_results}'
+//     key = '!{key}'
+//     filename = '!{motifs_results}'
 // 
 // 
-//       df = read.csv(file = filename, sep = '\t', stringsAsFactors = F)
+//     df = read.csv(file = filename, sep = '\t', stringsAsFactors = F)
 // 
-//       total = purrr::map_chr(strsplit(names(df), 'Motif.of.')[c(6,8)], 2) %>% 
-//                 gsub('.', '', ., fixed = T) %>% as.integer
+//     total = purrr::map_chr(strsplit(names(df), 'Motif.of.')[c(6,8)], 2) %>% 
+//               gsub('.', '', ., fixed = T) %>% as.integer
 // 
-//       names(df) = c('tgt', 'consensus', 'pvalue', 'log_pval', 'qval', 'ov_da', 
-//                     'pt_da', 'ov_nda', 'pt_nda')
-//       df$tot_da  = total[1]
-//       df$tot_nda = total[2]
-//       df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, consensus)
+//     names(df) = c('tgt', 'consensus', 'pvalue', 'log_pval', 'qval', 'ov_da', 
+//                   'pt_da', 'ov_nda', 'pt_nda')
+//     df$tot_da  = total[1]
+//     df$tot_nda = total[2]
+//     df %<>% dplyr::select(tgt, tot_da, ov_da, tot_nda, ov_nda, consensus)
 // 
-//       ov_da_too_high = which(df$ov_da > df$tot_da)
-//       if(length(ov_da_too_high) > 0) df$ov_da[ov_da_too_high] = 
-//         df$tot_da[ov_da_too_high]
-//       ov_nda_too_high = which(df$ov_nda > df$tot_nda)
-//       if(length(ov_nda_too_high) > 0) df$ov_nda[ov_nda_too_high] = 
-//         df$tot_nda[ov_nda_too_high]
+//     ov_da_too_high = which(df$ov_da > df$tot_da)
+//     if(length(ov_da_too_high) > 0) df$ov_da[ov_da_too_high] = 
+//       df$tot_da[ov_da_too_high]
+//     ov_nda_too_high = which(df$ov_nda > df$tot_nda)
+//     if(length(ov_nda_too_high) > 0) df$ov_nda[ov_nda_too_high] = 
+//       df$tot_nda[ov_nda_too_high]
 // 
-//       write.csv(df, paste0(key, '__motifs__counts.csv'), row.names = F)
+//     write.csv(df, paste0(key, '__motifs__counts.csv'), row.names = F)
 // 
-//   '''
+//     '''
 // }
 // 
 // Overlap_tables_channel = Overlap_tables_channel
@@ -4329,76 +4293,74 @@ process ATAC_reads__marking_duplicated_reads {
 //     set data_type, val("3_Enrichment"), file("*.rds") 
 //       into Enrichment_results_for_formatting_table optional true
 // 
-// 
 //   shell:
-//   '''
-//         #!/usr/bin/env Rscript
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//         library(magrittr)
-//         source('!{projectDir}/bin/get_chrom_states_names_vec.R')
+//     library(magrittr)
+//     source('!{projectDir}/bin/get_chrom_states_names_vec.R')
 // 
-//         key = '!{key}'
-//         data_type = '!{data_type}'
-//         df1 = read.csv('!{df_count_csv}', stringsAsFactors = F)
-//         motifs_test_type = '!{params.motifs_test_type}'
-// 
-// 
-// 
-//         # computing pvalue and L2OR
-//         df = df1
-//         for(c1 in 1:nrow(df)){
-//           ov_da   =   df$ov_da[c1]
-//           tot_da  =  df$tot_da[c1]
-//           ov_nda  =  df$ov_nda[c1]
-//           tot_nda = df$tot_nda[c1]
-//           mat = rbind(c(ov_da, ov_nda), c(tot_da - ov_da, tot_nda - ov_nda))
-//           fisher_test = fisher.test(mat, alternative = 'two.sided')
-//           df$pval[c1] = fisher_test$p.value
-//           df$L2OR[c1] = log2(fisher_test$estimate)
-//           if(data_type == 'motifs' & motifs_test_type == 'binomial') {
-//             df$pval[c1] = binom.test(ov_da, tot_da, ov_nda / tot_nda, 
-//               alternative = 'two.sided')$p.value
-//           }
-//         }
-// 
-//         # adding padj and percentage of overlap
-//         df$padj = p.adjust(df$pval, method = 'BH')
-//         df %<>% dplyr::mutate(pt_da = ov_da  / tot_da  )
-//         df %<>% dplyr::mutate(pt_nda = ov_nda / tot_nda )
-//         df$pt_da %<>% {. * 100 } %>% round(2) %>% paste0(., '%')
-//         df$pt_nda %<>% {. * 100 } %>% round(2) %>% paste0(., '%')
-// 
-//         # renaming chromatin states
-//         if(data_type == 'chrom_states'){
-//           vec = get_chrom_states_names_vec(df$tgt)
-//           df$tgt %<>% vec[.]
-//         }
-// 
-//         # reordering columns
-//         df %<>% dplyr::select(tgt, pval, padj, L2OR, pt_da, ov_da, tot_da, 
-//           pt_nda, ov_nda, tot_nda, dplyr::everything())
-// 
-//         # adding a Gene Enrichment Type column for func_anno
-//         if(grepl('func_anno', data_type)) {
-//           GE = gsub('func_anno_', '', data_type)
-//           data_type1 = 'func_anno'
-//         } else { data_type1 = data_type }
-// 
-//         # sorting by padj and then overlap counts
-//         df %<>% dplyr::arrange(padj, desc(ov_da))
-// 
-//         # adding the key and saving for plots
-//         key_split = strsplit(key, '__')[[1]]
-//         key_df = as.data.frame(t(key_split[-length(key_split)]), 
-//           stringsAsFactors = F)
-//         cln = c('ET', 'PF', 'FC', 'TV', 'COMP')
-//         key_df %<>% set_colnames(cln)
-//         if(data_type1 == 'func_anno') key_df %<>% cbind(GE = GE, .)
-//         df2 = cbind(key_df, df)
-//         saveRDS(df2, paste0(key, '__enrich.rds'))
+//     key = '!{key}'
+//     data_type = '!{data_type}'
+//     df1 = read.csv('!{df_count_csv}', stringsAsFactors = F)
+//     motifs_test_type = '!{params.motifs_test_type}'
 // 
 // 
-//   '''
+// 
+//     # computing pvalue and L2OR
+//     df = df1
+//     for(c1 in 1:nrow(df)){
+//       ov_da   =   df$ov_da[c1]
+//       tot_da  =  df$tot_da[c1]
+//       ov_nda  =  df$ov_nda[c1]
+//       tot_nda = df$tot_nda[c1]
+//       mat = rbind(c(ov_da, ov_nda), c(tot_da - ov_da, tot_nda - ov_nda))
+//       fisher_test = fisher.test(mat, alternative = 'two.sided')
+//       df$pval[c1] = fisher_test$p.value
+//       df$L2OR[c1] = log2(fisher_test$estimate)
+//       if(data_type == 'motifs' & motifs_test_type == 'binomial') {
+//         df$pval[c1] = binom.test(ov_da, tot_da, ov_nda / tot_nda, 
+//           alternative = 'two.sided')$p.value
+//       }
+//     }
+// 
+//     # adding padj and percentage of overlap
+//     df$padj = p.adjust(df$pval, method = 'BH')
+//     df %<>% dplyr::mutate(pt_da = ov_da  / tot_da  )
+//     df %<>% dplyr::mutate(pt_nda = ov_nda / tot_nda )
+//     df$pt_da %<>% {. * 100 } %>% round(2) %>% paste0(., '%')
+//     df$pt_nda %<>% {. * 100 } %>% round(2) %>% paste0(., '%')
+// 
+//     # renaming chromatin states
+//     if(data_type == 'chrom_states'){
+//       vec = get_chrom_states_names_vec(df$tgt)
+//       df$tgt %<>% vec[.]
+//     }
+// 
+//     # reordering columns
+//     df %<>% dplyr::select(tgt, pval, padj, L2OR, pt_da, ov_da, tot_da, 
+//       pt_nda, ov_nda, tot_nda, dplyr::everything())
+// 
+//     # adding a Gene Enrichment Type column for func_anno
+//     if(grepl('func_anno', data_type)) {
+//       GE = gsub('func_anno_', '', data_type)
+//       data_type1 = 'func_anno'
+//     } else { data_type1 = data_type }
+// 
+//     # sorting by padj and then overlap counts
+//     df %<>% dplyr::arrange(padj, desc(ov_da))
+// 
+//     # adding the key and saving for plots
+//     key_split = strsplit(key, '__')[[1]]
+//     key_df = as.data.frame(t(key_split[-length(key_split)]), 
+//       stringsAsFactors = F)
+//     cln = c('ET', 'PF', 'FC', 'TV', 'COMP')
+//     key_df %<>% set_colnames(cln)
+//     if(data_type1 == 'func_anno') key_df %<>% cbind(GE = GE, .)
+//     df2 = cbind(key_df, df)
+//     saveRDS(df2, paste0(key, '__enrich.rds'))
+// 
+//     '''
 // }
 // 
 // 
@@ -4480,73 +4442,71 @@ process ATAC_reads__marking_duplicated_reads {
 //       optional true into Barplots_for_merging_pdfs
 // 
 //   shell:
-//   '''
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//       #!/usr/bin/env Rscript
+//     library(ggplot2)
+//     library(grid)
+//     library(gridExtra)
+//     library(RColorBrewer)
+//     library(magrittr)
 // 
-//       library(ggplot2)
-//       library(grid)
-//       library(gridExtra)
-//       library(RColorBrewer)
-//       library(magrittr)
+//     key       = '!{key}'
+//     data_type = '!{data_type}'
+//     df1       = readRDS('!{res_gene_set_enrichment_rds}')
+//     df_plots  = parse(eval(text = '!{params.heatmaps__df_plots}'))
 // 
-//       key       = '!{key}'
-//       data_type = '!{data_type}'
-//       df1       = readRDS('!{res_gene_set_enrichment_rds}')
-//       df_plots  = parse(eval(text = '!{params.heatmaps__df_plots}'))
-// 
-//       source('!{projectDir}/bin/get_new_name_by_unique_character.R')
-//       source('!{projectDir}/bin/functions_pvalue_plots.R')
+//     source('!{projectDir}/bin/get_new_name_by_unique_character.R')
+//     source('!{projectDir}/bin/functions_pvalue_plots.R')
 // 
 // 
-//       # getting parameters
-//       if(grepl('func_anno', data_type)) data_type = 'func_anno'
-//       df          = df1
-//       df_p        = df_plots %>% .[.$data_type == data_type, ]
-//       signed_padj = df_p$signed_padj
+//     # getting parameters
+//     if(grepl('func_anno', data_type)) data_type = 'func_anno'
+//     df          = df1
+//     df_p        = df_plots %>% .[.$data_type == data_type, ]
+//     signed_padj = df_p$signed_padj
 // 
-//       # quitting if there are no significant results to show
-//       if(all(df$padj > df_plots$padj_threshold)) quit(save = 'no')
+//     # quitting if there are no significant results to show
+//     if(all(df$padj > df_plots$padj_threshold)) quit(save = 'no')
 // 
-//       # removing the genes_id column from func_anno enrichments 
-//       # (for easier debugging)
-//       df %<>% .[, names(.) != 'genes_id']
+//     # removing the genes_id column from func_anno enrichments 
+//     # (for easier debugging)
+//     df %<>% .[, names(.) != 'genes_id']
 // 
-//       # adding the loglog and binned padj columns
-//       df %<>% getting_padj_loglog_and_binned(data_type, signed_padj)
+//     # adding the loglog and binned padj columns
+//     df %<>% getting_padj_loglog_and_binned(data_type, signed_padj)
 // 
-//       # adding the yaxis_terms column with shortened and unique names
-//       df$yaxis_terms = df$tgt %>% get_shorter_names(df_p$max_characters)
+//     # adding the yaxis_terms column with shortened and unique names
+//     df$yaxis_terms = df$tgt %>% get_shorter_names(df_p$max_characters)
 // 
-//       # selecting lowest pvalues
-//       df = df[seq_len(min(nrow(df), df_p$max_terms)), ]
-//       df$yaxis_terms %<>% factor(., levels = rev(.))
+//     # selecting lowest pvalues
+//     df = df[seq_len(min(nrow(df), df_p$max_terms)), ]
+//     df$yaxis_terms %<>% factor(., levels = rev(.))
 // 
-//       bed_data_types = c('CHIP', 'chrom_states', 'peaks_self', 'genes_self')
-//       is_bed_overlap = data_type %in% bed_data_types
-//       if(is_bed_overlap){
-//         xlab = paste0('Overlap (DA: ', df$tot_da[1], ', NDA: ', df$tot_nda[1], ')')
-//       } else {
-//         xlab = paste0('Overlap (DA: ', df$tot_da[1], ')')
-//       }
+//     bed_data_types = c('CHIP', 'chrom_states', 'peaks_self', 'genes_self')
+//     is_bed_overlap = data_type %in% bed_data_types
+//     if(is_bed_overlap){
+//       xlab = paste0('Overlap (DA: ', df$tot_da[1], ', NDA: ', df$tot_nda[1], ')')
+//     } else {
+//       xlab = paste0('Overlap (DA: ', df$tot_da[1], ')')
+//     }
 // 
-//       p1 = ggplot(df, aes(x = yaxis_terms, y = ov_da)) + coord_flip() + 
-//         geom_bar(stat = 'identity') + ggtitle(key) + theme_bw() + 
-//         theme(axis.title.y = element_blank(), 
-//           axis.text = element_text(size = 11, color = 'black'), 
-//           plot.title = element_text(hjust = 0.9, size = 10), 
-//           legend.text = element_text(size = 7)
-//          ) + ylab(xlab)
+//     p1 = ggplot(df, aes(x = yaxis_terms, y = ov_da)) + coord_flip() + 
+//       geom_bar(stat = 'identity') + ggtitle(key) + theme_bw() + 
+//       theme(axis.title.y = element_blank(), 
+//         axis.text = element_text(size = 11, color = 'black'), 
+//         plot.title = element_text(hjust = 0.9, size = 10), 
+//         legend.text = element_text(size = 7)
+//        ) + ylab(xlab)
 // 
-//       point_size = scales::rescale(c(nrow(df), seq(0, 30, len = 5)), c(6, 3))[1]
-//       p_binned = get_plot_binned(p1, signed_padj = signed_padj, 
-//                       add_var = df_p$add_var, add_number  = df_p$add_number, 
-//                       point_size  = point_size)
+//     point_size = scales::rescale(c(nrow(df), seq(0, 30, len = 5)), c(6, 3))[1]
+//     p_binned = get_plot_binned(p1, signed_padj = signed_padj, 
+//                     add_var = df_p$add_var, add_number  = df_p$add_number, 
+//                     point_size  = point_size)
 // 
-//       pdf(paste0(key, '__barplot.pdf'), paper = 'a4r')
-//         print(p_binned)
-//       dev.off()
-// 
+//     pdf(paste0(key, '__barplot.pdf'), paper = 'a4r')
+//       print(p_binned)
+//     dev.off()
 // 
 //     '''
 // }
@@ -4580,9 +4540,8 @@ process ATAC_reads__marking_duplicated_reads {
 // 
 // 
 //   shell:
-//   '''
+//     '''
 //     #!/usr/bin/env Rscript
-// 
 // 
 //     library(magrittr)
 //     library(ggplot2)
@@ -4705,9 +4664,7 @@ process ATAC_reads__marking_duplicated_reads {
 //       print(p_binned)
 //     dev.off()
 // 
-// 
-//   '''
-// 
+//     '''
 // }
 // 
 // // note that: gtools::mixedsort(df$tgt) would be simpler for chromatin states 
@@ -4757,12 +4714,11 @@ process ATAC_reads__marking_duplicated_reads {
 //     file("*.pdf") optional true
 // 
 //   script:
-//   """
+//     """
 // 
-//       pdftk `ls *pdf | sort` cat output ${file_name}.pdf
+//     pdftk `ls *pdf | sort` cat output ${file_name}.pdf
 // 
-//   """
-// 
+//     """
 // }
 // 
 // 
@@ -4792,42 +4748,41 @@ process ATAC_reads__marking_duplicated_reads {
 //   // when: params.do_chip_enrichment
 // 
 //   shell:
-//   '''
-//         #!/usr/bin/env Rscript
+//     '''
+//     #!/usr/bin/env Rscript
 // 
 // 
-//         library(magrittr)
+//     library(magrittr)
 // 
-//         source('!{projectDir}/bin/get_formatted_table.R')
+//     source('!{projectDir}/bin/get_formatted_table.R')
 // 
-//         data_type = '!{data_type}'
-//         rds_file = '!{rds_file}'
+//     data_type = '!{data_type}'
+//     rds_file = '!{rds_file}'
 // 
-//         v_fdr_thresholds = 
-//         parse(eval(text = '!{params.tables__v_fdr_thresholds}'))
-// 
-// 
-// 
-//         # reading
-//         df = readRDS(rds_file)
-// 
-//         # filtering
-//         data_type1 = data_type
-//         if(grepl('func_anno', data_type)) data_type1 = 'func_anno'
-//         fdr_threshold = v_fdr_thresholds[data_type]
-//         df = subset(df, padj <= fdr_threshold)
-// 
-//         # formating
-//         df %<>% get_formatted_table
-// 
-//         # saving
-//         if(nrow(df) > 0) {
-//           output_file_name = paste0(gsub('.rds', '', rds_file), '.csv')
-//           write.csv(df, output_file_name, row.names = F)
-//         }
+//     v_fdr_thresholds = 
+//     parse(eval(text = '!{params.tables__v_fdr_thresholds}'))
 // 
 // 
-//   '''
+// 
+//     # reading
+//     df = readRDS(rds_file)
+// 
+//     # filtering
+//     data_type1 = data_type
+//     if(grepl('func_anno', data_type)) data_type1 = 'func_anno'
+//     fdr_threshold = v_fdr_thresholds[data_type]
+//     df = subset(df, padj <= fdr_threshold)
+// 
+//     # formating
+//     df %<>% get_formatted_table
+// 
+//     # saving
+//     if(nrow(df) > 0) {
+//       output_file_name = paste0(gsub('.rds', '', rds_file), '.csv')
+//       write.csv(df, output_file_name, row.names = F)
+//     }
+// 
+//     '''
 // }
 // 
 // // => reformatting tables without breaking the cache
@@ -4859,27 +4814,26 @@ process ATAC_reads__marking_duplicated_reads {
 //       into Merged_csv_tables_for_Excel optional true
 // 
 //   shell:
-//   '''
-//       #!/usr/bin/env Rscript
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//       library(magrittr)
-//       library(dplyr)
-//       source('!{projectDir}/bin/get_formatted_table.R')
+//     library(magrittr)
+//     library(dplyr)
+//     source('!{projectDir}/bin/get_formatted_table.R')
 // 
-//       data_type = '!{data_type}'
-// 
-// 
-//       # merging tables, 
-//       all_files = list.files(pattern = '*.csv')
-//       ldf = lapply(all_files, read.csv, stringsAsFactors = F, as.is = T)
-//       df = do.call(rbind, ldf)
-// 
-//       # formatting and saving merged table
-//       df %<>% get_formatted_table
-//       write.csv(df, paste0(data_type, '.csv'), row.names = F)
+//     data_type = '!{data_type}'
 // 
 // 
-//   '''
+//     # merging tables, 
+//     all_files = list.files(pattern = '*.csv')
+//     ldf = lapply(all_files, read.csv, stringsAsFactors = F, as.is = T)
+//     df = do.call(rbind, ldf)
+// 
+//     # formatting and saving merged table
+//     df %<>% get_formatted_table
+//     write.csv(df, paste0(data_type, '.csv'), row.names = F)
+// 
+//     '''
 // }
 // 
 // Exporting_to_Excel_channel = Exporting_to_Excel_channel
@@ -4909,144 +4863,143 @@ process ATAC_reads__marking_duplicated_reads {
 //   when: params.tables__save_excel
 // 
 //   shell:
-//   '''
-//       #!/usr/bin/env Rscript
+//     '''
+//     #!/usr/bin/env Rscript
 // 
-//       library(openxlsx)
+//     library(openxlsx)
 // 
-//       csv_file = '!{csv_file}'
-//       excel__add_conditional_formatting = !{params.excel__add_conditional_formatting}
-//       excel__max_width = !{params.excel__max_width}
-// 
-// 
-//       options(digits = 1)
-// 
-//       df = read.csv(csv_file, stringsAsFactors = T, as.is = T)
-//       output_file_name = paste0(gsub('.csv', '', csv_file), '.xlsx')
-// 
-//       nms = names(df)
-// 
-//       class(df$pval) = 'scientific'
-//       class(df$padj) = 'scientific'
-// 
-//       if('pt_da' %in% nms){
-//         class(df$pt_da) = 'percentage'
-//         class(df$pt_nda) = 'percentage'
-//         L2OR_Inf_up   = which(df$L2OR == 'Inf')
-//         L2OR_Inf_down = which(df$L2OR == '-Inf')
-//         L2OR_not_Inf  = which(abs(df$L2OR) != 'Inf')
-//         df$L2OR[L2OR_Inf_up]   = 1e99
-//         df$L2OR[L2OR_Inf_down] = -1e99
-//       }
-// 
-//       names_colors_1  = c( 'filter',  'target',    'fold',  'pvalue',   'da'   )
-//       # color type           red        green     purple     orange     gold     
-//       header_colors_1 = c('#963634', '#76933c', '#60497a', '#e26b0a', '#9d821f')
-//       body_colors_1   = c('#f2dcdb', '#ebf1de', '#e4dfec', '#fde9d9', '#f1edcb')
-// 
-//       names_colors_2  = c(  'nda',    'other',    'gene', 'coordinate')
-//       # color type       pale_blue    grey     darkblue   darkolive
-//       header_colors_2 = c('#31869b', '#808080', '#16365c',  '#494529' )
-//       body_colors_2   = c('#daeef3', '#f2f2f2', '#c5d9f1',  '#ddd9c4' )
-// 
-//       names_colors = c(names_colors_1, names_colors_2)
-//       header_colors = c(header_colors_1, header_colors_2)
-//       body_colors = c(body_colors_1, body_colors_2)
-// 
-//       names(header_colors) = names_colors
-//       names(body_colors)   = names_colors
+//     csv_file = '!{csv_file}'
+//     excel__add_conditional_formatting = !{params.excel__add_conditional_formatting}
+//     excel__max_width = !{params.excel__max_width}
 // 
 // 
-//       get_nms_type <- function(nms){
-//         nms_coordinates = c('chr','start', 'end',	'width', 'strand')
-//         nms_coordinates = c(nms_coordinates, paste0('gene_', nms_coordinates))
+//     options(digits = 1)
 // 
-//         if(nms %in% c('GE', 'ET', 'PF', 'FC', 'TV', 'COMP')) return('filter') else
-//         if(nms %in% c('gene_name', 'gene_id', 'entrez_id'))  return('gene') else
-//         if(nms %in% c('pval', 'padj'))                       return('pvalue') else
-//         if(nms %in% c('L2FC', 'L2OR'))                       return('fold') else
-//         if(nms %in% c('tgt'))                                return('target') else
-//         if(nms %in% c('pt_da', 'tot_da', 'ov_da'))           return('da') else
-//         if(nms %in% c('pt_nda', 'tot_nda', 'ov_nda'))        return('nda') else
-//         if(nms %in% nms_coordinates)                         return('coordinate') else
-//                                                              return('other')
-//       }
-//       nms_types = sapply(names(df), get_nms_type)
-//       nms_color_header = unname(header_colors[nms_types])
-//       nms_color_body   = unname(body_colors  [nms_types])
+//     df = read.csv(csv_file, stringsAsFactors = T, as.is = T)
+//     output_file_name = paste0(gsub('.csv', '', csv_file), '.xlsx')
 // 
-//       sheet = 1
-//       cols = seq_len(ncol(df))
-//       rows = seq_len(nrow(df) + 1)
+//     nms = names(df)
 // 
-//       # create the workbook
-//       wb = write.xlsx(df, output_file_name, borders = 'rows', keepNA = F)
+//     class(df$pval) = 'scientific'
+//     class(df$padj) = 'scientific'
 // 
-//       # add filter, set width and height
-//       addFilter(wb, sheet, 1, cols)
-//       setRowHeights(wb, sheet, 1, heights = 50)
-//       widths = apply(df, 2, function(x) {
-//         if(all(is.na(x))) return(5)
-//         width = max(nchar(x), na.rm = T) + 2.5
-//         width = ifelse(width > excel__max_width, excel__max_width, width)
-//         return(width)
-//       })
-//       setColWidths(wb, sheet, cols, widths = widths)
+//     if('pt_da' %in% nms){
+//       class(df$pt_da) = 'percentage'
+//       class(df$pt_nda) = 'percentage'
+//       L2OR_Inf_up   = which(df$L2OR == 'Inf')
+//       L2OR_Inf_down = which(df$L2OR == '-Inf')
+//       L2OR_not_Inf  = which(abs(df$L2OR) != 'Inf')
+//       df$L2OR[L2OR_Inf_up]   = 1e99
+//       df$L2OR[L2OR_Inf_down] = -1e99
+//     }
 // 
-//       for(col in cols) {
-//         col_nm = nms[col]
-//         halign = ifelse('GE' %in% nms & col_nm %in% c('tgt', 'genes_id'), 
-//                         'left', 'center')
-//         header_style = createStyle(fontColour = '#ffffff', 
-//           fgFill = nms_color_header[col], halign = halign, valign = 'center', 
-//           textDecoration = 'Bold', border = 'TopBottomLeftRight', wrapText = T)
-//         addStyle(wb, sheet, header_style, rows = 1, col)
+//     names_colors_1  = c( 'filter',  'target',    'fold',  'pvalue',   'da'   )
+//     # color type           red        green     purple     orange     gold     
+//     header_colors_1 = c('#963634', '#76933c', '#60497a', '#e26b0a', '#9d821f')
+//     body_colors_1   = c('#f2dcdb', '#ebf1de', '#e4dfec', '#fde9d9', '#f1edcb')
 // 
-//         body_style = createStyle(halign = halign, valign = 'center', 
-//           fgFill = nms_color_body[col])
-//         addStyle(wb, sheet, body_style, rows = rows[-1], col)
+//     names_colors_2  = c(  'nda',    'other',    'gene', 'coordinate')
+//     # color type       pale_blue    grey     darkblue   darkolive
+//     header_colors_2 = c('#31869b', '#808080', '#16365c',  '#494529' )
+//     body_colors_2   = c('#daeef3', '#f2f2f2', '#c5d9f1',  '#ddd9c4' )
 // 
-//         if(excel__add_conditional_formatting){
-//           if(col_nm == 'padj') conditionalFormatting(wb, sheet, cols = col, 
-//             rows = rows[-1], type = 'colourScale', 
-//             style = c('#e26b0a', '#fde9d9')) 
-//           vec = df[[col]]
-//           if(col_nm == 'L2FC') {
-//             conditionalFormatting(wb, sheet, cols = col, rows = rows[-1], 
-//               type = 'colourScale', 
+//     names_colors = c(names_colors_1, names_colors_2)
+//     header_colors = c(header_colors_1, header_colors_2)
+//     body_colors = c(body_colors_1, body_colors_2)
+// 
+//     names(header_colors) = names_colors
+//     names(body_colors)   = names_colors
+// 
+// 
+//     get_nms_type <- function(nms){
+//       nms_coordinates = c('chr','start', 'end',	'width', 'strand')
+//       nms_coordinates = c(nms_coordinates, paste0('gene_', nms_coordinates))
+// 
+//       if(nms %in% c('GE', 'ET', 'PF', 'FC', 'TV', 'COMP')) return('filter') else
+//       if(nms %in% c('gene_name', 'gene_id', 'entrez_id'))  return('gene') else
+//       if(nms %in% c('pval', 'padj'))                       return('pvalue') else
+//       if(nms %in% c('L2FC', 'L2OR'))                       return('fold') else
+//       if(nms %in% c('tgt'))                                return('target') else
+//       if(nms %in% c('pt_da', 'tot_da', 'ov_da'))           return('da') else
+//       if(nms %in% c('pt_nda', 'tot_nda', 'ov_nda'))        return('nda') else
+//       if(nms %in% nms_coordinates)                         return('coordinate') else
+//                                                            return('other')
+//     }
+//     nms_types = sapply(names(df), get_nms_type)
+//     nms_color_header = unname(header_colors[nms_types])
+//     nms_color_body   = unname(body_colors  [nms_types])
+// 
+//     sheet = 1
+//     cols = seq_len(ncol(df))
+//     rows = seq_len(nrow(df) + 1)
+// 
+//     # create the workbook
+//     wb = write.xlsx(df, output_file_name, borders = 'rows', keepNA = F)
+// 
+//     # add filter, set width and height
+//     addFilter(wb, sheet, 1, cols)
+//     setRowHeights(wb, sheet, 1, heights = 50)
+//     widths = apply(df, 2, function(x) {
+//       if(all(is.na(x))) return(5)
+//       width = max(nchar(x), na.rm = T) + 2.5
+//       width = ifelse(width > excel__max_width, excel__max_width, width)
+//       return(width)
+//     })
+//     setColWidths(wb, sheet, cols, widths = widths)
+// 
+//     for(col in cols) {
+//       col_nm = nms[col]
+//       halign = ifelse('GE' %in% nms & col_nm %in% c('tgt', 'genes_id'), 
+//                       'left', 'center')
+//       header_style = createStyle(fontColour = '#ffffff', 
+//         fgFill = nms_color_header[col], halign = halign, valign = 'center', 
+//         textDecoration = 'Bold', border = 'TopBottomLeftRight', wrapText = T)
+//       addStyle(wb, sheet, header_style, rows = 1, col)
+// 
+//       body_style = createStyle(halign = halign, valign = 'center', 
+//         fgFill = nms_color_body[col])
+//       addStyle(wb, sheet, body_style, rows = rows[-1], col)
+// 
+//       if(excel__add_conditional_formatting){
+//         if(col_nm == 'padj') conditionalFormatting(wb, sheet, cols = col, 
+//           rows = rows[-1], type = 'colourScale', 
+//           style = c('#e26b0a', '#fde9d9')) 
+//         vec = df[[col]]
+//         if(col_nm == 'L2FC') {
+//           conditionalFormatting(wb, sheet, cols = col, rows = rows[-1], 
+//             type = 'colourScale', 
+//             style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), 
+//             rule = c(min(vec), 0, max(vec)))
+//         }
+//         if(col_nm == 'L2OR') {
+//           if(length(L2OR_not_Inf) > 0) {
+//             vec1 = vec[L2OR_not_Inf]
+//             vec1 = vec1[!is.na(vec1)]
+//             conditionalFormatting(wb, sheet, cols = col, 
+//               rows = L2OR_not_Inf + 1, type = 'colourScale', 
 //               style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), 
-//               rule = c(min(vec), 0, max(vec)))
+//               rule = c(min(vec1), 0, max(vec1)))
 //           }
-//           if(col_nm == 'L2OR') {
-//             if(length(L2OR_not_Inf) > 0) {
-//               vec1 = vec[L2OR_not_Inf]
-//               vec1 = vec1[!is.na(vec1)]
-//               conditionalFormatting(wb, sheet, cols = col, 
-//                 rows = L2OR_not_Inf + 1, type = 'colourScale', 
-//                 style = c(blue = '#6699ff', white = 'white', red = '#ff7c80'), 
-//                 rule = c(min(vec1), 0, max(vec1)))
-//             }
-//             if(length(L2OR_Inf_up) > 0) addStyle(wb, sheet, 
-//               createStyle(fgFill = c(lightblue = '#ff7c80'), halign = 'center', 
-//               valign = 'center'), rows = L2OR_Inf_up + 1, col)
-//             if(length(L2OR_Inf_down) > 0) addStyle(wb, sheet, 
-//               createStyle(fgFill = c(lightred = '#6699ff'), halign = 'center', 
-//               valign = 'center'), rows = L2OR_Inf_down + 1, col)
-//           }
+//           if(length(L2OR_Inf_up) > 0) addStyle(wb, sheet, 
+//             createStyle(fgFill = c(lightblue = '#ff7c80'), halign = 'center', 
+//             valign = 'center'), rows = L2OR_Inf_up + 1, col)
+//           if(length(L2OR_Inf_down) > 0) addStyle(wb, sheet, 
+//             createStyle(fgFill = c(lightred = '#6699ff'), halign = 'center', 
+//             valign = 'center'), rows = L2OR_Inf_down + 1, col)
 //         }
 //       }
+//     }
 // 
-//       # save the final workbook
-//       saveWorkbook(wb, output_file_name, overwrite = TRUE)
+//     # save the final workbook
+//     saveWorkbook(wb, output_file_name, overwrite = TRUE)
 // 
-// 
-//   '''
+//     '''
 // }
 // 
 // // documentation for openxlsx
 // // # https://www.rdocumentation.org/packages/openxlsx/versions/4.1.0.1
 // // # https://ycphs.github.io/openxlsx/articles/Introduction.html
-
+// 
 
 
 
