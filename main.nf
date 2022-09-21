@@ -170,17 +170,18 @@ process ATAC_reads__merging_reads {
 
   label "fastqc"
 
-  when: do_atac
-
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_merged",
              mode: "${pub_mode}", enabled: save_all_fastq
 
+  when: 
+    do_atac
+  
   input:
     set id, file(files_R1_R2) from atac_raw.ATAC_reads_for_merging
 
   output:
     set id, file('*__R1_merged.fastq.gz'), file('*__R2_merged.fastq.gz') \
-             into ATAC_reads_for_trimming_2
+      into ATAC_reads_for_trimming_2
 
   script:
     """
@@ -213,7 +214,8 @@ process ATAC_reads__trimming_reads {
     path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed",
     mode: "${pub_mode}", pattern: "*.fastq.gz", enabled: save_last_fastq
 
-  when: do_atac
+  when: 
+    do_atac
 
   input:
     set id, file(read1), file(read2) from ATAC_reads_for_trimming_3
@@ -311,7 +313,8 @@ process ATAC_reads__aligning_reads {
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam",
              mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
-  when: do_atac
+  when: 
+    do_atac
 
   input:
     set id, file(read1), file(read2) from Trimmed_reads_for_aligning
@@ -357,7 +360,8 @@ process ATAC_reads__removing_low_quality_reads {
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
              mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
-  when: do_atac
+  when: 
+    do_atac
 
   input:
     set id, file(bam) from Bam_for_removing_low_quality_reads
@@ -394,7 +398,8 @@ process ATAC_reads__marking_duplicated_reads {
 
   label "picard"
 
-  when: do_atac
+  when: 
+    do_atac
 
   input:
     set id, file(bam) from Bam_for_marking_duplicated_reads
@@ -436,7 +441,8 @@ process ATAC_reads__removing_duplicated_reads {
     path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli", 
     mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
-  when: do_atac
+  when: 
+    do_atac
 
   input:
     set id, file(bam) from Bam_for_removing_duplicated_reads
@@ -479,7 +485,8 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
    path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ_dupli_mito", 
    mode: "${pub_mode}", pattern: "*.bam", enabled: save_last_bam
 
-  when: do_atac
+  when: 
+    do_atac
 
   input:
     set id, file(bam), file(bai) from Bam_for_removing_mitochondrial_reads
@@ -535,170 +542,172 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
     path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_asBed_atacShift", 
     mode: "${pub_mode}", pattern: "*.bam", enabled: params.save_1bp_bam
 
-  when: do_atac
+  when: 
+    do_atac
 
   input:
     set id, file(bam) from Bam_for_converting_bam_to_bed_and_adjusting_for_Tn5
 
   output:
     set id, file("*.bam*") into Reads_in_bam_files_for_diffbind
-    set id, file("*.bed") into 
+    set id, file("*.bed") into \
       Reads_in_bed_files_for_gathering_reads_stat, 
       Reads_in_bed_files_for_calling_peaks, 
       Reads_in_bed_files_for_computing_and_plotting_saturation_curve
 
   script:
+    def key = id + "__1bp_shifted_reads"
+  
     """
-
-    key="${id}__1bp_shifted_reads"
 
     bamToBed_and_atacShift.sh ${bam} ${key} ${params.chromosomes_sizes}
 
     """
 }
 
-// // Examples of :
-// // input: hmg4_1__no_mito.bam
-// // outpus: hmg4_1__1bp_shifted_reads.bam  hmg4_1__1bp_shifted_reads.bam.bai  
-// //         hmg4_1__1bp_shifted_reads.bed  
+// Examples of :
+// input: hmg4_1__no_mito.bam
+// outpus: hmg4_1__1bp_shifted_reads.bam  hmg4_1__1bp_shifted_reads.bam.bai  
+//         hmg4_1__1bp_shifted_reads.bed  
+
+
+
+// => converting bam to bed, adjusting for the shift of the transposase 
+//    (atac seq) and keeping only a bed format compatible with macs2
+
+
+// input are bam files (aligned reads) that have been filtered out of reads 
+//    that are low quality, duplicates, and in mitochondria or small contigs
+// output are bed files in which the reads have been converted to 1 base pair 
+//    (by keeping only the 5' end) and that have been shifted to take into 
+//    account the transposase shift
+
+// Example of a read pair:
+
+// input:
+// samtools view n301b170_2_no_mito.bam | grep SRR11607686.9081238 - | cut -f1-9
+//       QNAME             FLAG           RNAME    POS    MAPQ    CIGAR  RNEXT    PNEXT   TLEN
+// SRR11607686.9081238     163     211000022278033 357     31      37M     =       408     88
+// SRR11607686.9081238     83      211000022278033 408     31      37M     =       357     -88
+
+// output:
+// grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_1bp_shifted_reads.bed
+// 211000022278033 360     361     SRR11607686.9081238/2   88      +
+// 211000022278033 438     439     SRR11607686.9081238/1   -88     -
+
+// reads on the + strand are shifted by + 4 base pair -1 
+//    (different coordinate system) (357 + 4 -1 = 360)
+// reads on the - strand are shifted by - 5 base pair -1 
+//    (different coordinate system) (445 -5 - 1 = 439)
+
+// explanations for the input:
+// the read has a size of 37 bp and the insert has a size of 88 bp 
+// ranges: 
+// - read 1 [357-394 -> size: 37]
+// - read 2 [408-445 -> size: 37]
+// - insert [357-445 -> size: 88]
+// - fragment [345-457 -> size: 112] (not really sure for this. I just added 
+//                                     12 for the ATAC-Seq adapter length)
+// https://www.frontiersin.org/files/Articles/77572/fgene-05-00005-HTML/image_m/fgene-05-00005-g001.jpg
+// https://samtools-help.narkive.com/BpGYAdaT/isize-field-determining-insert-sizes-in-paired-end-data
+
+// Note: here the 1 base pair long (5') transposase-shifted peaks are sent to 
+///      DiffBind directly for Differential Accessibility Analysis.
+
+// https://www.nature.com/articles/nmeth.2688
+// https://www.nature.com/articles/s42003-020-01403-4
+// The Tn5 insertion positions were determined as the start sites of reads 
+//    adjusted by the rule of “forward strand +4 bp, negative strand −5 bp”4.
 // 
-// 
-// 
-// // => converting bam to bed, adjusting for the shift of the transposase 
-// //    (atac seq) and keeping only a bed format compatible with macs2
-// 
-// 
-// // input are bam files (aligned reads) that have been filtered out of reads 
-// //    that are low quality, duplicates, and in mitochondria or small contigs
-// // output are bed files in which the reads have been converted to 1 base pair 
-// //    (by keeping only the 5' end) and that have been shifted to take into 
-// //    account the transposase shift
-// 
-// // Example of a read pair:
-// 
-// // input:
-// // samtools view n301b170_2_no_mito.bam | grep SRR11607686.9081238 - | cut -f1-9
-// //       QNAME             FLAG           RNAME    POS    MAPQ    CIGAR  RNEXT    PNEXT   TLEN
-// // SRR11607686.9081238     163     211000022278033 357     31      37M     =       408     88
-// // SRR11607686.9081238     83      211000022278033 408     31      37M     =       357     -88
-// 
-// // output:
-// // grep "SRR11607686.9081238/2\|SRR11607686.9081238/1" n301b170_2_1bp_shifted_reads.bed
-// // 211000022278033 360     361     SRR11607686.9081238/2   88      +
-// // 211000022278033 438     439     SRR11607686.9081238/1   -88     -
-// 
-// // reads on the + strand are shifted by + 4 base pair -1 
-// //    (different coordinate system) (357 + 4 -1 = 360)
-// // reads on the - strand are shifted by - 5 base pair -1 
-// //    (different coordinate system) (445 -5 - 1 = 439)
-// 
-// // explanations for the input:
-// // the read has a size of 37 bp and the insert has a size of 88 bp 
-// // ranges: 
-// // - read 1 [357-394 -> size: 37]
-// // - read 2 [408-445 -> size: 37]
-// // - insert [357-445 -> size: 88]
-// // - fragment [345-457 -> size: 112] (not really sure for this. I just added 
-// //                                     12 for the ATAC-Seq adapter length)
-// // https://www.frontiersin.org/files/Articles/77572/fgene-05-00005-HTML/image_m/fgene-05-00005-g001.jpg
-// // https://samtools-help.narkive.com/BpGYAdaT/isize-field-determining-insert-sizes-in-paired-end-data
-// 
-// // Note: here the 1 base pair long (5') transposase-shifted peaks are sent to 
-// ///      DiffBind directly for Differential Accessibility Analysis.
-// 
-// // https://www.nature.com/articles/nmeth.2688
-// // https://www.nature.com/articles/s42003-020-01403-4
-// // The Tn5 insertion positions were determined as the start sites of reads 
-// //    adjusted by the rule of “forward strand +4 bp, negative strand −5 bp”4.
-// 
-// 
-// 
-// process ATAC_QC_reads__running_fastqc {
-//   tag "${id}"
-// 
-//   label "fastqc"
-// 
-//   publishDir 
-//     path: "${out_processed}/1_Preprocessing", mode: "${pub_mode}", saveAs: {
-//       if      (reads_type == 'raw' & it.indexOf(".html") > 0) 
-//         "ATAC__reads__fastqc_raw/${it}"
-//       else if (reads_type == 'trimmed' & it.indexOf(".html") > 0) 
-//         "ATAC__reads__fastqc_trimmed/${it}"
-//     }
-// 
-//   when: do_atac
-// 
-//   input:
-//     set val(reads_type), id, file(read1), file(read2) 
-//         from All_ATAC_reads_for_running_fastqc
-// 
-//   output:
-//     file("*.{zip, html}") into ATAC_fastqc_reports_for_multiqc
-// 
-//   script:
-//     """
-// 
-//     fastqc -t ${params.fastqc__nb_threads} ${read1} ${read2}
-// 
-//     """
-// }
-// 
-// 
-// 
-// process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
-//   tag "${id}"
-// 
-//   label "deeptools"
-// 
-//   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
-//     if (it.indexOf(".pdf") > 0) 
-//         "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
-//     else if (it.indexOf("_raw.bw") > 0) 
-//         "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
-//   }
-// 
-//   when: do_atac & params.do_bigwig
-// 
-//   input:
-//     set id, file(bam), file(bai) 
-//         from Bam_for_computing_bigwig_tracks_and_plotting_coverage
-// 
-//   output:
-//     set val("ATAC__reads__coverage"), val('1_Preprocessing'), file("*.pdf") 
-//         into ATAC_reads_coverage_plots_for_merging_pdfs
-//     file("*.bw") into Bigwigs_for_correlation_1 optional true
-// 
-//   script:
-//     """
-// 
-//     bamCoverage \
-//       --bam ${bam} \
-//       --outFileName ${id}.bw \
-//       --binSize             ${params.deeptools__binsize_bigwig_creation} \
-//       --normalizeUsing      ${params.deeptools__normalization_method}
-//       --numberOfProcessors  ${params.deeptools__nb_threads} \
-//       --blackListFileName   ${params.blacklisted_regions} \
-//       --effectiveGenomeSize ${params.effective_genome_size} \
-// 
-//     key="${id}__coverage"
-// 
-//     plotCoverage \
-//       --bam ${bam} \
-//       --numberOfSamples    ${params.deeptools__nb_of_1_bp_samples} \
-//       --numberOfProcessors ${params.deeptools__nb_threads} \
-//       --blackListFileName  ${params.blacklisted_regions} \
-//       --plotTitle ${key} \
-//       --plotFile ${key}.pdf
-// 
-//     """
-// }
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel
-//       .mix(ATAC_reads_coverage_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
-// 
-// 
-// 
-// 
+
+
+process ATAC_QC_reads__running_fastqc {
+  tag "${id}"
+
+  label "fastqc"
+
+  publishDir \
+    path: "${out_processed}/1_Preprocessing", mode: "${pub_mode}", 
+    pattern: "*.html", saveAs: {
+           if (reads_type == 'raw')     "ATAC__reads__fastqc_raw/${it}"
+      else if (reads_type == 'trimmed') "ATAC__reads__fastqc_trimmed/${it}"
+    }
+
+  when: 
+    do_atac
+
+  input:
+    set val(reads_type), id, file(read1), file(read2) \
+        from All_ATAC_reads_for_running_fastqc
+
+  output:
+    file("*.{zip, html}") into ATAC_fastqc_reports_for_multiqc
+
+  script:
+    """
+
+    fastqc -t ${params.fastqc__nb_threads} ${read1} ${read2}
+
+    """
+}
+
+
+
+process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
+  tag "${id}"
+
+  label "deeptools"
+
+  publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
+    if (it.indexOf(".pdf") > 0) 
+        "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
+    else if (it.indexOf("_raw.bw") > 0) 
+        "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
+  }
+
+  when: 
+    do_atac & params.do_bigwig
+
+  input:
+    set id, file(bam), file(bai) \
+      from Bam_for_computing_bigwig_tracks_and_plotting_coverage
+
+  output:
+    set val("ATAC__reads__coverage"), val('1_Preprocessing'), file("*.pdf") \
+      into ATAC_reads_coverage_plots_for_merging_pdfs
+    file("*.bw") into Bigwigs_for_correlation_1 optional true
+
+  script:
+    """
+
+    bamCoverage \
+      --bam ${bam} \
+      --outFileName ${id}.bw \
+      --binSize             ${params.deeptools__binsize_bigwig_creation} \
+      --normalizeUsing      ${params.deeptools__normalization_method}
+      --numberOfProcessors  ${params.deeptools__nb_threads} \
+      --blackListFileName   ${params.blacklisted_regions} \
+      --effectiveGenomeSize ${params.effective_genome_size} \
+
+    key="${id}__coverage"
+
+    plotCoverage \
+      --bam ${bam} \
+      --numberOfSamples    ${params.deeptools__nb_of_1_bp_samples} \
+      --numberOfProcessors ${params.deeptools__nb_threads} \
+      --blackListFileName  ${params.blacklisted_regions} \
+      --plotTitle ${key} \
+      --plotFile ${key}.pdf
+
+    """
+}
+
+Merging_pdfs_channel = Merging_pdfs_channel
+      .mix(ATAC_reads_coverage_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+
+
+
 // Bigwigs_for_correlation_1
 //     .collect()
 //     .into{ Bigwigs_with_input_control; Bigwigs_without_input_control_1 }
@@ -729,7 +738,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //          else if (it.indexOf("_cor.pdf") > 0) "ATAC__reads__correlations/${it}" 
 //     }
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     val out_path from Channel.value('1_Preprocessing') 
@@ -778,7 +788,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__reads__insert_size", 
 //              mode: "${pub_mode}"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     val out_path from Channel.value('1_Preprocessing') 
@@ -814,7 +825,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   label "samtools_bedtools_perl"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(bam) from Bam_for_sampling
@@ -867,7 +879,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   label "samtools_bedtools_perl"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(bam), file(bai) 
@@ -934,7 +947,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   label "picard"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(sam) from Bam_for_estimating_library_complexity
@@ -960,7 +974,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   label "bbmap"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(read1), file(read2) from Trimmed_reads_for_sampling
@@ -989,7 +1004,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   label "bowtie2_samtools"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(read1), file(read2) from Sampled_trimmed_reads_for_alignment
@@ -1052,7 +1068,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   label "samtools_bedtools_perl"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(overlap_genomic_regions), file(library_complexity), 
@@ -1131,7 +1148,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_tab_merge}/1_Preprocessing", mode: "${pub_mode}"
 //   publishDir path: "${out_tab_indiv}/1_Preprocessing", mode: "${pub_mode}"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     file("*") from Stats_on_aligned_reads_for_gathering.collect()
@@ -1164,7 +1182,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   label "r_basic"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     file(bam_stat_csv) from Bam_stat_for_splitting
@@ -1208,13 +1227,14 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   label "multiqc"
 // 
-    // publishDir path: "${out_fig_indiv}/1_Preprocessing", 
-    //            mode: "${pub_mode}", pattern: "*.html"
-    // 
-    // publishDir path: "${out_fig_merge}/1_Preprocessing", 
-    //            mode: "${pub_mode}", pattern: "*.html"
+//   publishDir path: "${out_fig_indiv}/1_Preprocessing", 
+//              mode: "${pub_mode}", pattern: "*.html"
 // 
-//   when: do_atac
+//   publishDir path: "${out_fig_merge}/1_Preprocessing", 
+//              mode: "${pub_mode}", pattern: "*.html"
+// 
+//   when: 
+//     do_atac
 // 
 //   input:
 //     file ('fastqc/*') from ATAC_fastqc_reports_for_multiqc.flatten().toList()
@@ -1259,7 +1279,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //     path: "${out_processed}/1_Preprocessing/ATAC__peaks__raw", 
 //     mode: "${pub_mode}", enabled: save_all_bed
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(bed) from Reads_in_bed_files_for_calling_peaks
@@ -1449,7 +1470,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", 
 //     mode: "${pub_mode}", enabled: save_all_bed
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(peaks) from Peaks_for_sub_peaks_calling
@@ -1509,7 +1531,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL", 
 //     mode: "${pub_mode}", enabled: save_all_bed
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(peaks) from Peaks_for_removing_blacklisted_regions
@@ -1580,7 +1603,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //     path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input", 
 //     mode: "${pub_mode}", enabled: save_all_bed
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set id, file(peaks), file(input_control_peaks) 
@@ -1677,7 +1701,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //    path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", 
 //    mode: "${pub_mode}", enabled: save_last_bed
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set COMP, file(bed_files), regions_to_remove 
@@ -1687,7 +1712,6 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //     file("*.bed")
 //     set COMP, file("*__peaks_kept_after_specific_regions_removal.bed") 
 //       into Peaks_for_diffbind
-// 
 // 
 //   shell:
 //     '''
@@ -1789,6 +1813,9 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__saturation_curve", 
 //              mode: "${pub_mode}"
 // 
+//   when: 
+//     do_atac & params.do_saturation_curve
+// 
 //   input:
 //     val out_path from Channel.value('1_Preprocessing') 
 //     set id, file(bed) 
@@ -1797,8 +1824,6 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   output:
 //     set val("ATAC__peaks__saturation_curve"), out_path, file('*.pdf') 
 //       into ATAC_saturation_curve_plots_for_merging_pdfs
-// 
-//   when: do_atac & params.do_saturation_curve
 // 
 //   script:
 //     """
@@ -1850,7 +1875,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", 
 //              mode: "${pub_mode}"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac & params.do_raw_peak_annotation
 // 
 //   input:
 //     set id, file(peaks_bed_file) \
@@ -1861,8 +1887,6 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //       into Annotated_macs2_peaks_for_plotting_each_sample, 
 //            Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 \
 //            optional true
-// 
-//   when: params.do_raw_peak_annotation
 // 
 //   shell:
 //     '''
@@ -1951,7 +1975,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //               "ATAC__peaks__average_profile/${it}"
 //   }
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     val out_path from Channel.value('1_Preprocessing') 
@@ -2008,7 +2033,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //              mode: "${pub_mode}"
 //   publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     val out_path from Channel.value('1_Preprocessing') 
@@ -2067,7 +2093,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", 
 //              mode: "${pub_mode}"
 // 
-//   when: do_mRNA
+//   when: 
+//     do_mRNA
 // 
 //   input:
 //     set id, file(reads) from MRNA_reads_for_kallisto
@@ -2119,7 +2146,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_processed}/1_Preprocessing/mRNA__fastqc", 
 //              mode: "${pub_mode}", pattern: "*.html" 
 // 
-//   when: do_mRNA
+//   when: 
+//     do_mRNA
 // 
 //   input:
 //     set id, file(reads) from MRNA_reads_for_running_fastqc
@@ -2147,7 +2175,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_fig_merge}/1_Preprocessing", 
 //              mode: "${pub_mode}", pattern: "*.html"
 // 
-//   when: do_mRNA
+//   when: 
+//     do_mRNA
 // 
 //   input:
 //     file ('fastqc/*') from MRNA_fastqc_reports_for_multiqc.flatten().toList()
@@ -2207,7 +2236,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //                                             "ATAC__all_peaks__gRange/${it}"
 //   }
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
@@ -2674,7 +2704,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //      else if (it.indexOf("_cs.rds") > 0) "ATAC__all_peaks__ChIPseeker/${it}"
 //    }
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) 
@@ -2870,7 +2901,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   label "r_basic"
 // 
-//   when: do_atac
+//   when: 
+//     do_atac
 // 
 //   input:
 //     set COMP, file(annotated_peaks) 
@@ -2983,7 +3015,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //           "mRNA__all_genes__bed_promoters/${it}"
 //   }
 // 
-//   when: do_mRNA
+//   when: 
+//     do_mRNA
 // 
 //   input:
 //     set COMP, cond1, cond2, file(kallisto_cond1), file(kallisto_cond2) 
@@ -3220,7 +3253,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", 
 //     mode: pub_mode, enabled: params.tables__save_csv
 // 
-//   when: do_mRNA
+//   when: 
+//     do_mRNA
 // 
 //   input:
 //     set COMP, file(mRNA_DEG_df) from Sleuth_results_for_saving_tables
@@ -3323,7 +3357,6 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //            DA_genes_for_plotting_venn_diagrams optional true
 //     set COMP, file("*__regions.bed") 
 //       into DA_regions_split_for_doing_enrichment_analysis optional true
-// 
 // 
 //   shell:
 //     '''
@@ -3812,7 +3845,8 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //     set key, data_type, file('*__counts.csv') 
 //       into Functional_annotations_overlaps_for_computing_pvalues optional true
 // 
-//   when: params.do_gene_set_enrichment
+//   when: 
+//     params.do_gene_set_enrichment
 // 
 //   shell:
 //     '''
@@ -4165,6 +4199,9 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //   publishDir path: "${out_processed}/3_Enrichment/${data_type}/${key}", 
 //              mode: "${pub_mode}"
 // 
+//   when: 
+//     params.do_motif_enrichment
+// 
 //   input:
 //     set key, data_type, file(DA_regions), file(all_regions) 
 //       from DA_regions_with_bg_for_computing_motifs_overlaps_2
@@ -4173,8 +4210,6 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //     file("**")
 //     set key, data_type, file("*__homer_results.txt") optional true 
 //       into Motifs_overlaps_for_reformatting_results
-// 
-//   when: params.do_motif_enrichment
 // 
 //   shell:
 //     '''
@@ -4524,7 +4559,6 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //     set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") 
 //       optional true into Heatmaps_for_merging_pdfs
 // 
-// 
 //   shell:
 //     '''
 //     #!/usr/bin/env Rscript
@@ -4731,8 +4765,6 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 //     set val("Tables_Individual/${out_folder}/${data_type}"), file('*.csv') 
 //       into Formatted_csv_tables_for_saving_Excel_tables optional true
 // 
-//   // when: params.do_chip_enrichment
-// 
 //   shell:
 //     '''
 //     #!/usr/bin/env Rscript
@@ -4840,13 +4872,14 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 // 
 //   publishDir path: "${res_dir}/${out_path}", mode: "${pub_mode}" 
 // 
+//   when: 
+//     params.tables__save_excel
+// 
 //   input:
 //     set out_path, file(csv_file) from Exporting_to_Excel_channel
 // 
 //   output:
 //     file("*.xlsx")
-// 
-//   when: params.tables__save_excel
 // 
 //   shell:
 //     '''
