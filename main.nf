@@ -678,18 +678,18 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
     file("*.bw") into Bigwigs_for_correlation_1 optional true
 
   script:
+    def key = id + "__coverage"
+    
     """
 
     bamCoverage \
       --bam ${bam} \
-      --outFileName ${id}.bw \
       --binSize             ${params.deeptools__binsize_bigwig_creation} \
-      --normalizeUsing      ${params.deeptools__normalization_method}
+      --normalizeUsing      ${params.deeptools__normalization_method} \
       --numberOfProcessors  ${params.deeptools__nb_threads} \
       --blackListFileName   ${params.blacklisted_regions} \
       --effectiveGenomeSize ${params.effective_genome_size} \
-
-    key="${id}__coverage"
+      --outFileName ${id}.bw
 
     plotCoverage \
       --bam ${bam} \
@@ -703,1707 +703,1702 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
 }
 
 Merging_pdfs_channel = Merging_pdfs_channel
-      .mix(ATAC_reads_coverage_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
+  .mix(ATAC_reads_coverage_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
 
 
 
 
-// Bigwigs_for_correlation_1
-//     .collect()
-//     .into{ Bigwigs_with_input_control; Bigwigs_without_input_control_1 }
-// 
-// Bigwigs_without_input_control_1
-//     .flatten()
-//     .filter{ !(it =~ /input/) }
-//     .collect()
-//     .map{ [ 'without_control', it ] }
-//     .set{ Bigwigs_without_input_control_1 }
-// 
-// Bigwigs_with_input_control
-//     .map{ [ 'with_control', it ] }
-//     .concat(Bigwigs_without_input_control_1)
-//     .dump(tag:'bigwigs') {"bigwigs for cor and PCA: ${it}"}
-//     .set{ Bigwigs_for_correlation_2 }
-// 
-// 
-// process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
-// 
-//   tag "${input_control_present}"
-// 
-//   label "deeptools"
-// 
-//   publishDir 
-//     path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: { 
-//          if (it.indexOf("_pca.pdf") > 0) "ATAC__reads__PCA/${it}" 
-//          else if (it.indexOf("_cor.pdf") > 0) "ATAC__reads__correlations/${it}" 
-//     }
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     val out_path from Channel.value('1_Preprocessing') 
-//     set input_control_present, file("*") from Bigwigs_for_correlation_2
-// 
-//   output:
-//     set val("ATAC__reads__PCA"),          out_path, file("*_pca.pdf") into
-//         ATAC_reads_PCA_plots_for_merging_pdfs
-//     set val("ATAC__reads__correlations"), out_path, file("*_cor.pdf") into    
-//         ATAC_reads_correlation_plots_for_merging_pdfs
-// 
-//   script:
-//     """
-// 
-//     plotPCAandCorMat.sh \
-//       ${input_control_present} \
-//       ${params.deeptools__binsize_bigwig_correlation} \
-//       ${params.blacklisted_regions}
-// 
-//     """
-// }
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel
-//     .mix(
-//       ATAC_reads_PCA_plots_for_merging_pdfs
-//       .groupTuple(by: [0, 1])
-//       .map{ it.flatten() }
-//       .map{ [ it[0], it[1], it[2..-1] ] }
-//       )
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel
-//     .mix(
-//       ATAC_reads_correlation_plots_for_merging_pdfs
-//       .groupTuple(by: [0, 1])
-//       .map{ it.flatten() }
-//       .map{ [ it[0], it[1], it[2..-1] ] }
-//       )
-// 
-// 
-// 
-// process ATAC_QC_reads__plotting_insert_size_distribution {
-//   tag "${id}"
-// 
-//   label "picard"
-// 
-//   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__reads__insert_size", 
-//              mode: "${pub_mode}"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     val out_path from Channel.value('1_Preprocessing') 
-//     set id, file(bam) from Bam_for_plotting_inserts_distribution
-// 
-//   output:
-//     set val("ATAC__reads__insert_size"), out_path, file("*.pdf") 
-//       into ATAC_reads_insert_size_plots_for_merging_pdfs
-// 
-//   script:
-//     """
-// 
-//     key="${id}__insert_size"
-// 
-//     picard -Xmx${params.memory_picard} CollectInsertSizeMetrics \
-//       -INPUT "${bam}" \
-//       -OUTPUT "${key}.txt" \
-//       -METRIC_ACCUMULATION_LEVEL ALL_READS \
-//       -Histogram_FILE "${key}.pdf" \
-//       -TMP_DIR .
-// 
-//     """
-// }
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(
-//     ATAC_reads_insert_size_plots_for_merging_pdfs.groupTuple(by: [0, 1])
-//     )
-// 
-// 
-// process ATAC_QC_reads__sampling_aligned_reads {
-//   tag "${id}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(bam) from Bam_for_sampling
-// 
-//   output:
-//     set id, file("*.sam") into Bam_for_estimating_library_complexity
-//     set id, file("*.bam"), file("*.bai") 
-//         into Bam_for_measuring_overlap_with_genomic_regions, 
-//              Sampled_aligned_reads_for_gathering_reads_stat
-//     set id, file("*.NB_ALIGNED_PAIRS*"), file("*.RAW_PAIRS*") 
-//         into Number_of_aligned_pairs_for_gathering_reads_stat
-// 
-//   script:
-//     """
-// 
-//     key="${id}__sampled"
-//     new_sam="${key}.sam"
-//     new_bam="${key}.bam"
-// 
-//     # saving the header
-//     samtools view -F 0x904 -H ${bam} > ${new_sam}
-// 
-//     # sampling a certain number of reads
-//     samtools view -F 0x904 ${bam} \
-//       | shuf - -n ${params.nb_sampled_aligned_reads} >> ${new_sam}
-// 
-//     # conversion to bam, sorting and indexing of sampled reads
-//     samtools view -Sb ${new_sam} \
-//       | samtools sort - -o ${new_bam}
-//     samtools index ${new_bam}
-// 
-//     NB_ALIGNED_PAIRS=`samtools view -F 0x4 ${bam} | cut -f 1 | sort -T . \
-//                                                   | uniq | wc -l`
-//     RAW_PAIRS=`samtools view ${bam}| cut -f 1 | sort -T . | uniq | wc -l`
-// 
-//     touch \$NB_ALIGNED_PAIRS.NB_ALIGNED_PAIRS_${id}
-//     touch \$RAW_PAIRS.RAW_PAIRS_${id}
-// 
-//   """
-// }
-// 
-// 
-// // The code "-F 0x904" indicates to keep only mapped alignment (flag 0x4) that 
-// //    are not secondary (flag 0x100, multimappers) or 
-// //        supplementary (flag 0x800, chimeric entries)
-// 
-// 
-// process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
-//   tag "${id}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(bam), file(bai) 
-//       from Bam_for_measuring_overlap_with_genomic_regions
-// 
-//   output:
-//     set id, file("*.txt") 
-//       into Overlap_with_genomic_regions_results_for_gathering_reads_stat
-// 
-//   shell:
-//     '''
-// 
-//     id=!{id}
-//     bam=!{bam}
-//     BED_PATH=!{params.bed_regions}
-// 
-//     new_txt="${id}_reads_overlap_with_genomic_regions.txt"
-// 
-//     getTotalReadsMappedToBedFile () { 
-//       bedtools coverage -a $1 -b $2 | cut -f 4 \
-//       | awk '{ sum+=$1} END {print sum}'
-//       }
-// 
-// 
-//     PROMOTER=`getTotalReadsMappedToBedFile $BED_PATH/promoters.bed ${bam}`
-//     EXONS=`getTotalReadsMappedToBedFile $BED_PATH/exons.bed ${bam}`
-//     INTRONS=`getTotalReadsMappedToBedFile $BED_PATH/introns.bed ${bam}`
-//     INTERGENIC=`getTotalReadsMappedToBedFile $BED_PATH/intergenic.bed ${bam}`
-//     GENES=`getTotalReadsMappedToBedFile $BED_PATH/genes.bed ${bam}`
-//     BAM_NB_READS=`samtools view -c ${bam}`
-// 
-//     echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" > ${new_txt}
-//     echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" \
-//       >> ${new_txt}
-// 
-//     awkDecimalDivision () { 
-//       awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }'
-//     }
-// 
-//     P_PROM=$(awkDecimalDivision $PROMOTER $BAM_NB_READS)
-//     P_EXONS=$(awkDecimalDivision $EXONS $BAM_NB_READS)
-//     P_INTRONS=$(awkDecimalDivision $INTRONS $BAM_NB_READS)
-//     P_INTERGENIC=$(awkDecimalDivision $INTERGENIC $BAM_NB_READS)
-//     P_GENES=$(awkDecimalDivision $GENES $BAM_NB_READS)
-//     P_READS=$(awkDecimalDivision $BAM_NB_READS $BAM_NB_READS)
-// 
-//     echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" \
-//       >> ${new_txt}
-// 
-//     '''
-// 
-// }
-// 
-// // => preparing ATAC-Seq related statistics on aligned reads
-// 
-// // bedtools_coverage_only () { bedtools coverage -a $1 -b $2 ;}
-// // bedtools_coverage_only $BED_PATH/promoters.bed ${bam} | head
-// // bedtools_coverage_only $BED_PATH/promoters.bed ${bam} | cut -f 4 | head
-// 
-// 
-// 
-// process ATAC_QC_reads__estimating_library_complexity {
-//   tag "${id}"
-// 
-//   label "picard"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(sam) from Bam_for_estimating_library_complexity
-// 
-//   output:
-//     set id, file("*.txt") 
-//       into Library_complexity_for_gathering_reads_stat
-// 
-//   script:
-//     """
-// 
-//     picard -Xmx${params.memory_picard} EstimateLibraryComplexity \
-//       -INPUT ${sam} \
-//       -OUTPUT ${id}_library_complexity.txt
-// 
-//     """
-// }
-// 
-// 
-// 
-// process ATAC_QC_reads__sampling_trimmed_reads {
-//   tag "${id}"
-// 
-//   label "bbmap"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(read1), file(read2) from Trimmed_reads_for_sampling
-// 
-//   output:
-//     set id, file("*R1.fastq"), file("*R2.fastq") 
-//       into Sampled_trimmed_reads_for_alignment
-// 
-//   script:
-//     """
-// 
-//       reformat.sh \
-//         in1=${read1} \
-//         in2=${read2} \
-//         out1=${id}_subsampled_R1.fastq \
-//         out2=${id}_subsampled_R2.fastq \
-//         samplereadstarget=${params.nb_sampled_trimmed_reads}
-// 
-//     """
-// }
-// 
-// 
-// 
-// process ATAC_QC_reads__aligning_sampled_reads {
-//   tag "${id}"
-// 
-//   label "bowtie2_samtools"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(read1), file(read2) from Sampled_trimmed_reads_for_alignment
-// 
-//   output:
-//     set id, file("*_ref.qc"), file("*_conta.qc") 
-//       into Flagstat_on_aligned_sampled_trimmed_reads_for_gathering_reads_stat
-//     set file("*_ref.bam"), file("*_conta.bam")
-// 
-//   script:
-//     """
-// 
-//     key_ref="${id}_ref"
-//     new_bam_ref="${key_ref}.bam"
-// 
-//     key_conta="${id}_conta"
-//     new_bam_conta="${key_conta}.bam"
-// 
-// 
-//     bowtie2 -p ${params.nb_threads_botwie2} \
-//       --very-sensitive \
-//       --end-to-end \
-//       --no-mixed \
-//       -X 2000 \
-//       --met 1 \
-//       -x "${params.bowtie2_indexes}" \
-//       -q -1 "${read1}" -2 "${read2}" \
-//       | samtools view -bS -o ${new_bam_ref} -
-// 
-//     samtools flagstat ${new_bam_ref} > "${key_ref}.qc"
-// 
-//     bowtie2 -p ${params.nb_threads_botwie2} \
-//       --very-sensitive \
-//       --end-to-end \
-//       --no-mixed \
-//       -X 2000 \
-//       --met 1 \
-//       -x "${params.bowtie2_indexes_contam}" \
-//       -q -1 "${read1}" -2 "${read2}" \
-//       | samtools view -bS -o ${new_bam_conta} -
-// 
-//     samtools flagstat ${new_bam_conta} > "${key_conta}.qc"
-// 
-//     """
-// }
-// 
-// 
-// Overlap_with_genomic_regions_results_for_gathering_reads_stat
-//     .join(Library_complexity_for_gathering_reads_stat)
-//     .join(Flagstat_on_aligned_sampled_trimmed_reads_for_gathering_reads_stat)
-//     .join(Sampled_aligned_reads_for_gathering_reads_stat)
-//     .join(Number_of_aligned_pairs_for_gathering_reads_stat)
-//     .join(Reads_in_bed_files_for_gathering_reads_stat)
-//     .set{ All_stat_for_gathering_reads_stat }
-// 
-// 
-// 
-// process ATAC_QC_reads__gathering_all_stat {
-//   tag "${id}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(overlap_genomic_regions), file(library_complexity), 
-//       file(cel_flagstat), file(op50_flagstat), file(bam), file(bai), 
-//       file(nb_aligned_pairs), file(nb_total_pairs), file(final_bed) 
-//       from All_stat_for_gathering_reads_stat
-// 
-//   output:
-//     file("*.txt") into Stats_on_aligned_reads_for_gathering
-// 
-//   shell:
-//     '''
-// 
-//     id=!{id}
-//     overlap_genomic_regions=!{overlap_genomic_regions}
-//     library_complexity=!{library_complexity}
-//     cel_flagstat=!{cel_flagstat}
-//     op50_flagstat=!{op50_flagstat}
-//     bam=!{bam}
-//     nb_aligned_pairs=!{nb_aligned_pairs}
-//     nb_total_pairs=!{nb_total_pairs}
-//     final_bed=!{final_bed}
-// 
-//     # number of paired end reads
-//     FINAL_PAIRS=`awk 'END{print NR/2}' ${final_bed}`
-//     ALIGNED_PAIRS=`basename ${nb_aligned_pairs} .NB_ALIGNED_PAIRS_${id}`
-//     RAW_PAIRS=`basename ${nb_total_pairs} .RAW_PAIRS_${id}`
-// 
-//     # percentage of aligned reads
-//     PERCENT_ALIGN_REF=`sed '7q;d' ${cel_flagstat} \
-//         | cut -f 2 -d '(' | cut -f 1 -d '%'`
-//     PERCENT_ALIGN_CONTA=`sed '7q;d' ${op50_flagstat} \
-//         | cut -f 2 -d '(' | cut -f 1 -d '%'`
-// 
-//     # percentage of mitochondrial reads
-//     PERCENT_MITO=$(awk "BEGIN { 
-//       print 100 * $(samtools view -c ${bam} MtDNA) / $(samtools view -c ${bam}) 
-//       }" )
-// 
-//     # percentage of reads mapping to various annotated regions
-//     PERCENT_PROMOTERS=$(sed '3q;d' ${overlap_genomic_regions} \| cut -f 1 -d ' ')
-//     PERCENT_EXONS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 2 -d ' ')
-//     PERCENT_INTRONS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 3 -d ' ')
-//     PERCENT_INTERGENIC=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 4 -d ' ')
-//     PERCENT_GENIC=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 5 -d ' ')
-// 
-//     # library size and percentage of duplicated reads 
-//     LIBRARY_SIZE=0
-//     RES_LIB_COMP=`sed '8q;d' ${library_complexity}`
-//     PERCENT_DUPLI=`echo $RES_LIB_COMP | cut -f 9 -d ' '`
-//     if [ "$PERCENT_DUPLI" = 0 ]; then
-//       LIBRARY_SIZE=0
-//     else
-//       LIBRARY_SIZE=`echo $RES_LIB_COMP | cut -f 10 -d ' '`
-//     fi
-//     PERCENT_DUPLI=`awk -v x=$PERCENT_DUPLI 'BEGIN {printf "%.2f\\n", 100 * x }' }`
-// 
-//     # gathering the results
-//     echo \
-//       "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,\
-// $PERCENT_INTERGENIC,$PERCENT_GENIC,$PERCENT_ALIGN_REF,$PERCENT_ALIGN_CONTA,\
-// $PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" \
-//       > ${id}_bam_stats.txt
-// 
-//     '''
-// }
-// // library size = library complexity
-// // # (=> needs aligned but not filtered reads)
-// 
-// 
-// 
-// process ATAC_QC_reads__gathering_all_samples {
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   publishDir path: "${out_tab_merge}/1_Preprocessing", mode: "${pub_mode}"
-//   publishDir path: "${out_tab_indiv}/1_Preprocessing", mode: "${pub_mode}"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     file("*") from Stats_on_aligned_reads_for_gathering.collect()
-// 
-//   output:
-//     file("*.csv") into Bam_stat_for_splitting
-// 
-//   shell:
-//     '''
-// 
-//     OUTFILE="ATAC__alignment_statistics.csv"
-// 
-//     echo \ 
-//       "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,\
-// PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_REF,\
-// PERCENT_ALIGN_CONTA,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,\
-// FINAL_PAIRS" \
-//       > ${OUTFILE}
-// 
-//     cat *_bam_stats.txt >> ${OUTFILE}
-// 
-//    '''
-// }
-// 
-// // => gathering all individual statistics files and making a merged table 
-// 
-// 
-// 
-// process ATAC_QC_reads__splitting_stat_for_multiqc {
-// 
-//   label "r_basic"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     file(bam_stat_csv) from Bam_stat_for_splitting
-// 
-//   output:
-//     file("*") into Bam_stat_for_multiqc
-// 
-//   shell:
-//     '''
-// 
-//     #!/usr/bin/env Rscript
-// 
-// 
-//     library(magrittr)
-//     library(dplyr)
-// 
-//     bam_stat_csv = '!{bam_stat_csv}'
-// 
-// 
-//     df = read.csv(bam_stat_csv, stringsAsFactors = F)
-//     colnames(df) %<>% tolower %>% gsub('percent', 'percentage', .)
-// 
-//     df %<>% rename(
-//       percentage_mitochondrial   = percentage_mito, 
-//       percentage_align_reference = percentage_align_ref, 
-//       percentage_aligned_CONTA   = percentage_align_contaminant, 
-//       percentage_duplications    = percentage_dupli
-//       )
-// 
-//     colnames = colnames(df)[2:ncol(df)]
-//     for(colname in colnames){
-//       df1 = df[, c('library_name', colname)]
-//       write.csv(df1, row.names = F, file = paste0(colname, '_mqc.csv'))
-//     }
-// 
-//    '''
-// }
-// 
-// 
-// process ATAC_QC_reads__running_multiQC {
-// 
-//   label "multiqc"
-// 
-//   publishDir path: "${out_fig_indiv}/1_Preprocessing", 
-//              mode: "${pub_mode}", pattern: "*.html"
-// 
-//   publishDir path: "${out_fig_merge}/1_Preprocessing", 
-//              mode: "${pub_mode}", pattern: "*.html"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     file ('fastqc/*') from ATAC_fastqc_reports_for_multiqc.flatten().toList()
-//     file(csv_files) from Bam_stat_for_multiqc
-// 
-//   output:
-//     file "ATAC__multiQC.html"
-//     // file "*multiqc_data"
-// 
-//   script:
-//     """
-// 
-//     multiqc -f .
-//     mv multiqc_report.html ATAC__multiQC.html
-// 
-//     """
-// }
-// 
-// // This kind of commands could maybe make a more pretty multiqc report, 
-// // but I would need to investigate more on how to do that exactly
-// // FILENAME=`basename bam_stats.csv .csv`
-// // cut -d "," -f 1-2 bam_stats.csv > ${FILENAME}_test_mqc.csv
-// //
-// // FILENAME=`basename ${bam_stat} .csv`
-// // cut -d "," -f 1-6 ${bam_stat} > \${FILENAME}_percentage_mqc.csv
-// // cut -d "," -f 1,7-10 ${bam_stat} > \${FILENAME}_counts_mqc.csv
-// 
-// // the raw multiqc_data folder is probably not useful to publish. 
-// // Interested people may add it back though by uncommenting these 2 lines.
-// 
-// 
-// 
-// 
-// 
-// 
-// process ATAC_peaks__calling_peaks {
-//   tag "${id}"
-// 
-//   label "macs2"
-// 
-//   publishDir 
-//     path: "${out_processed}/1_Preprocessing/ATAC__peaks__raw", 
-//     mode: "${pub_mode}", enabled: save_all_bed
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(bed) from Reads_in_bed_files_for_calling_peaks
-// 
-//   output:
-//     set id, file("*.narrowPeak") into Peaks_for_sub_peaks_calling
-// 
-//   script:
-//     """
-// 
-//     export TMPDIR="." PYTHON_EGG_CACHE="."
-// 
-//     macs2 callpeak \
-//         --treatment "${bed}" \
-//         --format BED \
-//         --name "${id}__macs2" \
-//         --qvalue "${params.macs2__qvalue}" \
-//         --gsize "${params.effective_genome_size}" \
-//         --nomodel \
-//         --shift -75 \
-//         --extsize 150 \
-//         --keep-dup all \
-//         --call-summits
-// 
-//     """
-// }
-// 
-// 
-// //// doc
-// // https://pypi.org/project/MACS2/
-// // https://pypi.org/project/MACS3/
-// // https://github.com/macs3-project/MACS
-// // https://github.com/macs3-project/MACS
-// // https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md
-// // https://macs3-project.github.io/MACSr/articles/MACSr.html
-// 
-// //// other relevant links 
-// // https://github.com/macs3-project/MACS/discussions/435
-// // https://github.com/macs3-project/MACS/issues/145
-// // https://twitter.com/XiChenUoM/status/1336658454866325506
-// // https://groups.google.com/g/macs-announcement/c/4OCE59gkpKY/m/v9Tnh9jWriUJ
-// // https://www.biostars.org/p/209592/
-// // https://hbctraining.github.io/In-depth-NGS-Data-Analysis-Course/sessionV/lessons/04_peak_calling_macs.html
-// // https://hbctraining.github.io/Intro-to-ChIPseq/lessons/05_peak_calling_macs.html
-// 
-// 
-// 
-// // macs2 manual: https://github.com/jsh58/MACS
-// 
-// //// Here are details for the macs2 parameters (the macs2 website is broken)
-// // https://www.biostars.org/p/207318/
-// // --extsize
-// //    While '--nomodel' is set, MACS uses this parameter to extend reads in 
-// //    5'->3' direction to fix-sized fragments. For example, if the size of 
-// //    binding region for your transcription factor is 200 bp, and you want to 
-// //    bypass the model building by MACS, this parameter can be set as 200. 
-// //    This option is only valid when --nomodel is set or when MACS fails to 
-// //    build model and --fix-bimodal is on.
-// // 
-// // --shift
-// //     Note, this is NOT the legacy --shiftsize option which is replaced by 
-// //    --extsize! You can set an arbitrary shift in bp here. Please Use 
-// //    discretion while setting it other than default value (0). When --nomodel 
-// //    is set, MACS will use this value to move cutting ends (5') then apply 
-// //    --extsize from 5' to 3' direction to extend them to fragments. When this 
-// //    value is negative, ends will be moved toward 3'->5' direction, otherwise 
-// //    5'->3' direction. Recommended to keep it as default 0 for ChIP-Seq 
-// //    datasets, or -1 * half of EXTSIZE together with --extsize option for 
-// //    detecting enriched cutting loci such as certain DNAseI-Seq datasets. 
-// //    Note, you can't set values other than 0 if format is BAMPE or BEDPE 
-// //    for paired-end data. Default is 0.
-// 
-// //// a recommanded setting to use both read pairs is the following:
-// // https://github.com/macs3-project/MACS/issues/145#issuecomment-742593158
-// // https://twitter.com/XiChenUoM/status/1336658454866325506
-// // macs2 callpeak -f BED --shift -100 --extsize 200 ...
-// 
-// 
-// //// There is also a justification to use 150 bp instead of 200:
-// // https://twitter.com/hoondy/status/1337170830997004290
-// // Is there any reason you chose the size as 200bp? For example, I use 
-// //    "shift -75 --extsize 150" (approx. size of nucleosome) and wonder if there 
-// //    were any benefit of making the unit of pileup 200bp.
-// // We use 200 due to habit. The choice is arbitrary. Not sure how diff it makes. 
-// //    Intuitively smaller fragLen give better res. but it can’t be too short. 
-// //    Check Fig1 in this ref (not ATAC though) 
-// //    https://ncbi.nlm.nih.gov/pmc/articles/PMC2596141/ 75 gives better res. 
-// //    Maybe that’s the reason ENCODE use it.
-// 
-// //// So to sum up: 
-// // - the two ends of each read pair are analyzed separately
-// // - we keep only the 5' end of each read pair. 
-// //    This is were we want our peak to be centered
-// // - we shift the reads to take into account the transposase 
-// //    (+4 bp on + strand, -5 on the - strand)
-// // - we shift the reads manually by -75 bp (in the 5' direction)
-// // - we use macs2 with the argument --extsize 150 which indicate to extend the 
-// //    read by 150 bp in the 3' direction. This way they will be centered in the 
-// //    original 5' location. 150 bp is the approximate size of nucleosome.
-// // - the peaks in the .narrowPeak file are 150 base pair long
-// 
-// 
-// //// methods from the Daugherty 2017 paper (Brunet lab)
-// // Chromatin accessibility dynamics reveal novel functional enhancers in 
-// //    C. elegans
-// // https://genome.cshlp.org/content/27/12/2096.long
-// // Supplemental_Material.pdf, section ATAC-seq peak calling
-// // For every replicate, prior to calling peaks with MACS (Zhang et al. 2008) 
-// //    (v2.1), single-base 
-// // reads were shifted 75bp 5’ to mimic read distributions of a 150 bp fragment 
-// //    of ChIP-seq, thereby
-// // allowing use of MACS. The following settings were used for MACS: 
-// //    -g 9e7, -q 5e-2, --nomodel, --extsize 150, -B, --keep-dup all, and 
-// //    --call-summits.  
-// // The resulting peaks included a portion that had multiple summits; to 
-// // maximize our resolution these summits were subsequently separated into 
-// // individual peaks by treating the midpoint between the two adjacent summits 
-// // as the 5’ and 3’ end of each individual peak, respectively.
-// // macs2.1 doc: https://pypi.org/project/MACS2/2.1.0.20151222/
-// 
-// 
-// //// Calling macs2 without the --call-summits option
-// // narrowPeaks file
-// // I       3609    4118    ctl_2_macs2_peak_1      30998   .       25.663  3103.76 3099.82 325
-// // I       11019   11724   ctl_2_macs2_peak_2      2539    .       6.18189 255.951 253.917 310
-// // I       12930   13338   ctl_2_macs2_peak_3      185     .       1.97507 19.9684 18.5887 197
-// // I       14861   15110   ctl_2_macs2_peak_4      159     .       1.91822 17.3277 15.9723 113
-// // I       15340   15573   ctl_2_macs2_peak_5      594     .       2.95858 61.078  59.4709 119
-// // I       16735   17315   ctl_2_macs2_peak_6      6693    .       10.886  671.782 669.305 306
-// // I       21631   21997   ctl_2_macs2_peak_7      121     .       1.84936 13.4594 12.1469 260
-// // I       22239   22394   ctl_2_macs2_peak_8      149     .       1.95444 16.3335 14.988  116
-// // I       24470   24626   ctl_2_macs2_peak_9      230     .       2.21713 24.4981 23.0807 65
-// // I       26817   27032   ctl_2_macs2_peak_10     1132    .       4.11903 115.028 113.257 85
-// //
-// // Summits file
-// // I       3934    3935    ctl_2_macs2_peak_1      3099.82
-// // I       11329   11330   ctl_2_macs2_peak_2      253.917
-// // I       13127   13128   ctl_2_macs2_peak_3      18.5887
-// // I       14974   14975   ctl_2_macs2_peak_4      15.9723
-// // I       15459   15460   ctl_2_macs2_peak_5      59.4709
-// // I       17041   17042   ctl_2_macs2_peak_6      669.305
-// // I       21891   21892   ctl_2_macs2_peak_7      12.1469
-// // I       22355   22356   ctl_2_macs2_peak_8      14.988
-// // I       24535   24536   ctl_2_macs2_peak_9      23.0807
-// // I       26902   26903   ctl_2_macs2_peak_10     113.257
-// 
-// // 
-// //
-// //// Calling macs2 with the --call-summits option
-// // narrowPeaks file
-// // I       3609    4118    ctl_2_macs2_peak_1      29989   .       25.0793 3002.86 2998.99 319
-// // I       11019   11724   ctl_2_macs2_peak_2      2539    .       6.18189 255.951 253.917 310
-// // I       12930   13338   ctl_2_macs2_peak_3      168     .       1.92215 18.1832 16.8191 210
-// // I       14861   15110   ctl_2_macs2_peak_4      129     .       1.81726 14.2625 12.9413 127
-// // I       15340   15573   ctl_2_macs2_peak_5      437     .       2.63535 45.2707 43.7312 108
-// // I       16735   17315   ctl_2_macs2_peak_6      5854    .       10.0244 587.809 585.402 294
-// // I       21631   21997   ctl_2_macs2_peak_7a     69      .       1.6287  8.22598 6.995   77
-// // I       21631   21997   ctl_2_macs2_peak_7b     121     .       1.84936 13.4594 12.1469 261
-// // I       22239   22394   ctl_2_macs2_peak_8      100     .       1.7653  11.3334 10.0498 85
-// // I       24470   24626   ctl_2_macs2_peak_9      223     .       2.19612 23.7962 22.3841 72
-// // Summits file
-// // I       3928    3929    ctl_2_macs2_peak_1      2998.99
-// // I       11329   11330   ctl_2_macs2_peak_2      253.917
-// // I       13140   13141   ctl_2_macs2_peak_3      16.8191
-// // I       14988   14989   ctl_2_macs2_peak_4      12.9413
-// // I       15448   15449   ctl_2_macs2_peak_5      43.7312
-// // I       17029   17030   ctl_2_macs2_peak_6      585.402
-// // I       21708   21709   ctl_2_macs2_peak_7a     6.995
-// // I       21892   21893   ctl_2_macs2_peak_7b     12.1469
-// // I       22324   22325   ctl_2_macs2_peak_8      10.0498
-// // I       24542   24543   ctl_2_macs2_peak_9      22.3841
-// 
-// 
-// 
-// // we can see here that when using the --call-summits option, the peak number 7 
-// //    (summits at coordinates 21891) was split into two different peaks (summits 
-// //    at coordinates 21708 and 21892)
-// // however the narrowPeaks file is just duplicated
-// 
-// 
-// 
-// process ATAC_peaks__splitting_multi_summits_peaks {
-//   tag "${id}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", 
-//     mode: "${pub_mode}", enabled: save_all_bed
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(peaks) from Peaks_for_sub_peaks_calling
-// 
-//   output:
-//     set id, file("*.narrowPeak") 
-//       into Peaks_for_removing_blacklisted_regions
-// 
-//   script:
-//     """
-// 
-//     perl "${projectDir}/bin/splitMACS2SubPeaks.pl" "${peaks}" \
-//       > "${id}__split_peaks.narrowPeak"
-// 
-//     """
-// }
-// 
-// // This scripts comes from Anshul Kundaje, and was made for the Daugherty et al 
-// //    2017 manuscript (Brunet lab)
-// 
-// // Example:
-// 
-// //// raw narrowPeak file
-// // I       3609    4118    ctl_2_macs2_peak_1      29989   .       25.0793 3002.86 2998.99 319
-// // I       11019   11724   ctl_2_macs2_peak_2      2539    .       6.18189 255.951 253.917 310
-// // I       12930   13338   ctl_2_macs2_peak_3      168     .       1.92215 18.1832 16.8191 210
-// // I       14861   15110   ctl_2_macs2_peak_4      129     .       1.81726 14.2625 12.9413 127
-// // I       15340   15573   ctl_2_macs2_peak_5      437     .       2.63535 45.2707 43.7312 108
-// // I       16735   17315   ctl_2_macs2_peak_6      5854    .       10.0244 587.809 585.402 294
-// // I       21631   21997   ctl_2_macs2_peak_7a     69      .       1.6287  8.22598 6.995   77
-// // I       21631   21997   ctl_2_macs2_peak_7b     121     .       1.84936 13.4594 12.1469 261
-// // I       22239   22394   ctl_2_macs2_peak_8      100     .       1.7653  11.3334 10.0498 85
-// // I       24470   24626   ctl_2_macs2_peak_9      223     .       2.19612 23.7962 22.3841 72
-// // 
-// //// splitted narrowPeak file
-// // I       3609    4118    ctl_2_macs2_peak_1      29989   .       25.0793 3002.86 2998.99 319
-// // I       11019   11724   ctl_2_macs2_peak_2      2539    .       6.18189 255.951 253.917 310
-// // I       12930   13338   ctl_2_macs2_peak_3      168     .       1.92215 18.1832 16.8191 210
-// // I       14861   15110   ctl_2_macs2_peak_4      129     .       1.81726 14.2625 12.9413 127
-// // I       15340   15573   ctl_2_macs2_peak_5      437     .       2.63535 45.2707 43.7312 108
-// // I       16735   17315   ctl_2_macs2_peak_6      5854    .       10.0244 587.809 585.402 294
-// // I       21631   21800   ctl_2_macs2_peak_7a     69      .       1.6287  8.22598 6.995   77
-// // I       21800   21997   ctl_2_macs2_peak_7b     121     .       1.84936 13.4594 12.1469 92
-// // I       22239   22394   ctl_2_macs2_peak_8      100     .       1.7653  11.3334 10.0498 85
-// // I       24470   24626   ctl_2_macs2_peak_9      223     .       2.19612 23.7962 22.3841 72
-// 
-// // here we see that peaks peaks 7a and 7b have the same start (21631) and end 
-// //    (21997) but different summits after splitting, they are split into two 
-// //    regions in their middle; so 7a ends at 21800, and 7b starts at 21800
-// 
-// 
-// process ATAC_peaks__removing_blacklisted_regions {
-//   tag "${id}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL", 
-//     mode: "${pub_mode}", enabled: save_all_bed
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(peaks) from Peaks_for_removing_blacklisted_regions
-// 
-//   output:
-//     file("*.bed")
-//     set id, file("*__peaks_kept_after_blacklist_removal.bed") 
-//       into Peaks_without_blacklist_1, 
-//            Macs2_Peaks_without_blacklist_1_for_annotating_them
-// 
-// 
-//   script:
-//     """
-// 
-//     intersectBed -v -a "${peaks}" -b "${params.blacklisted_regions}" \
-//       > "${id}__peaks_kept_after_blacklist_removal.bed"
-// 
-//     intersectBed -u -a "${peaks}" -b "${params.blacklisted_regions}" \
-//       > "${id}__peaks_lost_after_blacklist_removal.bed"
-// 
-//     """
-// }
-// 
-// // there are two output channels because:
-// // all peaks including input control are sent for annotation by ChipSeeker 
-// //    to get the distribution of peaks in various genomic locations
-// // the peaks are then sent for input control removal before DiffBind analysis
-// 
-// 
-// // println "params.use_input_control: ${params.use_input_control}"
-// 
-// Peaks_without_blacklist_1
-//   .branch {
-//     with_input_control: params.use_input_control
-//     without_input_control: true
-//   }
-//   .set { Peaks_without_blacklist_2 }
-// 
-// // this command redirects the channel items to: 
-// // Peaks_without_blacklist_2.with_input_control   
-// //     if params.use_input_control = true
-// // Peaks_without_blacklist_2.without_input_control 
-// //    if params.use_input_control = false
-// 
-// 
-// Peaks_without_blacklist_2.with_input_control
-//   // .view{"test_IP: ${it}"}
-//   .branch { it ->
-//     control: it[0] == 'input'
-//     treatment: true
-//   }
-//   .set { Peaks_without_blacklist_3 }
-// 
-// 
-// Peaks_without_blacklist_3.treatment
-//     .combine(Peaks_without_blacklist_3.control)
-//     .map { it[0, 1, 3] }
-//     .dump(tag:'peaks_input') {"Peaks with input_control controls: ${it}"}
-//     .set { Peaks_treatment_with_control }
-// 
-// 
-// process ATAC_peaks__removing_input_control_peaks {
-//   tag "${id}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   publishDir 
-//     path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input", 
-//     mode: "${pub_mode}", enabled: save_all_bed
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set id, file(peaks), file(input_control_peaks) 
-//       from Peaks_treatment_with_control
-// 
-//   output:
-//     file("*.bed")
-//     set id, file("*__peaks_kept_after_input_control_removal.bed") 
-//       into Peaks_for_removing_specific_regions_1
-// 
-//   script:
-//     """
-// 
-//     intersectBed -wa -v -f ${params.input_control_overlap_portion} \
-//       -a "${peaks}" -b "${input_control_peaks}" \
-//       > "${id}__peaks_kept_after_input_control_removal.bed"
-// 
-//     intersectBed -wa -u -f ${params.input_control_overlap_portion} \
-//       -a "${peaks}" -b "${input_control_peaks}" \
-//       > "${id}__peaks_lost_after_input_control_removal.bed"
-// 
-//     """
-// }
-// 
-// // https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
-// // option   Description
-// // -wa 	  	Write the original entry in A for each overlap.
-// // -f  	  	Minimum overlap required as a fraction of A. - Default is 1E-9 
-// //          (i.e., 1bp). - FLOAT (e.g. 0.50)
-// // -v 	  	Only report those entries in A that have _no overlaps_ with B. 
-// //          - Similar to ‘grep -v’ (an homage).
-// // -u 	    Write the original A entry _once_ if _any_ overlaps found in B. 
-// //          - In other words, just report the fact >=1 hit was found. 
-// //          - Overlaps restricted by -f and -r.
-// 
-// Peaks_without_blacklist_2.without_input_control
-//   .concat(Peaks_for_removing_specific_regions_1)
-//   .set{   Peaks_for_removing_specific_regions_2 }
-// 
-// 
-// 
-// 
-// 
-// //// DIFFENRENTIAL BINDING
-// 
-// comparisons_files = file(params.design__comparisons)
-// Channel
-//   .from(comparisons_files.readLines())
-//   .map {
-//           m = it.split()
-//           condition1 = m[0]
-//           condition2 = m[1]
-//           [ condition1, condition2 ]
-//        }
-//   .dump(tag:'comp_file') {"comparison file: ${it}"}
-//   .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
-// 
-// Reads_in_bam_files_for_diffbind
-//   .tap{ Reads_input_control }
-//   .join( Peaks_for_removing_specific_regions_2, remainder: true )
-//   .map { [ it[0].split("_")[0], it[0..-1]] }
-//   .groupTuple()
-//   .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
-//   .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
-// 
-// regions_to_remove = Channel.fromPath(params.design__regions_to_remove)
-// 
-// comparisons_files_for_merging
-//   .combine(reads_and_peaks_1)
-//   .combine(reads_and_peaks_2)
-//   .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, id_2, 
-//             reads_and_peaks_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
-//   .map { 
-//     [ 
-//       it[0] + '_vs_' + it[1], 
-//       it.flatten().findAll { it =~ '\\.bed' }, 
-//       it.flatten().findAll { it =~ "\\.bam" } 
-//       ] 
-//     }
-//   .tap { Reads_in_bam_files_for_diffbind_1 }
-//   .map { it[0,1] }
-//   .combine(regions_to_remove)
-//   .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
-//   .set { Peaks_for_removing_specific_regions_3 }
-// 
-// 
-// 
-// process ATAC_peaks__removing_specific_regions {
-//   tag "${COMP}"
-// 
-//   label "samtools_bedtools_perl"
-// 
-//   publishDir 
-//    path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", 
-//    mode: "${pub_mode}", enabled: save_last_bed
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set COMP, file(bed_files), regions_to_remove 
-//       from Peaks_for_removing_specific_regions_3
-// 
-//   output:
-//     file("*.bed")
-//     set COMP, file("*__peaks_kept_after_specific_regions_removal.bed") 
-//       into Peaks_for_diffbind
-// 
-//   shell:
-//     '''
-// 
-//     COMP=!{COMP}
-//     RTR=!{regions_to_remove}
-//     BED_FILES="!{bed_files}"
-// 
-//     COMP1=${COMP/_vs_/|}
-//     echo $COMP1 | grep -E -f - $RTR || true > rtr_filtered.txt
-// 
-//     if [ ! -s rtr_filtered.txt ]; then
-//       for FILE in ${BED_FILES}
-//       do
-//         id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
-//         cp $FILE "${id}__peaks_kept_after_specific_regions_removal.bed"
-//       done
-//     else
-//       cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" \
-//         | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
-// 
-//       for FILE in ${BED_FILES}
-//       do
-//         id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
-// 
-//         intersectBed -v -a $FILE -b rtr_filtered_formatted.txt \
-//           > "${id}__peaks_kept_after_specific_regions_removal.bed"
-//         intersectBed -u -a $FILE -b rtr_filtered_formatted.txt \
-//           > "${id}__peaks_lost_after_specific_regions_removal.bed"
-//       done
-//     fi
-// 
-//     '''
-// }
-// 
-// // really weird nextflow bug: this command makes all commands below ignored 
-// // when the rtr file is empty:
-// // echo $COMP1 | grep -E -f - $RTR > rtr_filtered.txt
-// // https://github.com/nextflow-io/nextflow/issues/1149
-// // => solution: grep pattern || true
-// // or: process.shell = ['/bin/bash','-u']
-// 
-// 
-// // cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" \
-// //   | sed "s/chr//g" > rtr_filtered_formatted.txt 
-// // echo $COMP2 | grep -f - $RTR >> rtr_filtered.txt
-// 
-// 
-// // note: the reason why this process is here and not upstread is because we 
-// // want to remove in all bed files the peaks that are in specific regions 
-// // (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider 
-// // all peaks for his analysis, so if we remove one such peak in just one of the 
-// // two samples to compare, if it is still present in the other sample then it 
-// // will be included in the analysis and it will likely be found as differential 
-// // bound during the DBA. I.e. we compare daf-16RNAi vs control. if there is a 
-// // macs2 peak at daf-16 in the control condition, then even if we remove this 
-// // peak in the daf-16RNAi condition, it will be included in the final analysis.
-// 
-// 
-// 
-// Reads_input_control
-//   .filter{ id, bam_files -> id == 'input'}
-//   .set{ Reads_input_control_1 }
-// 
-// Reads_in_bam_files_for_diffbind_1
-//   .map { it[0,2] }
-//   .join(Peaks_for_diffbind)
-//   .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
-//   .branch {
-//     with_input_control: params.use_input_control
-//     without_input_control: true
-//   }
-//   .set { Reads_and_peaks_for_diffbind_1 }
-// 
-// Reads_and_peaks_for_diffbind_1.with_input_control
-//   .combine(Reads_input_control_1)
-//   .map{ 
-//           comp_id, bam_files, bed_files, input_id, imput_bam -> 
-//         [ comp_id, bed_files, [bam_files, imput_bam].flatten() ]
-//       }
-//   // .map{ it -> [ it[0], it[1], [it[2,4].flatten()]] }
-//   .set{ Reads_and_peaks_with_input_control }
-// 
-// Reads_and_peaks_for_diffbind_1.without_input_control
-//   .concat(Reads_and_peaks_with_input_control)
-//   .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
-//   .set{ Reads_and_peaks_for_diffbind_2 }
-// 
-// 
-// 
-// 
-// 
-// 
-// process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
-//   tag "${id}"
-// 
-//   label "macs2"
-// 
-//   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__saturation_curve", 
-//              mode: "${pub_mode}"
-// 
-//   when: 
-//     do_atac & params.do_saturation_curve
-// 
-//   input:
-//     val out_path from Channel.value('1_Preprocessing') 
-//     set id, file(bed) 
-//       from Reads_in_bed_files_for_computing_and_plotting_saturation_curve
-// 
-//   output:
-//     set val("ATAC__peaks__saturation_curve"), out_path, file('*.pdf') 
-//       into ATAC_saturation_curve_plots_for_merging_pdfs
-// 
-//   script:
-//     """
-// 
-//     export TMPDIR="." PYTHON_EGG_CACHE="."
-// 
-//     PERCENTS=`seq 10 10 100`
-// 
-//     for PERCENT in \${PERCENTS}
-//     do
-//       BED_FILE="${id}_sampled_\${PERCENT}_percent.bed"
-// 
-//       macs2 randsample -i ${bed} \
-//         --seed 38 \
-//         -o \${BED_FILE} \
-//         --percentage \${PERCENT} \
-//         -f BED
-// 
-//       macs2 callpeak \
-//         --treatment \${BED_FILE} \
-//         --format BED \
-//         --name \${BED_FILE}__macs2 \
-//         --qvalue "${params.macs2__qvalue}" \
-//         --gsize "${params.effective_genome_size}" \
-//         --nomodel \
-//         --shift -75 \
-//         --extsize 150 \
-//         --keep-dup all \
-//         --call-summits
-//     done
-// 
-//     Rscript "${projectDir}/bin/plot_saturation_curve.R" ${id}
-// 
-//     """
-// }
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(ATAC_saturation_curve_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
-// 
-// 
-// 
-// 
-// process ATAC_QC_peaks__annotating_macs2_peaks {
-// 
-//   tag "${id}"
-// 
-//   label "bioconductor"
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", 
-//              mode: "${pub_mode}"
-// 
-//   when: 
-//     do_atac & params.do_raw_peak_annotation
-// 
-//   input:
-//     set id, file(peaks_bed_file) \
-//       from Macs2_Peaks_without_blacklist_1_for_annotating_them
-// 
-//   output: 
-//     set id, file("*.rds") \
-//       into Annotated_macs2_peaks_for_plotting_each_sample, 
-//            Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 \
-//            optional true
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(ChIPseeker)
-//     id = '!{id}'
-//     peaks_bed_file = '!{peaks_bed_file}'
-//     upstream = !{params.macs2_peaks__promoter_up}
-//     downstream = !{params.macs2_peaks__promoter_down}
-//     tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
-// 
-//     nb_of_peaks = 
-//       system(paste('wc -l', peaks_bed_file), intern = T) %>% 
-//       gsub(' .*', '', .)
-//     if(nb_of_peaks == 0) {quit('no')}
-//     peaks = readPeakFile('!{peaks_bed_file}')
-// 
-//     promoter <- getPromoters(TxDb = tx_db, upstream   = upstream, 
-//                                            downstream = downstream)
-// 
-//     tag_matrix = getTagMatrix(peaks, windows = promoter)
-// 
-//     annotated_peaks = annotatePeak(peaks, 
-//                                   TxDb = tx_db, 
-//                                   tssRegion = c(-upstream, downstream), 
-//                                   level = 'gene', 
-//                                   overlap = 'all')
-// 
-//     genes = as.data.frame(annotated_peaks)$geneId
-// 
-//     lres = list(
-//       id = id,
-//       peaks = peaks,
-//       tag_matrix = tag_matrix,
-//       annotated_peaks = annotated_peaks,
-//       genes = genes
-//     )
-// 
-//     saveRDS(lres, file = paste0(id, '__annotated_peaks.rds'))
-// 
-//     '''
-// }
-// 
-// // these are ATAC-Seq peaks from macs
-// 
-// // defaults parameters for the annotation function
-// // 1 function (peak, tssRegion = c(-3000, 3000), TxDb = NULL, 
-// // level = "transcript", assignGenomicAnnotation = TRUE, 
-// // genomicAnnotationPriority = c("Promoter", "5UTR", "3UTR", "Exon", "Intron", 
-// // "Downstream", "Intergenic"), annoDb = NULL, addFlankGeneInfo = FALSE, 
-// // flankDistance = 5000, sameStrand = FALSE, ignoreOverlap = FALSE, 
-// // ignoreUpstream = FALSE, ignoreDownstream = FALSE, overlap = "TSS", 
-// // verbose = TRUE)
-// 
-// // the addFlankGeneInfo gives rather confusing output so we ignore it
-//   // geneId          transcriptId distanceToTSS   flank_txIds    flank_gene
-// 
-// // select(txdb, keys = keys(txdb)[1:1], columns = columns(txdb), 
-// // keytype = 'GENEID')
-// 
-// 
-// Annotated_macs2_peaks_for_plotting_all_samples_grouped_1
-//   .map { it[1] }
-//   // .groupTuple () // legacy: before there was the option type that was 
-//   // equal to either "raw" or "norm", so we would group tupple this way. 
-//   // Now there is only "raw", so we just collect peaks
-//   .collect()
-//   .dump(tag:'anno_list') {"annotated peaks as list: ${it}"}
-//   .set { Annotated_macs2_peaks_for_plotting_all_samples_grouped_2 }
-// 
-// 
-// 
-// 
-// process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample {
-//   tag "${id}"
-// 
-//   label "bioconductor"
-// 
-//   publishDir 
-//     path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
-//     saveAs: {
-//            if (it.indexOf("_coverage.pdf") > 0)        
-//               "ATAC__peaks__coverage/${it}"
-//       else if (it.indexOf("_average_profile.pdf") > 0) 
-//               "ATAC__peaks__average_profile/${it}"
-//   }
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     val out_path from Channel.value('1_Preprocessing') 
-//     set id, file(annotated_peaks_objects_rds) 
-//       from Annotated_macs2_peaks_for_plotting_each_sample
-// 
-//   output:
-//     set val("ATAC__peaks__coverage"), out_path, file("*_coverage.pdf") 
-//       into ATAC_peaks_coverage_for_merging_pdfs
-//     set val("ATAC__peaks__average_profile"), out_path, 
-//       file("*_average_profile.pdf") 
-//       into ATAC_peaks_average_profile_for_merging_pdfs
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     library(ChIPseeker)
-//     library(ggplot2)
-// 
-//     id = '!{id}'
-//     upstream = !{params.macs2_peaks__promoter_up}
-//     downstream = !{params.macs2_peaks__promoter_down}
-//     lres = readRDS('!{annotated_peaks_objects_rds}')
-// 
-//     pdf(paste0(id, '__coverage.pdf'))
-//       covplot(lres$peaks, weightCol="V5") + ggtitle(id) + 
-//         theme(plot.title = element_text(hjust = 0.5))
-//     dev.off()
-// 
-//     pdf(paste0(id, '__average_profile.pdf'))
-//       plotAvgProf(lres$tag_matrix, xlim=c(-upstream, downstream), 
-//         xlab="Genomic Region (5'->3')", ylab = "Read Count Frequency") + 
-//         ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
-//     dev.off()
-// 
-//     '''
-// }
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(ATAC_peaks_coverage_for_merging_pdfs.groupTuple(by: [0, 1]))
-// 
-// Merging_pdfs_channel = Merging_pdfs_channel
-//   .mix(ATAC_peaks_average_profile_for_merging_pdfs.groupTuple(by: [0, 1]))
-// 
-// 
-// 
-// 
-// process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
-// 
-//   label "bioconductor"
-// 
-//   publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__grouped_plots", 
-//              mode: "${pub_mode}"
-//   publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     val out_path from Channel.value('1_Preprocessing') 
-//     file ("*") from Annotated_macs2_peaks_for_plotting_all_samples_grouped_2
-// 
-//   output:
-//     file("*.pdf")
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     upstream = !{params.macs2_peaks__promoter_up}
-//     downstream = !{params.macs2_peaks__promoter_down}
-// 
-//     library(ChIPseeker)
-//     library(ggplot2)
-//     library(purrr)
-// 
-//     rds_files = list.files(pattern = '*.rds')
-//     lres = lapply(rds_files, readRDS)
-// 
-//     names0 = map_chr(lres, 'id')
-//     tag_matrix_list = map(lres, 'tag_matrix') %>% setNames(., names0)
-//     annotated_peaks_list = map(lres, 'annotated_peaks') %>% setNames(., names0)
-// 
-//     size_facet = ifelse(length(tag_matrix_list) > 12, 2.8, 5.5)
-// 
-//     p1 = plotAvgProf(tag_matrix_list, c(-upstream, downstream), facet='row')
-//     p1 = p1 + theme(axis.text.y = element_text(size = 3.5), 
-//           strip.text.y = element_text(size = size_facet))
-// 
-//     pdf('ATAC__peaks__average_profile.pdf', font = 'mono')
-//       print(p1)
-//     dev.off()
-// 
-//     pdf('ATAC__peaks__annotation_barplot.pdf')
-//       plotAnnoBar(annotated_peaks_list)
-//     dev.off()
-// 
-//     pdf('ATAC__peaks__distance_to_TSS.pdf')
-//       plotDistToTSS(annotated_peaks_list)
-//     dev.off()
-// 
-//     '''
-// }
-// 
-// 
-// 
-// 
-// process MRNA__quantifying_transcripts_abundances {
-//   tag "${id}"
-// 
-//   label "kallisto"
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", 
-//              mode: "${pub_mode}"
-// 
-//   when: 
-//     do_mRNA
-// 
-//   input:
-//     set id, file(reads) from MRNA_reads_for_kallisto
-// 
-//   output:
-//     set id, file("kallisto_${id}") into Kallisto_results_for_sleuth_1
-// 
-//   script:
-// 
-//     def single = reads instanceof Path
-// 
-//     if( single ) {
-//       """
-//         mkdir kallisto_${id}
-//         kallisto quant \
-//           --single \
-//           -l ${params.kallisto__fragment_len} \
-//           -s ${params.kallisto__fragment_sd} \
-//           -b ${params.kallisto__bootstrap} \
-//           -t ${params.kallisto__nb_threads} \
-//           -i ${params.kallisto_transcriptome} \
-//           -o kallisto_${id} \
-//           ${reads}
-//       """
-//     }
-//     else {
-//       """
-//         mkdir kallisto_${id}
-//         kallisto quant \
-//           -b ${params.kallisto__bootstrap} \
-//           -t ${params.kallisto__nb_threads} \
-//           -i ${params.kallisto_transcriptome} \
-//           -o kallisto_${id} \
-//           ${reads}
-//       """
-//     }
-// }
-// 
-// // note: I adapted a basic mRNA-Seq pipeline from 
-// //                    https:////github.com/cbcrg/kallisto-nf
-// 
-// 
-// 
-// process MRNA_QC__running_fastqc {
-//   tag "${id}"
-// 
-//   label "fastqc"
-// 
-//   publishDir path: "${out_processed}/1_Preprocessing/mRNA__fastqc", 
-//              mode: "${pub_mode}", pattern: "*.html" 
-// 
-//   when: 
-//     do_mRNA
-// 
-//   input:
-//     set id, file(reads) from MRNA_reads_for_running_fastqc
-// 
-//   output:
-//     file("*.{zip, html}") into MRNA_fastqc_reports_for_multiqc
-// 
-//   script:
-//     """
-// 
-//     fastqc -t ${params.fastqc__nb_threads} ${reads}
-// 
-//     """
-// }
-// 
-// 
-// 
-// process MRNA_QC__running_MultiQC {
-// 
-//   label "multiqc"
-// 
-//   publishDir path: "${out_fig_indiv}/1_Preprocessing", 
-//              mode: "${pub_mode}", pattern: "*.html"
-// 
-//   publishDir path: "${out_fig_merge}/1_Preprocessing", 
-//              mode: "${pub_mode}", pattern: "*.html"
-// 
-//   when: 
-//     do_mRNA
-// 
-//   input:
-//     file ('fastqc/*') from MRNA_fastqc_reports_for_multiqc.flatten().toList()
-// 
-//   output:
-//     set "mRNA__multiQC.html", "*multiqc_data" optional true
-// 
-//   script:
-//     """
-// 
-//     multiqc -f .
-//     mv multiqc_report.html mRNA__multiQC.html
-// 
-//     """
-// }
-// 
-// 
-// 
-// // making the groups for differential gene expression
-// 
-// Kallisto_results_for_sleuth_1
-//   .map{ [ it[0].split('_')[0], it[1] ] }
-//   .groupTuple()
-//   .into{ Kallisto_results_for_sleuth_2; Kallisto_results_for_sleuth_3 }
-// 
-// Kallisto_results_for_sleuth_2
-//   .combine(Kallisto_results_for_sleuth_3)
-//   .map { it[0,2,1,3]}
-//   .join(comparisons_files_for_mRNA_Seq, by: [0,1])
-//   .dump(tag:'kalisto_sleuth') {"${it}"}
-//   .map{
-//     def list = []
-//     list.add( it[0,1].join('_vs_') )
-//     list.addAll( it[0..3] )
-//     return(list)
-//     }
-//   .set { Kallisto_results_for_sleuth_4 }
-// 
-// 
-// 
-// 
-// 
-// 
-// process DA_ATAC__doing_differential_abundance_analysis {
-//   tag "${COMP}"
-// 
-//   label "diffbind"
-//   // label "differential_abundance"
-//   // Error in loadNamespace(x) : there is no package called ‘edgeR’
-// 
-//   publishDir path: "${out_processed}/2_Differential_Abundance", 
-//     mode: "${pub_mode}", saveAs: {
-//      if (it.indexOf("__all_peaks.bed") > 0) "ATAC__all_peaks__bed/${it}"
-//      else if (it.indexOf("__diffbind_peaks_dbo.rds") > 0) 
-//                                             "ATAC__all_peaks__DiffBind/${it}"
-//      else if (it.indexOf("__diffbind_peaks_gr.rds") > 0) 
-//                                             "ATAC__all_peaks__gRange/${it}"
-//   }
-// 
-//   when: 
-//     do_atac
-// 
-//   input:
-//     set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
-// 
-//   output:
-//     set COMP, file('*__diffbind_peaks_gr.rds'), 
-//       file('*__diffbind_peaks_dbo.rds') 
-//       into Diffbind_peaks_for_annotating_them optional true
-//     set COMP, file('*__all_peaks.bed') 
-//       into All_detected_diffbind_peaks_for_background optional true
-// 
-//   shell:
-//     '''
-//     #!/usr/bin/env Rscript
-// 
-//     ##### loading data and libraries
-// 
-//     library(DiffBind)
-//     library(magrittr)
-//     library(parallel)
-// 
-//     COMP = '!{COMP}'
-//     use_input_control = '!{params.use_input_control}'
-//     source('!{projectDir}/bin/export_df_to_bed.R')
-//     cur_seqinfo = readRDS('!{params.cur_seqinfo}')
-// 
-//     min_overlap     = !{params.diffbind__min_overlap}
-//     min_count       = !{params.diffbind__min_count}
-//     analysis_method = !{params.diffbind__analysis_method}
-//     normalization   = !{params.diffbind__normalize}
-// 
-//     conditions = strsplit(COMP, '_vs_')[[1]]
-//     cond1 = conditions[1]
-//     cond2 = conditions[2]
-// 
-// 
-//     ##### Preparing the metadata table
-//     use_input_control %<>% toupper %>% as.logical
-//     bed_bam_files = list.files(pattern = '*.bam$|*filtered.bed$')
-//     cur_files = grep('diffbind_peaks', bed_bam_files, value = T, invert = T)
-//     df = data.frame(path = cur_files, stringsAsFactors=F)
-//     cursplit = sapply(cur_files, strsplit, '_')
-//     df$condition = sapply(cursplit, '[[', 1)
-//     df$replicate = sapply(cursplit, '[[', 2)
-//     df$id = paste0(df$condition, '_', df$replicate)
-//     df$id[df$condition == 'input'] = 'input'
-//     df$type = sapply(df$path, function(c1) {
-//       ifelse(
-//         length(grep('reads', c1)) == 1, 
-//         'reads', 
-//         ifelse(
-//           length(grep('peaks', c1)) == 1, 
-//           'peaks', 
-//           ''
-//           )
-//         )
-//       )
-// 
-//     names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 
-//                   'ControlID', 'bamControl', 'Peaks','PeakCaller')
-//     all_id = unique(df$id) %>% .[. != 'input']
-//     df1 = data.frame(matrix(nrow = length(all_id), 
-//                      ncol = length(names_df1)), stringsAsFactors=F)
-//     names(df1) = names_df1
-// 
-//     for(c1 in 1:length(all_id)){
-//       cur_id = all_id[c1]
-//       sel_reads = which(df$id == cur_id & df$type == 'reads')
-//       sel_peaks = which(df$id == cur_id & df$type == 'peaks')
-// 
-//       df1$SampleID[c1]   = cur_id
-//       df1$Condition[c1]  = df$condition[sel_reads]
-//       df1$Replicate[c1]  = df$replicate[sel_reads]
-//       df1$bamReads[c1]   = df$path[sel_reads]
-//       df1$Peaks[c1]      = df$path[sel_peaks]
-//       df1$PeakCaller[c1] = 'bed'
-// 
-//       if(use_input_control){
-//         sel_input_control_reads = which(
-//             df$condition == 'input' & df$type == 'reads')
-//         df1$ControlID[c1] = df$id[sel_input_control_reads]
-//         df1$bamControl[c1] = df$path[sel_input_control_reads]
-//       } else {
-//         df1$ControlID <- NULL
-//         df1$bamControl <- NULL
-//       }
-//     }
-// 
-//     empty_peaks = which(sapply(df1$Peaks, file.size) == 0)
-//     if(length(empty_peaks) > 0) df1$Peaks[empty_peaks] = ''
-//     if(length(empty_peaks) == nrow(df1)) { quit('no') }
-// 
-// 
-// 
-//     ##### Running DiffBind
-// 
-//     dbo = tryCatch(
-//       expr = {
-// 
-//         config = data.frame(AnalysisMethod = analysis_method, 
-//                 RunParallel = F, singleEnd = F)
-// 
-//         dbo <- dba(sampleSheet = df1, minOverlap = min_overlap, 
-//                   config = config)
-// 
-//         if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, 
-//           greylist = cur_seqinfo)
-// 
-//         dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = F, 
-//           fragmentSize = 1, minOverlap = min_overlap, 
-//           score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, 
-//           bSubControl = F, minCount = min_count, summits = 75)
-// 
-//         dbo <- dba.normalize(dbo, normalize = normalization, 
-//           library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
-// 
-//         dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
-// 
-//         dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
-//           bReduceObjects = F)
-// 
-//       }, error = function(e) {
-//         print(e$message)
-//         quit('no')
-//       }
-//     )
-// 
-//     saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
-// 
-// 
-//     ##### Exporting all peaks as a data frame
-// 
-//     # extracting all peaks (note: th is the fdr threshold, so with th = 1 
-//     # we keep all peaks)
-//     all_peaks_gr = suppressWarnings(dba.report(dbo, th = 1))
-// 
-//     # recomputing the FDR to have more precise values (DiffBind round them 
-//     # at 3 digits)
-//     all_peaks_gr$FDR <- NULL
-//     all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, 
-//                                  method = 'BH')
-// 
-//     # adding the raw reads counts of each replicate
-//     cp_raw = dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_READS)
-//     mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
-//     m <- findOverlaps(all_peaks_gr, cp_raw)
-//     names_subject = names(mcols(cp_raw))
-//     mcols(all_peaks_gr)[queryHits(m), names_subject] = 
-//         mcols(cp_raw)[subjectHits(m), names_subject]
-//     saveRDS(all_peaks_gr, paste0(COMP, '__diffbind_peaks_gr.rds'))
-// 
-// 
-//     ##### Exporting all peaks as a bed file
-// 
-//     all_peaks_df = as.data.frame(all_peaks_gr)
-//     all_peaks_df %<>% dplyr::mutate(
-//       name = rownames(.), 
-//       score = round(-log10(p.value), 2))
-//     all_peaks_df %<>% dplyr::rename(chr = seqnames)
-//     all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
-//     export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
-// 
-//     '''
-// }
-// 
-// 
+Bigwigs_for_correlation_1
+  .collect()
+  .into{ Bigwigs_with_input_control; Bigwigs_without_input_control_1 }
+
+Bigwigs_without_input_control_1
+  .flatten()
+  .filter{ !(it =~ /input/) }
+  .collect()
+  .map{ [ 'without_control', it ] }
+  .set{ Bigwigs_without_input_control_1 }
+
+Bigwigs_with_input_control
+  .map{ [ 'with_control', it ] }
+  .concat(Bigwigs_without_input_control_1)
+  .dump(tag:'bigwigs') {"bigwigs for cor and PCA: ${it}"}
+  .set{ Bigwigs_for_correlation_2 }
+
+
+process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
+
+  tag "${input_control_present}"
+
+  label "deeptools"
+
+  publishDir \
+    path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", saveAs: { 
+         if      (it.indexOf("_pca.pdf") > 0) "ATAC__reads__PCA/${it}" 
+         else if (it.indexOf("_cor.pdf") > 0) "ATAC__reads__correlations/${it}" 
+    }
+
+  when: 
+    do_atac
+
+  input:
+    val out_path from Channel.value('1_Preprocessing') 
+    set input_control_present, file("*") from Bigwigs_for_correlation_2
+
+  output:
+    set val("ATAC__reads__PCA"),          out_path, file("*_pca.pdf") \
+      into ATAC_reads_PCA_plots_for_merging_pdfs
+    set val("ATAC__reads__correlations"), out_path, file("*_cor.pdf") \
+      into ATAC_reads_correlation_plots_for_merging_pdfs
+
+  script:
+    """
+
+    plotPCAandCorMat.sh \
+      ${input_control_present} \
+      ${params.blacklisted_regions} \
+      ${params.deeptools__binsize_bigwig_correlation}
+
+    """
+}
+
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(
+    ATAC_reads_PCA_plots_for_merging_pdfs
+    .groupTuple(by: [0, 1])
+    .map{ it.flatten() }
+    .map{ [ it[0], it[1], it[2..-1] ] }
+    )
+
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(
+    ATAC_reads_correlation_plots_for_merging_pdfs
+    .groupTuple(by: [0, 1])
+    .map{ it.flatten() }
+    .map{ [ it[0], it[1], it[2..-1] ] }
+    )
+
+
+
+process ATAC_QC_reads__plotting_insert_size_distribution {
+  tag "${id}"
+
+  label "picard"
+
+  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__reads__insert_size", 
+             mode: "${pub_mode}"
+
+  when: 
+    do_atac
+
+  input:
+    val out_path from Channel.value('1_Preprocessing') 
+    set id, file(bam) from Bam_for_plotting_inserts_distribution
+
+  output:
+    set val("ATAC__reads__insert_size"), out_path, file("*.pdf") \
+      into ATAC_reads_insert_size_plots_for_merging_pdfs
+
+  script:
+    def key = id + "__insert_size"
+    
+    """
+
+    picard -Xmx${params.memory_picard} CollectInsertSizeMetrics \
+      -INPUT "${bam}" \
+      -OUTPUT "${key}.txt" \
+      -METRIC_ACCUMULATION_LEVEL ALL_READS \
+      -Histogram_FILE "${key}.pdf" \
+      -TMP_DIR .
+
+    """
+}
+
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(
+    ATAC_reads_insert_size_plots_for_merging_pdfs.groupTuple(by: [0, 1])
+    )
+
+
+process ATAC_QC_reads__sampling_aligned_reads {
+  tag "${id}"
+
+  label "samtools_bedtools_perl"
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(bam) from Bam_for_sampling
+
+  output:
+    set id, file("*.sam") into Bam_for_estimating_library_complexity
+    set id, file("*.bam"), file("*.bai") \
+        into Bam_for_measuring_overlap_with_genomic_regions, 
+             Sampled_aligned_reads_for_gathering_reads_stat
+    set id, file("*.NB_ALIGNED_PAIRS*"), file("*.RAW_PAIRS*") \
+        into Number_of_aligned_pairs_for_gathering_reads_stat
+
+  script:
+    def key = id + "__sampled"
+    def new_sam = key + ".sam"
+    def new_bam = key + ".bam"
+    
+    """
+
+    # saving the header
+    samtools view -F 0x904 -H ${bam} > ${new_sam}
+
+    # sampling a certain number of reads
+    samtools view -F 0x904 ${bam} \
+      | shuf - -n ${params.nb_sampled_aligned_reads} >> ${new_sam}
+
+    # conversion to bam, sorting and indexing of sampled reads
+    samtools view -Sb ${new_sam} \
+      | samtools sort - -o ${new_bam}
+    samtools index ${new_bam}
+
+    NB_ALIGNED_PAIRS=`samtools view -F 0x4 ${bam} | cut -f 1 | sort -T . \
+                                                  | uniq | wc -l`
+    RAW_PAIRS=`samtools view ${bam}| cut -f 1 | sort -T . | uniq | wc -l`
+
+    touch \$NB_ALIGNED_PAIRS.NB_ALIGNED_PAIRS_${id}
+    touch \$RAW_PAIRS.RAW_PAIRS_${id}
+
+    """
+}
+
+
+// The code "-F 0x904" indicates to keep only mapped alignment (flag 0x4) that 
+//    are not secondary (flag 0x100, multimappers) or 
+//        supplementary (flag 0x800, chimeric entries)
+
+
+process ATAC_QC_reads__measuring_overlap_with_genomic_regions {
+  tag "${id}"
+
+  label "samtools_bedtools_perl"
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(bam), file(bai) \
+      from Bam_for_measuring_overlap_with_genomic_regions
+
+  output:
+    set id, file("*.txt") \
+      into Overlap_with_genomic_regions_results_for_gathering_reads_stat
+
+  shell:
+    '''
+
+    id=!{id}
+    bam=!{bam}
+    BED_PATH=!{params.bed_regions}
+
+    new_txt="${id}_reads_overlap_with_genomic_regions.txt"
+
+    getTotalReadsMappedToBedFile () { 
+      bedtools coverage -a $1 -b $2 | cut -f 4 \
+      | awk '{ sum+=$1} END {print sum}'
+      }
+
+
+    PROMOTER=`getTotalReadsMappedToBedFile $BED_PATH/promoters.bed ${bam}`
+    EXONS=`getTotalReadsMappedToBedFile $BED_PATH/exons.bed ${bam}`
+    INTRONS=`getTotalReadsMappedToBedFile $BED_PATH/introns.bed ${bam}`
+    INTERGENIC=`getTotalReadsMappedToBedFile $BED_PATH/intergenic.bed ${bam}`
+    GENES=`getTotalReadsMappedToBedFile $BED_PATH/genes.bed ${bam}`
+    BAM_NB_READS=`samtools view -c ${bam}`
+
+    echo "PROMOTER EXONS INTRONS INTERGENIC GENES BAM_NB_READS" > ${new_txt}
+    echo "$PROMOTER $EXONS $INTRONS $INTERGENIC $GENES $BAM_NB_READS" \
+      >> ${new_txt}
+
+    awkDecimalDivision () { 
+      awk -v x=$1 -v y=$2 'BEGIN {printf "%.2f\\n", 100 * x / y }'
+    }
+
+    P_PROM=$(awkDecimalDivision $PROMOTER $BAM_NB_READS)
+    P_EXONS=$(awkDecimalDivision $EXONS $BAM_NB_READS)
+    P_INTRONS=$(awkDecimalDivision $INTRONS $BAM_NB_READS)
+    P_INTERGENIC=$(awkDecimalDivision $INTERGENIC $BAM_NB_READS)
+    P_GENES=$(awkDecimalDivision $GENES $BAM_NB_READS)
+    P_READS=$(awkDecimalDivision $BAM_NB_READS $BAM_NB_READS)
+
+    echo "$P_PROM $P_EXONS $P_INTRONS $P_INTERGENIC $P_GENES $P_READS" \
+      >> ${new_txt}
+
+    '''
+
+}
+
+// => preparing ATAC-Seq related statistics on aligned reads
+
+// bedtools_coverage_only () { bedtools coverage -a $1 -b $2 ;}
+// bedtools_coverage_only $BED_PATH/promoters.bed ${bam} | head
+// bedtools_coverage_only $BED_PATH/promoters.bed ${bam} | cut -f 4 | head
+
+
+
+process ATAC_QC_reads__estimating_library_complexity {
+  tag "${id}"
+
+  label "picard"
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(sam) from Bam_for_estimating_library_complexity
+
+  output:
+    set id, file("*.txt") \
+      into Library_complexity_for_gathering_reads_stat
+
+  script:
+    """
+
+    picard -Xmx${params.memory_picard} EstimateLibraryComplexity \
+      -INPUT ${sam} \
+      -OUTPUT ${id}_library_complexity.txt
+
+    """
+}
+
+
+
+process ATAC_QC_reads__sampling_trimmed_reads {
+  tag "${id}"
+
+  label "bbmap"
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(read1), file(read2) from Trimmed_reads_for_sampling
+
+  output:
+    set id, file("*R1.fastq"), file("*R2.fastq") \
+      into Sampled_trimmed_reads_for_alignment
+
+  script:
+    """
+
+    reformat.sh \
+      in1=${read1} \
+      in2=${read2} \
+      out1=${id}_subsampled_R1.fastq \
+      out2=${id}_subsampled_R2.fastq \
+      samplereadstarget=${params.nb_sampled_trimmed_reads}
+
+    """
+}
+
+
+
+process ATAC_QC_reads__aligning_sampled_reads {
+  tag "${id}"
+
+  label "bowtie2_samtools"
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(read1), file(read2) from Sampled_trimmed_reads_for_alignment
+
+  output:
+    set id, file("*_ref.qc"), file("*_conta.qc") \
+      into Flagstat_on_aligned_sampled_trimmed_reads_for_gathering_reads_stat
+    set file("*_ref.bam"), file("*_conta.bam")
+
+  script:
+    def key_ref = id + "_ref"
+    def new_bam_ref = key_ref + ".bam"
+    def key_conta = id + "_conta"
+    def new_bam_conta = key_conta + ".bam"
+    
+    """
+
+    bowtie2 -p ${params.botwie2__nb_threads} \
+      --very-sensitive \
+      --end-to-end \
+      --no-mixed \
+      -X 2000 \
+      --met 1 \
+      -x "${params.bowtie2_indexes}" \
+      -q -1 "${read1}" -2 "${read2}" \
+      | samtools view -bS -o ${new_bam_ref} -
+
+    samtools flagstat ${new_bam_ref} > "${key_ref}.qc"
+
+    bowtie2 -p ${params.botwie2__nb_threads} \
+      --very-sensitive \
+      --end-to-end \
+      --no-mixed \
+      -X 2000 \
+      --met 1 \
+      -x "${params.bowtie2_indexes_contam}" \
+      -q -1 "${read1}" -2 "${read2}" \
+      | samtools view -bS -o ${new_bam_conta} -
+
+    samtools flagstat ${new_bam_conta} > "${key_conta}.qc"
+
+    """
+}
+
+
+Overlap_with_genomic_regions_results_for_gathering_reads_stat
+    .join(Library_complexity_for_gathering_reads_stat)
+    .join(Flagstat_on_aligned_sampled_trimmed_reads_for_gathering_reads_stat)
+    .join(Sampled_aligned_reads_for_gathering_reads_stat)
+    .join(Number_of_aligned_pairs_for_gathering_reads_stat)
+    .join(Reads_in_bed_files_for_gathering_reads_stat)
+    .set{ All_stat_for_gathering_reads_stat }
+
+
+
+process ATAC_QC_reads__gathering_all_stat {
+  tag "${id}"
+
+  label "samtools_bedtools_perl"
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(overlap_genomic_regions), file(library_complexity),
+      file(cel_flagstat), file(op50_flagstat), file(bam), file(bai),
+      file(nb_aligned_pairs), file(nb_total_pairs), file(final_bed) \
+      from All_stat_for_gathering_reads_stat
+
+  output:
+    file("*.txt") into Stats_on_aligned_reads_for_gathering
+
+  shell:
+    '''
+
+    id=!{id}
+    overlap_genomic_regions=!{overlap_genomic_regions}
+    library_complexity=!{library_complexity}
+    cel_flagstat=!{cel_flagstat}
+    op50_flagstat=!{op50_flagstat}
+    bam=!{bam}
+    nb_aligned_pairs=!{nb_aligned_pairs}
+    nb_total_pairs=!{nb_total_pairs}
+    final_bed=!{final_bed}
+
+    # number of paired end reads
+    FINAL_PAIRS=`awk 'END{print NR/2}' ${final_bed}`
+    ALIGNED_PAIRS=`basename ${nb_aligned_pairs} .NB_ALIGNED_PAIRS_${id}`
+    RAW_PAIRS=`basename ${nb_total_pairs} .RAW_PAIRS_${id}`
+
+    # percentage of aligned reads
+    PERCENT_ALIGN_REF=`sed '7q;d' ${cel_flagstat} \
+    | cut -f 2 -d '(' | cut -f 1 -d '%'`
+    PERCENT_ALIGN_CONTA=`sed '7q;d' ${op50_flagstat} \
+    | cut -f 2 -d '(' | cut -f 1 -d '%'`
+    
+    # percentage of mitochondrial reads
+    PERCENT_MITO=$(awk "BEGIN { 
+      print 100 * $(samtools view -c ${bam} MtDNA) / $(samtools view -c ${bam}) 
+      }" )
+    
+    # percentage of reads mapping to various annotated regions
+    PERCENT_PROMOTERS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 1 -d ' ')
+    PERCENT_EXONS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 2 -d ' ')
+    PERCENT_INTRONS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 3 -d ' ')
+    PERCENT_INTERGENIC=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 4 -d ' ')
+    PERCENT_GENIC=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 5 -d ' ')
+    
+    # library size and percentage of duplicated reads 
+    LIBRARY_SIZE=0
+    RES_LIB_COMP=`sed '8q;d' ${library_complexity}`
+    PERCENT_DUPLI=`echo $RES_LIB_COMP | cut -f 9 -d ' '`
+    if [ "$PERCENT_DUPLI" = 0 ]; then
+    LIBRARY_SIZE=0
+    else
+    LIBRARY_SIZE=`echo $RES_LIB_COMP | cut -f 10 -d ' '`
+    fi
+    PERCENT_DUPLI=`awk -v x=$PERCENT_DUPLI 'BEGIN {printf "%.2f\\n", 100 * x }' }`
+    
+    # gathering the results
+    echo \
+    "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,\
+    $PERCENT_INTERGENIC,$PERCENT_GENIC,$PERCENT_ALIGN_REF,$PERCENT_ALIGN_CONTA,\
+    $PERCENT_DUPLI,$LIBRARY_SIZE,$RAW_PAIRS,$ALIGNED_PAIRS,$FINAL_PAIRS" \
+    > ${id}_bam_stats.txt
+
+    '''
+}
+
+// library size = library complexity
+// # (=> needs aligned but not filtered reads)
+
+
+
+process ATAC_QC_reads__gathering_all_samples {
+
+  label "samtools_bedtools_perl"
+
+  publishDir path: "${out_tab_merge}/1_Preprocessing", mode: "${pub_mode}"
+  publishDir path: "${out_tab_indiv}/1_Preprocessing", mode: "${pub_mode}"
+
+  when: 
+    do_atac
+
+  input:
+    file("*") from Stats_on_aligned_reads_for_gathering.collect()
+
+  output:
+    file("*.csv") into Bam_stat_for_splitting
+
+  shell:
+    '''
+
+    OUTFILE="ATAC__alignment_statistics.csv"
+
+    echo \
+      "LIBRARY_NAME,PERCENT_MITO,PERCENT_PROMOTERS,PERCENT_EXONS,\
+PERCENT_INTRONS,PERCENT_INTERGENIC,PERCENT_GENIC,PERCENT_ALIGN_REF,\
+PERCENT_ALIGN_CONTA,PERCENT_DUPLI,LIBRARY_SIZE,RAW_PAIRS,ALIGNED_PAIRS,\
+FINAL_PAIRS" \
+      > ${OUTFILE}
+
+    cat *_bam_stats.txt >> ${OUTFILE}
+
+   '''
+}
+
+// => gathering all individual statistics files and making a merged table 
+
+
+
+process ATAC_QC_reads__splitting_stat_for_multiqc {
+
+  label "r_basic"
+
+  when: 
+    do_atac
+
+  input:
+    file(bam_stat_csv) from Bam_stat_for_splitting
+
+  output:
+    file("*") into Bam_stat_for_multiqc
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(magrittr)
+    library(dplyr)
+
+    bam_stat_csv = '!{bam_stat_csv}'
+
+
+    df = read.csv(bam_stat_csv, stringsAsFactors = F)
+    colnames(df) %<>% tolower %>% gsub('percent', 'percentage', .)
+
+    df %<>% rename(
+      percentage_mitochondrial       = percentage_mito, 
+      percentage_align_reference     = percentage_align_ref, 
+      percentage_aligned_contaminant = percentage_align_conta, 
+      percentage_duplications        = percentage_dupli
+      )
+
+    colnames = colnames(df)[2:ncol(df)]
+    for(colname in colnames){
+      df1 = df[, c('library_name', colname)]
+      write.csv(df1, row.names = F, file = paste0(colname, '_mqc.csv'))
+    }
+
+   '''
+}
+
+
+process ATAC_QC_reads__running_multiQC {
+
+  label "multiqc"
+
+  publishDir path: "${out_fig_indiv}/1_Preprocessing", 
+             mode: "${pub_mode}", pattern: "*.html"
+
+  publishDir path: "${out_fig_merge}/1_Preprocessing", 
+             mode: "${pub_mode}", pattern: "*.html"
+
+  when: 
+    do_atac
+
+  input:
+    file ('fastqc/*') from ATAC_fastqc_reports_for_multiqc.flatten().toList()
+    file(csv_files) from Bam_stat_for_multiqc
+
+  output:
+    file "ATAC__multiQC.html"
+
+  script:
+    """
+
+    multiqc -f .
+    mv multiqc_report.html ATAC__multiQC.html
+
+    """
+}
+
+// This kind of commands could maybe make a more pretty multiqc report, 
+// but I would need to investigate more on how to do that exactly
+// FILENAME=`basename bam_stats.csv .csv`
+// cut -d "," -f 1-2 bam_stats.csv > ${FILENAME}_test_mqc.csv
+//
+// FILENAME=`basename ${bam_stat} .csv`
+// cut -d "," -f 1-6 ${bam_stat} > \${FILENAME}_percentage_mqc.csv
+// cut -d "," -f 1,7-10 ${bam_stat} > \${FILENAME}_counts_mqc.csv
+
+// the raw multiqc_data folder is probably not useful to publish. 
+// Interested people may add it back though by uncommenting these 2 lines.
+
+
+
+
+
+
+process ATAC_peaks__calling_peaks {
+  tag "${id}"
+
+  label "macs2"
+
+  publishDir \
+    path: "${out_processed}/1_Preprocessing/ATAC__peaks__raw", 
+    mode: "${pub_mode}", enabled: save_all_bed
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(bed) from Reads_in_bed_files_for_calling_peaks
+
+  output:
+    set id, file("*.narrowPeak") into Peaks_for_sub_peaks_calling
+
+  script:
+    """
+
+    export TMPDIR="." PYTHON_EGG_CACHE="."
+
+    macs2 callpeak \
+        --treatment "${bed}" \
+        --format BED \
+        --name "${id}__macs2" \
+        --qvalue "${params.macs2__qvalue}" \
+        --gsize "${params.effective_genome_size}" \
+        --nomodel \
+        --shift -75 \
+        --extsize 150 \
+        --keep-dup all \
+        --call-summits
+
+    """
+}
+
+
+//// doc
+// https://pypi.org/project/MACS2/
+// https://pypi.org/project/MACS3/
+// https://github.com/macs3-project/MACS
+// https://github.com/macs3-project/MACS
+// https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md
+// https://macs3-project.github.io/MACSr/articles/MACSr.html
+
+//// other relevant links 
+// https://github.com/macs3-project/MACS/discussions/435
+// https://github.com/macs3-project/MACS/issues/145
+// https://twitter.com/XiChenUoM/status/1336658454866325506
+// https://groups.google.com/g/macs-announcement/c/4OCE59gkpKY/m/v9Tnh9jWriUJ
+// https://www.biostars.org/p/209592/
+// https://hbctraining.github.io/In-depth-NGS-Data-Analysis-Course/sessionV/lessons/04_peak_calling_macs.html
+// https://hbctraining.github.io/Intro-to-ChIPseq/lessons/05_peak_calling_macs.html
+
+
+
+// macs2 manual: https://github.com/jsh58/MACS
+
+//// Here are details for the macs2 parameters (the macs2 website is broken)
+// https://www.biostars.org/p/207318/
+// --extsize
+//    While '--nomodel' is set, MACS uses this parameter to extend reads in 
+//    5'->3' direction to fix-sized fragments. For example, if the size of 
+//    binding region for your transcription factor is 200 bp, and you want to 
+//    bypass the model building by MACS, this parameter can be set as 200. 
+//    This option is only valid when --nomodel is set or when MACS fails to 
+//    build model and --fix-bimodal is on.
+// 
+// --shift
+//     Note, this is NOT the legacy --shiftsize option which is replaced by 
+//    --extsize! You can set an arbitrary shift in bp here. Please Use 
+//    discretion while setting it other than default value (0). When --nomodel 
+//    is set, MACS will use this value to move cutting ends (5') then apply 
+//    --extsize from 5' to 3' direction to extend them to fragments. When this 
+//    value is negative, ends will be moved toward 3'->5' direction, otherwise 
+//    5'->3' direction. Recommended to keep it as default 0 for ChIP-Seq 
+//    datasets, or -1 * half of EXTSIZE together with --extsize option for 
+//    detecting enriched cutting loci such as certain DNAseI-Seq datasets. 
+//    Note, you can't set values other than 0 if format is BAMPE or BEDPE 
+//    for paired-end data. Default is 0.
+
+//// a recommanded setting to use both read pairs is the following:
+// https://github.com/macs3-project/MACS/issues/145#issuecomment-742593158
+// https://twitter.com/XiChenUoM/status/1336658454866325506
+// macs2 callpeak -f BED --shift -100 --extsize 200 ...
+
+
+//// There is also a justification to use 150 bp instead of 200:
+// https://twitter.com/hoondy/status/1337170830997004290
+// Is there any reason you chose the size as 200bp? For example, I use 
+//    "shift -75 --extsize 150" (approx. size of nucleosome) and wonder if there 
+//    were any benefit of making the unit of pileup 200bp.
+// We use 200 due to habit. The choice is arbitrary. Not sure how diff it makes. 
+//    Intuitively smaller fragLen give better res. but it can’t be too short. 
+//    Check Fig1 in this ref (not ATAC though) 
+//    https://ncbi.nlm.nih.gov/pmc/articles/PMC2596141/ 75 gives better res. 
+//    Maybe that’s the reason ENCODE use it.
+
+//// So to sum up: 
+// - the two ends of each read pair are analyzed separately
+// - we keep only the 5' end of each read pair. 
+//    This is were we want our peak to be centered
+// - we shift the reads to take into account the transposase 
+//    (+4 bp on + strand, -5 on the - strand)
+// - we shift the reads manually by -75 bp (in the 5' direction)
+// - we use macs2 with the argument --extsize 150 which indicate to extend the 
+//    read by 150 bp in the 3' direction. This way they will be centered in the 
+//    original 5' location. 150 bp is the approximate size of nucleosome.
+// - the peaks in the .narrowPeak file are 150 base pair long
+
+
+//// methods from the Daugherty 2017 paper (Brunet lab)
+// Chromatin accessibility dynamics reveal novel functional enhancers in 
+//    C. elegans
+// https://genome.cshlp.org/content/27/12/2096.long
+// Supplemental_Material.pdf, section ATAC-seq peak calling
+// For every replicate, prior to calling peaks with MACS (Zhang et al. 2008) 
+//    (v2.1), single-base 
+// reads were shifted 75bp 5’ to mimic read distributions of a 150 bp fragment 
+//    of ChIP-seq, thereby
+// allowing use of MACS. The following settings were used for MACS: 
+//    -g 9e7, -q 5e-2, --nomodel, --extsize 150, -B, --keep-dup all, and 
+//    --call-summits.  
+// The resulting peaks included a portion that had multiple summits; to 
+// maximize our resolution these summits were subsequently separated into 
+// individual peaks by treating the midpoint between the two adjacent summits 
+// as the 5’ and 3’ end of each individual peak, respectively.
+// macs2.1 doc: https://pypi.org/project/MACS2/2.1.0.20151222/
+
+
+//// Calling macs2 without the --call-summits option
+// narrowPeaks file
+// I       3609    4118    ctl_2_macs2_peak_1      30998   .       25.663  3103.76 3099.82 325
+// I       11019   11724   ctl_2_macs2_peak_2      2539    .       6.18189 255.951 253.917 310
+// I       12930   13338   ctl_2_macs2_peak_3      185     .       1.97507 19.9684 18.5887 197
+// I       14861   15110   ctl_2_macs2_peak_4      159     .       1.91822 17.3277 15.9723 113
+// I       15340   15573   ctl_2_macs2_peak_5      594     .       2.95858 61.078  59.4709 119
+// I       16735   17315   ctl_2_macs2_peak_6      6693    .       10.886  671.782 669.305 306
+// I       21631   21997   ctl_2_macs2_peak_7      121     .       1.84936 13.4594 12.1469 260
+// I       22239   22394   ctl_2_macs2_peak_8      149     .       1.95444 16.3335 14.988  116
+// I       24470   24626   ctl_2_macs2_peak_9      230     .       2.21713 24.4981 23.0807 65
+// I       26817   27032   ctl_2_macs2_peak_10     1132    .       4.11903 115.028 113.257 85
+//
+// Summits file
+// I       3934    3935    ctl_2_macs2_peak_1      3099.82
+// I       11329   11330   ctl_2_macs2_peak_2      253.917
+// I       13127   13128   ctl_2_macs2_peak_3      18.5887
+// I       14974   14975   ctl_2_macs2_peak_4      15.9723
+// I       15459   15460   ctl_2_macs2_peak_5      59.4709
+// I       17041   17042   ctl_2_macs2_peak_6      669.305
+// I       21891   21892   ctl_2_macs2_peak_7      12.1469
+// I       22355   22356   ctl_2_macs2_peak_8      14.988
+// I       24535   24536   ctl_2_macs2_peak_9      23.0807
+// I       26902   26903   ctl_2_macs2_peak_10     113.257
+
+// 
+//
+//// Calling macs2 with the --call-summits option
+// narrowPeaks file
+// I       3609    4118    ctl_2_macs2_peak_1      29989   .       25.0793 3002.86 2998.99 319
+// I       11019   11724   ctl_2_macs2_peak_2      2539    .       6.18189 255.951 253.917 310
+// I       12930   13338   ctl_2_macs2_peak_3      168     .       1.92215 18.1832 16.8191 210
+// I       14861   15110   ctl_2_macs2_peak_4      129     .       1.81726 14.2625 12.9413 127
+// I       15340   15573   ctl_2_macs2_peak_5      437     .       2.63535 45.2707 43.7312 108
+// I       16735   17315   ctl_2_macs2_peak_6      5854    .       10.0244 587.809 585.402 294
+// I       21631   21997   ctl_2_macs2_peak_7a     69      .       1.6287  8.22598 6.995   77
+// I       21631   21997   ctl_2_macs2_peak_7b     121     .       1.84936 13.4594 12.1469 261
+// I       22239   22394   ctl_2_macs2_peak_8      100     .       1.7653  11.3334 10.0498 85
+// I       24470   24626   ctl_2_macs2_peak_9      223     .       2.19612 23.7962 22.3841 72
+// Summits file
+// I       3928    3929    ctl_2_macs2_peak_1      2998.99
+// I       11329   11330   ctl_2_macs2_peak_2      253.917
+// I       13140   13141   ctl_2_macs2_peak_3      16.8191
+// I       14988   14989   ctl_2_macs2_peak_4      12.9413
+// I       15448   15449   ctl_2_macs2_peak_5      43.7312
+// I       17029   17030   ctl_2_macs2_peak_6      585.402
+// I       21708   21709   ctl_2_macs2_peak_7a     6.995
+// I       21892   21893   ctl_2_macs2_peak_7b     12.1469
+// I       22324   22325   ctl_2_macs2_peak_8      10.0498
+// I       24542   24543   ctl_2_macs2_peak_9      22.3841
+
+
+
+// we can see here that when using the --call-summits option, the peak number 7 
+//    (summits at coordinates 21891) was split into two different peaks (summits 
+//    at coordinates 21708 and 21892)
+// however the narrowPeaks file is just duplicated
+
+
+
+process ATAC_peaks__splitting_multi_summits_peaks {
+  tag "${id}"
+
+  label "samtools_bedtools_perl"
+
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split", 
+    mode: "${pub_mode}", enabled: save_all_bed
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(peaks) from Peaks_for_sub_peaks_calling
+
+  output:
+    set id, file("*.narrowPeak") into Peaks_for_removing_blacklisted_regions
+
+  script:
+    """
+
+    perl "${projectDir}/bin/splitMACS2SubPeaks.pl" "${peaks}" \
+      > "${id}__split_peaks.narrowPeak"
+
+    """
+}
+
+// This scripts comes from Anshul Kundaje, and was made for the Daugherty et al 
+//    2017 manuscript (Brunet lab)
+
+// Example:
+
+//// raw narrowPeak file
+// I       3609    4118    ctl_2_macs2_peak_1      29989   .       25.0793 3002.86 2998.99 319
+// I       11019   11724   ctl_2_macs2_peak_2      2539    .       6.18189 255.951 253.917 310
+// I       12930   13338   ctl_2_macs2_peak_3      168     .       1.92215 18.1832 16.8191 210
+// I       14861   15110   ctl_2_macs2_peak_4      129     .       1.81726 14.2625 12.9413 127
+// I       15340   15573   ctl_2_macs2_peak_5      437     .       2.63535 45.2707 43.7312 108
+// I       16735   17315   ctl_2_macs2_peak_6      5854    .       10.0244 587.809 585.402 294
+// I       21631   21997   ctl_2_macs2_peak_7a     69      .       1.6287  8.22598 6.995   77
+// I       21631   21997   ctl_2_macs2_peak_7b     121     .       1.84936 13.4594 12.1469 261
+// I       22239   22394   ctl_2_macs2_peak_8      100     .       1.7653  11.3334 10.0498 85
+// I       24470   24626   ctl_2_macs2_peak_9      223     .       2.19612 23.7962 22.3841 72
+// 
+//// splitted narrowPeak file
+// I       3609    4118    ctl_2_macs2_peak_1      29989   .       25.0793 3002.86 2998.99 319
+// I       11019   11724   ctl_2_macs2_peak_2      2539    .       6.18189 255.951 253.917 310
+// I       12930   13338   ctl_2_macs2_peak_3      168     .       1.92215 18.1832 16.8191 210
+// I       14861   15110   ctl_2_macs2_peak_4      129     .       1.81726 14.2625 12.9413 127
+// I       15340   15573   ctl_2_macs2_peak_5      437     .       2.63535 45.2707 43.7312 108
+// I       16735   17315   ctl_2_macs2_peak_6      5854    .       10.0244 587.809 585.402 294
+// I       21631   21800   ctl_2_macs2_peak_7a     69      .       1.6287  8.22598 6.995   77
+// I       21800   21997   ctl_2_macs2_peak_7b     121     .       1.84936 13.4594 12.1469 92
+// I       22239   22394   ctl_2_macs2_peak_8      100     .       1.7653  11.3334 10.0498 85
+// I       24470   24626   ctl_2_macs2_peak_9      223     .       2.19612 23.7962 22.3841 72
+
+// here we see that peaks peaks 7a and 7b have the same start (21631) and end 
+//    (21997) but different summits after splitting, they are split into two 
+//    regions in their middle; so 7a ends at 21800, and 7b starts at 21800
+
+
+process ATAC_peaks__removing_blacklisted_regions {
+  tag "${id}"
+
+  label "samtools_bedtools_perl"
+
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL", 
+             mode: "${pub_mode}", enabled: save_all_bed
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(peaks) from Peaks_for_removing_blacklisted_regions
+
+  output:
+    file("*.bed")
+    set id, file("*__peaks_kept_after_blacklist_removal.bed") \
+      into Peaks_without_blacklist_1, 
+           Macs2_Peaks_without_blacklist_1_for_annotating_them
+
+  script:
+    """
+
+    intersectBed -v -a "${peaks}" -b "${params.blacklisted_regions}" \
+      > "${id}__peaks_kept_after_blacklist_removal.bed"
+
+    intersectBed -u -a "${peaks}" -b "${params.blacklisted_regions}" \
+      > "${id}__peaks_lost_after_blacklist_removal.bed"
+
+    """
+}
+
+// there are two output channels because:
+// all peaks including input control are sent for annotation by ChipSeeker 
+//    to get the distribution of peaks in various genomic locations
+// the peaks are then sent for input control removal before DiffBind analysis
+
+
+// println "params.use_input_control: ${params.use_input_control}"
+
+Peaks_without_blacklist_1
+  .branch {
+    with_input_control: params.use_input_control
+    without_input_control: true
+  }
+  .set { Peaks_without_blacklist_2 }
+
+// this command redirects the channel items to: 
+// Peaks_without_blacklist_2.with_input_control   
+//     if params.use_input_control = true
+// Peaks_without_blacklist_2.without_input_control 
+//    if params.use_input_control = false
+
+
+Peaks_without_blacklist_2.with_input_control
+  // .view{"test_IP: ${it}"}
+  .branch { it ->
+    control: it[0] == 'input'
+    treatment: true
+  }
+  .set { Peaks_without_blacklist_3 }
+
+
+Peaks_without_blacklist_3.treatment
+    .combine(Peaks_without_blacklist_3.control)
+    .map { it[0, 1, 3] }
+    .dump(tag:'peaks_input') {"Peaks with input_control controls: ${it}"}
+    .set { Peaks_treatment_with_control }
+
+
+process ATAC_peaks__removing_input_control_peaks {
+  tag "${id}"
+
+  label "samtools_bedtools_perl"
+
+  publishDir \
+    path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input", 
+    mode: "${pub_mode}", enabled: save_all_bed
+
+  when: 
+    do_atac
+
+  input:
+    set id, file(peaks), file(input_control_peaks) \
+      from Peaks_treatment_with_control
+
+  output:
+    file("*.bed")
+    set id, file("*__peaks_kept_after_input_control_removal.bed") \
+      into Peaks_for_removing_specific_regions_1
+
+  script:
+    """
+
+    intersectBed -wa -v -f ${params.input_control_overlap_portion} \
+      -a "${peaks}" -b "${input_control_peaks}" \
+      > "${id}__peaks_kept_after_input_control_removal.bed"
+
+    intersectBed -wa -u -f ${params.input_control_overlap_portion} \
+      -a "${peaks}" -b "${input_control_peaks}" \
+      > "${id}__peaks_lost_after_input_control_removal.bed"
+
+    """
+}
+
+// https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html
+// option   Description
+// -wa 	  	Write the original entry in A for each overlap.
+// -f  	  	Minimum overlap required as a fraction of A. - Default is 1E-9 
+//          (i.e., 1bp). - FLOAT (e.g. 0.50)
+// -v 	  	Only report those entries in A that have _no overlaps_ with B. 
+//          - Similar to ‘grep -v’ (an homage).
+// -u 	    Write the original A entry _once_ if _any_ overlaps found in B. 
+//          - In other words, just report the fact >=1 hit was found. 
+//          - Overlaps restricted by -f and -r.
+
+Peaks_without_blacklist_2.without_input_control
+  .concat(Peaks_for_removing_specific_regions_1)
+  .set{   Peaks_for_removing_specific_regions_2 }
+
+
+
+
+
+//// DIFFENRENTIAL BINDING
+
+comparisons_files = file(params.design__comparisons)
+Channel
+  .from(comparisons_files.readLines())
+  .map {
+          m = it.split()
+          condition1 = m[0]
+          condition2 = m[1]
+          [ condition1, condition2 ]
+       }
+  .dump(tag:'comp_file') {"comparison file: ${it}"}
+  .into { comparisons_files_for_merging; comparisons_files_for_mRNA_Seq }
+
+Reads_in_bam_files_for_diffbind
+  .tap{ Reads_input_control }
+  .join( Peaks_for_removing_specific_regions_2, remainder: true )
+  .map { [ it[0].split("_")[0], it[0..-1]] }
+  .groupTuple()
+  .dump(tag:'reads_peaks') {"merged reads and peaks: ${it}"}
+  .into { reads_and_peaks_1 ; reads_and_peaks_2 ; reads_and_peaks_3 }
+
+regions_to_remove = Channel.fromPath(params.design__regions_to_remove)
+
+comparisons_files_for_merging
+  .combine(reads_and_peaks_1)
+  .combine(reads_and_peaks_2)
+  .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, id_2, 
+            reads_and_peaks_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
+  .map { 
+    [ 
+      it[0] + '_vs_' + it[1], 
+      it.flatten().findAll { it =~ '\\.bed' }, 
+      it.flatten().findAll { it =~ "\\.bam" } 
+      ] 
+    }
+  .tap { Reads_in_bam_files_for_diffbind_1 }
+  .map { it[0,1] }
+  .combine(regions_to_remove)
+  .dump(tag:'clean_peaks') {"peaks for removing regions: ${it}"}
+  .set { Peaks_for_removing_specific_regions_3 }
+
+
+
+process ATAC_peaks__removing_specific_regions {
+  tag "${COMP}"
+
+  label "samtools_bedtools_perl"
+
+  publishDir \
+   path: "${out_processed}/1_Preprocessing/ATAC__peaks__split__no_BL_input_RNAi", 
+   mode: "${pub_mode}", enabled: save_last_bed
+
+  when: 
+    do_atac
+
+  input:
+    set COMP, file(bed_files), regions_to_remove \
+      from Peaks_for_removing_specific_regions_3
+
+  output:
+    file("*.bed")
+    set COMP, file("*__peaks_kept_after_specific_regions_removal.bed") \
+      into Peaks_for_diffbind
+
+  shell:
+    '''
+
+    COMP=!{COMP}
+    RTR=!{regions_to_remove}
+    BED_FILES="!{bed_files}"
+
+    COMP1=${COMP/_vs_/|}
+    echo $COMP1 | grep -E -f - $RTR || true > rtr_filtered.txt
+
+    if [ ! -s rtr_filtered.txt ]; then
+      for FILE in ${BED_FILES}
+      do
+        id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
+        cp $FILE "${id}__peaks_kept_after_specific_regions_removal.bed"
+      done
+    else
+      cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" \
+        | sed "s/[:-]/\\t/g" | sed "s/chr//g" > rtr_filtered_formatted.txt 
+
+      for FILE in ${BED_FILES}
+      do
+        id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
+
+        intersectBed -v -a $FILE -b rtr_filtered_formatted.txt \
+          > "${id}__peaks_kept_after_specific_regions_removal.bed"
+        intersectBed -u -a $FILE -b rtr_filtered_formatted.txt \
+          > "${id}__peaks_lost_after_specific_regions_removal.bed"
+      done
+    fi
+
+    '''
+}
+
+// really weird nextflow bug: this command makes all commands below ignored 
+// when the rtr file is empty:
+// echo $COMP1 | grep -E -f - $RTR > rtr_filtered.txt
+// https://github.com/nextflow-io/nextflow/issues/1149
+// => solution: grep pattern || true
+// or: process.shell = ['/bin/bash','-u']
+
+
+// cat rtr_filtered.txt | sed "s/,//g" | sed "s/.*->//g" | sed "s/[:-]/\\t/g" \
+//   | sed "s/chr//g" > rtr_filtered_formatted.txt 
+// echo $COMP2 | grep -f - $RTR >> rtr_filtered.txt
+
+
+// note: the reason why this process is here and not upstread is because we 
+// want to remove in all bed files the peaks that are in specific regions 
+// (i.e. RNAi) that we want to avoid. This is because, Diffbind will consider 
+// all peaks for his analysis, so if we remove one such peak in just one of the 
+// two samples to compare, if it is still present in the other sample then it 
+// will be included in the analysis and it will likely be found as differential 
+// bound during the DBA. I.e. we compare daf-16RNAi vs control. if there is a 
+// macs2 peak at daf-16 in the control condition, then even if we remove this 
+// peak in the daf-16RNAi condition, it will be included in the final analysis.
+
+
+
+Reads_input_control
+  .filter{ id, bam_files -> id == 'input'}
+  .set{ Reads_input_control_1 }
+
+Reads_in_bam_files_for_diffbind_1
+  .map { it[0,2] }
+  .join(Peaks_for_diffbind)
+  .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
+  .branch {
+    with_input_control: params.use_input_control
+    without_input_control: true
+  }
+  .set { Reads_and_peaks_for_diffbind_1 }
+
+Reads_and_peaks_for_diffbind_1.with_input_control
+  .combine(Reads_input_control_1)
+  .map{ 
+          comp_id, bam_files, bed_files, input_id, imput_bam -> 
+        [ comp_id, bed_files, [bam_files, imput_bam].flatten() ]
+      }
+  // .map{ it -> [ it[0], it[1], [it[2,4].flatten()]] }
+  .set{ Reads_and_peaks_with_input_control }
+
+Reads_and_peaks_for_diffbind_1.without_input_control
+  .concat(Reads_and_peaks_with_input_control)
+  .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
+  .set{ Reads_and_peaks_for_diffbind_2 }
+
+
+
+
+
+
+process ATAC_QC_peaks__computing_and_plotting_saturation_curve {
+  tag "${id}"
+
+  label "macs2"
+
+  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__saturation_curve", 
+             mode: "${pub_mode}"
+
+  when: 
+    do_atac & params.do_saturation_curve
+
+  input:
+    val out_path from Channel.value('1_Preprocessing') 
+    set id, file(bed) \
+      from Reads_in_bed_files_for_computing_and_plotting_saturation_curve
+
+  output:
+    set val("ATAC__peaks__saturation_curve"), out_path, file('*.pdf') \
+      into ATAC_saturation_curve_plots_for_merging_pdfs
+
+  script:
+    """
+
+    export TMPDIR="." PYTHON_EGG_CACHE="."
+
+    PERCENTS=`seq 10 10 100`
+
+    for PERCENT in \${PERCENTS}
+    do
+      BED_FILE="${id}_sampled_\${PERCENT}_percent.bed"
+
+      macs2 randsample -i ${bed} \
+        --seed 38 \
+        -o \${BED_FILE} \
+        --percentage \${PERCENT} \
+        -f BED
+
+      macs2 callpeak \
+        --treatment \${BED_FILE} \
+        --format BED \
+        --name \${BED_FILE}__macs2 \
+        --qvalue "${params.macs2__qvalue}" \
+        --gsize "${params.effective_genome_size}" \
+        --nomodel \
+        --shift -75 \
+        --extsize 150 \
+        --keep-dup all \
+        --call-summits
+    done
+
+    Rscript "${projectDir}/bin/plot_saturation_curve.R" ${id}
+
+    """
+}
+
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_saturation_curve_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+
+
+
+process ATAC_QC_peaks__annotating_macs2_peaks {
+
+  tag "${id}"
+
+  label "bioconductor"
+
+  publishDir path: "${out_processed}/1_Preprocessing/ATAC__peaks__annotated_rds", 
+             mode: "${pub_mode}"
+
+  when: 
+    do_atac & params.do_raw_peak_annotation
+
+  input:
+    set id, file(peaks_bed_file) \
+      from Macs2_Peaks_without_blacklist_1_for_annotating_them
+
+  output: 
+    set id, file("*.rds") \
+      into Annotated_macs2_peaks_for_plotting_each_sample, 
+           Annotated_macs2_peaks_for_plotting_all_samples_grouped_1 \
+           optional true
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(ChIPseeker)
+    library(magrittr)
+    id = '!{id}'
+    peaks_bed_file = '!{peaks_bed_file}'
+    upstream = !{params.macs2_peaks__promoter_up}
+    downstream = !{params.macs2_peaks__promoter_down}
+    tx_db <-  AnnotationDbi::loadDb('!{params.txdb}')
+
+    nb_of_peaks = 
+      system(paste('wc -l', peaks_bed_file), intern = T) %>% 
+      gsub(' .*', '', .)
+    if(nb_of_peaks == 0) {quit('no')}
+    peaks = readPeakFile('!{peaks_bed_file}')
+
+    promoter <- getPromoters(TxDb = tx_db, upstream   = upstream, 
+                                           downstream = downstream)
+
+    tag_matrix = getTagMatrix(peaks, windows = promoter)
+
+    annotated_peaks = annotatePeak(peaks, 
+                                  TxDb = tx_db, 
+                                  tssRegion = c(-upstream, downstream), 
+                                  level = 'gene', 
+                                  overlap = 'all')
+
+    genes = as.data.frame(annotated_peaks)$geneId
+
+    lres = list(
+      id = id,
+      peaks = peaks,
+      tag_matrix = tag_matrix,
+      annotated_peaks = annotated_peaks,
+      genes = genes
+    )
+
+    saveRDS(lres, file = paste0(id, '__annotated_peaks.rds'))
+
+    '''
+}
+
+// these are ATAC-Seq peaks from macs
+
+// defaults parameters for the annotation function
+// 1 function (peak, tssRegion = c(-3000, 3000), TxDb = NULL, 
+// level = "transcript", assignGenomicAnnotation = TRUE, 
+// genomicAnnotationPriority = c("Promoter", "5UTR", "3UTR", "Exon", "Intron", 
+// "Downstream", "Intergenic"), annoDb = NULL, addFlankGeneInfo = FALSE, 
+// flankDistance = 5000, sameStrand = FALSE, ignoreOverlap = FALSE, 
+// ignoreUpstream = FALSE, ignoreDownstream = FALSE, overlap = "TSS", 
+// verbose = TRUE)
+
+// the addFlankGeneInfo gives rather confusing output so we ignore it
+  // geneId          transcriptId distanceToTSS   flank_txIds    flank_gene
+
+// select(txdb, keys = keys(txdb)[1:1], columns = columns(txdb), 
+// keytype = 'GENEID')
+
+
+Annotated_macs2_peaks_for_plotting_all_samples_grouped_1
+  .map { it[1] }
+  // .groupTuple () // legacy: before there was the option type that was 
+  // equal to either "raw" or "norm", so we would group tupple this way. 
+  // Now there is only "raw", so we just collect peaks
+  .collect()
+  .dump(tag:'anno_list') {"annotated peaks as list: ${it}"}
+  .set { Annotated_macs2_peaks_for_plotting_all_samples_grouped_2 }
+
+
+
+
+process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample {
+  tag "${id}"
+
+  label "bioconductor"
+
+  publishDir \
+    path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
+    saveAs: {
+           if (it.indexOf("_coverage.pdf") > 0)        
+              "ATAC__peaks__coverage/${it}"
+      else if (it.indexOf("_average_profile.pdf") > 0) 
+              "ATAC__peaks__average_profile/${it}"
+  }
+
+  when: 
+    do_atac
+
+  input:
+    val out_path from Channel.value('1_Preprocessing') 
+    set id, file(annotated_peaks_objects_rds) \
+      from Annotated_macs2_peaks_for_plotting_each_sample
+
+  output:
+    set val("ATAC__peaks__coverage"), out_path, file("*_coverage.pdf") \
+      into ATAC_peaks_coverage_for_merging_pdfs
+    set val("ATAC__peaks__average_profile"), out_path, 
+      file("*_average_profile.pdf") \
+      into ATAC_peaks_average_profile_for_merging_pdfs
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    library(ChIPseeker)
+    library(ggplot2)
+
+    id = '!{id}'
+    upstream = !{params.macs2_peaks__promoter_up}
+    downstream = !{params.macs2_peaks__promoter_down}
+    lres = readRDS('!{annotated_peaks_objects_rds}')
+
+    pdf(paste0(id, '__coverage.pdf'))
+      covplot(lres$peaks, weightCol="V5") + ggtitle(id) + 
+        theme(plot.title = element_text(hjust = 0.5))
+    dev.off()
+
+    pdf(paste0(id, '__average_profile.pdf'))
+      plotAvgProf(lres$tag_matrix, xlim=c(-upstream, downstream), 
+        xlab="Genomic Region (5'->3')", ylab = "Read Count Frequency") + 
+        ggtitle(id) + theme(plot.title = element_text(hjust = 0.5))
+    dev.off()
+
+    '''
+}
+
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_peaks_coverage_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_peaks_average_profile_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+
+
+
+process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
+
+  label "bioconductor"
+
+  publishDir path: "${out_fig_indiv}/${out_path}/ATAC__peaks__grouped_plots", 
+             mode: "${pub_mode}"
+  publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
+
+  when: 
+    do_atac
+
+  input:
+    val out_path from Channel.value('1_Preprocessing') 
+    file ("*") from Annotated_macs2_peaks_for_plotting_all_samples_grouped_2
+
+  output:
+    file("*.pdf")
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    upstream = !{params.macs2_peaks__promoter_up}
+    downstream = !{params.macs2_peaks__promoter_down}
+
+    library(ChIPseeker)
+    library(ggplot2)
+    library(purrr)
+
+    rds_files = list.files(pattern = '*.rds')
+    lres = lapply(rds_files, readRDS)
+
+    names0 = map_chr(lres, 'id')
+    tag_matrix_list = map(lres, 'tag_matrix') %>% setNames(., names0)
+    annotated_peaks_list = map(lres, 'annotated_peaks') %>% setNames(., names0)
+
+    size_facet = ifelse(length(tag_matrix_list) > 12, 2.8, 5.5)
+
+    p1 = plotAvgProf(tag_matrix_list, c(-upstream, downstream), facet='row')
+    p1 = p1 + theme(axis.text.y = element_text(size = 3.5), 
+          strip.text.y = element_text(size = size_facet))
+
+    pdf('ATAC__peaks__average_profile.pdf', font = 'mono')
+      print(p1)
+    dev.off()
+
+    pdf('ATAC__peaks__annotation_barplot.pdf')
+      plotAnnoBar(annotated_peaks_list)
+    dev.off()
+
+    pdf('ATAC__peaks__distance_to_TSS.pdf')
+      plotDistToTSS(annotated_peaks_list)
+    dev.off()
+
+    '''
+}
+
+
+
+
+process MRNA__quantifying_transcripts_abundances {
+  tag "${id}"
+
+  label "kallisto"
+
+  publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", 
+             mode: "${pub_mode}"
+
+  when: 
+    do_mRNA
+
+  input:
+    set id, file(reads) from MRNA_reads_for_kallisto
+
+  output:
+    set id, file("kallisto_${id}") into Kallisto_results_for_sleuth_1
+
+  script:
+
+    def single = reads instanceof Path
+
+    if( single ) {
+      """
+        mkdir kallisto_${id}
+        kallisto quant \
+          --single \
+          -l ${params.kallisto__fragment_len} \
+          -s ${params.kallisto__fragment_sd} \
+          -b ${params.kallisto__bootstrap} \
+          -t ${params.kallisto__nb_threads} \
+          -i ${params.kallisto_transcriptome} \
+          -o kallisto_${id} \
+          ${reads}
+      """
+    }
+    else {
+      """
+        mkdir kallisto_${id}
+        kallisto quant \
+          -b ${params.kallisto__bootstrap} \
+          -t ${params.kallisto__nb_threads} \
+          -i ${params.kallisto_transcriptome} \
+          -o kallisto_${id} \
+          ${reads}
+      """
+    }
+}
+
+// note: I adapted a basic mRNA-Seq pipeline from 
+//                    https:////github.com/cbcrg/kallisto-nf
+
+
+
+process MRNA_QC__running_fastqc {
+  tag "${id}"
+
+  label "fastqc"
+
+  publishDir path: "${out_processed}/1_Preprocessing/mRNA__fastqc", 
+             mode: "${pub_mode}", pattern: "*.html" 
+
+  when: 
+    do_mRNA
+
+  input:
+    set id, file(reads) from MRNA_reads_for_running_fastqc
+
+  output:
+    file("*.{zip, html}") into MRNA_fastqc_reports_for_multiqc
+
+  script:
+    """
+
+    fastqc -t ${params.fastqc__nb_threads} ${reads}
+
+    """
+}
+
+
+
+process MRNA_QC__running_MultiQC {
+
+  label "multiqc"
+
+  publishDir path: "${out_fig_indiv}/1_Preprocessing", 
+             mode: "${pub_mode}", pattern: "*.html"
+
+  publishDir path: "${out_fig_merge}/1_Preprocessing", 
+             mode: "${pub_mode}", pattern: "*.html"
+
+  when: 
+    do_mRNA
+
+  input:
+    file ('fastqc/*') from MRNA_fastqc_reports_for_multiqc.flatten().toList()
+
+  output:
+    set "mRNA__multiQC.html", "*multiqc_data" optional true
+
+  script:
+    """
+
+    multiqc -f .
+    mv multiqc_report.html mRNA__multiQC.html
+
+    """
+}
+
+
+
+// making the groups for differential gene expression
+
+Kallisto_results_for_sleuth_1
+  .map{ [ it[0].split('_')[0], it[1] ] }
+  .groupTuple()
+  .into{ Kallisto_results_for_sleuth_2; Kallisto_results_for_sleuth_3 }
+
+Kallisto_results_for_sleuth_2
+  .combine(Kallisto_results_for_sleuth_3)
+  .map { it[0,2,1,3]}
+  .join(comparisons_files_for_mRNA_Seq, by: [0,1])
+  .dump(tag:'kalisto_sleuth') {"${it}"}
+  .map{
+    def list = []
+    list.add( it[0,1].join('_vs_') )
+    list.addAll( it[0..3] )
+    return(list)
+    }
+  .set { Kallisto_results_for_sleuth_4 }
+
+
+
+
+
+
+process DA_ATAC__doing_differential_abundance_analysis {
+  tag "${COMP}"
+
+  label "diffbind"
+  // label "differential_abundance"
+  // Error in loadNamespace(x) : there is no package called ‘edgeR’
+
+  publishDir path: "${out_processed}/2_Differential_Abundance", 
+    mode: "${pub_mode}", saveAs: {
+     if (it.indexOf("__all_peaks.bed") > 0) "ATAC__all_peaks__bed/${it}"
+     else if (it.indexOf("__diffbind_peaks_dbo.rds") > 0) 
+                                            "ATAC__all_peaks__DiffBind/${it}"
+     else if (it.indexOf("__diffbind_peaks_gr.rds") > 0) 
+                                            "ATAC__all_peaks__gRange/${it}"
+  }
+
+  when: 
+    do_atac
+
+  input:
+    set COMP, file(bed), file(bam) from Reads_and_peaks_for_diffbind_2
+
+  output:
+    set COMP, file('*__diffbind_peaks_gr.rds'), 
+      file('*__diffbind_peaks_dbo.rds') \
+      into Diffbind_peaks_for_annotating_them optional true
+    set COMP, file('*__all_peaks.bed') \
+      into All_detected_diffbind_peaks_for_background optional true
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+    ##### loading data and libraries
+
+    library(DiffBind)
+    library(magrittr)
+    library(parallel)
+
+    COMP = '!{COMP}'
+    use_input_control = '!{params.use_input_control}'
+    source('!{projectDir}/bin/export_df_to_bed.R')
+    cur_seqinfo = readRDS('!{params.cur_seqinfo}')
+
+    min_overlap     = !{params.diffbind__min_overlap}
+    min_count       = !{params.diffbind__min_count}
+    analysis_method = !{params.diffbind__analysis_method}
+    normalization   = !{params.diffbind__normalization}
+
+    conditions = strsplit(COMP, '_vs_')[[1]]
+    cond1 = conditions[1]
+    cond2 = conditions[2]
+
+
+    ##### Preparing the metadata table
+    use_input_control %<>% toupper %>% as.logical
+    bed_bam_files = list.files(pattern = '*.bam$|*filtered.bed$')
+    cur_files = grep('diffbind_peaks', bed_bam_files, value = T, invert = T)
+    df = data.frame(path = cur_files, stringsAsFactors=F)
+    cursplit = sapply(cur_files, strsplit, '_')
+    df$condition = sapply(cursplit, '[[', 1)
+    df$replicate = sapply(cursplit, '[[', 2)
+    df$id = paste0(df$condition, '_', df$replicate)
+    df$id[df$condition == 'input'] = 'input'
+    df$type = sapply(df$path, function(c1) {
+      ifelse(
+        length(grep('reads', c1)) == 1, 
+        'reads', 
+        ifelse(
+          length(grep('peaks', c1)) == 1, 
+          'peaks', 
+          ''
+          )
+        )
+      )
+
+    names_df1 = c('SampleID', 'Condition', 'Replicate', 'bamReads', 
+                  'ControlID', 'bamControl', 'Peaks','PeakCaller')
+    all_id = unique(df$id) %>% .[. != 'input']
+    df1 = data.frame(matrix(nrow = length(all_id), 
+                     ncol = length(names_df1)), stringsAsFactors=F)
+    names(df1) = names_df1
+
+    for(c1 in 1:length(all_id)){
+      cur_id = all_id[c1]
+      sel_reads = which(df$id == cur_id & df$type == 'reads')
+      sel_peaks = which(df$id == cur_id & df$type == 'peaks')
+
+      df1$SampleID[c1]   = cur_id
+      df1$Condition[c1]  = df$condition[sel_reads]
+      df1$Replicate[c1]  = df$replicate[sel_reads]
+      df1$bamReads[c1]   = df$path[sel_reads]
+      df1$Peaks[c1]      = df$path[sel_peaks]
+      df1$PeakCaller[c1] = 'bed'
+
+      if(use_input_control){
+        sel_input_control_reads = which(
+            df$condition == 'input' & df$type == 'reads')
+        df1$ControlID[c1] = df$id[sel_input_control_reads]
+        df1$bamControl[c1] = df$path[sel_input_control_reads]
+      } else {
+        df1$ControlID <- NULL
+        df1$bamControl <- NULL
+      }
+    }
+
+    empty_peaks = which(sapply(df1$Peaks, file.size) == 0)
+    if(length(empty_peaks) > 0) df1$Peaks[empty_peaks] = ''
+    if(length(empty_peaks) == nrow(df1)) { quit('no') }
+
+
+
+    ##### Running DiffBind
+
+    dbo = tryCatch(
+      expr = {
+
+        config = data.frame(AnalysisMethod = analysis_method, 
+                RunParallel = F, singleEnd = F)
+
+        dbo <- dba(sampleSheet = df1, minOverlap = min_overlap, 
+                  config = config)
+
+        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, 
+          greylist = cur_seqinfo)
+
+        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = F, 
+          fragmentSize = 1, minOverlap = min_overlap, 
+          score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, 
+          bSubControl = F, minCount = min_count, summits = 75)
+
+        dbo <- dba.normalize(dbo, normalize = normalization, 
+          library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
+
+        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
+
+        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
+          bReduceObjects = F)
+
+      }, error = function(e) {
+        print(e$message)
+        quit('no')
+      }
+    )
+
+    saveRDS(dbo, paste0(COMP, '__diffbind_peaks_dbo.rds'))
+
+
+    ##### Exporting all peaks as a data frame
+
+    # extracting all peaks (note: th is the fdr threshold, so with th = 1 
+    # we keep all peaks)
+    all_peaks_gr = suppressWarnings(dba.report(dbo, th = 1))
+
+    # recomputing the FDR to have more precise values (DiffBind round them 
+    # at 3 digits)
+    all_peaks_gr$FDR <- NULL
+    all_peaks_gr$padj = p.adjust(data.frame(all_peaks_gr)$p.value, 
+                                 method = 'BH')
+
+    # adding the raw reads counts of each replicate
+    cp_raw = dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_READS)
+    mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
+    m <- findOverlaps(all_peaks_gr, cp_raw)
+    names_subject = names(mcols(cp_raw))
+    mcols(all_peaks_gr)[queryHits(m), names_subject] = 
+        mcols(cp_raw)[subjectHits(m), names_subject]
+    saveRDS(all_peaks_gr, paste0(COMP, '__diffbind_peaks_gr.rds'))
+
+
+    ##### Exporting all peaks as a bed file
+
+    all_peaks_df = as.data.frame(all_peaks_gr)
+    all_peaks_df %<>% dplyr::mutate(
+      name = rownames(.), 
+      score = round(-log10(p.value), 2))
+    all_peaks_df %<>% dplyr::rename(chr = seqnames)
+    all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
+    export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
+
+    '''
+}
+
+
 // // not sure these lines of codes will be needed
 // // string_as_object <- function(x) eval(parse(text = x))
 // // min_overlap     = string_as_object('!params.dba_min_overlap')

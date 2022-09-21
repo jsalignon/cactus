@@ -145,7 +145,7 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
 - **_params.deeptools__binsize_bigwig_creation_**: size of the bins in the bigwig file. Smaller values increase computation time. Default: 10000.
 - **_params.deeptools__nb_threads_**: number of threads used by DeepTools. Default: 6.
 - **_params.deeptools__nb_of_1_bp_samples_**: number of 1 bp sites to sample for the coverage plots. Default: 10000.
-- **_params.deeptools__normalization_method_**: normalization method to use when creating BigWig files. See [here]](https://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html) for options. Default: 'none'.
+- **_params.deeptools__normalization_method_**: normalization method to use when creating BigWig files. See [here]](https://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html) for options. Default: 'None'.
 - **_params.nb_sampled_aligned_reads_**: Number of aligned reads to sample. Default: 1000000.
 - **_params.nb_sampled_trimmed_reads_**: Number of trimmed reads to sample. Default: 1000000.
 - **_params.botwie2__nb_threads_**: number of threads used by Bowtie2. Default: 6.
