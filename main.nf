@@ -1559,6 +1559,7 @@ process ATAC_peaks__removing_blacklisted_regions {
 // println "params.use_input_control: ${params.use_input_control}"
 
 Peaks_without_blacklist_1
+  .dump(tag:'peaks_wo_bl') {"Peaks without blacklisted regions: ${it}"}
   .branch {
     with_input_control: params.use_input_control
     without_input_control: true
@@ -1573,8 +1574,9 @@ Peaks_without_blacklist_1
 
 
 Peaks_without_blacklist_2.with_input_control
-  // .view{"test_IP: ${it}"}
+  .dump(tag:'peaks_wo_bl_w_ic')
   .branch { it ->
+    // control: it[0].split("_")[0]== 'input'
     control: it[0] == 'input'
     treatment: true
   }
@@ -1582,10 +1584,10 @@ Peaks_without_blacklist_2.with_input_control
 
 
 Peaks_without_blacklist_3.treatment
-    .combine(Peaks_without_blacklist_3.control)
-    .map { it[0, 1, 3] }
-    .dump(tag:'peaks_input') {"Peaks with input_control controls: ${it}"}
-    .set { Peaks_treatment_with_control }
+  .combine(Peaks_without_blacklist_3.control)
+  .dump(tag:'peaks_input') {"Peaks with input_control controls: ${it}"}
+  .map { it[0, 1, 3] }
+  .set { Peaks_treatment_with_control }
 
 
 process ATAC_peaks__removing_input_control_peaks {
@@ -1669,8 +1671,10 @@ regions_to_remove = Channel.fromPath(params.design__regions_to_remove)
 comparisons_files_for_merging
   .combine(reads_and_peaks_1)
   .combine(reads_and_peaks_2)
-  .filter { id_comp_1, id_comp_2, id_1, reads_and_peaks_1, id_2, 
-            reads_and_peaks_2 -> id_comp_1 == id_1 && id_comp_2 == id_2 }
+  .filter { id_comp_1, id_comp_2, 
+              id_1, reads_and_peaks_1, 
+              id_2, reads_and_peaks_2 -> 
+                id_comp_1 == id_1 && id_comp_2 == id_2 }
   .map { 
     [ 
       it[0] + '_vs_' + it[1], 
@@ -1767,6 +1771,7 @@ process ATAC_peaks__removing_specific_regions {
 
 
 Reads_input_control
+  // .filter{ id, bam_files -> id.split('_')[0] == 'input'}
   .filter{ id, bam_files -> id == 'input'}
   .set{ Reads_input_control_1 }
 
@@ -1781,6 +1786,7 @@ Reads_in_bam_files_for_diffbind_1
   .set { Reads_and_peaks_for_diffbind_1 }
 
 Reads_and_peaks_for_diffbind_1.with_input_control
+  .dump(tag:'reads_peaks_w_ic')
   .combine(Reads_input_control_1)
   .map{ 
           comp_id, bam_files, bed_files, input_id, imput_bam -> 
@@ -2350,8 +2356,8 @@ process DA_ATAC__doing_differential_abundance_analysis {
       df1$PeakCaller[c1] = 'bed'
 
       if(use_input_control){
-        sel_input_control_reads = which(
-            df$condition == 'input' & df$type == 'reads')
+        sel_input_control_reads = 
+            which(df$condition == 'input' & df$type == 'reads')
         df1$ControlID[c1] = df$id[sel_input_control_reads]
         df1$bamControl[c1] = df$path[sel_input_control_reads]
       } else {
