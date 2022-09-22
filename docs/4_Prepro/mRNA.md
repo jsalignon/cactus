@@ -30,11 +30,10 @@
 Quantification of transcripts abundance is made with [kallisto](https://doi.org/10.1038/nbt.3519) in single or paired-end mode according to the input type. Briefly, Kallisto is based on the recent idea of a pseudoalignment that allows fasta and precise alignment-free quantification of transcripts (more details [here](https://pachterlab.github.io/kallisto/about)).
 
 ### Parameters
-- **_params.nb_threads_kallisto_**: number of threads used by kallisto. Default: 6.
-- **_params.bootstrap_**: Number of bootstrap samples. Default: '100'.
-- **_params.fragment_len_**: Estimated average fragment length. For single end only. Default: '180'.
-- **_params.fragment_sd_**: Estimated standard deviation of fragment length. For single end only. Default: '20'.
-- **_params.nb_threads_botwie2_**: number of threads used by Bowtie2. Default: 6.
+- **_params.kallisto__nb_threads_**: number of threads used by kallisto. Default: 6.
+- **_params.kallisto__bootstrap_**: Number of bootstrap samples. Default: '100'.
+- **_params.kallisto__fragment_len_**: Estimated average fragment length. For single end only. Default: '180'.
+- **_params.kallisto__fragment_sd_**: Estimated standard deviation of fragment length. For single end only. Default: '20'.
 
 ### Outputs
 - **Kallisto results**: `Processed_Data/1_Preprocessing/mRNA__kallisto_output/kallisto_${sample}/{abundance.{h5,tsv},run_info.json}`.
@@ -48,7 +47,7 @@ Quantification of transcripts abundance is made with [kallisto](https://doi.org/
 [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) is runned to perform standard quality controls checks on sequenced data.
 
 ### Parameters
-- **_params.nb_threads_fastqc_**: number of threads used by FastQC. Default: 2.
+- **_params.fastqc__nb_threads_**: number of threads used by FastQC. Default: 2.
 
 ### Outputs
 - **Reads quality control reports**: `Processed_Data/1_Preprocessing/mRNA__fastqc/*_R{1,2}_fastqc.html`.

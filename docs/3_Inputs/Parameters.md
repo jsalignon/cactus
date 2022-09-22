@@ -15,12 +15,13 @@
 - [Configuration files](#Configuration-files)
 - [Mandatory parameters](#Mandatory-parameters)
 - [Global configuration file](#Global-configuration-file)
-- [Design files](#Design-files)
+- [Design](#Design)
 - [Ressources](#Ressources)
 - [Mandatory parameters](#Mandatory-parameters)
 - [Output Files](#Output-Files)
 - [Cache](#Cache)
 - [Experiment](#Experiment)
+- [References](#References)
 - [Processes](#Processes)
 	- [1. Preprocessing: ATAC_peaks](#1-Preprocessing-ATAC_peaks)
 	- [1. Preprocessing: ATAC_reads](#1-Preprocessing-ATAC_reads)
@@ -72,14 +73,14 @@ Here are the recomended mandatory and optional parameters to put in the *~/.cact
 <!-- - **cactus_dir**: Directory where cactus is installed. Default: *~/workspace/cactus*.  => should not be needed by user... or not? -->
 
 
-# Design files
+# Design
 
 - **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq). Mandatory (no default).
 - **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq). Mandatory (no default).
 - **_params.design__comparisons_**: path to the [comparisons design file](/docs/3_Inputs/Design.md#Comparisons). Mandatory (no default).
 - **_params.design__regions_to_remove_**: path to the [regions to remove design file](/docs/3_Inputs/Design.md#Regions-to-remove). Mandatory (no default).
 - **_params.design__groups_**: path to the [groups design file](/docs/3_Inputs/Design.md#Groups). Mandatory (no default).
-
+- **_params.use_input_control_**: Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind, and for some quality control analysis steps. Default: false. <!-- default set in conf/version.config -->
 
 # Ressources   
 <!-- default sets in conf/ressources.config -->
@@ -110,13 +111,18 @@ This part contains parameters from [Nextflow's executor scope](https://www.nextf
 - **_params.cache_**: Type of cache to make. Options avalable [here](https://www.nextflow.io/docs/latest/process.html?highlight=deep#cache). Default: 'deep'.  
 
 
-# Experiment 
+# References 
 <!-- default sets in conf/run_base.config -->
 
+This part contains the path to the references. 
+
+Cactus preparse all references to simplify access to external databases for the user. However, there can be occasions where a user want to user another reference file. Any parameter from the [*specie.config* file](/conf/specie.config) can be modified if needed. For instance, a user analyzing worm data can try to see if human motifs are enriched by using this parameter:
+```
+params.pwms_motifs = "${params.references_dir}/human/homer_data/homer_motifs.txt"
+```
+
+The specie parameter is mandatory and allows cactus to know which reference files to use:
 - **_params.specie_**: specie under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory (no default).
-<!-- - **_params.experiment_types_**: *both, atac or mRNA*.  
-To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or both kind of data. -->
-- **_params.use_input_control_**: Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind, and for some quality control analysis steps. Default: false.  
 
 
 # Processes    
@@ -127,7 +133,6 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
 
 - **_params.macs2__qvalue_**: q-value (minimum FDR) cutoff to call significant regions. Default: '5e-2'.
 - **_params.input_control_overlap_portion_**: threshold of the fraction of overlapping input control peaks to remove peaks. The percentage is regarding the treatment/sample peaks, not the input control peaks. Default: 0.2.
-- **_params.design__regions_to_remove_**: path to the file containing the regions to remove (see the [Design](/docs/3_Inputs/Design.md) section for details). Default: 'Design/regions_to_remove.tsv'.
 - **_params.do_saturation_curve_**: enable or disable this process. Default: true.
 - **_params.do_raw_peak_annotation_**: to enable or disable this process. Default: true.
 - **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
@@ -153,12 +158,11 @@ To indicate if the run should analyze ATAC-Seq data only, mRNA-Seq data only, or
 
 ## 1. Preprocessing: mRNA
 
-- **_params.nb_threads_kallisto_**: number of threads used by kallisto. Default: 6.
-- **_params.bootstrap_**: Number of bootstrap samples. Default: '100'.
-- **_params.fragment_len_**: Estimated average fragment length. For single end only. Default: '180'.
-- **_params.fragment_sd_**: Estimated standard deviation of fragment length. For single end only. Default: '20'.
-- **_params.nb_threads_botwie2_**: number of threads used by Bowtie2. Default: 6.
-- **_params.nb_threads_fastqc_**: number of threads used by FastQC. Default: 2.
+- **_params.kallisto__nb_threads_**: number of threads used by kallisto. Default: 6.
+- **_params.kallisto__bootstrap_**: Number of bootstrap samples. Default: '100'.
+- **_params.kallisto__fragment_len_**: Estimated average fragment length. For single end only. Default: '180'.
+- **_params.kallisto__fragment_sd_**: Estimated standard deviation of fragment length. For single end only. Default: '20'.
+- **_params.fastqc__nb_threads_**: number of threads used by FastQC. Default: 2.
 
 
 ## 2. Differential Abundance: DA_ATAC

@@ -3901,7 +3901,8 @@ process Enrichment__computing_functional_annotations_overlaps {
 
     gene_set_enrich <- function(lgenes, type){
       DA_genes = lgenes$DA
-      universe = ifelse(use_nda_as_bg_for_func_anno, lgenes$NDA, NULL)
+      universe = NULL
+      if(use_nda_as_bg_for_func_anno) universe = lgenes$NDA
 
       if(type == 'KEGG') {
 
