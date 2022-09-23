@@ -205,6 +205,7 @@ process ATAC_reads__trimming_reads {
   tag "${id}"
 
   label "skewer_pigz"
+  cpus params.pigz__nb_threads
 
   publishDir \
     path: "${out_processed}/1_Preprocessing/ATAC__reads__fastq_trimmed",
@@ -306,6 +307,7 @@ process ATAC_reads__aligning_reads {
   tag "${id}"
 
   label "bowtie2_samtools"
+  cpus params.botwie2__nb_threads
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam",
              mode: "${pub_mode}", pattern: "*.{txt,qc}"
@@ -356,7 +358,7 @@ process ATAC_reads__removing_low_quality_reads {
 
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
              mode: "${pub_mode}", pattern: "*.qc"
-             
+
   publishDir path: "${out_processed}/1_Preprocessing/ATAC__reads__bam_no_lowQ", 
              mode: "${pub_mode}", pattern: "*.bam", enabled: save_all_bam
 
@@ -371,10 +373,10 @@ process ATAC_reads__removing_low_quality_reads {
     file("*.qc")
 
   script:
-    
+
     def key = id + "__filter_LQ"
     def new_bam = key + ".bam"
-    
+
     """
 
     samtools view -F 1804 \
@@ -501,27 +503,27 @@ process ATAC_reads__removing_reads_in_mitochondria_and_small_contigs {
 
   shell:
     '''
-  
+
     id=!{id}
     bam=!{bam}
     chromosomes_sizes=!{params.chromosomes_sizes}
-  
+
     key="${id}__no_mito"
-  
+
     new_bam="${key}.bam"
-  
+
     samtools view ${bam} | awk " $1 !~ /@/ {print $3}" - | uniq -c \
       > "${id}_reads_per_chrm_before_removal.txt"
-    
+
     regions_to_keep=$(cut -f1 $chromosomes_sizes | paste -sd " ")
-    
+
     samtools view -Sb ${bam} $regions_to_keep | tee ${new_bam} \
     | samtools view - | awk '{print $3}' OFS='\t' \
     | uniq -c > "${id}_reads_per_chrm_after_removal.txt"
-    
+
     samtools index -b ${new_bam}
     samtools flagstat ${new_bam} > "${key}.qc"
-    
+
     '''
 }
 
@@ -557,7 +559,7 @@ process ATAC_reads__converting_bam_to_bed_and_adjusting_for_Tn5 {
 
   script:
     def key = id + "__1bp_shifted_reads"
-  
+
     """
 
     bamToBed_and_atacShift.sh ${bam} ${key} ${params.chromosomes_sizes}
@@ -625,6 +627,7 @@ process ATAC_QC_reads__running_fastqc {
   tag "${id}"
 
   label "fastqc"
+  cpus params.fastqc__nb_threads
 
   publishDir \
     path: "${out_processed}/1_Preprocessing", mode: "${pub_mode}", 
@@ -657,6 +660,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
   tag "${id}"
 
   label "deeptools"
+  cpus params.deeptools__nb_threads
 
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
     if (it.indexOf(".pdf") > 0) 
@@ -679,7 +683,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
 
   script:
     def key = id + "__coverage"
-    
+
     """
 
     bamCoverage \
@@ -801,7 +805,7 @@ process ATAC_QC_reads__plotting_insert_size_distribution {
 
   script:
     def key = id + "__insert_size"
-    
+
     """
 
     picard -Xmx${params.memory_picard} CollectInsertSizeMetrics \
@@ -843,7 +847,7 @@ process ATAC_QC_reads__sampling_aligned_reads {
     def key = id + "__sampled"
     def new_sam = key + ".sam"
     def new_bam = key + ".bam"
-    
+
     """
 
     # saving the header
@@ -1003,6 +1007,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
   tag "${id}"
 
   label "bowtie2_samtools"
+  cpus params.botwie2__nb_threads
 
   when: 
     do_atac
@@ -1020,7 +1025,7 @@ process ATAC_QC_reads__aligning_sampled_reads {
     def new_bam_ref = key_ref + ".bam"
     def key_conta = id + "_conta"
     def new_bam_conta = key_conta + ".bam"
-    
+
     """
 
     bowtie2 -p ${params.botwie2__nb_threads} \
@@ -1101,19 +1106,19 @@ process ATAC_QC_reads__gathering_all_stat {
     | cut -f 2 -d '(' | cut -f 1 -d '%'`
     PERCENT_ALIGN_CONTA=`sed '7q;d' ${op50_flagstat} \
     | cut -f 2 -d '(' | cut -f 1 -d '%'`
-    
+
     # percentage of mitochondrial reads
     PERCENT_MITO=$(awk "BEGIN { 
       print 100 * $(samtools view -c ${bam} MtDNA) / $(samtools view -c ${bam}) 
       }" )
-    
+
     # percentage of reads mapping to various annotated regions
     PERCENT_PROMOTERS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 1 -d ' ')
     PERCENT_EXONS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 2 -d ' ')
     PERCENT_INTRONS=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 3 -d ' ')
     PERCENT_INTERGENIC=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 4 -d ' ')
     PERCENT_GENIC=$(sed '3q;d' ${overlap_genomic_regions} | cut -f 5 -d ' ')
-    
+
     # library size and percentage of duplicated reads 
     LIBRARY_SIZE=0
     RES_LIB_COMP=`sed '8q;d' ${library_complexity}`
@@ -1124,7 +1129,7 @@ process ATAC_QC_reads__gathering_all_stat {
     LIBRARY_SIZE=`echo $RES_LIB_COMP | cut -f 10 -d ' '`
     fi
     PERCENT_DUPLI=`awk -v x=$PERCENT_DUPLI 'BEGIN {printf "%.2f\\n", 100 * x }' }`
-    
+
     # gathering the results
     echo \
     "${id},$PERCENT_MITO,$PERCENT_PROMOTERS,$PERCENT_EXONS,$PERCENT_INTRONS,\
@@ -1919,7 +1924,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
             }
         }
     }
-    
+
     assignInNamespace("check_upstream_and_downstream", check_upstream_and_downstream_1, ns="ChIPseeker")
 
     nb_of_peaks = 
@@ -1933,7 +1938,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
                              downstream = downstream)
 
     tag_matrix = getTagMatrix(peaks, windows = promoter)
-    
+
     annotated_peaks = annotatePeak(peaks, 
                                   TxDb      = tx_db, 
                                   tssRegion = c(-upstream, downstream), 
@@ -2134,7 +2139,8 @@ process MRNA__quantifying_transcripts_abundances {
   tag "${id}"
 
   label "kallisto"
-
+  cpus params.kallisto__nb_threads
+  
   publishDir path: "${out_processed}/1_Preprocessing/mRNA__kallisto_output", 
              mode: "${pub_mode}"
 
@@ -2187,6 +2193,7 @@ process MRNA_QC__running_fastqc {
   tag "${id}"
 
   label "fastqc"
+  cpus params.fastqc__nb_threads
 
   publishDir path: "${out_processed}/1_Preprocessing/mRNA__fastqc", 
              mode: "${pub_mode}", pattern: "*.html" 
@@ -3332,7 +3339,7 @@ Formatting_csv_tables_channel = Formatting_csv_tables_channel
 
 
 
-  
+
 
 
 if(!do_atac & do_mRNA){
@@ -4232,6 +4239,7 @@ process Enrichment__computing_motifs_overlaps {
   tag "${key}"
 
   label "homer"
+  cpus params.homer__nb_threads
 
   publishDir path: "${out_processed}/3_Enrichment/${data_type}/${key}", 
              mode: "${pub_mode}"
