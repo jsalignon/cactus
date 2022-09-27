@@ -4350,6 +4350,9 @@ process Enrichment__computing_enrichment_pvalues {
   tag "${key}"
 
   label "r_basic"
+  
+  publishDir path: "${out_processed}/3_Enrichment/Enrichment__${data_type}", 
+             mode: "${pub_mode}", enabled: params.enrichment__save_df
 
   input:
     set key, data_type, file(df_count_csv) from Overlap_tables_channel
