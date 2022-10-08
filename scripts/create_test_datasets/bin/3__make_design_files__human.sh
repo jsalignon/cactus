@@ -9,16 +9,17 @@ source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 
 # run.yml
 cat > ${specie}/parameters/run.yml << EOL
-specie                                 : 'human'
-chromatin_state                        : 'ENCFF941SVR'
-chip_ontology                          : 'cell_type.fibroblast'
-threshold_type_for_splitting_subsets   : 'rank' 
-threshold_values_for_splitting_subsets : [ 200, 1000 ]
-design__mrna_fastq                     : 'design/mrna_fastq.tsv'
-design__atac_fastq                     : 'design/atac_fastq.tsv'
-design__comparisons                    : 'design/comparisons.tsv'
-design__regions_to_remove              : 'design/regions_to_remove.tsv'
-design__groups                         : 'design/groups.tsv'
+res_dir                   : 'results/test_default'
+specie                    : 'human'
+chromatin_state           : 'ENCFF941SVR'
+chip_ontology             : 'cell_type.fibroblast'
+split__threshold_type     : 'rank' 
+split__threshold_values   : [ 200, 1000 ]
+design__mrna_fastq        : 'design/mrna_fastq.tsv'
+design__atac_fastq        : 'design/atac_fastq.tsv'
+design__comparisons       : 'design/comparisons.tsv'
+design__regions_to_remove : 'design/regions_to_remove.tsv'
+design__groups            : 'design/groups.tsv'
 EOL
 
 ## details on the cell line:

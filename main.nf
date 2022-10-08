@@ -2320,7 +2320,9 @@ process DA_ATAC__doing_differential_abundance_analysis {
     min_count       = !{params.diffbind__min_count}
     analysis_method = !{params.diffbind__analysis_method}
     normalization   = !{params.diffbind__normalization}
-
+    summits         = !{params.diffbind__summits}
+    
+    
     conditions = strsplit(COMP, '_vs_')[[1]]
     cond1 = conditions[1]
     cond2 = conditions[2]
@@ -2396,12 +2398,12 @@ process DA_ATAC__doing_differential_abundance_analysis {
         dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = F, 
           fragmentSize = 1, minOverlap = min_overlap, 
           score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, 
-          bSubControl = F, minCount = min_count, summits = 75)
+          bSubControl = F, minCount = min_count, summits = summits)
 
         dbo <- dba.normalize(dbo, normalize = normalization, 
           library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
 
-        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2)
+        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2, reorderMeta = list(Condition = cond1))
 
         dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
           bReduceObjects = F)
@@ -3878,6 +3880,9 @@ process Enrichment__computing_functional_annotations_overlaps {
 
   label "bioconductor"
 
+  when: 
+    params.do_gene_set_enrichment
+
   input:
     set key, data_type, func_anno, file(gene_set_rds) \
       from DA_genes_for_computing_functional_annotations_overlaps_2
@@ -3885,9 +3890,6 @@ process Enrichment__computing_functional_annotations_overlaps {
   output:
     set key, data_type, file('*__counts.csv') \
       into Functional_annotations_overlaps_for_computing_pvalues optional true
-
-  when: 
-    params.do_gene_set_enrichment
 
   shell:
     '''
