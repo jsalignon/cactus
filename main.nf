@@ -2403,7 +2403,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
         dbo <- dba.normalize(dbo, normalize = normalization, 
           library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
 
-        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2, reorderMeta = list(Condition = cond1))
+        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2, reorderMeta = list(Condition = cond2))
 
         dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
           bReduceObjects = F)
