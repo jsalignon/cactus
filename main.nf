@@ -87,14 +87,39 @@ out_tab_indiv = "${res_dir}/Tables_Individual"
 //// setting up parameters
 
 save_all_fastq  = params.save_fastq_type == 'all' ? true : false
-save_all_bam    = params.save_bam_type   == 'all' ?  true : false
-save_all_bed    = params.save_bed_type   == 'all' ?  true : false
-save_last_fastq = params.save_fastq_type in ['last', 'all'] ?  true : false
-save_last_bam   = params.save_bam_type   in ['last', 'all'] ?  true : false
-save_last_bed   = params.save_bed_type   in ['last', 'all'] ?  true : false
+save_all_bam    = params.save_bam_type   == 'all' ? true : false
+save_all_bed    = params.save_bed_type   == 'all' ? true : false
+save_last_fastq = params.save_fastq_type in ['last', 'all'] ? true : false
+save_last_bam   = params.save_bam_type   in ['last', 'all'] ? true : false
+save_last_bed   = params.save_bed_type   in ['last', 'all'] ? true : false
 
-do_atac = params.design__atac_fastq ? true : false
-do_mRNA = params.design__mrna_fastq ? true : false
+do_atac = params.experiment_types in ['atac', 'both']
+do_mRNA = params.experiment_types in ['mRNA', 'both']
+
+params.do_gene_set_enrichment    = params.do_any_enrichment == true ? 
+                                    params.do_gene_set_enrichment : false
+params.do_genes_self_enrichment  = params.do_any_enrichment == true ? 
+                                    params.do_genes_self_enrichment : false
+params.do_peaks_self_enrichment  = params.do_any_enrichment == true ? 
+                                    params.do_peaks_self_enrichment : false
+params.do_chrom_state_enrichment = params.do_any_enrichment == true ? 
+                                    params.do_chrom_state_enrichment : false
+params.do_motif_enrichment       = params.do_any_enrichment == true ? 
+                                    params.do_motif_enrichment : false
+params.do_chip_enrichment        = params.do_any_enrichment == true ? 
+                                    params.do_chip_enrichment : false
+
+params.design__mrna_fastq = 
+  params.design__mrna_fastq ?: 'design/mrna_fastq.tsv'
+params.design__atac_fastq = 
+  params.design__atac_fastq ?: 'design/atac_fastq.tsv'
+params.design__comparisons = 
+  params.design__comparisons ?: 'design/comparisons.tsv'
+params.design__regions_to_remove = 
+  params.design__regions_to_remove ?: 'design/regions_to_remove.tsv'
+params.design__groups = 
+  params.design__groups ?: 'design/groups.tsv'
+
 
 
 //// Creating empty channels
@@ -1738,7 +1763,7 @@ process ATAC_peaks__removing_specific_regions {
 
       for FILE in ${BED_FILES}
       do
-        id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
+        id=${FILE/__*/}
 
         intersectBed -v -a $FILE -b rtr_filtered_formatted.txt \
           > "${id}__peaks_kept_after_specific_regions_removal.bed"
@@ -1777,7 +1802,8 @@ process ATAC_peaks__removing_specific_regions {
 
 Reads_input_control
   // .filter{ id, bam_files -> id.split('_')[0] == 'input'}
-  .filter{ id, bam_files -> id == 'input'}
+  .filter{ id, bam_files -> id == 'input'} 
+  // only 1 replicate is allowed for now and it IC should have the name "input"
   .set{ Reads_input_control_1 }
 
 Reads_in_bam_files_for_diffbind_1
@@ -4051,6 +4077,9 @@ process Enrichment__computing_genes_self_overlaps {
 
   label "r_basic"
 
+  when:
+    params.do_genes_self_enrichment
+
   input:
     set key, data_type, file(lgenes), file('all_gene_sets/*') \
       from DA_genes_for_computing_genes_self_overlaps_3
@@ -4140,13 +4169,15 @@ CHIP_channel_all
   .set{ CHIP_channel_filtered }
 
 
-if( ! params.do_chromatin_state ) Chrom_states_channel.close()
-
+if( ! params.do_chrom_state_enrichment ) Chrom_states_channel.close()
+if( ! params.do_chip_enrichment )        CHIP_channel_filtered.close()
+if( ! params.do_peaks_self_enrichment )  DA_regions_channel.close()
 
 Bed_regions_to_overlap_with = 
-  CHIP_channel_filtered
+  DA_regions_channel
   .mix(Chrom_states_channel)
-  .mix(DA_regions_channel)
+  .mix(CHIP_channel_filtered)
+
 
 DA_regions_with_bg_for_computing_peaks_overlaps_3
   // format: key (ET__PA__FC__TV__COMP), DA_regions, all_regions

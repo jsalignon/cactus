@@ -13,5 +13,5 @@ references/
 testing/
 
 /test_datasets/*/*
-!/test_datasets/*/conf
+!/test_datasets/*/parameters
 !/test_datasets/*/design

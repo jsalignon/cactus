@@ -9,16 +9,11 @@ source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 
 # run.yml
 cat > ${specie}/parameters/run.yml << EOL
-res_dir                   : 'results/test_default'
+res_dir                   : 'results/test_fly'
 specie                    : 'fly'
 chromatin_state           : 'iHMM.M1K16.fly_L3'
 split__threshold_type     : 'rank' 
 split__threshold_values   : [ 200, 1000 ]
-design__mrna_fastq        : 'design/mrna_fastq.tsv'
-design__atac_fastq        : 'design/atac_fastq.tsv'
-design__comparisons       : 'design/comparisons.tsv'
-design__regions_to_remove : 'design/regions_to_remove.tsv'
-design__groups            : 'design/groups.tsv'
 EOL
 
 # atac_fastq.tsv and mrna_fastq.tsv

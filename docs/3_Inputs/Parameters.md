@@ -75,12 +75,14 @@ Here are the recomended mandatory and optional parameters to put in the *~/.cact
 
 # Design
 
-- **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq). Mandatory (no default).
-- **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq). Mandatory (no default).
-- **_params.design__comparisons_**: path to the [comparisons design file](/docs/3_Inputs/Design.md#Comparisons). Mandatory (no default).
-- **_params.design__regions_to_remove_**: path to the [regions to remove design file](/docs/3_Inputs/Design.md#Regions-to-remove). Mandatory (no default).
-- **_params.design__groups_**: path to the [groups design file](/docs/3_Inputs/Design.md#Groups). Mandatory (no default).
-- **_params.use_input_control_**: Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind, and for some quality control analysis steps. Default: false. <!-- default set in conf/version.config -->
+- **_params.experiment_types_**: Analyze only ATAC-Seq data, only mRNA-Seq data or both data type. Options: 'both', 'atac', 'mrna'. Default: 'both'. 
+- **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq). Default: 'design/mrna_fastq.tsv'.
+- **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq). Default: 'design/atac_fastq.tsv'.
+- **_params.design__comparisons_**: path to the [comparisons design file](/docs/3_Inputs/Design.md#Comparisons). Default: 'design/comparisons.tsv'.
+- **_params.design__regions_to_remove_**: path to the [regions to remove design file](/docs/3_Inputs/Design.md#Regions-to-remove). Default: 'design/regions_to_remove.tsv'.
+- **_params.design__groups_**: path to the [groups design file](/docs/3_Inputs/Design.md#Groups). Default: 'design/groups.tsv'.
+- **_params.use_input_control_**: Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind, and for some quality control analysis steps. Note that the input control cannot have replicates and should have the id "input" in the *params.design__atac_fastq* file (see example [here](/test_datasets/worm/design/atac_fastq__with_input.tsv)). . Default: false. <!-- default set in conf/version.config -->
+
 
 # Ressources   
 <!-- default sets in conf/ressources.config -->
@@ -120,6 +122,8 @@ Cactus preparse all references to simplify access to external databases for the 
 ```
 params.pwms_motifs = "${params.references_dir}/human/homer_data/homer_motifs.txt"
 ```
+
+Other specie parameters that may be useful to tweak in certain situations are: *params.blacklisted_regions*, *params.encode_chip_files* or *params.chromatin_state_1*.
 
 The specie parameter is mandatory and allows cactus to know which reference files to use:
 - **_params.specie_**: specie under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory (no default).
@@ -187,19 +191,24 @@ The specie parameter is mandatory and allows cactus to know which reference file
 ## 2. Differential Abundance: Split
 
 - **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Options: 'FDR', 'rank'. Default: 'FDR'. 
-- **_params.split__threshold_values_**: Defines the threshold cuttoff value(s). Default: [ 1.3 ].
+- **_params.split__threshold_values_**: Defines the threshold cuttoff value(s). If *params.split__threshold_type == 'rank'* all entries ranked below this value will be kept (with entries ranked from lowest (rank = 1) to highest adjusted pvalues). If *params.split__threshold_type == 'FDR'* all entries with a -log10(p-value) below this threshold will be kept. i.e. *params.split__threshold_values == [ 1.3 ]* will keep all entries with a pvalue below 0.05. Multiple thresholds can be added but from the same type (FDR or rank). Default: [ 1.3 ].
 - **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all', 'prom', 'distNC' ].
 
 
 ## 3. Enrichment: Enrichment
 
-- **_params.do_gene_set_enrichment_**: enable or disable this process. Default: true.
+- **_params.do_any_enrichment_**: If false, this will disable all enrichment analysis. Default: true.
+- **_params.do_gene_set_enrichment_**: Enable or disable gene set enrichment analysis. Default: true.
+- **_params.do_genes_self_enrichment_**: Enable or disable genes self enrichment analysis. Default: true.
+- **_params.do_peaks_self_enrichment_**: Enable or disable peaks self enrichment analysis. Default: true.
+- **_params.do_chrom_state_enrichment_**: Enable or disable chromatin states enrichment analysis. Default: true.
+- **_params.do_motif_enrichment_**: Enable or disable motifs enrichment analysis. Default: true.
+- **_params.do_chip_enrichment_**: Enable or disable CHIP-Seq enrichment analysis. Default: true.
 - **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
 - **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis. Options: 'KEGG', 'GO_CC', 'GO_MF', 'GO_BP'. Default: ['BP', 'KEGG']. 
 - **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
 - **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.specie}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
 - **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
-- **_params.do_motif_enrichment_**: enable or disable this process. Default: true.
 - **_params.homer__nb_threads_**: number of threads used by Bowtie2. Default: 6.
 - **_params.motifs_test_type_**: The test to use for motif inputs. If 'Binomial' a two-sided binomial test is performed instead of the two-sided Fischer test. Options: 'binomial' or 'fischer' (any value). Default: 'binomial'.
 
