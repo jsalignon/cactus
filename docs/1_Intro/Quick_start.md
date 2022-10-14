@@ -10,10 +10,15 @@
 [](END_OF_MENU)
 
 
+# Dependencies and profiles
+
+Cactus needs two software to be installed in order to run: Nextflow and one of SingularityCE, Docker or Conda.
+Then, the *-profile* argument should be used to specicify which executor to use. In general, it is recommended to use SingularityCE on HPC systems since Singularity containers can be [run without sudo](https://blogs.oregonstate.edu/learningbydoing/2022/01/04/docker-and-singularity-containers-which-one-is-better/). Users should see with their administrator which of these 3 options are available and recommeneded.
+
 
 # Install and run
 
-The first step is to create the global configuration file *.cactus.config* located in the home folder. This file must indicate the path where to download the references and the singularity containers. Here is an example of a *.cactus.config* file:
+The first step is to create the global configuration file *.cactus.config* located in the home folder. This file must indicate the path where to download the references and the singularity containers. Here is an example of a *.cactus.config* file when using singulariyt:
 ```
 params.references_dir         = '/home/user/workspace/cactus/references'
 params.singularity_images_dir = '/home/user/workspace/singularity_containers'
@@ -21,14 +26,14 @@ params.singularity_images_dir = '/home/user/workspace/singularity_containers'
 
 Downloading references and test datasets:
 ```
-nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --specie worm -r main -latest
+nextflow run jsalignon/cactus/scripts/download/download.nf  -profile singularity --references --test_datasets --specie worm -r main -latest
 ```
 
 >**_Note_:** Test datasets are also available for the species fly, human and mouse. They can be tested by changing the *--specie* argument.  
 
 Running Cactus (and downloading containers):
 ```
-nextflow run jsalignon/cactus -params-file parameters/run.yml -profile singularity -r main -latest -resume
+nextflow run jsalignon/cactus -profile singularity -params-file parameters/run.yml -r main -latest -resume
 ```
 
 One can update the pipeline using this command:
@@ -62,12 +67,12 @@ Analysis parameters can be changed in the yml input file. See the [Parameters](/
 
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since [text stolen from Maxime/Sarek]. On can specify the version of the pipeline using the –version argument this way:
 ```
-nextflow run jsalignon/cactus -params-file parameter_file -profile {singulariy,docker,conda}  -r revision_hash -resume
+nextflow run jsalignon/cactus -profile {singulariy,docker,conda} -params-file parameter_file -r revision_hash -resume
 ```
 
 For instance:
 ```
-nextflow run jsalignon/cactus -params-file parameters/run.yml -profile singularity  -r 6db14711ed38b7611de20cf44fea0c000a2cf3fe -resume
+nextflow run jsalignon/cactus -profile singularity -params-file parameters/run.yml -r 6db14711ed38b7611de20cf44fea0c000a2cf3fe -resume
 ```
 
 Revisions hashes can be found (here)[https://github.com/jsalignon/cactus/commits/main] (by clicking on "Copy the full SHA").
