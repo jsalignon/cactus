@@ -126,12 +126,12 @@ getting_padj_loglog_and_binned <- function(df, data_type, signed_padj){
 ## getting pval columns
 get_padj_binned_breaks <- function(data_type){
   breaks = switch(data_type,
-    genes_self     = c(1,    0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    peaks_self     = c(1,    0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    func_anno      = c(1,    0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    chrom_states   = c(1,    0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    CHIP           = c(1,    0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    motifs         = c(1,    0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0)
+    genes_self   = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
+    peaks_self   = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
+    func_anno    = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
+    chrom_states = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
+    CHIP         = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
+    motifs       = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0)
   )
   return(breaks)
 }

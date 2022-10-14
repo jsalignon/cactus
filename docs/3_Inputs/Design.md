@@ -55,6 +55,7 @@ spt16_2 data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
  - *Locus_name->genomic_coordinates (chromosome:start-end)*: coordinates of the region to remove
 
 >**_Note_:** This file can be empty if no region needs to be removed.  
+
 >**_Note_:** Multiple regions can be removed for the same condition by adding multiple lines.
 
 **Example:**
@@ -92,7 +93,9 @@ hmg4 spt16
  - *group_id*: Name of the group. Note that group_id can only contain alphanumerical characters (A-Z, a-z and 0-9), and cannot contain special characters (such as underscore). 
  - *comparisons*: list of all comparisons in the group, each in a separate field. The comparisons are named this way: condition1_vs_condition2. 
 
->**_Note_:** this file is in wide format, for increased readability
+>**_Note_:** this file is in wide format, for increased readability  
+
+>**_Note_:** a maximum of ~21 comparisons in each group is recommended for better readability.
 
 **Example:**
 ```

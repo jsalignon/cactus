@@ -24,11 +24,11 @@ Downloading references and test datasets:
 nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --specie worm -r main -latest
 ```
 
->**_Note_:** Test datasets are also available for species fly, human and mouse. They can be tested by changing the *--specie* argument.  
+>**_Note_:** Test datasets are also available for the species fly, human and mouse. They can be tested by changing the *--specie* argument.  
 
 Running Cactus (and downloading containers):
 ```
-nextflow run jsalignon/cactus -r main -latest
+nextflow run jsalignon/cactus -params-file parameters/run.yml -profile singularity -r main -latest -resume
 ```
 
 One can update the pipeline using this command:
@@ -36,16 +36,16 @@ One can update the pipeline using this command:
 nextflow pull salignon/cactus
 ```
 
-Results are stored in the folder *results/Cactus_v{version}*.
+Results are stored in the folder *results/Cactus_v{version}* (this path can be changed with the parameter *params.res_dir*).
 
 
 # Additional details
 
-It is highly recommended to use the [Nextflow Tower tool](https://tower.nf/) to easily monitor pipelines progress.
+It is recommended to use the [Nextflow Tower tool](https://tower.nf/) to easily monitor pipelines progress.
 
 Nextflow handles job submissions on SLURM or other environments, and supervises running the jobs. Thus the Nextflow process must run until the pipeline is finished. We recommend that you put the process running in the background through screen / tmux or similar tool. Alternatively you can run nextflow within a cluster job submitted your job scheduler.
 
-It is recommended to limit the Nextflow Java virtual machines memory. We recommend adding the following line to your environment (typically in ~/.bashrc or ~./bash_profile):
+It is recommended to [limit the Nextflow Java virtual machines memory](https://www.nextflow.io/blog/2021/5_tips_for_hpc_users.html)). We recommend adding the following line to your environment (typically in ~/.bashrc or ~./bash_profile):
 ```
 NXF_OPTS='-Xms1g -Xmx4g'
 ```
@@ -54,16 +54,28 @@ NXF_OPTS='-Xms1g -Xmx4g'
 # Parameters
 
 Global parameters can be changed in the nextflow.config file. This include output folder names, resources (memory and CPU usage), type of machine to run the script (local or cloud). This is up to the user to set up the optimal nextflow environment according to their analysis platform. Help can be found [here](https://www.nextflow.io/docs/latest/executor.html) for that.
-Note: by default, the analysis is cached and will resume were it was before stopping. This can be disabled by setting the parameter *resume* to *false*. 
 
-Analysis parameters can be changed in the run.config file. See the [Configuration](/docs/3_Inputs/Configuration.md) section for more details on available parameters and configuration files. 
+Analysis parameters can be changed in the yml input file. See the [Parameters](/docs/3_Inputs/Parameters.md) section for more details on parameter files and on available parameters. 
 
 
 # Reproducibility
 
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since [text stolen from Maxime/Sarek]. On can specify the version of the pipeline using the –version argument this way:
 ```
-nextflow run jsalignon/cactus -r commit_id
+nextflow run jsalignon/cactus -params-file parameter_file -profile {singulariy,docker,conda}  -r revision_hash -resume
+```
+
+For instance:
+```
+nextflow run jsalignon/cactus -params-file parameters/run.yml -profile singularity  -r 6db14711ed38b7611de20cf44fea0c000a2cf3fe -resume
+```
+
+Revisions hashes can be found (here)[https://github.com/jsalignon/cactus/commits/main] (by clicking on "Copy the full SHA").
+
+>**_Note_:** When working with different revision of the same branch of the pipeline, one needs to drop and re-download the pipeline between runs with this command:
+
+```
+nextflow drop salignon/cactus
 ```
 
 
@@ -71,7 +83,7 @@ nextflow run jsalignon/cactus -r commit_id
 
 In general, scrolling through [Nextflow’s documentation](https://www.nextflow.io/docs/latest/index.html) can help resolving most issues.
 
-The general process to resolve a crashing pipeline is to go to the folder indicated in the crash report, launch the appropriate container, and run the lines of codes indicated in the crash report. This way one can try to identify and solve the issue. Example:
+The general process to resolve a crashing pipeline is to go to the folder indicated in the crash report, launch the appropriate container, and run the lines of codes indicated in the crash report. This way one can try to identify and solve the issue. For example, when using singularity containers one can use these commands:
 
 ```
 cd work/59/8a6fb9*
