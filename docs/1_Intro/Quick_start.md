@@ -41,7 +41,7 @@ One can update the pipeline using this command:
 nextflow pull salignon/cactus
 ```
 
-Results are stored in the folder *results/Cactus_v{version}* (this path can be changed with the parameter *params.res_dir*).
+Results are stored in the folder `results/Cactus_v${version}` (this path can be changed with the parameter *params.res_dir*).
 
 
 # Additional details

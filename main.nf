@@ -3907,7 +3907,7 @@ process Enrichment__computing_functional_annotations_overlaps {
   label "bioconductor"
 
   when: 
-    params.do_gene_set_enrichment
+    params.do_gene_set_enrichment && params.do_any_enrichment
 
   input:
     set key, data_type, func_anno, file(gene_set_rds) \
@@ -4078,7 +4078,7 @@ process Enrichment__computing_genes_self_overlaps {
   label "r_basic"
 
   when:
-    params.do_genes_self_enrichment
+    params.do_genes_self_enrichment && params.do_any_enrichment
 
   input:
     set key, data_type, file(lgenes), file('all_gene_sets/*') \
@@ -4169,10 +4169,14 @@ CHIP_channel_all
   .set{ CHIP_channel_filtered }
 
 
-if( ! params.do_chrom_state_enrichment ) Chrom_states_channel.close()
-if( ! params.do_chip_enrichment )        CHIP_channel_filtered.close()
-if( ! params.do_peaks_self_enrichment )  DA_regions_channel.close()
+if( (! params.do_chrom_state_enrichment) || (! params.do_any_enrichment) ) Chrom_states_channel.close()
+if( (! params.do_chip_enrichment) || (! params.do_any_enrichment) )        CHIP_channel_filtered.close()
+if( (! params.do_peaks_self_enrichment) || (! params.do_any_enrichment) )  DA_regions_channel.close()
 
+Bed_regions_to_overlap_with = Channel.empty()
+
+if(params.do_any_enrichment && (params.do_chrom_state_enrichment || 
+  params.do_chip_enrichment || params.do_peaks_self_enrichment) )
 Bed_regions_to_overlap_with = 
   DA_regions_channel
   .mix(Chrom_states_channel)
@@ -4278,7 +4282,7 @@ process Enrichment__computing_motifs_overlaps {
              mode: "${pub_mode}"
 
   when: 
-    params.do_motif_enrichment
+    params.do_motif_enrichment && params.do_any_enrichment
 
   input:
     set key, data_type, file(DA_regions), file(all_regions) \
