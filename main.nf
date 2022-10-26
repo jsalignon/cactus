@@ -96,18 +96,20 @@ save_last_bed   = params.save_bed_type   in ['last', 'all'] ? true : false
 do_atac = params.experiment_types in ['atac', 'both']
 do_mRNA = params.experiment_types in ['mRNA', 'both']
 
-params.do_gene_set_enrichment    = params.do_any_enrichment == true ? 
-                                    params.do_gene_set_enrichment : false
-params.do_genes_self_enrichment  = params.do_any_enrichment == true ? 
-                                    params.do_genes_self_enrichment : false
-params.do_peaks_self_enrichment  = params.do_any_enrichment == true ? 
-                                    params.do_peaks_self_enrichment : false
-params.do_chrom_state_enrichment = params.do_any_enrichment == true ? 
-                                    params.do_chrom_state_enrichment : false
-params.do_motif_enrichment       = params.do_any_enrichment == true ? 
-                                    params.do_motif_enrichment : false
-params.do_chip_enrichment        = params.do_any_enrichment == true ? 
-                                    params.do_chip_enrichment : false
+// params.do_gene_set_enrichment    = params.do_any_enrichment == true ? 
+//                                     params.do_gene_set_enrichment : false
+// params.do_genes_self_enrichment  = params.do_any_enrichment == true ? 
+//                                     params.do_genes_self_enrichment : false
+// params.do_peaks_self_enrichment  = params.do_any_enrichment == true ? 
+//                                     params.do_peaks_self_enrichment : false
+// params.do_chrom_state_enrichment = params.do_any_enrichment == true ? 
+//                                     params.do_chrom_state_enrichment : false
+// params.do_motif_enrichment       = params.do_any_enrichment == true ? 
+//                                     params.do_motif_enrichment : false
+// params.do_chip_enrichment        = params.do_any_enrichment == true ? 
+//                                     params.do_chip_enrichment : false
+
+params.do_any_enrichment = !params.disable_all_enrichments
 
 params.design__mrna_fastq = 
   params.design__mrna_fastq ?: 'design/mrna_fastq.tsv'
@@ -1749,7 +1751,7 @@ process ATAC_peaks__removing_specific_regions {
     BED_FILES="!{bed_files}"
 
     COMP1=${COMP/_vs_/|}
-    echo $COMP1 | grep -E -f - $RTR || true > rtr_filtered.txt
+    ( echo $COMP1 | grep -E -f - $RTR || true ) > rtr_filtered.txt
 
     if [ ! -s rtr_filtered.txt ]; then
       for FILE in ${BED_FILES}
@@ -4169,18 +4171,14 @@ CHIP_channel_all
   .set{ CHIP_channel_filtered }
 
 
-if( (! params.do_chrom_state_enrichment) || (! params.do_any_enrichment) ) Chrom_states_channel.close()
-if( (! params.do_chip_enrichment) || (! params.do_any_enrichment) )        CHIP_channel_filtered.close()
-if( (! params.do_peaks_self_enrichment) || (! params.do_any_enrichment) )  DA_regions_channel.close()
-
 Bed_regions_to_overlap_with = Channel.empty()
-
-if(params.do_any_enrichment && (params.do_chrom_state_enrichment || 
-  params.do_chip_enrichment || params.do_peaks_self_enrichment) )
-Bed_regions_to_overlap_with = 
-  DA_regions_channel
-  .mix(Chrom_states_channel)
-  .mix(CHIP_channel_filtered)
+if(params.do_any_enrichment){
+  
+  if( params.do_peaks_self_enrichment ) Bed_regions_to_overlap_with = Bed_regions_to_overlap_with.mix(DA_regions_channel)
+  if( params.do_chrom_state_enrichment ) Bed_regions_to_overlap_with = Bed_regions_to_overlap_with.mix(Chrom_states_channel)
+  if( params.do_chip_enrichment ) Bed_regions_to_overlap_with = Bed_regions_to_overlap_with.mix(CHIP_channel_filtered)
+  
+}
 
 
 DA_regions_with_bg_for_computing_peaks_overlaps_3

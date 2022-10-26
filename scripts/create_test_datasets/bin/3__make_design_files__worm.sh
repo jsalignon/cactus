@@ -51,5 +51,21 @@ hmg4 Hmg4->chrIII:7,379,143-7,381,596
 spt16 Spt16->chrI:10,789,130-10,793,152
 EOL
 
+# run__no_enrich.yml
+
+
+# regions_to_remove_empty.tsv
+touch ${specie}/design/regions_to_remove_empty.tsv
+
+
+
+# run__no_rtr.yml
+yml_file="${specie}/parameters/run__no_rtr.yml"
+cp ${specie}/parameters/run.yml $yml_file
+sed -i 's/test_worm/test_worm__no_rtr/g' $yml_file
+cat >> $yml_file << EOL
+design__regions_to_remove : 'design/regions_to_remove_empty.tsv'
+disable_all_enrichments   : true
+EOL
 
 replace_spaces_by_tabs_in_the_design_tsv_files $specie
