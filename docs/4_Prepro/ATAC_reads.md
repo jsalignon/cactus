@@ -220,7 +220,8 @@ Insert size plots are made with [Picard](https://broadinstitute.github.io/picard
   - `Figures_Individual/1_Preprocessing/ATAC__reads__insert_size/${sample}__insert_size.pdf` 
   - `Figures_Merged/1_Preprocessing/ATAC__reads__insert_size.pdf`.
 ![Insert size](/docs/examples/png/ctl_1__insert_size.png)
-
+<img src="/docs/examples/png/ctl_1__insert_size.png" width="200" />
+ 
  
 ## ATAC_QC_reads__sampling_aligned_reads
 
