@@ -709,7 +709,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
     file("*.bw") into Bigwigs_for_correlation_1 optional true
 
   script:
-    def key = id + "__coverage"
+    def key = id + "__reads_coverage"
 
     """
 
@@ -2080,7 +2080,7 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample {
     downstream = !{params.macs2_peaks__promoter_down}
     lres = readRDS('!{annotated_peaks_objects_rds}')
 
-    pdf(paste0(id, '__coverage.pdf'))
+    pdf(paste0(id, '__peaks_coverage.pdf'))
       covplot(lres$peaks, weightCol="V5") + ggtitle(id) + 
         theme(plot.title = element_text(hjust = 0.5))
     dev.off()

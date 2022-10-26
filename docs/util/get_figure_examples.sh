@@ -10,7 +10,7 @@ run_path="test_datasets/worm/results/test_worm__no_rtr/Figures_Individual"
 cp $run_path/2_Differential_Abundance/ATAC__volcano/hmg4_vs_spt16__ATAC_volcano.pdf $examples_dir_pdf/hmg4_vs_spt16__ATAC_volcano__no_rtr.pdf 
 
 run_path="test_datasets/worm/results/test_worm/Figures_Individual"
-find $run_path -type f -name "*ctl_1*.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "*ctl_1*.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "*hmg4_vs_ctl_*_volcano.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "*hmg4_vs_ctl_*_PCA_*.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "spearman_correlation_heatmap_without_outliers_without_control_cor.pdf" -exec cp "{}" $examples_dir_pdf \;
@@ -38,7 +38,8 @@ done
 mv *.png ../png
 
 
-FILE="pca_top5000_without_control_pca.pdf"
+FILE="ctl_1__reads_coverage.pdf"
 file_name=$(basename $FILE .pdf)
 pdftoppm -png -rx 300 -ry 300 $FILE > ${file_name}.png
 
+mv *.png ../png
