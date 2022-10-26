@@ -197,7 +197,7 @@ The specie parameter is mandatory and allows cactus to know which reference file
 
 ## 3. Enrichment: Enrichment
 
-- **_params.do_any_enrichment_**: If false, this will disable all enrichment analysis. Default: true.
+- **_params.disable_all_enrichments_**: If true all enrichment analysis are disabled. Default: false.
 - **_params.do_gene_set_enrichment_**: Enable or disable gene set enrichment analysis. Default: true.
 - **_params.do_genes_self_enrichment_**: Enable or disable genes self enrichment analysis. Default: true.
 - **_params.do_peaks_self_enrichment_**: Enable or disable peaks self enrichment analysis. Default: true.

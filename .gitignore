@@ -12,6 +12,7 @@ figshare/
 references/
 testing/
 nf_log.txt
+docs/examples/pdf/*
 
 /test_datasets/*/*
 !/test_datasets/*/parameters

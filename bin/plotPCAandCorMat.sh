@@ -21,18 +21,8 @@ plotPCA \
   --ntop 100 \
   --plotHeight 10 \
   --plotWidth 7 \
-  --plotTitle pca_raw_top100_${gDNA_PRESENT} \
-  --plotFile pca_raw_top100_${gDNA_PRESENT}_pca.pdf
-
-plotPCA \
-  --corData correlation.npz \
-  --transpose \
-  --log2 \
-  --ntop 100 \
-  --plotHeight 10 \
-  --plotWidth 7 \
-  --plotTitle pca_log2_top100_${gDNA_PRESENT} \
-  --plotFile pca_log2_top100_${gDNA_PRESENT}_pca.pdf
+  --plotTitle pca_top100_${gDNA_PRESENT} \
+  --plotFile pca_top100_${gDNA_PRESENT}_pca.pdf
 
 plotPCA \
   --corData correlation.npz \
@@ -40,18 +30,8 @@ plotPCA \
   --ntop 1000 \
   --plotHeight 10 \
   --plotWidth 7 \
-  --plotTitle pca_raw_top1000_${gDNA_PRESENT} \
-  --plotFile pca_raw_top1000_${gDNA_PRESENT}_pca.pdf
-
-plotPCA \
-  --corData correlation.npz \
-  --transpose \
-  --ntop 1000 \
-  --log2 \
-  --plotHeight 10 \
-  --plotWidth 7 \
-  --plotTitle pca_log2_top1000_${gDNA_PRESENT} \
-  --plotFile pca_log2_top1000_${gDNA_PRESENT}_pca.pdf
+  --plotTitle pca_top1000_${gDNA_PRESENT} \
+  --plotFile pca_top1000_${gDNA_PRESENT}_pca.pdf
 
 plotPCA \
   --corData correlation.npz \
@@ -59,18 +39,8 @@ plotPCA \
   --ntop 5000 \
   --plotHeight 10 \
   --plotWidth 7 \
-  --plotTitle pca_raw_top5000_${gDNA_PRESENT} \
-  --plotFile pca_raw_top5000_${gDNA_PRESENT}_pca.pdf
-
-plotPCA \
-  --corData correlation.npz \
-  --transpose \
-  --ntop 5000 \
-  --log2 \
-  --plotHeight 10 \
-  --plotWidth 7 \
-  --plotTitle pca_log2_top5000_${gDNA_PRESENT} \
-  --plotFile pca_log2_top5000_${gDNA_PRESENT}_pca.pdf
+  --plotTitle pca_top5000_${gDNA_PRESENT} \
+  --plotFile pca_top5000_${gDNA_PRESENT}_pca.pdf
 
 
 # heatmap spearman without outliers

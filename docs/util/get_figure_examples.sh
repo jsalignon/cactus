@@ -11,61 +11,34 @@ cp $run_path/2_Differential_Abundance/ATAC__volcano/hmg4_vs_spt16__ATAC_volcano.
 
 run_path="test_datasets/worm/results/test_worm/Figures_Individual"
 find $run_path -type f -name "*ctl_1*.pdf" -exec cp "{}" $examples_dir_pdf \;
-
-find $run_path -name "*hmg4_vs_ctl_*_volcano.pdf" 
-find $run_path -name "*hmg4_vs_ctl_*_PCA_*.pdf" 
-
-find $run_path -name "*hmg4_vs_ctl_*_{volcano|PCA}.pdf" 
-
-
-find $run_path -name "*ctl_1*.pdf" -exec cp -t docs/examples {} +
-
-find $run_path -name "*hmg4_vs_ctl_*.pdf" 
-
-
-find $run_path -type f -exec grep -q "*ctl*.pdf" {} \; -exec cp -t $examples_dir_pdf {} +
-
-find $run_path -type f -exec grep -q "*ctl*.pdf" {} \; -exec cp -t $examples_dir_pdf {} +
+find $run_path -name "*hmg4_vs_ctl_*_volcano.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "*hmg4_vs_ctl_*_PCA_*.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "spearman_correlation_heatmap_without_outliers_without_control_cor.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__peaks__annotation_barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__peaks__average_profile.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__peaks__distance_to_TSS.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "pca_top5000_without_control_pca.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__multiQC.html" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "mRNA__multiQC.html" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "all__down__1000__hmg4_vs_ctl__venn_up_or_down.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "all__1000__hmg4_vs_ctl__venn_up_and_down.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__all__down__1000__hmg4_vs_ctl__*.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 
 
-find /home/shantanu/processed/ -name '*2011*.xml' -exec cp "{}" /home/shantanu/tosend  \;
+cd $examples_dir_pdf
+
+for FILE in $(ls *.pdf) 
+do
+  echo $FILE
+  file_name=$(basename $FILE .pdf)
+  pdftoppm -png -rx 300 -ry 300 $FILE > ${file_name}.png
+done
+
+mv *.png ../png
 
 
-
-find $run_path -type f -name "*ctl_1*.pdf"
-
-find $run_path -type f -exec grep -q '*ctl_1*.pdf' {} \; -exec cp -t $examples_dir_pdf {} +
-
-
-find $run_path -type f -name "*volcano*.pdf"
-
-
-find $run_path -type f -exec grep -q "*volcano*.pdf" {} \; 
-
-find . -type f -exec grep -q '^beginString' {} \; -exec cp -t /home/user/DestinationFolder {} +
-
-
-
-find $run_path -type f -exec grep -q "*ctl_1*.pdf" {} \; 
-
-
-find $run_path -type f -exec grep -q "*ctl_1*.pdf" {} \; -exec cp -t docs/examples {} +
-
-
-find $run_path -type f -exec grep -q "*ctl_1*.pdf"
-
-convert $examples_dir_pdf/hmg4_vs_spt16__ATAC_volcano__no_rtr.pdf $examples_dir_png/hmg4_vs_spt16__ATAC_volcano__no_rtr.jpg
-
-
-cd $examples_dir_png
-
-
-run_path="test_datasets/worm/results/test_worm/Figures_Individual"
-
-
-
-/home/jersal/workspace/cactus/test_datasets/worm/results/test_worm/Figures_Individual/2_Differential_Abundance/ATAC__volcano
-
-
-test_datasets/worm/results/test_worm/Figures_Individual/2_Differential_Abundance/ATAC__volcano
+FILE="pca_top5000_without_control_pca.pdf"
+file_name=$(basename $FILE .pdf)
+pdftoppm -png -rx 300 -ry 300 $FILE > ${file_name}.png
 
