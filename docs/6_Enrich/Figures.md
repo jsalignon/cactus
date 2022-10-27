@@ -79,7 +79,6 @@ max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,
 
 - **Chromatin states**:   
 <img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__chrom_states__barplot.png" width="700" />  
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.png" width="700" />  
 
 - **CHIP**:   
 <img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__CHIP__barplot.png" width="700" />  
