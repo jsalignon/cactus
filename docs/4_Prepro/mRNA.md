@@ -61,7 +61,7 @@ Quantification of transcripts abundance is made with [kallisto](https://doi.org/
 A MultiQC html report is made that aggregates all basic FastQC quality controls files.
 
 ### Outputs
-- **MultiQC report**: `mRNA__multiQC.html`.
+- **MultiQC report**: `mRNA__multiQC.html`. [Example](https://htmlpreview.github.io/?https://github.com/jsalignon/cactus/blob/main/docs/examples/html/mRNA__multiQC.html).
  
 ### Output folders
 - `Figures_Individual/1_Preprocessing`
