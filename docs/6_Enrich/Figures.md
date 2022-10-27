@@ -169,25 +169,25 @@ heatmaps__df_plots = 'data.frame(
 
 ### Examples
 - **Genes self**:  
-<img src="/docs/examples/png/ATAC__all__1000__all__genes_self__heatmap.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__1000__all__genes_self__heatmap.png" width="400" />  
 
 - **Peaks self**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__peaks_self__heatmap.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__1000__all__peaks_self__heatmap.png" width="400" />  
 
 - **Functional annotations GO-BP**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__func_anno_BP__heatmap.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__1000__all__func_anno_BP__heatmap.png" width="400" />  
 
 - **Functional annotations KEGG**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__func_anno_KEGG__heatmap.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__1000__all__func_anno_KEGG__heatmap.png" width="400" />  
 
 - **Chromatin states**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__chrom_states__heatmap.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__1000__all__chrom_states__heatmap.png" width="400" />  
 
 - **CHIP**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__CHIP__heatmap.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__1000__all__CHIP__heatmap.png" width="400" />  
 
 - **Motifs**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__motifs__heatmap.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__1000__all__motifs__heatmap.png" width="400" />  
 
 
 ## Figures__merging_pdfs
