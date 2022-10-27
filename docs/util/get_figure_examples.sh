@@ -4,6 +4,7 @@ cd $cactus
 
 examples_dir_pdf="docs/examples/pdf"
 examples_dir_png="docs/examples/png"
+examples_dir_html="docs/examples/html"
 
 # volcano plot without removing specific regions
 run_path="test_datasets/worm/results/test_worm__no_rtr/Figures_Individual"
@@ -18,8 +19,8 @@ find $run_path -name "ATAC__peaks__annotation_barplot.pdf" -exec cp "{}" $exampl
 find $run_path -name "ATAC__peaks__average_profile.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__peaks__distance_to_TSS.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "pca_top5000_without_control_pca.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_path -name "ATAC__multiQC.html" -exec cp "{}" $examples_dir_pdf \;
-find $run_path -name "mRNA__multiQC.html" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__multiQC.html" -exec cp "{}" $examples_dir_html \;
+find $run_path -name "mRNA__multiQC.html" -exec cp "{}" $examples_dir_html \;
 find $run_path -name "all__down__1000__hmg4_vs_ctl__venn_up_or_down.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "all__1000__hmg4_vs_ctl__venn_up_and_down.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__all__down__1000__hmg4_vs_ctl__*.pdf" -exec cp "{}" $examples_dir_pdf \;
