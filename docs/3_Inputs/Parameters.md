@@ -40,7 +40,7 @@ Parameters can be passed to two different configuration files:
 
 - a global configuration file: that applies to all runs and with name and path: *~/.cactus.config*
 	
-- a run-specific configuration file: this file is the only input needed for a cactus run. It can for instance be named like that (relative path from the run folder): *yml/run.yml* (example [here](/test_datasets/worm/parameters/run.yml)).
+- a run-specific configuration file: this file is the only input needed for a cactus run. It can for instance be named like that (relative path from the run folder): *yml/run.yml*. An example can be found [here](/test_datasets/worm/parameters/run.yml).
 
 
 # Mandatory parameters
