@@ -60,11 +60,13 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 - **Other plots**; 
   - `Figures_Individual/2_Differential_Abundance/mRNA__other_plots/${comparison}__mRNA_other_plots.pdf`
   - `Figures_Individual/2_Differential_Abundance/mRNA__other_plots/${comparison}__mRNA_other_plots.pdf`
-    - [MA plot](https://rdrr.io/github/pachterlab/sleuth/man/plot_ma.html): Make an 'MA plot' for a given test. MA plots display, for each transcript, the mean of abundances across samples on the x-axis and fold change on the y-axis. 
+    - [MA plot](https://rdrr.io/github/pachterlab/sleuth/man/plot_ma.html): Make an 'MA plot' for a given test. MA plots display, for each transcript, the mean of abundances across samples on the x-axis and fold change on the y-axis.  
+<a href="url"> <img src="/docs/examples/png/hmg4_vs_ctl__mRNA_other_plots-1.png" width="400" /> </a>  
+
 <img src="/docs/examples/png/hmg4_vs_ctl__mRNA_other_plots-1.png" width="400" />  
-    - [Density plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Plot the density of a grouping.
-<img src="/docs/examples/png/hmg4_vs_ctl__mRNA_other_plots-2.png" width="400" />  
-    
+    - [Density plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Plot the density of a grouping. 
+<a href="url"> <img src="/docs/examples/png/hmg4_vs_ctl__mRNA_other_plots-2.png" width="400" /> </a>  
+
 
 ## DA_mRNA__saving_detailed_results_tables
 
