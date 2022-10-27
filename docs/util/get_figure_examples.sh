@@ -5,6 +5,7 @@ cd $cactus
 examples_dir_pdf="docs/examples/pdf"
 examples_dir_png="docs/examples/png"
 examples_dir_html="docs/examples/html"
+examples_dir_xlsx="docs/examples/xlsx"
 
 # volcano plot without removing specific regions
 run_path="test_datasets/worm/results/test_worm__no_rtr/Figures_Individual"
@@ -27,6 +28,14 @@ find $run_path -name "all__1000__hmg4_vs_ctl__venn_up_and_down.pdf" -exec cp "{}
 find $run_path -name "ATAC__all__down__1000__hmg4_vs_ctl__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
+
+run_path_tab="test_datasets/worm/results/test_worm/Tables_Individual"
+find $run_path_tab -name "hmg4_vs_ctl*.xlsx" 
+-exec cp "{}" $examples_dir_xlsx \;
+
+
+run_path_tab="test_datasets/worm/results/test_worm/Tables_Merged"
+find $run_path_tab -name "*.xlsx" -exec cp "{}" $examples_dir_xlsx \;
 
 
 

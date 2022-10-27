@@ -121,3 +121,8 @@ These columns can all be used in the cactus configuration files to filter for pe
 - **Table**: 
   - `Tables_Individual/2_Differential_Abundance/ATAC_detailed/${comparison}__res_detailed_atac.{csv,xlsx}`
   - `Tables_Merged/2_Differential_Abundance/ATAC_detailed.{csv,xlsx}`.
+<img src="/docs/examples/png/ATAC_detailled_1.png" width="400" />  
+<img src="/docs/examples/png/ATAC_detailled_2.png" width="400" />  
+<img src="/docs/examples/png/ATAC_detailled_3.png" width="400" />  
+
+

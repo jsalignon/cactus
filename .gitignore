@@ -13,6 +13,7 @@ references/
 testing/
 nf_log.txt
 docs/examples/pdf/*
+docs/examples/xlsx/*
 
 /test_datasets/*/*
 !/test_datasets/*/parameters
