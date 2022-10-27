@@ -127,7 +127,7 @@ Finally, a plot is made in R showing the number of peaks (y-axis) by sequencing 
 - **Saturation curves**: 
   - `Figures_Individual/1_Preprocessing/ATAC__peaks__saturation_curve/${sample}__saturation_curve.pdf`
   - `Figures_Merged/1_Preprocessing/ATAC__peaks__saturation_curve.pdf`.
-![Saturation curve](/docs/examples/png/ctl_1__saturation_curve.png)
+<img src="/docs/examples/png/ctl_1__saturation_curve.png" width="400" />
 
 
 ## ATAC_QC_peaks__annotating_macs2_peaks
@@ -157,11 +157,13 @@ Using ChIPseeker and [ggplot2](https://ggplot2.tidyverse.org/) to plot coverage 
 - **[Coverage plots](https://rdrr.io/bioc/ChIPseeker/man/covplot.html)**: 
   - `Figures_Individual/1_Preprocessing/ATAC__peaks__coverage/${sample}__peaks_coverage.pdf`
   - `Figures_Merged/1_Preprocessing/ATAC__peaks__coverage.pdf`.
-![Peaks coverage](/docs/examples/png/ctl_1__peaks_coverage.png)
+<img src="/docs/examples/png/ctl_1__peaks_coverage.png" width="400" />  
+
 - **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: 
   - `Figures_Individual/1_Preprocessing/ATAC__peaks__average_profile/${sample}__average_profile.pdf`
   - `Figures_Merged/1_Preprocessing/ATAC__peaks__average_profile.pdf`.
-![Peaks average profile](/docs/examples/png/ctl_1__average_profile.png)
+  ![Peaks average profile](/docs/examples/png/ctl_1__average_profile.png)
+<img src="/docs/examples/png/ctl_1__average_profile.png" width="400" />  
 
 
 ## ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped
@@ -175,11 +177,13 @@ Using ChIPseeker and ggplot2 to plot coverage and average profile around TSS for
 
 ### Outputs
 - **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: `ATAC__peaks__average_profile.pdf`
-![Peaks average profile](/docs/examples/png/ATAC__peaks__average_profile.png)
+<img src="/docs/examples/png/ATAC__peaks__average_profile.png" width="400" />  
+
 - **[Annotation barplots](https://rdrr.io/bioc/ChIPseeker/man/plotAnnoBar.data.frame.html)**: `ATAC__peaks__annotation_barplot.pdf`
-![Peaks average profile](/docs/examples/png/ATAC__peaks__annotation_barplot.png)
+<img src="/docs/examples/png/ATAC__peaks__annotation_barplot.png" width="400" />  
+
 - **[Distance to TSS](https://rdrr.io/bioc/ChIPseeker/man/plotDistToTSS.data.frame.html)**: `ATAC__peaks__distance_to_TSS.pdf`.
-![Peaks average profile](/docs/examples/png/ATAC__peaks__distance_to_TSS.png)
+<img src="/docs/examples/png/ATAC__peaks__distance_to_TSS.png" width="400" />  
 
 ### Output folders
 - `Figures_Individual/1_Preprocessing/ATAC__peaks__grouped_plots`.
