@@ -162,7 +162,6 @@ Using ChIPseeker and [ggplot2](https://ggplot2.tidyverse.org/) to plot coverage 
 - **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: 
   - `Figures_Individual/1_Preprocessing/ATAC__peaks__average_profile/${sample}__average_profile.pdf`
   - `Figures_Merged/1_Preprocessing/ATAC__peaks__average_profile.pdf`.
-  ![Peaks average profile](/docs/examples/png/ctl_1__average_profile.png)
 <img src="/docs/examples/png/ctl_1__average_profile.png" width="400" />  
 
 
