@@ -63,6 +63,7 @@ max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,
 
 >**_Note_:** The key for this process is `${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}`.
 
+
 ### Examples
 - **Genes self**:  
 <img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__genes_self__barplot.png" width="700" />  
@@ -70,7 +71,7 @@ max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,
 - **Peaks self**:   
 <img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__peaks_self__barplot.png" width="700" />  
 
-- **Functional annotations Biological Processes**:   
+- **Functional annotations GO-BP**:   
 <img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__barplot.png" width="700" />  
 
 - **Functional annotations KEGG**:   
@@ -83,7 +84,7 @@ max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,
 <img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__CHIP__barplot.png" width="700" />  
 
 - **Motifs**:   
-<img src="/docs/examples/png/ATAC__prom__down__200__hmg4_vs_ctl__motifs__barplot.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.png" width="700" />  
 
 
 
@@ -164,6 +165,29 @@ heatmaps__df_plots = 'data.frame(
 - `Figures_Merged/3_Enrichment/Heatmaps__${EC}.pdf`.
 
 >**_Note_:** The key for this process is `${ET}__${PA}__${TV}__${GRP}__{EC}`, `${GRP}` being the current group of comparisons.
+
+
+### Examples
+- **Genes self**:  
+<img src="/docs/examples/png/ATAC__all__1000__all__genes_self__heatmap.png" width="700" />  
+
+- **Peaks self**:   
+<img src="/docs/examples/png/ATAC__all__1000__all__peaks_self__heatmap.png" width="700" />  
+
+- **Functional annotations GO-BP**:   
+<img src="/docs/examples/png/ATAC__all__1000__all__func_anno_BP__heatmap.png" width="700" />  
+
+- **Functional annotations KEGG**:   
+<img src="/docs/examples/png/ATAC__all__1000__all__func_anno_KEGG__heatmap.png" width="700" />  
+
+- **Chromatin states**:   
+<img src="/docs/examples/png/ATAC__all__1000__all__chrom_states__heatmap.png" width="700" />  
+
+- **CHIP**:   
+<img src="/docs/examples/png/ATAC__all__1000__all__CHIP__heatmap.png" width="700" />  
+
+- **Motifs**:   
+<img src="/docs/examples/png/ATAC__all__1000__all__motifs__heatmap.png" width="700" />  
 
 
 ## Figures__merging_pdfs
