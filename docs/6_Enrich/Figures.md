@@ -65,25 +65,25 @@ max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,
 
 ### Examples
 - **Genes self**:  
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__genes_self__barplot.png" width="600" />  
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__genes_self__barplot.png" width="700" />  
 
 - **Peaks self**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__peaks_self__barplot.png" width="600" />  
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__peaks_self__barplot.png" width="700" />  
 
 - **Functional annotations Biological Processes**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__barplot.png" width="600" />  
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__barplot.png" width="700" />  
 
 - **Functional annotations KEGG**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_KEGG__barplot.png" width="600" />  
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_KEGG__barplot.png" width="700" />  
 
 - **Chromatin states**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__chrom_states__barplot.png" width="600" />  
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__chrom_states__barplot.png" width="700" />  
 
 - **CHIP**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__CHIP__barplot.png" width="600" />  
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__CHIP__barplot.png" width="700" />  
 
 - **Motifs**:   
-<!-- <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_PCA_3_4.png" width="400" />   -->
+<img src="/docs/examples/png/ATAC__prom__down__200__hmg4_vs_ctl__motifs__barplot.png" width="700" />  
 
 
 

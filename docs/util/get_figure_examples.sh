@@ -25,13 +25,16 @@ find $run_path -name "mRNA__multiQC.html" -exec cp "{}" $examples_dir_html \;
 find $run_path -name "all__down__1000__hmg4_vs_ctl__venn_up_or_down.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "all__1000__hmg4_vs_ctl__venn_up_and_down.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__all__down__1000__hmg4_vs_ctl__*.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__prom__down__200__hmg4_vs_ctl__motifs__barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
+
 
 
 cd $examples_dir_pdf
 
 # for FILE in $(ls *.pdf) 
-for FILE in $(ls *_volcano*.pdf) 
+# for FILE in $(ls *_volcano*.pdf) 
+for FILE in $(ls ATAC__prom__down__200__hmg4_vs_ctl__motifs__barplot.pdf) 
 do
   echo $FILE
   file_name=$(basename $FILE .pdf)
