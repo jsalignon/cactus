@@ -79,17 +79,17 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 - **PCA plots (PC 3 and 4)**: 
   - `Figures_Individual/2_Differential_Abundance/ATAC__PCA_3_4/${comparison}__ATAC_PCA_3_4.pdf`.
   - `Figures_Merged/2_Differential_Abundance/ATAC__PCA_3_4.pdf`.
-    - Same as above but for principal componenets 3 and 4.
+    - Same as above but for principal components 3 and 4.
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_PCA_3_4.png" width="400" />  
 
 - **Other plots**; 
   - `Figures_Individual/2_Differential_Abundance/ATAC__other_plots/${comparison}__ATAC_other_plots.pdf`
   - `Figures_Individual/2_Differential_Abundance/ATAC__other_plots/${comparison}__ATAC_other_plots.pdf`
     - [MA plot](https://rdrr.io/bioc/DiffBind/man/dba.plotMA.html): MA and scatter plots of differential binding analysis results; using normalization factors.
-    - [Heatmap plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Binding site heatmap.
-    - [Venn diagram](https://rdrr.io/bioc/DiffBind/man/dba.plotVenn.html): 4-way Venn diagrams showing the first 2 replicates per condition.
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-1.png" width="400" />  
+    - [Heatmap plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Binding site heatmap.
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-2.png" width="400" />  
+    - [Venn diagram](https://rdrr.io/bioc/DiffBind/man/dba.plotVenn.html): 4-way Venn diagrams showing the first 2 replicates per condition.
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-3.png" width="400" />  
     
 - **Peaks without annotations**: 
