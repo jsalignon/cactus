@@ -66,22 +66,32 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 - **Volcano plots**: 
   - `Figures_Individual/2_Differential_Abundance/ATAC__volcano/${comparison}__ATAC_volcano.pdf`
   - `Figures_Merged/2_Differential_Abundance/ATAC__volcano.pdf`.
+<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_volcano.png" width="400" />  
+
 - **PCA plots (PC 1 and 2)**: 
   - `Figures_Individual/2_Differential_Abundance/ATAC__PCA_1_2/${comparison}__ATAC_PCA_1_2.pdf`.
   - `Figures_Merged/2_Differential_Abundance/ATAC__PCA_1_2.pdf`.
     - top left panel: percentage of variance explained by the top 5 first principal components
     - top right panel: PCA plot for principal components 1 and 2
     - bottom panels: genes annotated to peaks that contribute the most to principal components 1 (left) and 2 (right). Color code: red or -1 indicates that the peak is a positive contributor. Blue or +1 indicates that the peak is a negative contributor. 
+<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_PCA_1_2.png" width="400" />      
+
 - **PCA plots (PC 3 and 4)**: 
   - `Figures_Individual/2_Differential_Abundance/ATAC__PCA_3_4/${comparison}__ATAC_PCA_3_4.pdf`.
   - `Figures_Merged/2_Differential_Abundance/ATAC__PCA_3_4.pdf`.
     - Same as above but for principal componenets 3 and 4.
+<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_PCA_3_4.png" width="400" />  
+
 - **Other plots**; 
   - `Figures_Individual/2_Differential_Abundance/ATAC__other_plots/${comparison}__ATAC_other_plots.pdf`
   - `Figures_Individual/2_Differential_Abundance/ATAC__other_plots/${comparison}__ATAC_other_plots.pdf`
     - [MA plot](https://rdrr.io/bioc/DiffBind/man/dba.plotMA.html): MA and scatter plots of differential binding analysis results; using normalization factors.
     - [Heatmap plot](https://rdrr.io/bioc/DiffBind/man/dba.plotHeatmap.html): Binding site heatmap.
     - [Venn diagram](https://rdrr.io/bioc/DiffBind/man/dba.plotVenn.html): 4-way Venn diagrams showing the first 2 replicates per condition.
+<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-1.png" width="400" />  
+<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-2.png" width="400" />  
+<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-3.png" width="400" />  
+    
 - **Peaks without annotations**: 
   - `Processed_Data/2_Differential_Abundance/ATAC__non_annotated_peaks/${comparison}__ATAC_non_annotated_peaks.txt`.
     - Should not be many, but if there are this file can help to inspect these peaks.

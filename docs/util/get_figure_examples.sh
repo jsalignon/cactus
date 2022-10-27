@@ -14,6 +14,7 @@ run_path="test_datasets/worm/results/test_worm/Figures_Individual"
 find $run_path -name "*ctl_1*.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "*hmg4_vs_ctl_*_volcano.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "*hmg4_vs_ctl_*_PCA_*.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "*hmg4_vs_ctl_*other_plots.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "spearman_correlation_heatmap_without_outliers_without_control_cor.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__peaks__annotation_barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__peaks__average_profile.pdf" -exec cp "{}" $examples_dir_pdf \;
@@ -29,7 +30,8 @@ find $run_path -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_p
 
 cd $examples_dir_pdf
 
-for FILE in $(ls *.pdf) 
+# for FILE in $(ls *.pdf) 
+for FILE in $(ls *_volcano*.pdf) 
 do
   echo $FILE
   file_name=$(basename $FILE .pdf)
@@ -37,6 +39,24 @@ do
 done
 
 mv *.png ../png
+cd ../../..
+
+
+
+## multiple files
+
+cd $examples_dir_pdf
+
+# for FILE in $(ls *.pdf) 
+for FILE in $(ls *other_plots*.pdf) 
+do
+  echo $FILE
+  file_name=$(basename $FILE .pdf)
+  pdftoppm -png -rx 300 -ry 300 $FILE ${file_name}
+done
+
+mv *.png ../png
+cd ../../..
 
 
 FILE="ctl_1__reads_coverage.pdf"
