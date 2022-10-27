@@ -4869,7 +4869,7 @@ process Tables__formatting_csv_tables {
     # filtering
     data_type1 = data_type
     if(grepl('func_anno', data_type)) data_type1 = 'func_anno'
-    fdr_threshold = v_fdr_thresholds[data_type]
+    fdr_threshold = v_fdr_thresholds[data_type1]
     df = subset(df, padj <= fdr_threshold)
 
     # formating

@@ -66,11 +66,11 @@ This process format tables in Excel with these steps:
 - **Peaks self**:   
 <img src="/docs/examples/xlsx_png/peaks_self.png" width="700" />  
 
-<!-- - **Functional annotations GO-BP**:   
-<img src="/docs/examples/xlsx_png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__barplot.png" width="700" />  
+- **Functional annotations GO-BP**:   
+<img src="/docs/examples/xlsx_png/func_anno__BP.png" width="700" />  
 
 - **Functional annotations KEGG**:   
-<img src="/docs/examples/xlsx_png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_KEGG__barplot.png" width="700" />   -->
+<img src="/docs/examples/xlsx_png/func_anno__KEGG.png" width="700" />  
 
 - **Chromatin states**:   
 <img src="/docs/examples/xlsx_png/chrom_states.png" width="700" />  

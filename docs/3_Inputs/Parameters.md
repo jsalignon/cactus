@@ -154,7 +154,7 @@ The specie parameter is mandatory and allows cactus to know which reference file
 - **_params.deeptools__binsize_bigwig_creation_**: size of the bins in the bigwig file. Smaller values increase computation time. Default: 10000.
 - **_params.deeptools__nb_threads_**: number of threads used by DeepTools. Default: 6.
 - **_params.deeptools__nb_of_1_bp_samples_**: number of 1 bp sites to sample for the coverage plots. Default: 10000.
-- **_params.deeptools__normalization_method_**: normalization method to use when creating BigWig files. See [here]](https://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html) for options. Default: 'None'.
+- **_params.deeptools__normalization_method_**: normalization method to use when creating BigWig files. See [here](https://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html) for options. Default: 'None'.
 - **_params.nb_sampled_aligned_reads_**: Number of aligned reads to sample. Default: 1000000.
 - **_params.nb_sampled_trimmed_reads_**: Number of trimmed reads to sample. Default: 1000000.
 - **_params.botwie2__nb_threads_**: number of threads used by Bowtie2. Default: 6.
@@ -263,15 +263,15 @@ heatmaps__df_plots       = 'data.frame(' +
   - **_default parameters template_**: 
 ```
 heatmaps__df_filter_terms = 'data.frame(' +
-								'data_type        = c("func_anno",  "CHIP"   , "motifs"   ),' +
-								'n_shared         = c(     6     ,     8     ,    8       ),' +
-								'n_unique         = c(    20     ,    25     ,   25       ),' +
-								'n_total          = c(    26     ,    40     ,   40       ),' +
-								'threshold_type   = c( "fixed"   , "quantile",  "quantile"),' +
-								'threshold_value  = c(     0.05  ,     0.25  ,    0.25    ),' +
-								'remove_similar   = c(     F     ,     T     ,    T       ),' +
-								'remove_similar_n = c(     2     ,     2     ,    2       )' +
-								')'
+	'data_type        = c("func_anno",  "CHIP"   , "motifs"   ),' +
+	'n_shared         = c(     6     ,     8     ,    8       ),' +
+	'n_unique         = c(    20     ,    25     ,   25       ),' +
+	'n_total          = c(    26     ,    40     ,   40       ),' +
+	'threshold_type   = c( "fixed"   , "quantile",  "quantile"),' +
+	'threshold_value  = c(     0.05  ,     0.25  ,    0.25    ),' +
+	'remove_similar   = c(     F     ,     T     ,    T       ),' +
+	'remove_similar_n = c(     2     ,     2     ,    2       )' +
+	')'
 ```
 
 
