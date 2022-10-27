@@ -58,3 +58,25 @@ This process format tables in Excel with these steps:
 ### Parameters
 - **_params.excel__add_conditional_formatting_**: To enable or disable conditional coloring. Default: 'TRUE'.
 - **_params.excel__max_width_**: Maximum column width. Default: 40.
+
+### Examples
+- **Genes self**:  
+<img src="/docs/examples/xlsx_png/genes_self.png" width="700" />  
+
+- **Peaks self**:   
+<img src="/docs/examples/xlsx_png/peaks_self.png" width="700" />  
+
+<!-- - **Functional annotations GO-BP**:   
+<img src="/docs/examples/xlsx_png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__barplot.png" width="700" />  
+
+- **Functional annotations KEGG**:   
+<img src="/docs/examples/xlsx_png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_KEGG__barplot.png" width="700" />   -->
+
+- **Chromatin states**:   
+<img src="/docs/examples/xlsx_png/chrom_states.png" width="700" />  
+
+- **CHIP**:   
+<img src="/docs/examples/xlsx_png/CHIP.png" width="700" />  
+
+- **Motifs**:  
+<img src="/docs/examples/xlsx_png/motifs.png" width="700" />  
