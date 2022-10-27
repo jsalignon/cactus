@@ -63,6 +63,29 @@ max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,
 
 >**_Note_:** The key for this process is `${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}`.
 
+### Examples
+- **Genes self**:  
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__genes_self__barplot.png" width="400" />  
+
+- **Peaks self**:   
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__peaks_self__barplot.png" width="400" />  
+
+- **Functional annotations Biological Processes**:   
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__barplot.png" width="400" />  
+
+- **Functional annotations KEGG**:   
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_KEGG__barplot.png" width="400" />  
+
+- **Chromatin states**:   
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__chrom_states__barplot.png" width="400" />  
+
+- **CHIP**:   
+<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__CHIP__barplot.png" width="400" />  
+
+- **Motifs**:   
+<!-- <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_PCA_3_4.png" width="400" />   -->
+
+
 
 ## Figures__making_enrichment_heatmap
 
