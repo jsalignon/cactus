@@ -67,6 +67,10 @@ n301b170 bap170->2R:6,636,512-6,642,358
 n301b170 nurf301->3L:233,926-246,912
 ```
 
+**Figures:**
+<img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano__no_rtr.png" width="400" /> <img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png" width="400" />      
+Here are two volcano plots for the worm test dataset for the conditions *hmg-4* RNAi vs *spt-16* RNAi, on the left without removing specific regions, and on the right when we remove the regions of the target RNAi genes. 
+
 
 
 ## Comparisons
