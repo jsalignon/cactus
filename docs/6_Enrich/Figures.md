@@ -83,7 +83,7 @@ max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,
 - **CHIP**:   
 <img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__CHIP__barplot.png" width="700" />  
 
-- **Motifs**:   
+- **Motifs**:  
 <img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.png" width="700" />  
 
 
