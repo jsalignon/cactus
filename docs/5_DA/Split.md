@@ -50,12 +50,12 @@ In additions, two types of tables are produced: res_simple and res_filter. These
 - **Res simple**: 
   - `Tables_Individual/2_Differential_Abundance/res_simple/${comparison}__res_simple.{csv,xlsx}`
   - `Tables_Merged/2_Differential_Abundance/res_simple.{csv,xlsx}`
-<a href="url"> <img src="/docs/examples/xlsx_png/res_simple.png" width="400" /> </a>  
+<a href="url"> <img src="/docs/examples/xlsx_png/res_simple.png" width="800" /> </a>  
 
 - **Res filter**: 
   - `Tables_Individual/2_Differential_Abundance/res_filter/${comparison}__res_filter.{csv,xlsx}`
   - `Tables_Merged/2_Differential_Abundance/res_filter.{csv,xlsx}`
-<a href="url"> <img src="/docs/examples/xlsx_png/res_filter.png" width="400" /> </a>  
+<a href="url"> <img src="/docs/examples/xlsx_png/res_filter.png" width="800" /> </a>  
 
       
 

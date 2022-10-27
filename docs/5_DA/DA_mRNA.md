@@ -75,5 +75,8 @@ The detailed ATAC-seq results table is created in R, which gene id, name, coordi
 ### Outputs
 - `Tables_Individual/2_Differential_Abundance/mRNA_detailed/${comparison}__res_detailed_mRNA.{csv,xlsx}`
 - `Tables_Merged/2_Differential_Abundance/mRNA_detailed.{csv,xlsx}`.
-<img src="/docs/examples/xlsx_png/mRNA_detailled_1.png" width="400" />  
-<img src="/docs/examples/xlsx_png/mRNA_detailled_2.png" width="400" />  
+<img src="/docs/examples/xlsx_png/mRNA_detailled_1.png" width="800" />  
+<img src="/docs/examples/xlsx_png/mRNA_detailled_2.png" width="800" />  
+
+
+
