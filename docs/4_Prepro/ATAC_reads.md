@@ -200,7 +200,7 @@ If an input control is included (genomic DNA), then two sets of plots will be ma
 - **[PCA plots](https://deeptools.readthedocs.io/en/latest/content/tools/plotPCA.html)**: 
   - `Figures_Individual/1_Preprocessing/ATAC__reads__PCA/pca_top{100,1000,5000}_${gDNA_PRESENT}_pca.pdf`
   - `Figures_Merged/1_Preprocessing/ATAC__reads__PCA.pdf`.
-<img src="/docs/examples/png/pca_top5000_without_control_pca.png" width="400" />
+<img src="/docs/examples/png/pca_top5000_without_control_pca.png" width="400" />  
 - **[Correlation plots](https://deeptools.readthedocs.io/en/latest/content/tools/plotCorrelation.html)**: 
   - `Figures_Individual/1_Preprocessing/ATAC__reads__correlations/{pearson,spearman}_correlation_heatmap_{with,without}_outliers_${gDNA_PRESENT}_cor.pdf`
   - `Figures_Merged/1_Preprocessing/ATAC__reads__correlations.pdf`.
