@@ -96,19 +96,6 @@ save_last_bed   = params.save_bed_type   in ['last', 'all'] ? true : false
 do_atac = params.experiment_types in ['atac', 'both']
 do_mRNA = params.experiment_types in ['mRNA', 'both']
 
-// params.do_gene_set_enrichment    = params.do_any_enrichment == true ? 
-//                                     params.do_gene_set_enrichment : false
-// params.do_genes_self_enrichment  = params.do_any_enrichment == true ? 
-//                                     params.do_genes_self_enrichment : false
-// params.do_peaks_self_enrichment  = params.do_any_enrichment == true ? 
-//                                     params.do_peaks_self_enrichment : false
-// params.do_chrom_state_enrichment = params.do_any_enrichment == true ? 
-//                                     params.do_chrom_state_enrichment : false
-// params.do_motif_enrichment       = params.do_any_enrichment == true ? 
-//                                     params.do_motif_enrichment : false
-// params.do_chip_enrichment        = params.do_any_enrichment == true ? 
-//                                     params.do_chip_enrichment : false
-
 params.do_any_enrichment = !params.disable_all_enrichments
 
 params.design__mrna_fastq = 

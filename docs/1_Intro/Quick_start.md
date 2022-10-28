@@ -86,18 +86,30 @@ nextflow drop salignon/cactus
 
 # Troubleshooting
 
-In general, scrolling through [Nextflow’s documentation](https://www.nextflow.io/docs/latest/index.html) can help resolving most issues.
+In general, scrolling through [Nextflow’s documentation](https://www.nextflow.io/docs/latest/index.html) can help resolving most issues.  
 
-The general process to resolve a crashing pipeline is to go to the folder indicated in the crash report, launch the appropriate container, and run the lines of codes indicated in the crash report. This way one can try to identify and solve the issue. For example, when using singularity containers one can use these commands:
+The general process to resolve a crashing pipeline is to go to the folder indicated in the crash report, launch the appropriate container, and run the lines of codes indicated in the crash report. This way one can try to identify and solve the issue. For finer inspection of the code and analysis a good idea is to run cactus in the background to get a detailled log file. Note that the [*-dump-channels* argument](https://www.nextflow.io/docs/latest/cli.html#run) can also be used to explore channel contents.
+
+The *bg* argument can be used to run cactus in the background like this:
+```
+nextflow run jsalignon/cactus -profile singularity -params-file parameters/run.yml -r main -latest -resume -bg > nf_log.txt
+```
+
+This creates a .nextflow.pid file that contains the master PID to kill to stop the run in the background. However, this does not always work. A workaround to kill all process from the current run folder is to use this snippet:
+```
+kill -9 `ps -aux | grep username | grep "${PWD}" | awk '{print $2}'`
+```
+
+Then, one can inspect/grep the nf_log.txt file to go to the folder that we want to inspect in more details. Once in the appropriate folder, this commands allow to open a shell with the container in the same settings as in cactus: 
 
 ```
 cd work/59/8a6fb9*
 container=$(grep SINGULARITY .command.run | sed 's/.*tmp //g' | sed 's/.img.*/.img/g')
-singularity shell -B $cactus_dir -B "$PWD" --containall --cleanenv --home $PWD --workdir $cactus_dir/tmp $container
+singularity shell -B /home/user --containall --cleanenv --home $PWD --workdir /dev/shm $container
 cat .command.sh
 ```
 
-Then each command can be run to try to find the error. 
+Then each command can be run to try to find the error or to inspect the code.
 
 >**_Note_:** The first row of the *.command.sh* file indicates if the script should be run in bash or in R.
 
