@@ -31,7 +31,7 @@ gsm_to_srr fly
 
 get_genome_and_transcriptome_size () {
 
-  get_fasta_size_in_Mb (){ grep -v ">" "/home/jersal/workspace/cactus/data/${1}/genome/sequence/${2}.fa" | wc | awk '{print ($3-$1) / 10^6}' ; }
+  get_fasta_size_in_Mb (){ grep -v ">" "/home/jersal/workspace/cactus/references/${1}/genome/sequence/${2}.fa" | wc | awk '{print ($3-$1) / 10^6}' ; }
 
   get_genome_and_transcriptome () { echo "$1 $(get_fasta_size_in_Mb $1 genome) $(get_fasta_size_in_Mb $1 transcriptome)" ; }
 

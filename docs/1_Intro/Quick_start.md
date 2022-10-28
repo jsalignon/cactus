@@ -100,7 +100,7 @@ This creates a .nextflow.pid file that contains the master PID to kill to stop t
 kill -9 `ps -aux | grep username | grep "${PWD}" | awk '{print $2}'`
 ```
 
-Then, one can inspect/grep the nf_log.txt file to go to the folder that we want to inspect in more details. Once in the appropriate folder, this commands allow to open a shell with the container in the same settings as in cactus: 
+Then, one can inspect/grep the nf_log.txt file to go to the folder that we want to inspect in more details. Once in the appropriate folder, This snippet can be used to go the the appropriate folder and open a shell with the container in the same settings as in cactus and display the set of commands that were ran: 
 
 ```
 cd work/59/8a6fb9*
