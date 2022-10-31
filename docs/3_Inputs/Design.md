@@ -12,9 +12,9 @@
 
 In this section, we describe how users can define the design of their experiment for each design file.
 
->**_Note_:** Fields in all tsv design files should be separated by a space or a tab. 
+>**_Note_:** The file name is specified in the yml input file via the *params.design__\** parameters. Parameters and default values are described [here](/docs/3_Inputs/Parameters.md#Design).
 
->**_Note_:** The file name is specified in the yml input file via the *params.design__\** parameters.
+>**_Note_:** Fields in all tsv design files should be separated by a space or a tab. 
 
 
 ## ATAC fastq
@@ -71,6 +71,34 @@ n301b170 nurf301->3L:233,926-246,912
 
 <img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano__no_rtr.png" width="350" /> <img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png" width="350" />      
 Here are two volcano plots for the worm test dataset for the conditions *hmg-4* RNAi vs *spt-16* RNAi, on the left without removing specific regions, and on the right when we remove the regions of the target RNAi genes. 
+
+
+
+## Genes to remove
+
+**Description:** genes to filter out during mRNA-Seq differential abundance analysis. This is particularly useful in experiments involving RNA interference, as this is known to induce a very strong sequencing signal at the repressed locus. 
+
+**Fields:**
+ - *condition_id*: condition for which the gene should be removed
+ - *Locus_name->genomic_coordinates (chromosome:start-end)*: name of the gene to remove
+
+>**_Note_:** Multiple regions can be removed for the same condition by adding multiple lines.
+
+>**_Note_:** A strategy to removed artifactual signal is to run the pipeline a first time with enrichment analysis disabled (i.e. *disable_all_enrichments   : true*) to identify suspicious genes to remove and then run the analysis again by excluding these genes.
+
+**Example:**
+```
+gaf	Trl
+b170	Bap170
+n301	E(bx)
+n301b170	Bap170
+n301b170	E(bx)
+```
+
+**Figures:**  
+
+<img src="/docs/examples/png/mRNA_volcano__no_gtr.png" width="350" /> <img src="/docs/examples/png/mRNA_volcano__with_gtr.png" width="350" />      
+Here are two volcano plots for the fly test dataset for the conditions *Bap170* RNAi vs *E(bx)Nurf301,Bap170* RNAi, on the left without removing specific genes (in particular E(bx), a NURF subunit), and on the right when we remove these genes. 
 
 
 

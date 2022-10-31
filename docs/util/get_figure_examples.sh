@@ -1,6 +1,7 @@
 
-cd $cactus
+cactus='workspace/cactus'
 
+cd $cactus
 
 examples_dir_pdf="docs/examples/pdf"
 examples_dir_png="docs/examples/png"
@@ -29,21 +30,25 @@ find $run_path -name "ATAC__all__down__1000__hmg4_vs_ctl__*.pdf" -exec cp "{}" $
 find $run_path -name "ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 
-run_path_tab="test_datasets/worm/results/test_worm/Tables_Individual"
-find $run_path_tab -name "hmg4_vs_ctl*.xlsx" 
--exec cp "{}" $examples_dir_xlsx \;
-
+# run_path_tab="test_datasets/worm/results/test_worm/Tables_Individual"
+# find $run_path_tab -name "hmg4_vs_ctl*.xlsx" -exec cp "{}" $examples_dir_xlsx \;
 
 run_path_tab="test_datasets/worm/results/test_worm/Tables_Merged"
 find $run_path_tab -name "*.xlsx" -exec cp "{}" $examples_dir_xlsx \;
+
+run_path_no_gtr="test_datasets/fly/results/test_fly__no_gtr/Figures_Individual"
+cp $run_path_no_gtr/2_Differential_Abundance/mRNA__volcano/b170_vs_n301b170__mRNA_volcano.pdf $examples_dir_pdf/mRNA_volcano__no_gtr.pdf
+
+run_path_no_gtr="test_datasets/fly/results/test_fly/Figures_Individual"
+cp $run_path_no_gtr/2_Differential_Abundance/mRNA__volcano/b170_vs_n301b170__mRNA_volcano.pdf $examples_dir_pdf/mRNA_volcano__with_gtr.pdf
 
 
 
 cd $examples_dir_pdf
 
 # for FILE in $(ls *.pdf) 
-# for FILE in $(ls *_volcano*.pdf) 
-for FILE in $(ls ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.pdf) 
+# for FILE in $(ls ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.pdf) 
+for FILE in $(ls mRNA_volcano*.pdf) 
 do
   echo $FILE
   file_name=$(basename $FILE .pdf)

@@ -80,6 +80,7 @@ Here are the recomended mandatory and optional parameters to put in the *~/.cact
 - **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq). Default: 'design/atac_fastq.tsv'.
 - **_params.design__comparisons_**: path to the [comparisons design file](/docs/3_Inputs/Design.md#Comparisons). Default: 'design/comparisons.tsv'.
 - **_params.design__regions_to_remove_**: path to the [regions to remove design file](/docs/3_Inputs/Design.md#Regions-to-remove). Default: 'design/regions_to_remove.tsv'.
+- **_params.design__genes_to_remove_**: path to the [genes to remove design file](/docs/3_Inputs/Design.md#Genes-to-remove). Default: 'design/genes_to_remove.tsv'.
 - **_params.design__groups_**: path to the [groups design file](/docs/3_Inputs/Design.md#Groups). Default: 'design/groups.tsv'.
 - **_params.use_input_control_**: Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind, and for some quality control analysis steps. Note that the input control cannot have replicates and should have the id "input" in the *params.design__atac_fastq* file (see example [here](/test_datasets/worm/design/atac_fastq__with_input.tsv)). . Default: false. <!-- default set in conf/version.config -->
 
