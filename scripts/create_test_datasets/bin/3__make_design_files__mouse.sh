@@ -50,6 +50,9 @@ EOL
 # regions_to_remove.tsv
 touch ${specie}/design/regions_to_remove.tsv
 
+# genes_to_remove.tsv
+touch ${specie}/design/genes_to_remove.tsv
+
 
 replace_spaces_by_tabs_in_the_design_tsv_files $specie
 

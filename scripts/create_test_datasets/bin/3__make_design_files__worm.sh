@@ -51,13 +51,12 @@ hmg4 Hmg4->chrIII:7,379,143-7,381,596
 spt16 Spt16->chrI:10,789,130-10,793,152
 EOL
 
-# run__no_enrich.yml
+# genes_to_remove.tsv
+touch ${specie}/design/genes_to_remove.tsv
 
 
 # regions_to_remove_empty.tsv
 touch ${specie}/design/regions_to_remove_empty.tsv
-
-
 
 # run__no_rtr.yml
 yml_file="${specie}/parameters/run__no_rtr.yml"

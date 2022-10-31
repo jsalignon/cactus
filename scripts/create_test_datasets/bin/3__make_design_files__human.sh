@@ -68,6 +68,10 @@ ssrp1 ssrp1->chr11:57,325,986-57,335,892
 supt16h supt16h->chr14:21,351,476-21,384,019
 EOL
 
+# genes_to_remove.tsv
+touch ${specie}/design/genes_to_remove.tsv
+
+
 replace_spaces_by_tabs_in_the_design_tsv_files $specie
 
 

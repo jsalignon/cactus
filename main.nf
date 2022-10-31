@@ -98,16 +98,6 @@ do_mRNA = params.experiment_types in ['mRNA', 'both']
 
 params.do_any_enrichment = !params.disable_all_enrichments
 
-params.design__mrna_fastq = 
-  params.design__mrna_fastq ?: 'design/mrna_fastq.tsv'
-params.design__atac_fastq = 
-  params.design__atac_fastq ?: 'design/atac_fastq.tsv'
-params.design__comparisons = 
-  params.design__comparisons ?: 'design/comparisons.tsv'
-params.design__regions_to_remove = 
-  params.design__regions_to_remove ?: 'design/regions_to_remove.tsv'
-params.design__groups = 
-  params.design__groups ?: 'design/groups.tsv'
 
 
 
@@ -3060,7 +3050,8 @@ Formatting_csv_tables_channel = Formatting_csv_tables_channel
 
 
 
-
+params.design__genes_to_remove_1 = workflow.launchDir.toString() + '/' +
+                                   params.design__genes_to_remove
 
 process DA_mRNA__doing_differential_abundance_analysis {
   tag "${COMP}"
@@ -3071,8 +3062,6 @@ process DA_mRNA__doing_differential_abundance_analysis {
     mode: "${pub_mode}", saveAs: {
        if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) 
           "mRNA__all_genes__rsleuth/${it}"
-       // else if (it.indexOf("__mRNA_DEG_df.rds") > 0) 
-       //    "mRNA__all_genes__dataframe/${it}"
        else if (it.indexOf("__all_genes_prom.bed") > 0) 
           "mRNA__all_genes__bed_promoters/${it}"
   }
@@ -3099,9 +3088,14 @@ process DA_mRNA__doing_differential_abundance_analysis {
     library(magrittr)
 
     df_genes_transcripts = readRDS('!{params.df_genes_transcripts}')
-    df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+    df_genes_metadata    = readRDS('!{params.df_genes_metadata}')
+    
+    df_genes_to_remove = tryCatch(
+      read.table('!{params.design__genes_to_remove_1}'), 
+      error = function(e) NULL
+    )
 
-    COMP = '!{COMP}'
+    COMP  = '!{COMP}'
     cond1 = '!{cond1}'
     cond2 = '!{cond2}'
 
@@ -3109,6 +3103,18 @@ process DA_mRNA__doing_differential_abundance_analysis {
     source('!{projectDir}/bin/export_df_to_bed.R')
     source('!{projectDir}/bin/get_prom_bed_df_table.R')
 
+    if(is.null(df_genes_to_remove)){
+      df_genes_transcripts_1 = df_genes_transcripts
+    } else {
+      df_genes_to_remove_1 = df_genes_to_remove %>% 
+                             .[.$V1 %in% c(cond1, cond2), ]
+      v_genes_to_remove = unique(df_genes_to_remove_1$V2)
+      v_genes_id_to_remove = df_genes_metadata %>% 
+                             .[.$gene_name %in% v_genes_to_remove,] %>% 
+                             .$gene_id
+      df_genes_transcripts_1 = df_genes_transcripts %>% 
+                               .[!.$GENEID %in% v_genes_id_to_remove, ]
+    }
 
     s2c = data.frame(path = dir(pattern = paste('kallisto', '*')), 
       stringsAsFactors = F)
@@ -3122,7 +3128,7 @@ process DA_mRNA__doing_differential_abundance_analysis {
 		md <- model.matrix(~cond, s2c)
 		colnames(md)[2] <- test_cond
 
-    t2g <- dplyr::rename(df_genes_transcripts, target_id = TXNAME, 
+    t2g <- dplyr::rename(df_genes_transcripts_1, target_id = TXNAME, 
         gene_id = GENEID)
     t2g$target_id %<>% paste0('transcript:', .)
 

@@ -55,6 +55,28 @@ n301b170 bap170->2R:6,636,512-6,642,358
 n301b170 nurf301->3L:233,926-246,912
 EOL
 
+# genes_to_remove.tsv
+cat > ${specie}/design/genes_to_remove.tsv << EOL
+gaf Trl
+b170 Bap170
+n301 E(bx)
+n301b170 Bap170
+n301b170 E(bx)
+EOL
+
+# genes_to_remove_empty.tsv
+touch ${specie}/design/genes_to_remove_empty.tsv
+
+# run__no_gtr.yml
+yml_file="${specie}/parameters/run__no_gtr.yml"
+cp ${specie}/parameters/run.yml $yml_file
+sed -i 's/test_fly/test_fly__no_gtr/g' $yml_file
+cat >> $yml_file << EOL
+design__genes_to_remove   : 'design/genes_to_remove_empty.tsv'
+disable_all_enrichments   : true
+EOL
+
+
 
 replace_spaces_by_tabs_in_the_design_tsv_files $specie
 
