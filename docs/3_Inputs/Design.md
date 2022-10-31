@@ -80,11 +80,11 @@ Here are two volcano plots for the worm test dataset for the conditions *hmg-4* 
 
 **Fields:**
  - *condition_id*: condition for which the gene should be removed
- - *Locus_name->genomic_coordinates (chromosome:start-end)*: name of the gene to remove
+ - *gene name*: name of the gene to remove
 
->**_Note_:** Multiple regions can be removed for the same condition by adding multiple lines.
+>**_Note_:** Multiple genes can be removed for the same condition by adding multiple lines.
 
->**_Note_:** A strategy to removed artifactual signal is to run the pipeline a first time with enrichment analysis disabled (i.e. *disable_all_enrichments   : true*) to identify suspicious genes to remove and then run the analysis again by excluding these genes.
+>**_Note_:** A strategy to removed artificial signal is to run the pipeline a first time with enrichment analysis disabled (i.e. *disable_all_enrichments   : true*) to identify suspicious genes to remove and then to run the full analysis by excluding these genes.
 
 **Example:**
 ```

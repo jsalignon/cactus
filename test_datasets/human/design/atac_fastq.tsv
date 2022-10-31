@@ -1,6 +1,6 @@
-ctl_1	data/atac/sample_6000K_reads_atac_SRX2794533_SRR5521292_R1.fastq.gz
-ctl_2	data/atac/sample_6000K_reads_atac_SRX2794534_SRR5521293_R1.fastq.gz
-ssrp1_1	data/atac/sample_6000K_reads_atac_SRX2794535_SRR5521294_R1.fastq.gz
-ssrp1_2	data/atac/sample_6000K_reads_atac_SRX2794536_SRR5521295_R1.fastq.gz
-supt16h_1	data/atac/sample_6000K_reads_atac_SRX2794537_SRR5521296_R1.fastq.gz
-supt16h_2	data/atac/sample_6000K_reads_atac_SRX2794538_SRR5521297_R1.fastq.gz
+ctl_1	data/atac/sample_24000K_reads_atac_SRX2794533_SRR5521292_R1.fastq.gz
+ctl_2	data/atac/sample_24000K_reads_atac_SRX2794534_SRR5521293_R1.fastq.gz
+ssrp1_1	data/atac/sample_24000K_reads_atac_SRX2794535_SRR5521294_R1.fastq.gz
+ssrp1_2	data/atac/sample_24000K_reads_atac_SRX2794536_SRR5521295_R1.fastq.gz
+supt16h_1	data/atac/sample_24000K_reads_atac_SRX2794537_SRR5521296_R1.fastq.gz
+supt16h_2	data/atac/sample_24000K_reads_atac_SRX2794538_SRR5521297_R1.fastq.gz

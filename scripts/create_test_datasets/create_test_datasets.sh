@@ -104,7 +104,7 @@ source $create_test_datasets_bin_dir/3__make_design_files__mouse.sh $n_reads_ata
 ### Human (GSE98758)
 ##############################################
 
-specie="human" ; n_reads_atac=6000 ; n_reads_mrna=250
+specie="human" ; n_reads_atac=24000 ; n_reads_mrna=250
 
 source $create_test_datasets_bin_dir/1__get_fastq.sh $specie
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX2794*
