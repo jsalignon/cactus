@@ -5,7 +5,6 @@ n_reads_atac=$2
 n_reads_mrna=$3
 
 prepro_dir="preprocessing/${specie}"
-source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 
 
 # ATAC-Seq

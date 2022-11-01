@@ -5,7 +5,6 @@ specie=$1
 prepro_dir="preprocessing/${specie}"
 fastq_dir=${prepro_dir}/fastq
 
-source $get_test_datasets_bin_dir/get_test_datasets_functions.sh
 
 # making directory structure
 mkdir -p $specie/data/mrna $specie/data/atac $specie/parameters $specie/design

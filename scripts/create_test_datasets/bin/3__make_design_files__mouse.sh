@@ -53,6 +53,13 @@ touch ${specie}/design/regions_to_remove.tsv
 # genes_to_remove.tsv
 touch ${specie}/design/genes_to_remove.tsv
 
+# run__no_enrich.yml
+yml_file="${specie}/parameters/run__no_enrich.yml"
+cp ${specie}/parameters/run.yml $yml_file
+sed -i 's/test_mouse/test_mouse__no_enrich/g' $yml_file
+cat >> $yml_file << EOL
+disable_all_enrichments   : true
+EOL
 
 replace_spaces_by_tabs_in_the_design_tsv_files $specie
 

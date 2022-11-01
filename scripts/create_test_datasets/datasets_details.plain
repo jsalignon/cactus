@@ -106,60 +106,78 @@ supt16h supt16h_vs_ctl ssrp1_vs_supt16h
 
 
 ############################################################
-## Mice (GSE181797)
+## Mouse (GSE166959)
 ###################
 
-# => no publication yet!
+https://www.embopress.org/doi/full/10.15252/msb.202110473
 
-  Title 	Revealing regulatory transcription factors of aging in the kidney and kidney through multi-omics analysis
+  Title 	Comparative chromatin accessibility upon BDNF stimulation delineates neuronal regulatory elements
   
-  Summary 	Aging is accompanied by a gradual loss of systemic metabolic homeostasis, which is maintained by multiple-organs, especially the kidney and kidney. However, a systematic study of the regulatory networks and regulatory transcription factors (TFs) of aging in the kidney and kidney remains lacking. Here, we performed an integrated analysis of multi-omics datasets in the kidney and kidney from young and aged mice, including RNA-seq, reduced representation bisulfite sequencing (RRBS) and ATAC-seq datasets, which indicated that enhanced inflammation and dysregulated metabolism were conserved signatures in aged kidney and kidney in both the transcriptome and epigenome. Transcription factor and regulatory network analysis indicated that activation of AP-1 and SPI1 was responsible for enhanced inflammation, and down-regulation of HNFs and PPARs contributed to dysregulated metabolism in aged kidney and kidney. Importantly, we found that the activation of AP-1 was cellular autonomous in aged hepatic and renal cells. However, enhanced SPI1 was caused by elevated infiltration of macrophages. Importantly, inhibition of AP-1 with small molecule combination attenuated inflammation phenotypes of aging in vivo and in vitro. Taken together, our analysis revealed common signatures and regulatory TFs of aging in the kidney and kidney, providing novel targets for the development of anti-aging interventions.
+  Summary 	Neuronal activity induced by Brain-Derived Neurotrophic Factor (BDNF) is crucial for neuronal survival, differentiation, synaptic plasticity, memory formation, and neurocognitive health. Molecular mechanisms of BDNF promoting cellular survival and synaptic plasticity have been intensely studied, yet its role in genome regulation is obscure. Here, through temporal profiling of chromatin accessibility and transcription in mouse primary cortical neurons upon BDNF treatment or depolarization (KCl), we identified BDNF-specific chromatin-to-gene expression programs. Our analyses revealed that enhancer activation is an early event in the regulatory control of BDNF treated neurons, where bZIP pioneered chromatin opening and co-regulatory transcription factors (Homeobox, EGRs, and CTCF) cooperate to induce fine-grained transcription. Deleting such cis-regulatory sequences decreased the BDNF mediated expression of Arc, a key regulator of synaptic plasticity. Furthermore, BDNF-induced accessible regions are linked to preferential exon usage of neurodevelopmental disorder related genes and heritability of neuronal complex traits. In conclusion, this work provides a comprehensive view of BDNF-mediated genome regulatory features and emphasizes the usage of genomic approaches on dissecting mammalian neuronal activity.
 
 
 # GEO ids ATAC:
-GSM5511506 	Young kidney ATAC_rep1
-GSM5511507 	Young kidney ATAC_rep2
-GSM5511508 	Young kidney ATAC_rep3
-GSM5511509 	Old kidney ATAC_rep1
-GSM5511510 	Old kidney ATAC_rep2
-GSM5511511 	Old kidney ATAC_rep3
-GSM5511512 	Young liver ATAC_rep1
-GSM5511513 	Young liver ATAC_rep2
-GSM5511514 	Young liver ATAC_rep3
-GSM5511515 	Old liver ATAC_rep1
-GSM5511516 	Old liver ATAC_rep2
-GSM5511517 	Old liver ATAC_rep3
-
+  GSM5089840 	mouse_atac_control_1h_1
+  GSM5089842 	mouse_atac_control_1h_2
+  GSM5089844 	mouse_atac_control_6h_1
+  GSM5089845 	mouse_atac_control_6h_2
+  GSM5089846 	mouse_atac_control_10h_1
+  GSM5089847 	mouse_atac_control_10h_2
+  GSM5089848 	mouse_atac_bdnf_1h_1
+  GSM5089849 	mouse_atac_bdnf_1h_2
+  GSM5089850 	mouse_atac_bdnf_6h_1
+  GSM5089851 	mouse_atac_bdnf_6h_2
+  GSM5089852 	mouse_atac_bdnf_10h_1
+  GSM5089853 	mouse_atac_bdnf_10h_2
+  GSM5089854 	mouse_atac_kcl_1h_1
+  GSM5089855 	mouse_atac_kcl_1h_2
+  GSM5089856 	mouse_atac_kcl_6h_1
+  GSM5089857 	mouse_atac_kcl_6h_2
+  GSM5089858 	mouse_atac_kcl_10h_1
+  GSM5089859 	mouse_atac_kcl_10h_2
+  
 # GEO ids mRNA:
-GSM5511490 	Young kidney mRNA_rep1
-GSM5511491 	Young kidney mRNA_rep2
-GSM5511492 	Young kidney mRNA_rep3
-GSM5511493 	Young kidney mRNA_rep4
-GSM5511494 	Old kidney mRNA_rep1
-GSM5511495 	Old kidney mRNA_rep2
-GSM5511496 	Old kidney mRNA_rep3
-GSM5511497 	Old kidney mRNA_rep4
-GSM5511498 	Young liver mRNA_rep1
-GSM5511499 	Young liver mRNA_rep2
-GSM5511500 	Young liver mRNA_rep3
-GSM5511501 	Young liver mRNA_rep4
-GSM5511502 	Old liver mRNA_rep1
-GSM5511503 	Old liver mRNA_rep2
-GSM5511504 	Old liver mRNA_rep3
-GSM5511505 	Old liver mRNA_rep4
+  GSM5089860 	mouse_rna_control_1h_1
+  GSM5089861 	mouse_rna_control_1h_2
+  GSM5089862 	mouse_rna_control_6h_1
+  GSM5089863 	mouse_rna_control_6h_2
+  GSM5089864 	mouse_rna_control_10h_1
+  GSM5089865 	mouse_rna_control_10h_2
+  GSM5089866 	mouse_rna_bdnf_1h_1
+  GSM5089867 	mouse_rna_bdnf_1h_2
+  GSM5089868 	mouse_rna_bdnf_6h_1
+  GSM5089869 	mouse_rna_bdnf_6h_2
+  GSM5089870 	mouse_rna_bdnf_10h_1
+  GSM5089871 	mouse_rna_bdnf_10h_2
+  GSM5089872 	mouse_rna_kcl_1h_1
+  GSM5089873 	mouse_rna_kcl_1h_2
+  GSM5089874 	mouse_rna_kcl_6h_1
+  GSM5089875 	mouse_rna_kcl_6h_2
+  GSM5089876 	mouse_rna_kcl_10h_1
+  GSM5089877 	mouse_rna_kcl_10h_2
   	
 # comparisons
-yng_kid old_kid
-yng_liv old_liv
-yng_kid yng_liv
-old_kid old_liv
+ctl_6h ctl_1h
+ctl_12h ctl_1h
+bdnf_6h bdnf_1h
+bdnf_12h bdnf_1h
+bdnf_6h bdnf_12h
+kcl_6h kcl_1h
+kcl_12h kcl_1h
+bdnf_1h ctl_1h
+kcl_1h ctl_1h
 
 # comparisons grouped
-all yng_kid_vs_old_kid yng_liv_vs_old_liv yng_kid_vs_yng_liv old_kid_vs_old_liv
-age yng_kid_vs_old_kid yng_liv_vs_old_liv 
-tissue yng_kid_vs_yng_liv old_kid_vs_old_liv
+all ctl_6h_vs_ctl_1h, ctl_12h_vs_ctl_1h, bdnf_6h_vs_bdnf_1h, bdnf_12h_vs_bdnf_1h, bdnf_6h_vs_bdnf_12h, kcl_6h_vs_kcl_1h, kcl_12h_vs_kcl_1h, bdnf_1h_vs_ctl_1h, kcl_1h_vs_ctl_1h
+ yng_kid_vs_old_kid yng_liv_vs_old_liv 
+bdnf bdnf_6h_vs_bdnf_1h, bdnf_12h_vs_bdnf_1h, bdnf_6h_vs_bdnf_12h
+h1 bdnf_1h_vs_ctl_1h, kcl_1h_vs_ctl_1h
+ctl_bdnf ctl_6h_vs_ctl_1h, ctl_12h_vs_ctl_1h, bdnf_6h_vs_bdnf_1h, bdnf_12h_vs_bdnf_1h
 
-    
+
+
+
+
 
 ############################################################
 ## Fly (GSE149339)
