@@ -8,7 +8,8 @@ bin/conda_recipes
 debug.plain
 tmp/
 data/
-figshare/data
+figshare/files_to_upload
+figshare/old_files
 references/
 testing/
 nf_log.txt

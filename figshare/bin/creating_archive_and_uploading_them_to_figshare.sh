@@ -1,9 +1,11 @@
 
+# https://help.figshare.com/article/best-practice-for-managing-your-outputs-on-figshare
 
 cactus_dir=/home/jersal/workspace/cactus
-test_ds_dir=$cactus_dir/test_datasets
+test_dir=$cactus_dir/test_datasets
+refs_dir=$cactus_dir/references
 
-cd cactus_dir/figshare/data
+cd $cactus_dir/figshare/files_to_upload
 
 
 ##############################################
@@ -13,20 +15,26 @@ cd cactus_dir/figshare/data
 n_cores=15
 
 # references
-tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf worm_refs.tar.gz $test_ds_dir/worm
-tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf fly_refs.tar.gz $test_ds_dir/fly
-tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf mouse_refs.tar.gz $test_ds_dir/mouse
-tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf human_refs.tar.gz $test_ds_dir/human
+tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf worm_refs.tar.gz $refs_dir/worm
+tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf fly_refs.tar.gz $refs_dir/fly
+tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf mouse_refs.tar.gz $refs_dir/mouse
+tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf human_refs.tar.gz $refs_dir/human
 
 # test datasets
-tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf worm_test.tar.gz -C $test_ds_dir/worm {data,design,parameters}
-tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf fly_test.tar.gz -C $test_ds_dir/fly {data,design,parameters}
-tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf mouse_test.tar.gz -C $test_ds_dir/mouse {data,design,parameters}
-tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf human_test.tar.gz -C $test_ds_dir/human {data,design,parameters}
+tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf worm_test.tar.gz -C $test_dir/worm {data,design,parameters}
+tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf fly_test.tar.gz -C $test_dir/fly {data,design,parameters}
+# tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf mouse_test.tar.gz -C $test_dir/mouse {data,design,parameters}
+tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf human_test.tar.gz -C $test_dir/human {data,design,parameters}
+
+# adding the md5sum file
+md5sum *.tar.gz > md5_sums.txt
+
+# adding metadata files (README.txt)
+cp ../metadata/* .
 
 
 ##############################################
-### Uploading them to Figshare
+### Uploading files to Figshare
 ##############################################
 
 lftp -u "username,password=:bE~?" ftps.figshare.com 
