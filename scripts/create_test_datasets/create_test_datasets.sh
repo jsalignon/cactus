@@ -122,11 +122,7 @@ source $create_test_datasets_bin_dir/3__make_design_files__human.sh $n_reads_ata
 
 source $create_test_datasets_bin_dir/make_application_note_dirs.sh
 
-dataset_name=application_notes
 
-find worm -name conf
-cp -r worm/design 
-mkdir -p $dataset_name/data/mrna $dataset_name/data/atac $dataset_name/parameters $dataset_name/design
 
 ##############################################
 ### The end
@@ -136,8 +132,6 @@ mkdir -p $dataset_name/data/mrna $dataset_name/data/atac $dataset_name/parameter
 du -h -d1 **/data/ > preprocessing/report/test_datasets_sizes.txt
 du -h -d1 preprocessing/**/fastq >> preprocessing/report/test_datasets_sizes.txt
 grep -v md5 preprocessing/report/test_datasets_sizes.txt
-
-
 
 
 

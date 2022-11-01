@@ -1,0 +1,5 @@
+res_dir                   : 'results/test_mouse'
+specie                    : 'mouse'
+chromatin_state           : 'ENCFF809HLK'
+split__threshold_type     : 'rank' 
+split__threshold_values   : [ 200, 1000 ]
