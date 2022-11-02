@@ -1,10 +1,14 @@
 
 
 cactus_dir=~/workspace/cactus
-create_test_datasets_bin_dir=$cactus_dir/scripts/create_test_datasets/bin
-source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
+create_test_ds_dir=$cactus_dir/scripts/create_test_datasets
+create_test_datasets_bin_dir=$create_test_ds_dir/bin
+samples_ids_dir=$create_test_ds_dir/samples_ids
 test_datasets_dir=$cactus_dir/test_datasets
+singularity_dir=/home/jersal/workspace/singularity_containers/
 cd $test_datasets_dir
+
+source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 
 
 ##############################################
@@ -13,7 +17,6 @@ cd $test_datasets_dir
 
 # clean install: rm -r preprocessing worm fly mouse human work
 
-singularity_dir=/home/jersal/workspace/singularity_containers/
 source $create_test_datasets_bin_dir/0__initialization.sh
 # note: one needs to press enter for the script to finish
 
@@ -150,4 +153,19 @@ source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads
 
 specie="human" ; n_reads_atac=15000 ; n_reads_mrna=250
 source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads_atac $n_reads_mrna
+
+
+
+
+##############################################
+### If needed: testing nf-core/fetchngs
+##############################################
+
+cd $samples_ids_dir
+gsm_to_srr test
+
+cd $test_datasets_dir
+nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_test.txt" --outdir test -profile singularity -r 1.6 -resume
+
+
 
