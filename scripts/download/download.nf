@@ -1,16 +1,16 @@
 
 
-// nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --specie worm -r main -latest
+// nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --species worm -r main -latest
 // nextflow run jsalignon/cactus -r main -latest
 
-// nextflow run $cactus/scripts/download/download.nf --references --test_datasets --specie worm
-// nextflow run $cactus/scripts/download/download.nf --test_datasets --specie worm
-// nextflow run $cactus/scripts/download/download.nf --references --specie worm
-// nextflow run $cactus/scripts/download/download.nf  --specie worm // => nothing done
+// nextflow run $cactus/scripts/download/download.nf --references --test_datasets --species worm
+// nextflow run $cactus/scripts/download/download.nf --test_datasets --species worm
+// nextflow run $cactus/scripts/download/download.nf --references --species worm
+// nextflow run $cactus/scripts/download/download.nf  --species worm // => nothing done
 
 
 process download_test_datasets {
-  tag params.specie
+  tag params.species
 
   label "skewer_pigz"
 
@@ -25,7 +25,7 @@ process download_test_datasets {
     
   script:
   def figshare_path = "https://ndownloader.figshare.com/files"
-  def local_file    = "{params.specie}_test_dataset.tar.gz"
+  def local_file    = "{params.species}_test_dataset.tar.gz"
   
   """
       
@@ -48,7 +48,7 @@ process download_test_datasets {
 
 
 process download_references {
-  tag params.specie
+  tag params.species
 
   label "skewer_pigz"
 
@@ -59,11 +59,11 @@ process download_references {
   input:
 
   output:
-    file(params.specie)
+    file(params.species)
   
   script:
   def figshare_path = "https://ndownloader.figshare.com/files"
-  def local_file    = "${params.specie}_test_dataset.tar.gz"
+  def local_file    = "${params.species}_test_dataset.tar.gz"
   
   """
   

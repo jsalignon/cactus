@@ -26,10 +26,10 @@ params.singularity_images_dir = '/home/user/workspace/singularity_containers'
 
 Downloading references and test datasets:
 ```
-nextflow run jsalignon/cactus/scripts/download/download.nf  -profile singularity --references --test_datasets --specie worm -r main -latest
+nextflow run jsalignon/cactus/scripts/download/download.nf  -profile singularity --references --test_datasets --species worm -r main -latest
 ```
 
->**_Note_:** Test datasets are also available for the species fly, human and mouse. They can be tested by changing the *--specie* argument.  
+>**_Note_:** Test datasets are also available for the species fly, human and mouse. They can be tested by changing the *--species* argument.  
 
 Running Cactus (and downloading containers):
 ```

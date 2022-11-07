@@ -20,8 +20,8 @@ source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 source $create_test_datasets_bin_dir/0__initialization.sh
 # note: one needs to press enter for the script to finish
 
-## Genome and Transcriptome sizes (can help to (still empirically) determine how many reads should be sampled by specie)
-# specie  genome   transcriptome
+## Genome and Transcriptome sizes (can help to (still empirically) determine how many reads should be sampled by species)
+# species  genome   transcriptome
 # worm    100.286  53.1519
 # fly     143.726  88.6633
 # mouse   2730.87  157.86
@@ -33,14 +33,14 @@ source $create_test_datasets_bin_dir/0__initialization.sh
 ##############################################
 
 ## Approximate time needed
-# specie download sample_atac sample_mrna
+# species download sample_atac sample_mrna
 #  worm   10m33s     1m33s       ?
 #   fly   06m03s     1m20s       ?
 #  mouse  33m38s    14m47s       ?
 #  human  29m59s    15m45s       ?
 
 ## CPU hours
-# specie download sample_atac sample_mrna
+# species download sample_atac sample_mrna
 #  worm    4.6        0.4        ?
 #   fly    1.2          ?        ?
 #  mouse  33m38s    14m47s       ?
@@ -61,15 +61,15 @@ source $create_test_datasets_bin_dir/0__initialization.sh
 ### Worm (GSE98758)
 ##############################################
 
-specie="worm" ; n_reads_atac=200 ; n_reads_mrna=50
+species="worm" ; n_reads_atac=200 ; n_reads_mrna=50
 
-source $create_test_datasets_bin_dir/1__get_fastq.sh $specie
+source $create_test_datasets_bin_dir/1__get_fastq.sh $species
 rename -v 's/SRX/mrna_SRX/' ${fastq_dir}/SRX30291{12..20}*
 rename -v 's/SRX/atac_SRX/' ${fastq_dir}/SRX30291{24..35}*
 rename -v 's/SRX/atac_SRX/' ${fastq_dir}/SRX2333004*
-ls "preprocessing/${specie}/fastq"
+ls "preprocessing/${species}/fastq"
 
-source $create_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/2__subsample_reads.sh $species $n_reads_atac $n_reads_mrna
 source $create_test_datasets_bin_dir/3__make_design_files__worm.sh $n_reads_atac $n_reads_mrna
 
 
@@ -77,14 +77,14 @@ source $create_test_datasets_bin_dir/3__make_design_files__worm.sh $n_reads_atac
 ### Fly (GSE149339)
 ##############################################
 
-specie="fly" ; n_reads_atac=300 ; n_reads_mrna=100
+species="fly" ; n_reads_atac=300 ; n_reads_mrna=100
 
-source $create_test_datasets_bin_dir/1__get_fastq.sh $specie
+source $create_test_datasets_bin_dir/1__get_fastq.sh $species
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX81740{44..53}*
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX81740{34..43}*
-ls "preprocessing/${specie}/fastq"
+ls "preprocessing/${species}/fastq"
 
-source $create_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/2__subsample_reads.sh $species $n_reads_atac $n_reads_mrna
 source $create_test_datasets_bin_dir/3__make_design_files__fly.sh $n_reads_atac $n_reads_mrna
 
 
@@ -92,15 +92,15 @@ source $create_test_datasets_bin_dir/3__make_design_files__fly.sh $n_reads_atac 
 ### mouse (GSE181797)
 ##############################################
 
-specie="mouse" ; n_reads_atac=6000 ; n_reads_mrna=150
+species="mouse" ; n_reads_atac=6000 ; n_reads_mrna=150
 
-source $create_test_datasets_bin_dir/1__get_fastq.sh $specie
+source $create_test_datasets_bin_dir/1__get_fastq.sh $species
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX117086{63..78}*
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX117086{79..90}*
-ls "preprocessing/${specie}/fastq"
-ls "${specie}/data"
+ls "preprocessing/${species}/fastq"
+ls "${species}/data"
 
-source $create_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/2__subsample_reads.sh $species $n_reads_atac $n_reads_mrna
 source $create_test_datasets_bin_dir/3__make_design_files__mouse.sh $n_reads_atac $n_reads_mrna
 
 
@@ -108,14 +108,14 @@ source $create_test_datasets_bin_dir/3__make_design_files__mouse.sh $n_reads_ata
 ### Human (GSE98758)
 ##############################################
 
-specie="human" ; n_reads_atac=15000 ; n_reads_mrna=250
+species="human" ; n_reads_atac=15000 ; n_reads_mrna=250
 
-source $create_test_datasets_bin_dir/1__get_fastq.sh $specie
+source $create_test_datasets_bin_dir/1__get_fastq.sh $species
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX2794*
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX4029*
-ls "preprocessing/${specie}/fastq"
+ls "preprocessing/${species}/fastq"
 
-source $create_test_datasets_bin_dir/2__subsample_reads.sh $specie $n_reads_atac $n_reads_mrna
+source $create_test_datasets_bin_dir/2__subsample_reads.sh $species $n_reads_atac $n_reads_mrna
 source $create_test_datasets_bin_dir/3__make_design_files__human.sh $n_reads_atac $n_reads_mrna
 
 
@@ -142,17 +142,17 @@ grep -v md5 preprocessing/report/test_datasets_sizes.txt
 ### If needed: updating all design files only
 ##############################################
 
-specie="worm" ; n_reads_atac=200 ; n_reads_mrna=50
-source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads_atac $n_reads_mrna
+species="worm" ; n_reads_atac=200 ; n_reads_mrna=50
+source $create_test_datasets_bin_dir/3__make_design_files__${species}.sh $n_reads_atac $n_reads_mrna
 
-specie="fly" ; n_reads_atac=300 ; n_reads_mrna=100
-source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads_atac $n_reads_mrna
+species="fly" ; n_reads_atac=300 ; n_reads_mrna=100
+source $create_test_datasets_bin_dir/3__make_design_files__${species}.sh $n_reads_atac $n_reads_mrna
 
-specie="mouse" ; n_reads_atac=6000 ; n_reads_mrna=150
-source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads_atac $n_reads_mrna
+species="mouse" ; n_reads_atac=6000 ; n_reads_mrna=150
+source $create_test_datasets_bin_dir/3__make_design_files__${species}.sh $n_reads_atac $n_reads_mrna
 
-specie="human" ; n_reads_atac=15000 ; n_reads_mrna=250
-source $create_test_datasets_bin_dir/3__make_design_files__${specie}.sh $n_reads_atac $n_reads_mrna
+species="human" ; n_reads_atac=15000 ; n_reads_mrna=250
+source $create_test_datasets_bin_dir/3__make_design_files__${species}.sh $n_reads_atac $n_reads_mrna
 
 
 

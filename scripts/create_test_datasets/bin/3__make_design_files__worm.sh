@@ -1,16 +1,16 @@
 #!/bin/bash
 
-specie="worm"
+species="worm"
 n_reads_atac=$1
 n_reads_mrna=$2
-prepro_dir="preprocessing/${specie}"
+prepro_dir="preprocessing/${species}"
 source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 
 
 # run.yml
-cat > ${specie}/parameters/run.yml << EOL
+cat > ${species}/parameters/run.yml << EOL
 res_dir                   : 'results/test_worm'
-specie                    : 'worm'
+species                    : 'worm'
 chromatin_state           : 'iHMM.M1K16.worm_L3'
 split__threshold_type     : 'rank' 
 split__threshold_values   : [ 200, 1000 ]
@@ -27,44 +27,44 @@ awk 'BEGIN {OFS = "\t"} { \
   if (NR == 1) sample_id = "sample_id"; \
   print $1, $2, $3, $4, $5, $6, sample_id \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
-make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
-cp ${specie}/design/atac_fastq.tsv ${specie}/design/atac_fastq__with_input.tsv
-grep -v input ${specie}/design/atac_fastq__with_input.tsv > ${specie}/design/atac_fastq__without_input.tsv
+make_fastq_info_file $species $n_reads_atac $n_reads_mrna
+cp ${species}/design/atac_fastq.tsv ${species}/design/atac_fastq__with_input.tsv
+grep -v input ${species}/design/atac_fastq__with_input.tsv > ${species}/design/atac_fastq__without_input.tsv
 
 # comparisons.tsv
-cat > ${specie}/design/comparisons.tsv <<EOL
+cat > ${species}/design/comparisons.tsv <<EOL
 hmg4 ctl
 spt16 ctl
 hmg4 spt16
 EOL
 
 # groups.tsv
-cat > ${specie}/design/groups.tsv << EOL
+cat > ${species}/design/groups.tsv << EOL
 all hmg4_vs_ctl spt16_vs_ctl hmg4_vs_spt16
 ctl hmg4_vs_ctl spt16_vs_ctl
 spt16 spt16_vs_ctl hmg4_vs_spt16
 EOL
 
 # regions_to_remove.tsv
-cat > ${specie}/design/regions_to_remove.tsv << EOL
+cat > ${species}/design/regions_to_remove.tsv << EOL
 hmg4 Hmg4->chrIII:7,379,143-7,381,596
 spt16 Spt16->chrI:10,789,130-10,793,152
 EOL
 
 # genes_to_remove.tsv
-touch ${specie}/design/genes_to_remove.tsv
+touch ${species}/design/genes_to_remove.tsv
 
 
 # regions_to_remove_empty.tsv
-touch ${specie}/design/regions_to_remove_empty.tsv
+touch ${species}/design/regions_to_remove_empty.tsv
 
 # run__no_rtr.yml
-yml_file="${specie}/parameters/run__no_rtr.yml"
-cp ${specie}/parameters/run.yml $yml_file
+yml_file="${species}/parameters/run__no_rtr.yml"
+cp ${species}/parameters/run.yml $yml_file
 sed -i 's/test_worm/test_worm__no_rtr/g' $yml_file
 cat >> $yml_file << EOL
 design__regions_to_remove : 'design/regions_to_remove_empty.tsv'
 disable_all_enrichments   : true
 EOL
 
-replace_spaces_by_tabs_in_the_design_tsv_files $specie
+replace_spaces_by_tabs_in_the_design_tsv_files $species

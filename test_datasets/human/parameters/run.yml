@@ -1,5 +1,5 @@
 res_dir                   : 'results/test_human'
-specie                    : 'human'
+species                    : 'human'
 chromatin_state           : 'ENCFF941SVR'
 chip_ontology             : 'cell_type.fibroblast'
 split__threshold_type     : 'rank' 

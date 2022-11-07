@@ -1,8 +1,8 @@
 
 gsm_to_srr (){
-  specie=$1
-  my_gsm_ids="$(cat gsm_accession/gsm_$specie.txt | awk '{print}' ORS=' OR ' RS='\r\n' )"
-  singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 esearch -db sra -query "$my_gsm_ids" | singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 efetch -format runinfo | cut -d ',' -f 1 - | grep -v 'Run' - > "srr_accession/srr_$specie.txt"
+  species=$1
+  my_gsm_ids="$(cat gsm_accession/gsm_$species.txt | awk '{print}' ORS=' OR ' RS='\r\n' )"
+  singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 esearch -db sra -query "$my_gsm_ids" | singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 efetch -format runinfo | cut -d ',' -f 1 - | grep -v 'Run' - > "srr_accession/srr_$species.txt"
 }
 
 # $1 = ${prepro_dir}   => head -3 ${prepro_dir}/samplesheet/samplesheet.csv 
@@ -13,13 +13,13 @@ make_samples_info_file (){
 }
 
 make_fastq_info_file (){
-  specie=$1
+  species=$1
   n_reads_atac=$2
   n_reads_mrna=$3
   
-  prepro_dir="preprocessing/${specie}"
+  prepro_dir="preprocessing/${species}"
   fastq_info_file="${prepro_dir}/samplesheet/fastq_info.tsv"
-  design_dir="${specie}/design"
+  design_dir="${species}/design"
   atac_fastq_file="${design_dir}/atac_fastq.tsv"
   mrna_fastq_file="${design_dir}/mrna_fastq.tsv"
   
@@ -48,8 +48,8 @@ make_fastq_info_file (){
 
 
 replace_spaces_by_tabs_in_the_design_tsv_files (){
-  specie=$1
-  tsv_files=$(ls ${specie}/design/*.tsv)
+  species=$1
+  tsv_files=$(ls ${species}/design/*.tsv)
   for tsv_file in ${tsv_files[@]}
   do
     awk -i inplace -v OFS="\t" '$1=$1' $tsv_file

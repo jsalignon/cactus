@@ -1,19 +1,19 @@
 #!/bin/bash
 
-specie=$1
+species=$1
 
-prepro_dir="preprocessing/${specie}"
+prepro_dir="preprocessing/${species}"
 fastq_dir=${prepro_dir}/fastq
 
 
 # making directory structure
-mkdir -p $specie/data/mrna $specie/data/atac $specie/parameters $specie/design
+mkdir -p $species/data/mrna $species/data/atac $species/parameters $species/design
 
 # cleaning up the fastq folder
 if [ -d $fastq_dir ]; then rm -r $fastq_dir ; fi
 
 # downloading fastq files
-nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${specie}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
+nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${species}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
 
 # checking sample details to rename them
 make_samples_info_file ${prepro_dir}

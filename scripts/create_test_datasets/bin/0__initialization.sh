@@ -36,7 +36,7 @@ get_genome_and_transcriptome_size () {
 
   get_genome_and_transcriptome_file () {
     cat | column -t > $1 << EOL
-specie genome transcriptome
+species genome transcriptome
 $(get_genome_and_transcriptome worm)
 $(get_genome_and_transcriptome fly)
 $(get_genome_and_transcriptome mouse)

@@ -33,7 +33,7 @@ Ensembl_Assembly = Channel
 	.from(
 		[   //  0          1                     2              3                4     
 		//                                     assembly      assembly          Ensembl            
-		// specie    scientific_name            name           type            Release
+		// species    scientific_name            name           type            Release
 			['worm',  'caenorhabditis_elegans',  'WBcel235', 'toplevel',         '107' ],
 			['fly',   'drosophila_melanogaster', 'BDGP6.32', 'toplevel',         '107' ],
 			['mouse', 'mus_musculus',            'GRCm38',   'primary_assembly', '102' ],
@@ -115,13 +115,13 @@ HiHMM_chromatin_states = Channel
 
 
 process get_homer_data {
-	tag "${specie}"
+	tag "${species}"
 
 	label "samtools_bedtools_perl"
 
-	publishDir path: "${specie}/homer_data", mode: 'link'
+	publishDir path: "${species}/homer_data", mode: 'link'
 	input:
-		set specie, specie_code from Assembly_nickname_1.homer
+		set species, specie_code from Assembly_nickname_1.homer
 
 	output:
 		file('*')
@@ -129,7 +129,7 @@ process get_homer_data {
 	shell:
 	'''
 		
-		specie='!{specie}'
+		species='!{species}'
 		specie_code='!{specie_code}'
 		homer_genomes_version='!{homer_genomes_version}'
 		homer_organisms_version='!{homer_organisms_version}'
@@ -138,8 +138,8 @@ process get_homer_data {
 		URL=http://homer.ucsd.edu/homer/data
 		
 		wget -nc $URL/genomes/${specie_code}.v${homer_genomes_version}.zip
-		wget -nc $URL/organisms/${specie}.v${homer_organisms_version}.zip
-		wget -nc $URL/promoters/${specie}.v${homer_promoters_version}.zip
+		wget -nc $URL/organisms/${species}.v${homer_organisms_version}.zip
+		wget -nc $URL/promoters/${species}.v${homer_promoters_version}.zip
 		
 		for z in *.zip; do unzip "$z"; done
 		mv data/* .
@@ -239,14 +239,14 @@ Ensembl_Assembly_1.pwms
 
 
 process split_pwms {
-	tag "${specie}"
+	tag "${species}"
 
 	label "r_basic"
 
-	publishDir path: "${specie}/homer_data", mode: 'link'
+	publishDir path: "${species}/homer_data", mode: 'link'
 
 	input:
-		set specie, specie_long, file(dt_cisbp_encode_rds) from cisbp_motifs_all_species_1
+		set species, specie_long, file(dt_cisbp_encode_rds) from cisbp_motifs_all_species_1
 
 	output:
 		file('homer_motifs.txt')
@@ -344,14 +344,14 @@ process split_pwms {
 
 
 process get_blacklisted_regions {
-	tag "${specie}"
+	tag "${species}"
 
 	label "cvbio"
 
-	publishDir path: "${specie}/genome/annotation", mode: 'link'
+	publishDir path: "${species}/genome/annotation", mode: 'link'
 
 	input:
-		set specie, specie_code, ncbi_code from Assembly_nickname_1.blacklist
+		set species, specie_code, ncbi_code from Assembly_nickname_1.blacklist
 
 	output:
 		file("blacklisted_regions.bed")
@@ -405,20 +405,20 @@ process get_blacklisted_regions {
 
 
 process get_chip_metadata {
-	tag "${specie}"
+	tag "${species}"
 
 	label "encodeexplorer"
 
-	publishDir path: "${specie}", mode: 'link', saveAs: {
+	publishDir path: "${species}", mode: 'link', saveAs: {
     if (it.equals("encode_chip_metadata.csv")) "${it}"
   }
 	
 	input:
-		set specie, assembly from Encode_Assembly_for_CHIP
+		set species, assembly from Encode_Assembly_for_CHIP
 
 	output:
-		set specie, file("dt_encode_chip.rds") into Encode_chip_metadata		
-		set specie, file("*__split_dt.rds") into Encode_chip_split_dt mode flatten
+		set species, file("dt_encode_chip.rds") into Encode_chip_metadata		
+		set species, file("*__split_dt.rds") into Encode_chip_split_dt mode flatten
 		file("encode_chip_metadata.csv")
 
 	shell:
@@ -621,17 +621,17 @@ process get_chip_metadata {
 
 
 process make_chip_ontology_groups {
-	tag "${specie}"
+	tag "${species}"
 
 	label "encodeexplorer"
 
-	publishDir path: "${specie}", mode: 'link', saveAs: {
+	publishDir path: "${species}", mode: 'link', saveAs: {
     if (it.indexOf(".txt") > 0) "${it}"
 		else if (it.indexOf(".tsv") > 0) "CHIP/${it}"
   }
 	
 	input:
-		set specie, file(dt_encode_chip_rds) from Encode_chip_metadata
+		set species, file(dt_encode_chip_rds) from Encode_chip_metadata
 
 	output:
 		file("*")
@@ -644,7 +644,7 @@ process make_chip_ontology_groups {
 		library(magrittr)
 		library(purrr)
 		
-		specie = '!{specie}'
+		species = '!{species}'
 		dt1 = readRDS('!{dt_encode_chip_rds}')
 		source('!{params.cactus_dir}/software/get_data/bin/make_chip_ontology_groups_functions.R')
 		source('!{params.cactus_dir}/software/get_data/bin/get_tab.R')
@@ -679,14 +679,14 @@ process make_chip_ontology_groups {
 
 
 process get_chip_data {
-tag "${specie}"
+tag "${species}"
 
 label "encodeexplorer"
 
-publishDir path: "${specie}/CHIP", mode: 'link'
+publishDir path: "${species}/CHIP", mode: 'link'
 
 input:
-	set specie, file(dt_rds) from Encode_chip_split_dt
+	set species, file(dt_rds) from Encode_chip_split_dt
 	
 output:
 	file("*.bed")
@@ -709,17 +709,17 @@ shell:
 
 
 process get_encode_chromatin_state_metadata {
-	tag "${specie}"
+	tag "${species}"
 
 	label "encodeexplorer"
 
-	publishDir path: "${specie}", mode: 'link', pattern: "*.csv"
+	publishDir path: "${species}", mode: 'link', pattern: "*.csv"
 
 	input:
-		set specie, assembly from Encode_Assembly_for_chromatin_state
+		set species, assembly from Encode_Assembly_for_chromatin_state
 
 	output:
-		set specie, assembly, file("*.rds") into Encode_chromatin_state_split_dt mode flatten
+		set species, assembly, file("*.rds") into Encode_chromatin_state_split_dt mode flatten
 		file('encode_chromatin_states_metadata.csv')
 
 	shell:
@@ -831,18 +831,18 @@ process get_encode_chromatin_state_metadata {
 
 
 process get_encode_chromatin_state_data {
-	tag "${specie}, ${dt_rds}"
+	tag "${species}, ${dt_rds}"
 
 	label "encodeexplorer"
 
-	publishDir path: "${specie}/chromatin_states", mode: 'link'
+	publishDir path: "${species}/chromatin_states", mode: 'link'
 
 	input:
-		set specie, assembly, file(dt_rds) from Encode_chromatin_state_split_dt
+		set species, assembly, file(dt_rds) from Encode_chromatin_state_split_dt
 
 	output:
 		file("*")
-		// set specie, assembly, file("*.bed") into Encode_bed_for_liftover
+		// set species, assembly, file("*.bed") into Encode_bed_for_liftover
 
 	shell:
 	'''
@@ -895,17 +895,17 @@ process get_encode_chromatin_state_data {
 // 
 // 
 // process get_liftover_files {
-// 	tag "${specie}/${original_assembly} to ${target_assembly}"
+// 	tag "${species}/${original_assembly} to ${target_assembly}"
 // 
 // 	publishDir path: "util/liftover_files", mode: 'link'
 // 
 // 	label "liftover"
 // 
 // 	input:
-// 		set specie, original_assembly, target_assembly from liftover_files_to_get
+// 		set species, original_assembly, target_assembly from liftover_files_to_get
 // 
 // 	output:
-// 		set specie, original_assembly, target_assembly, file("*.over.chain.gz") into liftover_files
+// 		set species, original_assembly, target_assembly, file("*.over.chain.gz") into liftover_files
 // 
 // 	shell:
 // 	'''
@@ -940,14 +940,14 @@ process get_encode_chromatin_state_data {
 
 
 // process convert_bed_coordinates_to_latest_assembly {
-// 	tag "${specie}/${out_folder}"
+// 	tag "${species}/${out_folder}"
 // 
-// 	publishDir path: "${specie}/{out_folder}", mode: 'link'
+// 	publishDir path: "${species}/{out_folder}", mode: 'link'
 // 
 // 	label "liftover"
 // 
 // 	input:
-// 		set specie, out_folder, original_assembly, target_assembly, file(bed_file) from channel_xx
+// 		set species, out_folder, original_assembly, target_assembly, file(bed_file) from channel_xx
 // 
 // 	output:
 // 		file("*")
@@ -986,7 +986,7 @@ HiHMM_chromatin_states
 
 
 process get_hihmm_chromatin_state_data_part_1 {
-	tag "${specie}"
+	tag "${species}"
 	
 	// No containers for the process as of now since I couldn't get one that works (and that is downloaded directly from within nextflow. This may be an issue with the outdated version of Singularity that is installed on my server)
 	// container = "kernsuite-debian/singularity-container"
@@ -997,17 +997,17 @@ process get_hihmm_chromatin_state_data_part_1 {
 	// container = 'debian/stable-slim.sif'
 
 	input:
-		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
+		set species, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
 
 	output:
-		set specie, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_2
+		set species, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_2
 		
 
 	shell:
 	'''
 			
 			bed_name="!{bed_name}"
-			specie="!{specie}"
+			species="!{species}"
 			
 			bed_file="${bed_name}.bed"
 			bed_file_lifted="${bed_name}_lifted.bed"
@@ -1016,7 +1016,7 @@ process get_hihmm_chromatin_state_data_part_1 {
 			
 			wget $hiHMM_path/$bed_file
 			
-			if [ $specie = 'worm' ]; then
+			if [ $species = 'worm' ]; then
 				gawk -i inplace '{print "chr"$0}' $bed_file
 			fi
 	'''
@@ -1024,14 +1024,14 @@ process get_hihmm_chromatin_state_data_part_1 {
 
 
 process get_hihmm_chromatin_state_data_part_2 {
-	tag "${specie}"
+	tag "${species}"
 	
-	publishDir path: "${specie}/chromatin_states", mode: 'link'
+	publishDir path: "${species}/chromatin_states", mode: 'link'
 
 	label "liftover"
 
 	input:
-		set specie, bed_name, file(bed_file), original_assembly, liftover_name from HiHMM_chromatin_states_2
+		set species, bed_name, file(bed_file), original_assembly, liftover_name from HiHMM_chromatin_states_2
 
 	output:
 		file("${bed_name}/*")
@@ -1068,12 +1068,12 @@ process get_hihmm_chromatin_state_data_part_2 {
 
 
 // process get_hihmm_chromatin_state_data {
-// 	publishDir path: "${specie}/chromatin_states", mode: 'link'
+// 	publishDir path: "${species}/chromatin_states", mode: 'link'
 // 
 // 	label "liftover"
 // 
 // 	input:
-// 		set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
+// 		set species, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
 // 
 // 	output:
 // 		file(bed_name)
@@ -1109,17 +1109,17 @@ process get_hihmm_chromatin_state_data_part_2 {
 
 
 // process get_bowtie2_indexes_for_checking_contaminations {
-// 	tag "${specie}"
+// 	tag "${species}"
 // 
 // 	// container = "	kernsuite-debian/singularity-container"
 // 	container = "aws-cli_latest.sif"
 // 	// label "bioconductor"
 // 
 // 	input:
-// 		// set specie, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
+// 		// set species, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
 // 
 // 	output:
-// 		// set specie, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_2
+// 		// set species, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_2
 // 
 // 
 // 	shell:
@@ -1141,7 +1141,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 
 
 process get_contamination_bowtie2 {
-	tag "${specie}"
+	tag "${species}"
 
 	label "bowtie2_samtools"
 
@@ -1177,28 +1177,28 @@ process get_contamination_bowtie2 {
 
 
 process get_fasta_and_gff {
-	tag "${specie}"
+	tag "${species}"
 
 	label "samtools_bedtools_perl"
 
-	publishDir path: "${specie}/genome", mode: 'link', saveAs: {
+	publishDir path: "${species}/genome", mode: 'link', saveAs: {
     if (it.indexOf(".gff3") > 0) "annotation/${it}"
 		else if (it.indexOf(".fa") > 0) "sequence/${it}"
     else if (it.indexOf(".txt") > 0) "${it}"
   }
 
 	input:
-		set specie, specie_long, genome, assembly, release from Ensembl_Assembly_1.fasta
+		set species, specie_long, genome, assembly, release from Ensembl_Assembly_1.fasta
 
 	output:
-		set specie, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
-		set specie, file('annotation.gff3') into ( Gff3_annotation_for_filtering, Gff3_annotation_for_bed_files)
+		set species, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
+		set species, file('annotation.gff3') into ( Gff3_annotation_for_filtering, Gff3_annotation_for_bed_files)
 
 	shell:
 	'''
 	
 	source !{params.cactus_dir}/software/get_data/bin/check_checksum_ensembl.sh
-	specie='!{specie}'
+	species='!{species}'
 	specie_long='!{specie_long}'
 	genome='!{genome}'
 	assembly='!{assembly}'
@@ -1254,14 +1254,14 @@ process get_fasta_and_gff {
 
 
 process generating_bowtie2_indexes {
-  tag "${specie}"
+  tag "${species}"
 
   label "bowtie2_samtools"
 
-  publishDir path: "${"${specie}/genome/sequence"}/bowtie2_indexes", mode: 'link'
+  publishDir path: "${"${species}/genome/sequence"}/bowtie2_indexes", mode: 'link'
 
   input:
-    set specie, file(gff3), file(fasta) from Genome_and_annotation_1
+    set species, file(gff3), file(fasta) from Genome_and_annotation_1
 
   output:
 		file("*.bt2")
@@ -1275,17 +1275,17 @@ process generating_bowtie2_indexes {
 
 
 process indexing_genomes {
-  tag "${specie}"
+  tag "${species}"
 
   label "bowtie2_samtools"
 
-  publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+  publishDir path: "${"${species}/genome/sequence"}", mode: 'link'
 
   input:
-    set specie, file(gff3), file(fasta) from Genome_and_annotation_2
+    set species, file(gff3), file(fasta) from Genome_and_annotation_2
 
   output:
-		set specie, file('genome.fa.fai') into Fasta_fai
+		set species, file('genome.fa.fai') into Fasta_fai
 
   shell:
   '''
@@ -1303,17 +1303,17 @@ Genome_and_annotation_3
 
 
 process getting_transcriptome {
-  tag "${specie}"
+  tag "${species}"
 
 	label "gffread"
 
-	publishDir path: "${specie}/genome/sequence", mode: 'link'
+	publishDir path: "${species}/genome/sequence", mode: 'link'
 		
   input:
-    set specie, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
+    set species, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
 
   output:
-		set specie, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
+		set species, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
 		
   shell:
   '''
@@ -1330,17 +1330,17 @@ process getting_transcriptome {
 
 
 process filtering_annotation_file {
-  tag "${specie}"
+  tag "${species}"
 
 	label "ubuntu"
 
-	publishDir path: "${specie}/genome/annotation/filtered", mode: 'link'
+	publishDir path: "${species}/genome/annotation/filtered", mode: 'link'
 		
   input:
-    set specie, file(gff3) from Gff3_annotation_for_filtering
+    set species, file(gff3) from Gff3_annotation_for_filtering
 
   output:
-		set specie, file('chromosomes_sizes.txt'), file(gff3), file('protein_coding_genes.gff3'), file('annotation_filtered_regions_and_pseudogenes.gff3') into GFF3_filtered_for_R
+		set species, file('chromosomes_sizes.txt'), file(gff3), file('protein_coding_genes.gff3'), file('annotation_filtered_regions_and_pseudogenes.gff3') into GFF3_filtered_for_R
 		file("*.txt")
 		
   shell:
@@ -1408,14 +1408,14 @@ process filtering_annotation_file {
 // source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
 
 process get_bed_files_of_annotated_regions {
-	tag "${specie}"
+	tag "${species}"
 
 	label "bedops"
 
-	publishDir path: "${specie}/genome/annotation/bed_regions", mode: 'link'
+	publishDir path: "${species}/genome/annotation/bed_regions", mode: 'link'
 
 	input:
-		set specie, file(gff3) from Gff3_annotation_for_bed_files
+		set species, file(gff3) from Gff3_annotation_for_bed_files
 
 	output:
 		file('*.bed')
@@ -1606,14 +1606,14 @@ process get_bed_files_of_annotated_regions {
 
 
 process getting_kallisto_indexes {
-  tag "${specie}"
+  tag "${species}"
 
   label "kallisto"
 
-  publishDir path: "${"${specie}/genome/sequence"}", mode: 'link'
+  publishDir path: "${"${species}/genome/sequence"}", mode: 'link'
 
   input:
-		set specie, file(transcriptome) from Transcriptome_for_building_kallisto_indexes
+		set species, file(transcriptome) from Transcriptome_for_building_kallisto_indexes
 
   output:
     file('transcriptome_kallisto_index')
@@ -1629,24 +1629,24 @@ process getting_kallisto_indexes {
 
 
 process getting_orgdb {
-  tag "${specie}"
+  tag "${species}"
 
   label "annotationhub"
 
-  publishDir path: "${specie}/genome/annotation/R", mode: 'link'
+  publishDir path: "${species}/genome/annotation/R", mode: 'link'
 
   input:
-		set specie, specie_long from Ensembl_Assembly_1.orgdb
+		set species, specie_long from Ensembl_Assembly_1.orgdb
 
   output:
-    set specie, specie_long, file('orgdb.sqlite') into Orgdb_for_annotation
+    set species, specie_long, file('orgdb.sqlite') into Orgdb_for_annotation
 
   shell:
   '''
 		#!/usr/bin/env Rscript
 		
 		library(AnnotationHub)
-		specie = '!{specie}'
+		species = '!{species}'
 		specie_long = '!{specie_long}'
 		ncbi_orgdb_version = '!{ncbi_orgdb_version}'
 		annotationhub_cache = '!{params.annotationhub_cache}'
@@ -1670,14 +1670,14 @@ Orgdb_for_annotation
 	.set{GFF3_filtered_for_R_1}
 
 process getting_R_annotation_files {
-  tag "${specie}"
+  tag "${species}"
 
   label "bioconductor"
 
-  publishDir path: "${specie}/genome/annotation/R", mode: 'link'
+  publishDir path: "${species}/genome/annotation/R", mode: 'link'
 
   input:
-		set specie, specie_long, orgdb, file(chr_size), file(gff3_raw), file(gff3_genes_only), file(gff3_filtered_regions_and_pseudogenes) from GFF3_filtered_for_R_1
+		set species, specie_long, orgdb, file(chr_size), file(gff3_raw), file(gff3_genes_only), file(gff3_filtered_regions_and_pseudogenes) from GFF3_filtered_for_R_1
 
   output:
     file('*')
@@ -1694,7 +1694,7 @@ process getting_R_annotation_files {
 		gff3_raw = '!{gff3_raw}'
 		gff3_genes_only = '!{gff3_genes_only}'
 		gff3_filtered_regions_and_pseudogenes = '!{gff3_filtered_regions_and_pseudogenes}'
-		specie = '!{specie}'
+		species = '!{species}'
 		orgdb = AnnotationDbi::loadDb('!{orgdb}')
 		df_chr_size = read.table('!{chr_size}', sep = '\t')
 		specie_long = '!{specie_long}'
@@ -1902,10 +1902,10 @@ process getting_R_annotation_files {
 
 // library(biomaRt)
 
-// specie_initial = paste(sapply(strsplit(tolower(specie), '_')[[1]], function(x) substr(x, 1,1)), collapse = '')
+// specie_initial = paste(sapply(strsplit(tolower(species), '_')[[1]], function(x) substr(x, 1,1)), collapse = '')
 
 
-// dataset = switch(specie, 
+// dataset = switch(species, 
 // 	Caenorhabditis_elegans = 'celegans_gene_ensembl', 
 // 	Drosophila_melanogaster = 'dmelanogaster_gene_ensembl', 
 // 	Mus_musculus = 'mmusculus_gene_ensembl', 

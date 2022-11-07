@@ -1,16 +1,16 @@
 #!/bin/bash
 
-specie="human"
+species="human"
 n_reads_atac=$1
 n_reads_mrna=$2
-prepro_dir="preprocessing/${specie}"
+prepro_dir="preprocessing/${species}"
 source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 
 
 # run.yml
-cat > ${specie}/parameters/run.yml << EOL
+cat > ${species}/parameters/run.yml << EOL
 res_dir                   : 'results/test_human'
-specie                    : 'human'
+species                    : 'human'
 chromatin_state           : 'ENCFF941SVR'
 chip_ontology             : 'cell_type.fibroblast'
 split__threshold_type     : 'rank' 
@@ -46,34 +46,34 @@ awk 'BEGIN {OFS = "\t"} { \
   if (NR == 1) sample_id = "sample_id"; \
   print $1, $2, $3, $4, $5, $6, sample_id \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
-make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
+make_fastq_info_file $species $n_reads_atac $n_reads_mrna
 
 # comparisons.tsv
-cat > ${specie}/design/comparisons.tsv <<EOL
+cat > ${species}/design/comparisons.tsv <<EOL
 ssrp1 ctl
 supt16h ctl
 ssrp1 supt16h
 EOL
 
 # groups.tsv
-cat > ${specie}/design/groups.tsv << EOL
+cat > ${species}/design/groups.tsv << EOL
 all ssrp1_vs_ctl supt16h_vs_ctl ssrp1_vs_supt16h
 ctl ssrp1_vs_ctl supt16h_vs_ctl
 supt16h supt16h_vs_ctl ssrp1_vs_supt16h
 EOL
 
 # regions_to_remove.tsv
-cat > ${specie}/design/regions_to_remove.tsv << EOL
+cat > ${species}/design/regions_to_remove.tsv << EOL
 ssrp1 ssrp1->chr11:57,325,986-57,335,892
 supt16h supt16h->chr14:21,351,476-21,384,019
 EOL
 
 # genes_to_remove.tsv
-touch ${specie}/design/genes_to_remove.tsv
+touch ${species}/design/genes_to_remove.tsv
 
 # run__no_enrich.yml
-yml_file="${specie}/parameters/run__no_enrich.yml"
-cp ${specie}/parameters/run.yml $yml_file
+yml_file="${species}/parameters/run__no_enrich.yml"
+cp ${species}/parameters/run.yml $yml_file
 sed -i 's/test_human/test_human__no_enrich/g' $yml_file
 cat >> $yml_file << EOL
 disable_all_enrichments   : true
@@ -81,7 +81,7 @@ EOL
 
 
 
-replace_spaces_by_tabs_in_the_design_tsv_files $specie
+replace_spaces_by_tabs_in_the_design_tsv_files $species
 
 
 

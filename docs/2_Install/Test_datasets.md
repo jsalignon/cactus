@@ -15,7 +15,7 @@
 
 Tests datasets have beed generated for each of the 4 species supported by Cactus. This allows to make sure the pipeline works equally well for each species. Downloading the smallest dataset (fly) should be sufficient for users to get a sense on how the pipeline works. Here are the sizes of the test datasets:
 
-| specie | raw_files | sampled_files | sampled_atac | sampled_mrna |
+| species | raw_files | sampled_files | sampled_atac | sampled_mrna |
 |:------:|:---------:|:-------------:|:------------:|:------------:|
 |  fly   |   17 GB   |    377 MB     |    329 MB    |    48 MB     |
 |  worm  |   68 GB   |    1.4 GB     |    1.3 GB    |    41 MB     |
@@ -25,7 +25,7 @@ Tests datasets have beed generated for each of the 4 species supported by Cactus
 
 > **_NOTE:_**  Sampled mRNA-Seq datasets are similar between the 4 species, however, sampled ATAC-Seq datasets are much larger for human and mice than for worm and fly. This is due to large difference in genome sizes but not in transcriptome size between these species; as shown here:
 
-| specie |  genome | transcriptome | 
+| species |  genome | transcriptome | 
 |:------:|:-------:|:-------------:|
 |  fly   |  100 MB |     53 MB     |
 |  worm  |  144 MB |     89 MB     |
@@ -37,11 +37,11 @@ Tests datasets have beed generated for each of the 4 species supported by Cactus
 
 The test datasets can be downloaded with this command: 
 ```
-nextflow run jsalignon/cactus/scripts/download/download.nf --test_datasets --specie worm -r main -latest
+nextflow run jsalignon/cactus/scripts/download/download.nf --test_datasets --species worm -r main -latest
 ```
 
 The parameters for this command are:
- - *--specie*: can be any of the 4 species supported by Cactus (worm, fly, mouse or human)
+ - *--species*: can be any of the 4 species supported by Cactus (worm, fly, mouse or human)
  - *--threads* can be set to determine the number of thread used by pigz for uncompressing the references archive files
 
  > **_NOTE:_**  The test datasets contains 4 folders: fastq, tsv, conf and yml; as described in the [Inputs](/docs/3_Inputs/3_Inputs.md) section.  

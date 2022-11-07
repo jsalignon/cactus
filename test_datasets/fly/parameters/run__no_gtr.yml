@@ -1,5 +1,5 @@
 res_dir                   : 'results/test_fly__no_gtr'
-specie                    : 'fly'
+species                    : 'fly'
 chromatin_state           : 'iHMM.M1K16.fly_L3'
 split__threshold_type     : 'rank' 
 split__threshold_values   : [ 200, 1000 ]

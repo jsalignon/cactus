@@ -47,8 +47,8 @@ Parameters can be passed to two different configuration files:
 
 - **_params.references_dir_**: Directory where references have been downloaded. 
 - **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before).
-- **_params.specie_**: specie under study. Options: 'worm', 'fly', 'mouse', 'human'.  
-- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.specie}/encode_chromatin_states_metadata.csv` file.
+- **_params.specie_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'.  
+- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.species}/encode_chromatin_states_metadata.csv` file.
 - **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq).
 - **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq).
 - **_params.design__comparisons_**: path to the [comparisons design file](/docs/3_Inputs/Design.md#Comparisons).
@@ -119,15 +119,15 @@ This part contains parameters from [Nextflow's executor scope](https://www.nextf
 
 This part contains the path to the references. 
 
-Cactus preparse all references to simplify access to external databases for the user. However, there can be occasions where a user want to user another reference file. Any parameter from the [*specie.config* file](/conf/specie.config) can be modified if needed. For instance, a user analyzing worm data can try to see if human motifs are enriched by using this parameter:
+Cactus preparse all references to simplify access to external databases for the user. However, there can be occasions where a user want to user another reference file. Any parameter from the [*species.config* file](/conf/species.config) can be modified if needed. For instance, a user analyzing worm data can try to see if human motifs are enriched by using this parameter:
 ```
 params.pwms_motifs = "${params.references_dir}/human/homer_data/homer_motifs.txt"
 ```
 
-Other specie parameters that may be useful to tweak in certain situations are: *params.blacklisted_regions*, *params.encode_chip_files* or *params.chromatin_state_1*.
+Other species parameters that may be useful to tweak in certain situations are: *params.blacklisted_regions*, *params.encode_chip_files* or *params.chromatin_state_1*.
 
-The specie parameter is mandatory and allows cactus to know which reference files to use:
-- **_params.specie_**: specie under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory (no default).
+The species parameter is mandatory and allows cactus to know which reference files to use:
+- **_params.specie_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory (no default).
 
 
 # Processes    
@@ -208,8 +208,8 @@ The specie parameter is mandatory and allows cactus to know which reference file
 - **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
 - **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis. Options: 'KEGG', 'GO_CC', 'GO_MF', 'GO_BP'. Default: ['BP', 'KEGG']. 
 - **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
-- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.specie}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
-- **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
+- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.species}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
+- **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${species}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${species}/encode_chip_metadata.csv` file. Default: 'all'.
 - **_params.homer__nb_threads_**: number of threads used by Bowtie2. Default: 6.
 - **_params.motifs_test_type_**: The test to use for motif inputs. If 'Binomial' a two-sided binomial test is performed instead of the two-sided Fischer test. Options: 'binomial' or 'fischer' (any value). Default: 'binomial'.
 

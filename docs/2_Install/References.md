@@ -29,7 +29,7 @@
 # print table (in R):
 
 tb = tibble::tribble(
-  ~Specie, ~Size,  ~Assembly, ~Nickname, ~Ensembl Release,
+  ~species, ~Size,  ~Assembly, ~Nickname, ~Ensembl Release,
    'worm',   1.3, 'WBcel235',    'ce11',    '107',
     'fly',   1.5,    'BDGP6',     'dm6',    '107',
   'mouse',    12,   'GRCm38',    'mm10',    '102',
@@ -40,11 +40,11 @@ knitr::kable(tb, 'pipe', align = 'c')
 
 -->
 
-Cactus uses a set of preparsed references that are used throughout the scripts. These are automatically downloaded the first time the pipeline is run for the given specie under investigation. 
+Cactus uses a set of preparsed references that are used throughout the scripts. These are automatically downloaded the first time the pipeline is run for the given species under investigation. 
 
-The size of the Cactus references for each specie is:
+The size of the Cactus references for each species is:
 
-| Specie | Size (Gb) | Assembly | Nickname | Ensembl Release |
+| species | Size (Gb) | Assembly | Nickname | Ensembl Release |
 |:------:|:---------:|:--------:|:--------:|:---------------:|
 |  worm  |    1.3    | WBcel235 |   ce11   |       107       |
 |  fly   |    1.5    |  BDGP6   |   dm6    |       107       |
@@ -53,19 +53,19 @@ The size of the Cactus references for each specie is:
 
 The latest Ensembl release has been used for worm, fly and mouse (July 2022). For mouse, the older Ensembl release 102 (Nov. 2020) has been used together with the genome assembly mm10, since mm39 is not yet available in Homer and in the Encode bed files.
 
-Note that in order to save space, on can download the specie dataset, and then keep only the chromatin states of interests. Indeed, only one chromatin state file is used by Cactus, but several are available for users to chose depending on their conditions under study. For mouse and humans this should reduce the size of the dataset by respectively about 8 Gb and 1 Gb.
+Note that in order to save space, on can download the species dataset, and then keep only the chromatin states of interests. Indeed, only one chromatin state file is used by Cactus, but several are available for users to chose depending on their conditions under study. For mouse and humans this should reduce the size of the dataset by respectively about 8 Gb and 1 Gb.
 
 
 ## Downloading references
 
 The references can be downloaded with this command: 
 ```
-nextflow run jsalignon/cactus/scripts/download/download.nf --references --specie worm -r main -latest
+nextflow run jsalignon/cactus/scripts/download/download.nf --references --species worm -r main -latest
 ```
 
 The parameters for this command are:
   - *params.references_dir*: should be set in the *./.cactus.config* file to indicate in which directory the references should be downloaded
-  - *--specie*: can be any of the 4 species supported by Cactus (worm, fly, mouse or human)
+  - *--species*: can be any of the 4 species supported by Cactus (worm, fly, mouse or human)
   - *--threads* can be set to determine the number of thread used by pigz for uncompressing the references archive files
 
 
@@ -103,20 +103,20 @@ The pipeline download the references from various sources and process it to prod
   
   - Motifs:
     - [Homer data](https://doi.org/10.1016/j.molcel.2010.05.004): The latest genome (6.4), organism (6.3) and promoters (5.5) versions were downloaded from http://homer.ucsd.edu/homer.
-    - [CISBP Motifs](https://doi.org/10.1016/j.cell.2014.08.009): The TF_Information.txt file is downloaded from http://cisbp.ccbr.utoronto.ca. This file contains for each transcription factor, either direct motifs, or if not available, motifs inferred with more than 90% confidence (all motifs with the best score are kept). There are 10,329 motifs from the Encod species. 2,779 motifs were kept after removing duplicated motifs (inferred motifs with the same score), motifs with empty names and empty motifs (worm: 372, fly: 424, mouse: 872, human: 1,111). Homer threshold were computed as: *0.5 x motif_log2_odd_score*, with *motif_log2_odd_score = sum(log2(max_weight_by_position / 0.25))*. Finally, for each specie, a homer_motifs.txt file is generated that contains consensus sequence, TF name, homer threshold, and the motif itself.
+    - [CISBP Motifs](https://doi.org/10.1016/j.cell.2014.08.009): The TF_Information.txt file is downloaded from http://cisbp.ccbr.utoronto.ca. This file contains for each transcription factor, either direct motifs, or if not available, motifs inferred with more than 90% confidence (all motifs with the best score are kept). There are 10,329 motifs from the Encod species. 2,779 motifs were kept after removing duplicated motifs (inferred motifs with the same score), motifs with empty names and empty motifs (worm: 372, fly: 424, mouse: 872, human: 1,111). Homer threshold were computed as: *0.5 x motif_log2_odd_score*, with *motif_log2_odd_score = sum(log2(max_weight_by_position / 0.25))*. Finally, for each species, a homer_motifs.txt file is generated that contains consensus sequence, TF name, homer threshold, and the motif itself.
    
   - [Blacklisted regions](https://doi.org/10.1038/s41598-019-45839-z): Blacklisted regions were donwloaded from https://github.com/Boyle-Lab/Blacklist/tree/master/lists. Contig names were shifted from NCBI to Ensembl names using the UpdateContigNames function from [cvbio](https://github.com/clintval/cvbio).
   
-  - [CHIP-Seq](https://www.encodeproject.org/chip-seq/transcription_factor/): The [ENCODE API](https://www.encodeproject.org/help/rest-api/) was used to get data and metadata. 2,714 CHIP-Seq bed files were selected and downloaded (worm: 473, fly: 531, mouse: 156, human: 1,554) using these filters: *assay_title = "TF ChIP-seq" and output_type = "optimal IDR thresholded peaks"*, and md5 sums were checked. The slim annotations (cell, organ, development and system) were parsed and used to create groups of CHIP-Seq that share the same annotations and can be used for more detailled analysis (see [Ontology groups sections](/docs/3_Install__Data.md#CHIP-Seq) and [Parameters](/docs/4_Run__Parameters.md)). The details of CHIP present in each group can be found in the files CHIP/chip_ontology_groups.tsv. The biosample_summary column (for fly and worm) or the term_name column (=ontology, for human and mouse) was parsed to create a cell/stage id column (see [Legend sections](/docs/3_Install__Data.md#CHIP-Seq). An identifier was added to distinguish duplicate target gene symbols (most are unique). Finally, each chip was assigned a name combining its unique target gene symbol and its cell/stage id (format: TargetGene_CellStage). A detailed metadata file describing each CHIP can be found in the root specie folder with name *encode_chip_metadata.csv*. 
+  - [CHIP-Seq](https://www.encodeproject.org/chip-seq/transcription_factor/): The [ENCODE API](https://www.encodeproject.org/help/rest-api/) was used to get data and metadata. 2,714 CHIP-Seq bed files were selected and downloaded (worm: 473, fly: 531, mouse: 156, human: 1,554) using these filters: *assay_title = "TF ChIP-seq" and output_type = "optimal IDR thresholded peaks"*, and md5 sums were checked. The slim annotations (cell, organ, development and system) were parsed and used to create groups of CHIP-Seq that share the same annotations and can be used for more detailled analysis (see [Ontology groups sections](/docs/3_Install__Data.md#CHIP-Seq) and [Parameters](/docs/4_Run__Parameters.md)). The details of CHIP present in each group can be found in the files CHIP/chip_ontology_groups.tsv. The biosample_summary column (for fly and worm) or the term_name column (=ontology, for human and mouse) was parsed to create a cell/stage id column (see [Legend sections](/docs/3_Install__Data.md#CHIP-Seq). An identifier was added to distinguish duplicate target gene symbols (most are unique). Finally, each chip was assigned a name combining its unique target gene symbol and its cell/stage id (format: TargetGene_CellStage). A detailed metadata file describing each CHIP can be found in the root species folder with name *encode_chip_metadata.csv*. 
   
   - Chromatin States
 
-    - [ChromHMM](https://doi.org/10.1038/nmeth.1906): ChromHMM-derived 18 states chromatin state profiles have been generated for [833 human samples reference](https://doi.org/10.1038/s41586-020-03145-z) and  66 [mouse samples reference](https://www.nature.com/articles/s42003-021-01756-4). These were downloaded using the [ENCODE API](https://www.encodeproject.org/help/rest-api/) using this filter: *annotation_type = chromatin state* and a custom filter to keep only the 18 states model, and md5sum were checked. Details on the chromatin states can be found in [Figure 1 for mouse](https://www.nature.com/articles/s42003-021-01756-4/figures/1) and [Extended Data Fig. 3 for human](https://www.nature.com/articles/s41586-020-03145-z/figures/7). A detailed metadata file describing each available ChromHMM chromatin state profile can be found in the root specie folder with name *encode_chromatin_states_metadata.csv*. For internal reasons, a new folder is created for each chromatin state profile that contains each state in a separate bed file.
+    - [ChromHMM](https://doi.org/10.1038/nmeth.1906): ChromHMM-derived 18 states chromatin state profiles have been generated for [833 human samples reference](https://doi.org/10.1038/s41586-020-03145-z) and  66 [mouse samples reference](https://www.nature.com/articles/s42003-021-01756-4). These were downloaded using the [ENCODE API](https://www.encodeproject.org/help/rest-api/) using this filter: *annotation_type = chromatin state* and a custom filter to keep only the 18 states model, and md5sum were checked. Details on the chromatin states can be found in [Figure 1 for mouse](https://www.nature.com/articles/s42003-021-01756-4/figures/1) and [Extended Data Fig. 3 for human](https://www.nature.com/articles/s41586-020-03145-z/figures/7). A detailed metadata file describing each available ChromHMM chromatin state profile can be found in the root species folder with name *encode_chromatin_states_metadata.csv*. For internal reasons, a new folder is created for each chromatin state profile that contains each state in a separate bed file.
 
     - [HiHMM](https://www.nature.com/articles/nature13415): HiHMM-derived 17 states chromatin state profiles have been generated for worm (EE, L3), fly (EE, L3) and human (H1-hESC, GM12878). Using eight histone marks mapped in common accross the 3 species, the author of the paper made chromatin state profiles that are comparable accross species. This can be useful when working on different species (i.e. checking if enrichment in enhancers found in worm is conserved in humans). Details on the chromatin states can be found in [Figure 2](https://www.nature.com/articles/nature13415/figures/2). HiHMM profiles were downloaded from http://compbio.med.harvard.edu/modencode/webpage/hihmm. The [liftover software](https://genome.ucsc.edu/goldenPath/help/hgTracksHelp.html#Liftover) was used to convert genomic coordinates since older genomic assemblies were used (hg19 for human; dm3 for fly; and ce10 for worm).
     <!-- The genome version used in HiHMM is confirmed in the Supplementary Information file of the paper: "Raw sequences were aligned to their respective genomes (hg19 for human; dm3 for fly; and ce10 for worm) using bowtie" -->
     
-  - [Bowtie 2](https://www.nature.com/articles/nmeth.1923) indexes of contaminant genome: Cactus checks for potential contamination of samples with genetic material of another specie. As a default the contaminant genome is an *E. coli* strain, OP50. with genome assembly [ASM949659v1](https://www.ncbi.nlm.nih.gov/assembly/GCF_009496595.1/). Genomic sequence was downloaded from the NCBI FTP server and [bowtie2] was used to build indexes. OP50 is usually given as a food source to *C. elegans* cultures and is hence a common contaminant in worm experiments. However, user can replace the contaminant genome bowtie2 indexes by another one if they suspect contamination from another specie.
+  - [Bowtie 2](https://www.nature.com/articles/nmeth.1923) indexes of contaminant genome: Cactus checks for potential contamination of samples with genetic material of another species. As a default the contaminant genome is an *E. coli* strain, OP50. with genome assembly [ASM949659v1](https://www.ncbi.nlm.nih.gov/assembly/GCF_009496595.1/). Genomic sequence was downloaded from the NCBI FTP server and [bowtie2] was used to build indexes. OP50 is usually given as a food source to *C. elegans* cultures and is hence a common contaminant in worm experiments. However, user can replace the contaminant genome bowtie2 indexes by another one if they suspect contamination from another species.
   
   - Genome
     
@@ -139,8 +139,8 @@ The pipeline download the references from various sources and process it to prod
 R
 setwd('/home/jersal/workspace/cactus/references')
 
-print_ontology_table <- function(specie){
-  dt = data.table::fread(paste0(specie, '/available_chip_ontology_groups.txt'))[, 2:3]
+print_ontology_table <- function(species){
+  dt = data.table::fread(paste0(species, '/available_chip_ontology_groups.txt'))[, 2:3]
   knitr::kable(dt, 'pipe', align = 'c', row.names = F)
 }
 v_species = c('worm', 'fly', 'mouse', 'human')

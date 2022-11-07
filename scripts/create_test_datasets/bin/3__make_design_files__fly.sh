@@ -1,15 +1,15 @@
 #!/bin/bash
 
-specie="fly"
+species="fly"
 n_reads_atac=$1
 n_reads_mrna=$2
-prepro_dir="preprocessing/${specie}"
+prepro_dir="preprocessing/${species}"
 
 
 # run.yml
-cat > ${specie}/parameters/run.yml << EOL
+cat > ${species}/parameters/run.yml << EOL
 res_dir                   : 'results/test_fly'
-specie                    : 'fly'
+species                    : 'fly'
 chromatin_state           : 'iHMM.M1K16.fly_L3'
 split__threshold_type     : 'rank' 
 split__threshold_values   : [ 200, 1000 ]
@@ -26,10 +26,10 @@ awk 'BEGIN {OFS = "\t"} { \
   if (NR == 1) sample_id = "sample_id"; \
   print $1, $2, $3, $4, $5, $6, sample_id \
 }' ${prepro_dir}/samplesheet/samples_info.tsv | column -t > ${prepro_dir}/samplesheet/samples_info_1.tsv
-make_fastq_info_file $specie $n_reads_atac $n_reads_mrna
+make_fastq_info_file $species $n_reads_atac $n_reads_mrna
 
 # comparisons.tsv
-cat > ${specie}/design/comparisons.tsv <<EOL
+cat > ${species}/design/comparisons.tsv <<EOL
 gaf ctl
 b170 ctl
 n301 ctl
@@ -39,14 +39,14 @@ n301 n301b170
 EOL
 
 # groups.tsv
-cat > ${specie}/design/groups.tsv << EOL
+cat > ${species}/design/groups.tsv << EOL
 all gaf_vs_ctl b170_vs_ctl n301_vs_ctl n301b170_vs_ctl b170_vs_n301b170 n301_vs_n301b170
 ctl gaf_vs_ctl b170_vs_ctl n301_vs_ctl n301b170_vs_ctl
 n301b170 n301b170_vs_ctl b170_vs_n301b170 n301_vs_n301b170
 EOL
 
 # regions_to_remove.tsv
-cat > ${specie}/design/regions_to_remove.tsv << EOL
+cat > ${species}/design/regions_to_remove.tsv << EOL
 gaf gaf->3L:14,747,929-14,761,049
 b170 bap170->2R:6,636,512-6,642,358
 n301 nurf301->3L:233,926-246,912
@@ -55,7 +55,7 @@ n301b170 nurf301->3L:233,926-246,912
 EOL
 
 # genes_to_remove.tsv
-cat > ${specie}/design/genes_to_remove.tsv << EOL
+cat > ${species}/design/genes_to_remove.tsv << EOL
 gaf Trl
 b170 Bap170
 n301 E(bx)
@@ -64,11 +64,11 @@ n301b170 E(bx)
 EOL
 
 # genes_to_remove_empty.tsv
-touch ${specie}/design/genes_to_remove_empty.tsv
+touch ${species}/design/genes_to_remove_empty.tsv
 
 # run__no_gtr.yml
-yml_file="${specie}/parameters/run__no_gtr.yml"
-cp ${specie}/parameters/run.yml $yml_file
+yml_file="${species}/parameters/run__no_gtr.yml"
+cp ${species}/parameters/run.yml $yml_file
 sed -i 's/test_fly/test_fly__no_gtr/g' $yml_file
 cat >> $yml_file << EOL
 design__genes_to_remove   : 'design/genes_to_remove_empty.tsv'
@@ -77,5 +77,5 @@ EOL
 
 
 
-replace_spaces_by_tabs_in_the_design_tsv_files $specie
+replace_spaces_by_tabs_in_the_design_tsv_files $species
 

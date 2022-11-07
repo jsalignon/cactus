@@ -16,5 +16,5 @@
 This section covers the Installation of Cactus, with:
   - the installation of the two [dependencies](/docs/2_Install/Dependencies.md): Nextflow and Singularity
   - the [containers](/docs/2_Install/Containers.md) used by cactus, their origin and their size
-  - the specie-specific [references](/docs/2_Install/References.md) used by Cactus, their size, how these files were created and details on the CHIP-Seq datasets
+  - the species-specific [references](/docs/2_Install/References.md) used by Cactus, their size, how these files were created and details on the CHIP-Seq datasets
   - the [test datasets](/docs/2_Install/Test_datasets.md) that can optionally be downloaded to test cactus in each of the 4 supported species, their sizes, details on their origin and on the samples used
