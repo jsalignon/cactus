@@ -1,0 +1,11 @@
+res_dir                   : 'results/test_worm__enrich_only_genes_self'
+species                    : 'worm'
+chromatin_state           : 'iHMM.M1K16.worm_L3'
+split__threshold_type     : 'rank' 
+split__threshold_values   : [ 200 ]
+do_genes_self_enrichment  : true
+do_peaks_self_enrichment  : false
+do_gene_set_enrichment    : false
+do_chrom_state_enrichment : false
+do_motif_enrichment       : false
+do_chip_enrichment        : false

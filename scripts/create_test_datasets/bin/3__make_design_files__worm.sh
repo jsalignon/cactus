@@ -67,4 +67,18 @@ design__regions_to_remove : 'design/regions_to_remove_empty.tsv'
 disable_all_enrichments   : true
 EOL
 
+# run__enrich_only_genes_self.yml
+yml_file="${species}/parameters/run__enrich_only_genes_self.yml"
+cp ${species}/parameters/run.yml $yml_file
+sed -i 's/test_worm/test_worm__enrich_only_genes_self/g' $yml_file
+sed -i 's/\[ 200, 1000 \]/\[ 200 \]/g' $yml_file
+cat >> $yml_file << EOL
+do_genes_self_enrichment  : true
+do_peaks_self_enrichment  : false
+do_gene_set_enrichment    : false
+do_chrom_state_enrichment : false
+do_motif_enrichment       : false
+do_chip_enrichment        : false
+EOL
+
 replace_spaces_by_tabs_in_the_design_tsv_files $species
