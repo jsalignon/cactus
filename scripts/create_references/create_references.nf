@@ -987,7 +987,9 @@ HiHMM_chromatin_states
 
 process get_hihmm_chromatin_state_data_part_1 {
 	tag "${species}"
-	
+
+	label "hihmm"
+
 	// No containers for the process as of now since I couldn't get one that works (and that is downloaded directly from within nextflow. This may be an issue with the outdated version of Singularity that is installed on my server)
 	// container = "kernsuite-debian/singularity-container"
 	// container = "kernsuite-debian/singularity-container"
@@ -1005,7 +1007,6 @@ process get_hihmm_chromatin_state_data_part_1 {
 
 	shell:
 	'''
-			
 			bed_name="!{bed_name}"
 			species="!{species}"
 			
