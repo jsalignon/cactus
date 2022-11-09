@@ -137,7 +137,7 @@ get_padj_binned_breaks <- function(data_type){
 }
 
 
-get_padj_binned <- function(padj, data_type, signed_padj){
+get_padj_binned <- function(padj, L2OR, data_type, signed_padj){
   breaks = get_padj_binned_breaks(data_type)
   br_len = length(breaks) - 1
   if(signed_padj) breaks = unique(c(breaks, -breaks))
@@ -155,6 +155,50 @@ get_padj_binned <- function(padj, data_type, signed_padj){
 }
 
 
+## getting pval columns
+get_padj_binned_breaks <- function(data_type){
+  breaks = switch(data_type,
+    genes_self   = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    peaks_self   = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    func_anno    = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    chrom_states = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    CHIP         = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    motifs       = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100)
+  )
+  return(breaks)
+}
+
+
+get_padj_binned <- function(padj, L2OR, data_type, signed_padj){
+  breaks = get_padj_binned_breaks(data_type)
+  br_len = length(breaks) - 1
+  if(signed_padj) breaks = unique(c(breaks, -breaks))
+  padj_binned = cut(padj, breaks = breaks, include.lowest = F, right = F)
+  if(signed_padj) {
+    lpb = levels(padj_binned)
+    not_signif = '> 0.05'
+    padj_binned %<>% factor(., levels = c(lpb, not_signif))
+    padj_binned[padj_binned %in% lpb[c(1, length(lpb))]] = not_signif
+    new_levels_order = c(br_len:2, br_len * 2 + 1, (2 * br_len - 1):(br_len + 1))
+    new_levels = rev(levels(padj_binned)[new_levels_order])
+    padj_binned = factor(padj_binned, levels = new_levels)
+  } 
+  return(padj_binned)
+}
+
+dt = data.table(padj, L2OR)
+dt[, padj1 := padj * sign(L2OR)]
+dt[padj == 0, padj1 := L2OR]
+dt[, bins := cut(padj1, breaks = breaks, include.lowest = F, right = F)]
+
+
+
+dt[, padj1 := -log10(padj) * sign(L2OR)]
+
+padj1 = padj
+padj1
+tmp = cbind(padj, L2OR)
+tmp$padj1 = tmp$padj
 
 # get_signed_pval <- function(pval, effect){
 #   sign = ifelse(effect > 1, 1, -1)

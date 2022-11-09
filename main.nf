@@ -4542,7 +4542,7 @@ process Figures__making_enrichment_barplots {
   shell:
     '''
     #!/usr/bin/env Rscript
-
+ssd s 
     library(ggplot2)
     library(grid)
     library(gridExtra)
@@ -4552,7 +4552,23 @@ process Figures__making_enrichment_barplots {
     key       = '!{key}'
     data_type = '!{data_type}'
     df1       = readRDS('!{res_gene_set_enrichment_rds}')
+    chip  = eval(parse(text = '!{params.barplots__chip}'))
+    motifs  = eval(parse(text = '!{params.barplots__motifs}'))
+    func_anno  = eval(parse(text = '!{params.barplots__func_anno}'))
+    chrom_states  = eval(parse(text = '!{params.barplots__chrom_states}'))
+    genes_self  = eval(parse(text = '!{params.barplots__genes_self}'))
+    peaks_self  = eval(parse(text = '!{params.barplots__peaks_self}'))
+    
     df_plots  = eval(parse(text = '!{params.barplots__df_plots}'))
+    
+           = "c(      'motifs', 0.05, T, 'none', F, 30, 50)"
+    barplots__func_anno    = "c(   'func_anno', 0.05, T, 'none', F, 30, 50)"
+    barplots__chrom_states = "c('chrom_states', 0.05, T, 'none', F, 30, 50)"
+    barplots__genes_self   = "c(  'genes_self', 0.05, T, 'none', F, 30, 50)"
+    barplots__peaks_self 
+    
+    df_plots  = eval(parse(text = '!{params.barplots__df_plots}'))
+    barplots__chip
 
     source('!{projectDir}/bin/get_new_name_by_unique_character.R')
     source('!{projectDir}/bin/functions_pvalue_plots.R')
@@ -4672,7 +4688,7 @@ process Figures__making_enrichment_heatmap {
 
     # filtering table
     if(data_type %in% c('genes_self', 'peaks_self')){
-      key1 = paste(df[1, c('ET', 'PA', 'TV')], collapse = '__')
+      key1 = paste(df[1, c('ET', 'PF', 'TV')], collapse = '__')
       df$tgt_key = sapply(strsplit(df$tgt, '__'), 
                           function(x) paste(x[c(1,2,4)], collapse = '__'))
       df %<>% .[.$tgt_key %in% key1, ]
@@ -4712,7 +4728,7 @@ process Figures__making_enrichment_heatmap {
       PA = unique(df$PA)
       TV = unique(df$TV)
       df$tgt_comp_FC = paste0(tgt_COMP, '_', tgt_FC) %>% gsub('_vs_', '_', .)
-      df = subset(df, tgt_comp_FC %in% comp_FC & tgt_ET == ET & tgt_PA == PA)
+      df = subset(df, tgt_comp_FC %in% comp_FC & tgt_ET == ET & tgt_PF == PF)
       df$yaxis_terms = df$tgt_comp_FC
     }
 
