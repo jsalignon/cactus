@@ -1,4 +1,5 @@
 
+<img src="/docs/images/logo_cactus.png" width="200" />
 
 * [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
@@ -77,6 +78,3 @@ The detailed ATAC-seq results table is created in R, which gene id, name, coordi
 - `Tables_Merged/2_Differential_Abundance/mRNA_detailed.{csv,xlsx}`.
 <img src="/docs/examples/xlsx_png/mRNA_detailled_1.png" width="800" />  
 <img src="/docs/examples/xlsx_png/mRNA_detailled_2.png" width="400" />  
-
-
-
