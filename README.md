@@ -12,7 +12,7 @@
 
 
 
-
+![](/docs/images/logo_cactus.png "Logo")
 
 ![](/docs/images/1_Intro.png "Introduction")
 
