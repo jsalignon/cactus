@@ -23,7 +23,7 @@
 This process splits Differential abundance results into subsets in order to do enrichment analysis on many different angle and extract the most information out of the data.  
 5 filters are used to split:
   - ET: Experiment Type. Can be either 'ATAC', 'mRNA', 'both', 'both_ATAC', or 'both_mRNA'.  
-  - PA: Peak Assignment. Can be any combination of 'all', 'PA_3kb', 'PA_8kb', 'PA_2u1d', 'PA_TSS', 'PA_genProm', 'PA_genic', 'PA_prom', 'PA_distNC'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included). <!-- this is named Peak Filtering (PF) in main.nf for now; need to change that -->
+  - PA: Peak Annotation. Can be any combination of 'all', 'PA_3kb', 'PA_8kb', 'PA_2u1d', 'PA_TSS', 'PA_genProm', 'PA_genic', 'PA_prom', 'PA_distNC'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included). <!-- this is named Peak Annotation (PA) in main.nf for now; need to change that -->
   PA_{3,8}kb: absolute distance of less than 3kb (kilo bases) or 8kb from the TSS
   - FC: Fold Change. To split up and down-regulated results.
   - TV: Theshold Value(s). To split results by significance thresholds. 
@@ -32,12 +32,12 @@ This process splits Differential abundance results into subsets in order to do e
 
 > **_NOTE:_** The process merges mRNA-Seq and ATAC-Seq results if *experiment_types = 'both'* otherwise it works on either of the two.  
 
-Finally, a key is made, of the form `${ET}__${PF}__${FC}__${TV}__${COMP}`, with COMP indicating the comparison. This key is used to make: 
+Finally, a key is made, of the form `${ET}__${PA}__${FC}__${TV}__${COMP}`, with COMP indicating the comparison. This key is used to make: 
   - bed files that contain genomic regions (i.e. to find enriched motifs/CHIP)
   - R files that contain gene sets (i.e. to find enriched ontologies, for Venn diagrams plots).
 
-In additions, two types of tables are produced: res_simple and res_filter. These two tables contain the same columns: the 5 key components (ET, PF, FC, TV and COMP), a peak_id column (Null for mRNA-Seq results), chromosome, gene name and id, pvalue and adjusted p-value and log2 fold changes. These two tables differ in their format: 
-  - res_simple: each result is reported with the filters that it passes that are combined with "|" (i.e PF: 'all|prom'). This allows to quickly browse all results.
+In additions, two types of tables are produced: res_simple and res_filter. These two tables contain the same columns: the 5 key components (ET, PA, FC, TV and COMP), a peak_id column (Null for mRNA-Seq results), chromosome, gene name and id, pvalue and adjusted p-value and log2 fold changes. These two tables differ in their format: 
+  - res_simple: each result is reported with the filters that it passes that are combined with "|" (i.e PA: 'all|prom'). This allows to quickly browse all results.
   - res_filter: only results passing filters are reported and each passed filter is on a different line (so 'all' and 'prom' would be on two different lines in the previous example). This file should be smaller as it exclude all the non-significant results.
 
 ### Parameters
@@ -63,7 +63,7 @@ In additions, two types of tables are produced: res_simple and res_filter. These
 ## DA_split__plotting_venn_diagrams
 
 ### Description
-This process takes as input all gene lists made by the previous process for a given comparison and generates venn diagrams for gene lists that share these keys: PA (Peak Assignment), FC (Fold Change) and TV (Theshold Value).  
+This process takes as input all gene lists made by the previous process for a given comparison and generates venn diagrams for gene lists that share these keys: PA (Peak Annotation), FC (Fold Change) and TV (Theshold Value).  
 Two types of plots are made:
 - proportional two ways venn diagrams:  ATAC-Seq vs mRNA-Seq with FC either up or down
 - fixed-size four-ways venn diagrams: ATAC-Seq vs mRNA-Seq with FC up and down.
