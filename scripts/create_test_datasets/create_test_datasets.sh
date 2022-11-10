@@ -149,6 +149,7 @@ species="fly" ; n_reads_atac=300 ; n_reads_mrna=100
 source $create_test_datasets_bin_dir/3__make_design_files__${species}.sh $n_reads_atac $n_reads_mrna
 
 species="mouse" ; n_reads_atac=6000 ; n_reads_mrna=150
+# nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${species}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
 source $create_test_datasets_bin_dir/3__make_design_files__${species}.sh $n_reads_atac $n_reads_mrna
 
 species="human" ; n_reads_atac=15000 ; n_reads_mrna=250

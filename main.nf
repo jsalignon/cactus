@@ -3437,7 +3437,8 @@ process DA_split__splitting_differential_abundance_results_in_subsets {
     source('!{projectDir}/bin/export_df_to_bed.R')
     source('!{projectDir}/bin/get_prom_bed_df_table.R')
     source('!{projectDir}/bin/read_from_nextflow.R')
-
+    source('!{projectDir}/bin/grepl_filter.R')
+    
     COMP = '!{COMP}'
 
     do_mRNA = !{do_mRNA_lgl}
@@ -3537,14 +3538,12 @@ process DA_split__splitting_differential_abundance_results_in_subsets {
       TV1 = df_split$TV[c1]
       FC1 = df_split$FC[c1]
       PA1 = df_split$PA[c1]
-      
-      grepl1 <- function(x, y) grepl(paste0('(^|\\|)', x, '($|\\|)'), y)
-      
+            
       res_filter_atac = res_simple %>% 
-        dplyr::filter(grepl1(TV1, TV) & 
-                      grepl1(FC1, FC) & grepl1(PA1, PA) & ET == 'ATAC')
+        dplyr::filter(grepl_filter(TV1, TV) & 
+                      grepl_filter(FC1, FC) & grepl_filter(PA1, PA) & ET == 'ATAC')
       res_filter_mRNA = res_simple %>% 
-        dplyr::filter(grepl1(TV1, TV) & grepl1(FC1, FC) & ET == 'mRNA')
+        dplyr::filter(grepl_filter(TV1, TV) & grepl_filter(FC1, FC) & ET == 'mRNA')
 
       # adding the Experiment Type "both"
       ATAC_genes = res_filter_atac$gene_id
@@ -4508,6 +4507,10 @@ Enrichment_results_for_plotting
   // format: key, DT, comp_order, TV, rds_files
   .filter{ it[4].size() > 1 }
   // .map{ it[0, 1, 2, 4] }
+  .map{ [ it[0], it[1], params.heatmaps_params[it[1]], 
+            params.padj_breaks[it[1]], params.heatmaps_filter[it[1]], 
+            it[2], it[3], it[4] ] }
+  // format: key, DT, plots_params, padj_breaks, filters, comp_order, TV, rds_files
   .dump(tag:'heatmap')
   .set{ Enrichment_results_for_plotting_heatmaps }
 
@@ -4518,6 +4521,8 @@ Enrichment_results_for_plotting_barplots_1
   // format: key (ET__PA__FC__TV__COMP__DT), rds_file
   .map{ [ it[0], it[0].split('__')[5], it[1] ]  }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file
+  .map{ [ it[0], it[1], params.barplots_params[it[1]], params.padj_breaks[it[1]], it[2]]}
+  // format: key (ET__PA__FC__TV__COMP__DT), DT, plots_params, padj_breaks, rds_file
   .dump(tag: 'barplot')
   .set{ Enrichment_results_for_plotting_barplots_2 }
 
@@ -4532,7 +4537,8 @@ process Figures__making_enrichment_barplots {
              mode: "${pub_mode}"
 
   input:
-    set key, data_type, file(res_gene_set_enrichment_rds) \
+    set key, data_type, plots_params, padj_breaks, 
+      file(res_gene_set_enrichment_rds) \
       from Enrichment_results_for_plotting_barplots_2
 
   output:
@@ -4540,48 +4546,40 @@ process Figures__making_enrichment_barplots {
       optional true into Barplots_for_merging_pdfs
 
   shell:
+    
     '''
     #!/usr/bin/env Rscript
-ssd s 
+
     library(ggplot2)
     library(grid)
     library(gridExtra)
     library(RColorBrewer)
     library(magrittr)
-
-    key       = '!{key}'
-    data_type = '!{data_type}'
-    df1       = readRDS('!{res_gene_set_enrichment_rds}')
-    chip  = eval(parse(text = '!{params.barplots__chip}'))
-    motifs  = eval(parse(text = '!{params.barplots__motifs}'))
-    func_anno  = eval(parse(text = '!{params.barplots__func_anno}'))
-    chrom_states  = eval(parse(text = '!{params.barplots__chrom_states}'))
-    genes_self  = eval(parse(text = '!{params.barplots__genes_self}'))
-    peaks_self  = eval(parse(text = '!{params.barplots__peaks_self}'))
-    
-    df_plots  = eval(parse(text = '!{params.barplots__df_plots}'))
-    
-           = "c(      'motifs', 0.05, T, 'none', F, 30, 50)"
-    barplots__func_anno    = "c(   'func_anno', 0.05, T, 'none', F, 30, 50)"
-    barplots__chrom_states = "c('chrom_states', 0.05, T, 'none', F, 30, 50)"
-    barplots__genes_self   = "c(  'genes_self', 0.05, T, 'none', F, 30, 50)"
-    barplots__peaks_self 
-    
-    df_plots  = eval(parse(text = '!{params.barplots__df_plots}'))
-    barplots__chip
+    library(data.table)
 
     source('!{projectDir}/bin/get_new_name_by_unique_character.R')
     source('!{projectDir}/bin/functions_pvalue_plots.R')
-
+    
+    key         = '!{key}'
+    data_type   = '!{data_type}'
+    df1         = readRDS('!{res_gene_set_enrichment_rds}')
+    padj_breaks = !{padj_breaks}
+    plot_params = !{plots_params}
+    
 
     # getting parameters
     if(grepl('func_anno', data_type)) data_type = 'func_anno'
-    df          = df1
-    df_p        = df_plots %>% .[.$data_type == data_type, ]
-    signed_padj = df_p$signed_padj
+    df             = df1
+    padj_threshold = plot_params[1] %>% as.numeric
+    signed_padj    = plot_params[2] %>% as.logical
+    add_var        = plot_params[3] %>% as.character
+    add_number     = plot_params[4] %>% as.logical
+    max_characters = plot_params[5] %>% as.integer
+    max_terms      = plot_params[6] %>% as.integer
+
 
     # quitting if there are no significant results to show
-    if(all(df$padj > df_plots$padj_threshold)) quit(save = 'no')
+    if(all(df$padj > padj_threshold)) quit(save = 'no')
 
     # removing the genes_id column from func_anno enrichments 
     # (for easier debugging)
@@ -4591,10 +4589,10 @@ ssd s
     df %<>% getting_padj_loglog_and_binned(data_type, signed_padj)
 
     # adding the yaxis_terms column with shortened and unique names
-    df$yaxis_terms = df$tgt %>% get_shorter_names(df_p$max_characters)
+    df$yaxis_terms = df$tgt %>% get_shorter_names(max_characters)
 
     # selecting lowest pvalues
-    df = df[seq_len(min(nrow(df), df_p$max_terms)), ]
+    df = df[seq_len(min(nrow(df), max_terms)), ]
     df$yaxis_terms %<>% factor(., levels = rev(.))
 
     bed_data_types = c('CHIP', 'chrom_states', 'peaks_self', 'genes_self')
@@ -4615,7 +4613,7 @@ ssd s
 
     point_size = scales::rescale(c(nrow(df), seq(0, 30, len = 5)), c(6, 3))[1]
     p_binned = get_plot_binned(p1, signed_padj = signed_padj, 
-                    add_var = df_p$add_var, add_number  = df_p$add_number, 
+                    add_var = add_var, add_number  = add_number, 
                     point_size  = point_size)
 
     pdf(paste0(key, '__barplot.pdf'), paper = 'a4r')
@@ -4631,8 +4629,6 @@ Merging_pdfs_channel = Merging_pdfs_channel.mix(Barplots_for_merging_pdfs
   .groupTuple(by: [0, 1]))
 
 
-
-
 process Figures__making_enrichment_heatmap {
   tag "${key}"
 
@@ -4645,8 +4641,8 @@ process Figures__making_enrichment_heatmap {
              mode: "${pub_mode}"
 
   input:
-    set key, data_type, comp_order, tv, file('*') \
-      from Enrichment_results_for_plotting_heatmaps
+    set key, data_type, plots_params, padj_breaks, filters, comp_order, 
+      tv, file('*') from Enrichment_results_for_plotting_heatmaps
 
   output:
     set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") \
@@ -4661,25 +4657,39 @@ process Figures__making_enrichment_heatmap {
     library(RColorBrewer)
     library(data.table)
 
-    key        = '!{key}'
-    comp_order = '!{comp_order}'
-    data_type  = '!{data_type}'
-
-    seed            = '!{params.heatmaps__seed}'
-    df_filter_terms = eval(parse(text = '!{params.heatmaps__df_filter_terms}'))
-    df_plots        = eval(parse(text = '!{params.heatmaps__df_plots}'))
-
     source('!{projectDir}/bin/get_new_name_by_unique_character.R')
     source('!{projectDir}/bin/get_chrom_states_names_vec.R')
     source('!{projectDir}/bin/functions_pvalue_plots.R')
     source('!{projectDir}/bin/functions_grouped_plot.R')
 
+    key         = '!{key}'
+    comp_order  = '!{comp_order}'
+    data_type   = '!{data_type}'
+    padj_breaks = !{padj_breaks}
+    plot_params = !{plots_params}
+    filters     = !{filters}
+    seed        = '!{params.heatmaps__seed}'
+
 
     # getting parameters
     if(grepl('func_anno', data_type)) data_type = 'func_anno'
-    df_p  = df_plots        %>% .[.$data_type == data_type, ]
-    df_ft = df_filter_terms %>% .[.$data_type == data_type, ]
-    signed_padj = df_p$signed_padj
+    
+    padj_threshold  = plot_params[1] %>% as.numeric
+    signed_padj     = plot_params[2] %>% as.logical
+    add_var         = plot_params[3] %>% as.character
+    add_number      = plot_params[4] %>% as.logical
+    max_characters  = plot_params[5] %>% as.integer
+    up_down_pattern = plot_params[6] %>% as.integer
+    
+    if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
+      n_shared         = filters[1] %>% as.integer
+      n_unique         = filters[2] %>% as.integer
+      n_total          = filters[3] %>% as.integer
+      threshold_type   = filters[4] %>% as.character
+      threshold_value  = filters[5] %>% as.numeric
+      remove_similar   = filters[6] %>% as.logical
+      remove_similar_n = filters[7] %>% as.integer
+    }
 
     # loading, merging and processing data
     rds_files = list.files(pattern = '*.rds')
@@ -4688,7 +4698,7 @@ process Figures__making_enrichment_heatmap {
 
     # filtering table
     if(data_type %in% c('genes_self', 'peaks_self')){
-      key1 = paste(df[1, c('ET', 'PF', 'TV')], collapse = '__')
+      key1 = paste(df[1, c('ET', 'PA', 'TV')], collapse = '__')
       df$tgt_key = sapply(strsplit(df$tgt, '__'), 
                           function(x) paste(x[c(1,2,4)], collapse = '__'))
       df %<>% .[.$tgt_key %in% key1, ]
@@ -4696,14 +4706,14 @@ process Figures__making_enrichment_heatmap {
     }
 
     ## quitting if there are no significant results to show
-    if(all(df$padj > df_p$padj_threshold)) quit(save = 'no')
+    if(all(df$padj > padj_threshold)) quit(save = 'no')
 
     # adding the comp_FC
     df$comp_FC = apply(df[, c('COMP', 'FC')], 1, paste, collapse = '_') %>% 
                  gsub('_vs_', '_', .)
 
     # ordering the x-axis comparisons
-    comp_order_levels = get_comp_order_levels(comp_order, df_p$up_down_pattern)
+    comp_order_levels = get_comp_order_levels(comp_order, up_down_pattern)
     comp_order1 = comp_order_levels %>% .[. %in% unique(df$comp_FC)]
 
     # adding the yaxis terms column
@@ -4728,7 +4738,7 @@ process Figures__making_enrichment_heatmap {
       PA = unique(df$PA)
       TV = unique(df$TV)
       df$tgt_comp_FC = paste0(tgt_COMP, '_', tgt_FC) %>% gsub('_vs_', '_', .)
-      df = subset(df, tgt_comp_FC %in% comp_FC & tgt_ET == ET & tgt_PF == PF)
+      df = subset(df, tgt_comp_FC %in% comp_FC & tgt_ET == ET & tgt_PA == PA)
       df$yaxis_terms = df$tgt_comp_FC
     }
 
@@ -4741,11 +4751,11 @@ process Figures__making_enrichment_heatmap {
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
 
       terms_levels = select_y_axis_terms_grouped_plot(mat, 
-        n_shared = df_ft$n_shared, n_unique = df_ft$n_unique, n_total = df_ft$n_total, 
-        threshold_type = df_ft$threshold_type, 
-        threshold_value = df_ft$threshold_value, 
-        remove_similar = df_ft$remove_similar, 
-        remove_similar_n = df_ft$remove_similar_n, seed = seed)
+        n_shared = n_shared, n_unique = n_unique, n_total = n_total, 
+        threshold_type = threshold_type, 
+        threshold_value = threshold_value, 
+        remove_similar = remove_similar, 
+        remove_similar_n = remove_similar_n, seed = seed)
 
     }
 
@@ -4761,7 +4771,7 @@ process Figures__making_enrichment_heatmap {
     nrows = nrow(mat_final) ; ncols = ncol(mat_final)
 
     # shortening the long terms names while keeping them unique
-    rownames(mat_final) %<>% get_shorter_names(df_p$max_characters)
+    rownames(mat_final) %<>% get_shorter_names(max_characters)
 
     # creating a data.frame with row and column indexes for plotting
     df_final = add_matrix_indexes_to_df(mat_final, df, nrows, 
@@ -4771,8 +4781,8 @@ process Figures__making_enrichment_heatmap {
     p1 = getting_heatmap_base(df_final, nrows, ncols, title = key, 
       cur_mat = mat_final)
     point_size = scales::rescale(c(nrows, seq(0, 40, len = 5)), c(3, 0.8))[1]
-    p_binned = get_plot_binned(p1, signed_padj = signed_padj, df_p$add_var, 
-      df_p$add_number, point_size = point_size)
+    p_binned = get_plot_binned(p1, signed_padj = signed_padj, add_var, 
+      add_number, point_size = point_size)
 
     pdf(paste0(key, '__heatmap.pdf'))
       print(p_binned)
