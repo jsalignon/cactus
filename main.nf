@@ -4506,10 +4506,13 @@ Enrichment_results_for_plotting
   .groupTuple(by: [0, 1, 2, 3])
   // format: key, DT, comp_order, TV, rds_files
   .filter{ it[4].size() > 1 }
-  // .map{ it[0, 1, 2, 4] }
-  .map{ [ it[0], it[1], params.heatmaps_params[it[1]], 
-            params.padj_breaks[it[1]], params.heatmaps_filter[it[1]], 
-            it[2], it[3], it[4] ] }
+  // .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|GO_(BP|CC|MF))', ''), 
+  .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|BP|CC|MF)', ''), 
+          it[2], it[3], it[4] ]  }
+  // format: key (ET__PA__FC__TV__COMP__DT), DT, DT_short, comp_order, TV, rds_files
+  .map{ [ it[0], it[1], params.heatmaps_params[it[2]], 
+            params.padj_breaks[it[2]], params.heatmaps_filter[it[2]], 
+            it[3], it[4], it[5] ] }
   // format: key, DT, plots_params, padj_breaks, filters, comp_order, TV, rds_files
   .dump(tag:'heatmap')
   .set{ Enrichment_results_for_plotting_heatmaps }
@@ -4521,9 +4524,12 @@ Enrichment_results_for_plotting_barplots_1
   // format: key (ET__PA__FC__TV__COMP__DT), rds_file
   .map{ [ it[0], it[0].split('__')[5], it[1] ]  }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file
-  .map{ [ it[0], it[1], params.barplots_params[it[1]], params.padj_breaks[it[1]], it[2]]}
-  // format: key (ET__PA__FC__TV__COMP__DT), DT, plots_params, padj_breaks, rds_file
+  // .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|GO_(BP|CC|MF))', ''), it[2] ]  }
+  .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|BP|CC|MF)', ''), it[2] ]  }
+  // format: key (ET__PA__FC__TV__COMP__DT), DT, DT_short, rds_file
   .dump(tag: 'barplot')
+  .map{ [ it[0], it[1], params.barplots_params[it[2]], params.padj_breaks[it[2]], it[3]]}
+  // format: key (ET__PA__FC__TV__COMP__DT), DT, plots_params, padj_breaks, rds_file
   .set{ Enrichment_results_for_plotting_barplots_2 }
 
 
