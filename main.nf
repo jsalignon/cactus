@@ -4550,6 +4550,7 @@ process Figures__making_enrichment_barplots {
     '''
     #!/usr/bin/env Rscript
 
+
     library(ggplot2)
     library(grid)
     library(gridExtra)
@@ -4652,6 +4653,7 @@ process Figures__making_enrichment_heatmap {
     '''
     #!/usr/bin/env Rscript
 
+
     library(magrittr)
     library(ggplot2)
     library(RColorBrewer)
@@ -4679,7 +4681,7 @@ process Figures__making_enrichment_heatmap {
     add_var         = plot_params[3] %>% as.character
     add_number      = plot_params[4] %>% as.logical
     max_characters  = plot_params[5] %>% as.integer
-    up_down_pattern = plot_params[6] %>% as.integer
+    up_down_pattern = plot_params[6] %>% as.character
     
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
       n_shared         = filters[1] %>% as.integer

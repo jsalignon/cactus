@@ -7,9 +7,9 @@ prepro_dir="preprocessing/${species}"
 source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 
 
-# run.yml
-cat > ${species}/parameters/run.yml << EOL
-res_dir                   : 'results/test_human'
+# full_test.yml
+cat > ${species}/parameters/full_test.yml << EOL
+res_dir                   : 'results/full_test'
 species                    : 'human'
 chromatin_state           : 'ENCFF941SVR'
 chip_ontology             : 'cell_type.fibroblast'
@@ -71,10 +71,10 @@ EOL
 # genes_to_remove.tsv
 touch ${species}/design/genes_to_remove.tsv
 
-# run__no_enrich.yml
-yml_file="${species}/parameters/run__no_enrich.yml"
-cp ${species}/parameters/run.yml $yml_file
-sed -i 's/test_human/test_human__no_enrich/g' $yml_file
+# no_enrich.yml
+yml_file="${species}/parameters/no_enrich.yml"
+cp ${species}/parameters/full_test.yml $yml_file
+sed -i 's/full_test/no_enrich/g' $yml_file
 cat >> $yml_file << EOL
 disable_all_enrichments   : true
 EOL

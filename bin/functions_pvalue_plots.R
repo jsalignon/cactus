@@ -27,7 +27,7 @@ get_plot_binned <- function(p1, signed_padj = F, add_var_to_plot = 'none', add_n
   col_bars_enriched = col_bars[1:6]
 
   if(!signed_padj) col_bars = col_bars_enriched
-  p_binned = p1 + aes(fill = padj_binned) + scale_fill_manual(values = col_bars, drop = F)
+  p_binned = p1 + aes(fill = padj_binned) + scale_fill_manual(values = col_bars, drop = F, name = '-log10(FDR)')
   
   col_points = RColorBrewer::brewer.pal(11, 'BrBG')
   col_points_depleted = col_points[1:6]
