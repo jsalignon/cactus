@@ -30,7 +30,7 @@ Adjusted p-values are signed with positive values for enrichment and negative va
 Finally, it is possible to add additional colored point to the top of the bars that represent different values (*params.barplots__add_var*) and to add the overlap count (*params.barplots__add_number*).
 
 ### Parameters
-- **_params.barplots_params_**: A groovy map that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The parameters are in order:
+- **_params.barplots_params_**: A groovy map that contains parameters to be used for each enrichment category. The parameters are in order:
     - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
     
     - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
@@ -52,6 +52,19 @@ barplots_params = [
   chrom_states: "c( 0.05, T, 'none', F, 50, 30 )",
   CHIP:         "c( 0.05, T, 'none', F, 50, 30 )",
   motifs:       "c( 0.05, T, 'none', F, 50, 30 )"
+]
+```
+
+- **_params.padj_breaks_**: A groovy map that contains the cutoff for the adjusted p-value bins for each enrichment category. 
+Default values:
+```
+padj_breaks = [
+  genes_self:   "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+  peaks_self:   "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+  func_anno:    "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+  chrom_states: "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+  CHIP:         "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+  motifs:       "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )"
 ]
 ```
 
@@ -109,7 +122,7 @@ Cells are colored with signed and binned adjusted pvalues as described in the [p
 
 ### Parameters
 - **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
-- **_params.heatmaps_params_**: A groovy map that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The parameters are in order:
+- **_params.heatmaps_params_**: A groovy map that contains parameters to be used for each enrichment category. The parameters are in order:
 
     - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
     
@@ -163,6 +176,8 @@ heatmaps_filter = [
   motifs:       "c( 6, 20, 26, 'fixed', 0.05, F, 2)"
 ]
 ```
+
+- **_params.padj_breaks_**: same argument as in the [previous process](/docs/6_Enrich/Figures.md#Figures__making_enrichment_barplots).
 
 ### Outputs
 - `Figures_Individual/3_Enrichment/Heatmaps__${EC}/${key}__heatmap.pdf` 
