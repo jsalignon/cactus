@@ -121,7 +121,7 @@ process get_homer_data {
 
 	publishDir path: "${species}/homer_data", mode: 'link'
 	input:
-		set species, specie_code from Assembly_nickname_1.homer
+		set species, species_code from Assembly_nickname_1.homer
 
 	output:
 		file('*')
@@ -130,14 +130,14 @@ process get_homer_data {
 	'''
 		
 		species='!{species}'
-		specie_code='!{specie_code}'
+		species_code='!{species_code}'
 		homer_genomes_version='!{homer_genomes_version}'
 		homer_organisms_version='!{homer_organisms_version}'
 		homer_promoters_version='!{homer_promoters_version}'
 		
 		URL=http://homer.ucsd.edu/homer/data
 		
-		wget -nc $URL/genomes/${specie_code}.v${homer_genomes_version}.zip
+		wget -nc $URL/genomes/${species_code}.v${homer_genomes_version}.zip
 		wget -nc $URL/organisms/${species}.v${homer_organisms_version}.zip
 		wget -nc $URL/promoters/${species}.v${homer_promoters_version}.zip
 		
@@ -246,7 +246,7 @@ process split_pwms {
 	publishDir path: "${species}/homer_data", mode: 'link'
 
 	input:
-		set species, specie_long, file(dt_cisbp_encode_rds) from cisbp_motifs_all_species_1
+		set species, species_long, file(dt_cisbp_encode_rds) from cisbp_motifs_all_species_1
 
 	output:
 		file('homer_motifs.txt')
@@ -258,10 +258,10 @@ process split_pwms {
 		library(data.table)
 		
 		dt_cisbp_encode = readRDS('!{dt_cisbp_encode_rds}')
-		specie_long = '!{specie_long}'
+		species_long = '!{species_long}'
 		
-		specie_long_1 = paste0(toupper(substr(specie_long, 1, 1)), substr(specie_long, 2, nchar(specie_long)))
-		dt_cisbp = dt_cisbp_encode[TF_Species == specie_long_1]
+		species_long_1 = paste0(toupper(substr(species_long, 1, 1)), substr(species_long, 2, nchar(species_long)))
+		dt_cisbp = dt_cisbp_encode[TF_Species == species_long_1]
 		
 		sink('homer_motifs.txt')
 		
@@ -351,7 +351,7 @@ process get_blacklisted_regions {
 	publishDir path: "${species}/genome/annotation", mode: 'link'
 
 	input:
-		set species, specie_code, ncbi_code from Assembly_nickname_1.blacklist
+		set species, species_code, ncbi_code from Assembly_nickname_1.blacklist
 
 	output:
 		file("blacklisted_regions.bed")
@@ -359,17 +359,17 @@ process get_blacklisted_regions {
 	shell:
 	'''
 			
-		specie_code='!{specie_code}'
+		species_code='!{species_code}'
 		ncbi_code='!{ncbi_code}'
 		
 		url_blacklist="https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists"
 		url_mapping="https://raw.githubusercontent.com/dpryan79/ChromosomeMappings/master"
-		wget -O ${specie_code}_blacklist_NCBI.bed.gz $url_blacklist/${specie_code}-blacklist.v2.bed.gz
-		gunzip  ${specie_code}_blacklist_NCBI.bed.gz
+		wget -O ${species_code}_blacklist_NCBI.bed.gz $url_blacklist/${species_code}-blacklist.v2.bed.gz
+		gunzip  ${species_code}_blacklist_NCBI.bed.gz
 		
 		wget -O NCBI_to_Ensembl.txt $url_mapping/${ncbi_code}_UCSC2ensembl.txt
 		
-		cvbio UpdateContigNames -i ${specie_code}_blacklist_NCBI.bed -o blacklisted_regions.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
+		cvbio UpdateContigNames -i ${species_code}_blacklist_NCBI.bed -o blacklisted_regions.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
 		
 	'''
 }
@@ -425,7 +425,7 @@ process get_chip_metadata {
 	'''
 		#!/usr/bin/env Rscript
 		
-		source('!{params.cactus_dir}/software/get_data/bin/encode_chip_functions.R')
+		source('!{params.bin_dir}/encode_chip_functions.R')
 		assembly = '!{assembly}'
 		
 		library(data.table)
@@ -646,8 +646,8 @@ process make_chip_ontology_groups {
 		
 		species = '!{species}'
 		dt1 = readRDS('!{dt_encode_chip_rds}')
-		source('!{params.cactus_dir}/software/get_data/bin/make_chip_ontology_groups_functions.R')
-		source('!{params.cactus_dir}/software/get_data/bin/get_tab.R')
+		source('!{params.bin_dir}/make_chip_ontology_groups_functions.R')
+		source('!{params.bin_dir}/get_tab.R')
 		
 		dt = copy(dt1)
 		dt$local_file %<>% gsub('.gz', '', ., fixed = T)
@@ -726,7 +726,7 @@ process get_encode_chromatin_state_metadata {
 	'''
 		#!/usr/bin/env Rscript
 		
-		source('!{params.cactus_dir}/software/get_data/bin/encode_chip_functions.R')
+		source('!{params.bin_dir}/encode_chip_functions.R')
 		assembly = '!{assembly}'
 		
 		library(data.table)
@@ -851,7 +851,7 @@ process get_encode_chromatin_state_data {
 		library(magrittr)
 		library(data.table)
 		dt = readRDS('!{dt_rds}')
-		source('!{params.cactus_dir}/software/get_data/bin/get_tab.R')
+		source('!{params.bin_dir}/get_tab.R')
 		
 		# downloading the bed file
 		url_encode = 'https://www.encodeproject.org'
@@ -987,6 +987,8 @@ HiHMM_chromatin_states
 
 process get_hihmm_chromatin_state_data_part_1 {
 	tag "${species}"
+	
+	label "ubuntu"
 	
 	// No containers for the process as of now since I couldn't get one that works (and that is downloaded directly from within nextflow. This may be an issue with the outdated version of Singularity that is installed on my server)
 	// container = "kernsuite-debian/singularity-container"
@@ -1188,7 +1190,7 @@ process get_fasta_and_gff {
   }
 
 	input:
-		set species, specie_long, genome, assembly, release from Ensembl_Assembly_1.fasta
+		set species, species_long, genome, assembly, release from Ensembl_Assembly_1.fasta
 
 	output:
 		set species, file('annotation.gff3'), file('genome.fa') into (Genome_and_annotation, Genome_and_annotation_1, Genome_and_annotation_2, Genome_and_annotation_3)
@@ -1197,24 +1199,24 @@ process get_fasta_and_gff {
 	shell:
 	'''
 	
-	source !{params.cactus_dir}/software/get_data/bin/check_checksum_ensembl.sh
+	source !{params.bin_dir}/check_checksum_ensembl.sh
 	species='!{species}'
-	specie_long='!{specie_long}'
+	species_long='!{species_long}'
 	genome='!{genome}'
 	assembly='!{assembly}'
 	release='!{release}'
 	
 	base_url=ftp://ftp.ensembl.org/pub/release-$release
 	
-	gff3_file=${specie_long^}.$genome.$release.gff3.gz
-	fasta_file=${specie_long^}.$genome.dna_sm.$assembly.fa.gz
+	gff3_file=${species_long^}.$genome.$release.gff3.gz
+	fasta_file=${species_long^}.$genome.dna_sm.$assembly.fa.gz
 	
-	url_anno=$base_url/gff3/$specie_long
+	url_anno=$base_url/gff3/$species_long
 	wget -O annotation.gff3.gz $url_anno/$gff3_file 
 	wget -O checksums_anno $url_anno/CHECKSUMS
 	check_checksum_and_gunzip annotation.gff3.gz $gff3_file checksums_anno
 	
-	url_fasta=$base_url/fasta/$specie_long/dna
+	url_fasta=$base_url/fasta/$species_long/dna
 	wget -O genome.fa.gz $url_fasta/$fasta_file 
 	wget -O checksums_fasta $url_fasta/CHECKSUMS
 	check_checksum_and_gunzip genome.fa.gz $fasta_file checksums_fasta
@@ -1347,7 +1349,7 @@ process filtering_annotation_file {
   '''
 			
 			gff3=!{gff3}
-			source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
+			source !{params.bin_dir}/get_tab.sh
 		
 			tab=$(get_tab)
 		
@@ -1405,7 +1407,7 @@ process filtering_annotation_file {
 // fly: 2110000*
 // human: GL000*, KI270*
 
-// source !{params.cactus_dir}/software/get_data/bin/get_tab.sh
+// source !{params.bin_dir}/get_tab.sh
 
 process get_bed_files_of_annotated_regions {
 	tag "${species}"
@@ -1484,7 +1486,7 @@ process get_bed_files_of_annotated_regions {
 // EOL
 
 
-// cat '!{params.cactus_dir}/software/get_data/bin/get_tab.sh'
+// cat '!{params.bin_dir}/get_tab.sh'
 
 
 // https://www.biostars.org/p/112251/#314840 => get intergenic, exons and introns .bed
@@ -1636,10 +1638,10 @@ process getting_orgdb {
   publishDir path: "${species}/genome/annotation/R", mode: 'link'
 
   input:
-		set species, specie_long from Ensembl_Assembly_1.orgdb
+		set species, species_long from Ensembl_Assembly_1.orgdb
 
   output:
-    set species, specie_long, file('orgdb.sqlite') into Orgdb_for_annotation
+    set species, species_long, file('orgdb.sqlite') into Orgdb_for_annotation
 
   shell:
   '''
@@ -1647,14 +1649,14 @@ process getting_orgdb {
 		
 		library(AnnotationHub)
 		species = '!{species}'
-		specie_long = '!{specie_long}'
+		species_long = '!{species_long}'
 		ncbi_orgdb_version = '!{ncbi_orgdb_version}'
 		annotationhub_cache = '!{params.annotationhub_cache}'
 		
-		specie_initial =  sapply(strsplit(specie_long, '_')[[1]], substr, 1, 1) %>% {paste0(toupper(.[1]), .[2])}
+		species_initial =  sapply(strsplit(species_long, '_')[[1]], substr, 1, 1) %>% {paste0(toupper(.[1]), .[2])}
 		
 		ah = AnnotationHub(cache = annotationhub_cache)
-		pattern = paste0('ncbi/standard/', ncbi_orgdb_version, '/org.', specie_initial, '.eg.db.sqlite')
+		pattern = paste0('ncbi/standard/', ncbi_orgdb_version, '/org.', species_initial, '.eg.db.sqlite')
 		orgdb = query(ah, pattern)[[1]]
 		AnnotationDbi::saveDb(orgdb, 'orgdb.sqlite')
 		
@@ -1677,7 +1679,7 @@ process getting_R_annotation_files {
   publishDir path: "${species}/genome/annotation/R", mode: 'link'
 
   input:
-		set species, specie_long, orgdb, file(chr_size), file(gff3_raw), file(gff3_genes_only), file(gff3_filtered_regions_and_pseudogenes) from GFF3_filtered_for_R_1
+		set species, species_long, orgdb, file(chr_size), file(gff3_raw), file(gff3_genes_only), file(gff3_filtered_regions_and_pseudogenes) from GFF3_filtered_for_R_1
 
   output:
     file('*')
@@ -1697,7 +1699,7 @@ process getting_R_annotation_files {
 		species = '!{species}'
 		orgdb = AnnotationDbi::loadDb('!{orgdb}')
 		df_chr_size = read.table('!{chr_size}', sep = '\t')
-		specie_long = '!{specie_long}'
+		species_long = '!{species_long}'
 		
 
 		# exporting annotation dataframe
@@ -1712,7 +1714,7 @@ process getting_R_annotation_files {
 		
 		# creating the seqinfo object
 		nr = nrow(df_chr_size)
-		seqinfo = GenomeInfoDb::Seqinfo(seqnames = df_chr_size[,1], seqlengths = df_chr_size[,2], isCircular = rep(F, nr) , genome = rep(specie_long, nr))
+		seqinfo = GenomeInfoDb::Seqinfo(seqnames = df_chr_size[,1], seqlengths = df_chr_size[,2], isCircular = rep(F, nr) , genome = rep(species_long, nr))
 		saveRDS(seqinfo, 'seqinfo.rds')
 		
 		# exporting txdb
@@ -1746,10 +1748,10 @@ process getting_R_annotation_files {
 
 		# exporting kegg data
 		library(clusterProfiler)
-		specie_split = strsplit(specie_long, '_')[[1]]
-		kegg_code = paste0(substr(specie_split[[1]], 1, 1), substr(specie_split[[2]], 1, 2))
+		species_split = strsplit(species_long, '_')[[1]]
+		kegg_code = paste0(substr(species_split[[1]], 1, 1), substr(species_split[[2]], 1, 2))
 		options(clusterProfiler.download.method = 'wget')
-		kegg_environment = clusterProfiler:::prepare_KEGG('cel', 'KEGG', "ncbi-geneid")
+		kegg_environment = clusterProfiler:::prepare_KEGG(kegg_code, 'KEGG', "ncbi-geneid")
 		saveRDS(kegg_environment, 'kegg_environment.rds')
 		
 		
@@ -1902,7 +1904,7 @@ process getting_R_annotation_files {
 
 // library(biomaRt)
 
-// specie_initial = paste(sapply(strsplit(tolower(species), '_')[[1]], function(x) substr(x, 1,1)), collapse = '')
+// species_initial = paste(sapply(strsplit(tolower(species), '_')[[1]], function(x) substr(x, 1,1)), collapse = '')
 
 
 // dataset = switch(species, 
