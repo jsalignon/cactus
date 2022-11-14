@@ -25,9 +25,9 @@ This process produces a barplot showing the most significant results for the inp
 Target names are shortened and duplicate entries are removed. The top n most significant entries are kept. 
 The figure made shows on the x-axis the size of the overlap and the term name on the y axis. Entries are sorted by adjusted pvalues (descending order) and overlap of DA results (ascending order). The x-axis title indicates the total number of entries in the subset (all DA entries), and for the genomic regions subsets (i.e. from bed files) the number of entries in the background (all NDA entries).  
 
-Adjusted p-values are signed with positive values for enrichment and negative values for depletion. The signed and binned adjusted p-values are cut into 11 bins, with these cutting points (and their signed negative values): 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0. On the figure, enrichments are depicted in green and deplection are in purple.  
+Adjusted p-values are signed with positive values for enrichment and negative values for depletion. The signed and binned adjusted p-values are cut into 11 bins by using 5 adjusted p-values cuttoff and their signed negative values in a log10 scale. On figures, enrichments are depicted in green and deplections are in purple.  
 
-Finally, it is possible to add additional colored point to the top of the bars that represent different values (*params.barplots__add_var*) and to add the overlap count (*params.barplots__add_number*).
+Finally, it is possible to add additional colored point to the top of the bars that represent different values (*params.barplots__add_var*) and to write the overlap count (*params.barplots__add_number*).
 
 ### Parameters
 - **_params.barplots_params_**: A groovy map that contains parameters to be used for each enrichment category. The parameters are in order:
