@@ -15,7 +15,7 @@ examples_dir_xlsx="docs/examples/xlsx"
 run_path="test_datasets/worm/results/test_worm__no_rtr/Figures_Individual"
 cp $run_path/2_Differential_Abundance/ATAC__volcano/hmg4_vs_spt16__ATAC_volcano.pdf $examples_dir_pdf/hmg4_vs_spt16__ATAC_volcano__no_rtr.pdf 
 
-run_path="test_datasets/worm/results/test_worm/Figures_Individual"
+run_path="test_datasets/worm/results/full_test/Figures_Individual"
 find $run_path -name "*ctl_1*.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "*hmg4_vs_ctl_*_volcano.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "*hmg4_vs_ctl_*_PCA_*.pdf" -exec cp "{}" $examples_dir_pdf \;
@@ -33,10 +33,10 @@ find $run_path -name "ATAC__all__down__1000__hmg4_vs_ctl__*.pdf" -exec cp "{}" $
 find $run_path -name "ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 
-# run_path_tab="test_datasets/worm/results/test_worm/Tables_Individual"
+# run_path_tab="test_datasets/worm/results/full_test/Tables_Individual"
 # find $run_path_tab -name "hmg4_vs_ctl*.xlsx" -exec cp "{}" $examples_dir_xlsx \;
 
-run_path_tab="test_datasets/worm/results/test_worm/Tables_Merged"
+run_path_tab="test_datasets/worm/results/full_test/Tables_Merged"
 find $run_path_tab -name "*.xlsx" -exec cp "{}" $examples_dir_xlsx \;
 
 run_path_no_gtr="test_datasets/fly/results/test_fly__no_gtr/Figures_Individual"
