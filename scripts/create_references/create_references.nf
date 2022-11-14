@@ -988,15 +988,7 @@ HiHMM_chromatin_states
 process get_hihmm_chromatin_state_data_part_1 {
 	tag "${species}"
 	
-	label "ubuntu"
-	
-	// No containers for the process as of now since I couldn't get one that works (and that is downloaded directly from within nextflow. This may be an issue with the outdated version of Singularity that is installed on my server)
-	// container = "kernsuite-debian/singularity-container"
-	// container = "kernsuite-debian/singularity-container"
-	// container = "${params.depot_galaxy}/ucsc_tools:357--0"
-	// label "bioconductor"
-	// container = 'ubuntu/library/ubuntu/22.10'
-	// container = 'debian/stable-slim.sif'
+	// label "ubuntu"
 
 	input:
 		set species, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
