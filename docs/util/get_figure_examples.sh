@@ -1,7 +1,10 @@
 
-cactus='workspace/cactus'
+homedir=~
+eval homedir=$homedir
+cactus="$homedir/workspace/cactus"
 
 cd $cactus
+
 
 examples_dir_pdf="docs/examples/pdf"
 examples_dir_png="docs/examples/png"
@@ -46,9 +49,9 @@ cp $run_path_no_gtr/2_Differential_Abundance/mRNA__volcano/b170_vs_n301b170__mRN
 
 cd $examples_dir_pdf
 
-# for FILE in $(ls *.pdf) 
 # for FILE in $(ls ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.pdf) 
-for FILE in $(ls mRNA_volcano*.pdf) 
+# for FILE in $(ls mRNA_volcano*.pdf) 
+for FILE in $(ls *.pdf) 
 do
   echo $FILE
   file_name=$(basename $FILE .pdf)
