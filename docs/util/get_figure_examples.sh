@@ -18,9 +18,9 @@ find $run_path -name "*hmg4_vs_ctl_*_volcano.pdf" -exec cp "{}" $examples_dir_pd
 find $run_path -name "*hmg4_vs_ctl_*_PCA_*.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "*hmg4_vs_ctl_*other_plots.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "spearman_correlation_heatmap_without_outliers_without_control_cor.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_path -name "ATAC__peaks__annotation_barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_path -name "ATAC__peaks__average_profile.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_path -name "ATAC__peaks__distance_to_TSS.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__peaks__grouped__annotation_barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__peaks__grouped__average_profile.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_path -name "ATAC__peaks__grouped__distance_to_TSS.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "pca_top5000_without_control_pca.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_path -name "ATAC__multiQC.html" -exec cp "{}" $examples_dir_html \;
 find $run_path -name "mRNA__multiQC.html" -exec cp "{}" $examples_dir_html \;

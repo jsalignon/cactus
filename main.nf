@@ -2122,15 +2122,15 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
     p1 = p1 + theme(axis.text.y = element_text(size = 3.5), 
           strip.text.y = element_text(size = size_facet))
 
-    pdf('ATAC__peaks__average_profile.pdf', font = 'mono')
+    pdf('ATAC__peaks__grouped__average_profile.pdf', font = 'mono')
       print(p1)
     dev.off()
 
-    pdf('ATAC__peaks__annotation_barplot.pdf')
+    pdf('ATAC__peaks__grouped___annotation_barplot.pdf')
       plotAnnoBar(annotated_peaks_list)
     dev.off()
 
-    pdf('ATAC__peaks__distance_to_TSS.pdf')
+    pdf('ATAC__peaks__grouped___distance_to_TSS.pdf')
       plotDistToTSS(annotated_peaks_list)
     dev.off()
 

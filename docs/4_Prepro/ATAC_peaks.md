@@ -176,14 +176,14 @@ Using ChIPseeker and ggplot2 to plot coverage and average profile around TSS for
 - **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 
 ### Outputs
-- **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: `ATAC__peaks__average_profile.pdf`
-<img src="/docs/examples/png/ATAC__peaks__average_profile.png" width="400" />  
+- **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: `ATAC__peaks__grouped__average_profile.pdf`
+<img src="/docs/examples/png/ATAC__peaks__grouped__average_profile.png" width="400" />  
 
-- **[Annotation barplots](https://rdrr.io/bioc/ChIPseeker/man/plotAnnoBar.data.frame.html)**: `ATAC__peaks__annotation_barplot.pdf`
-<img src="/docs/examples/png/ATAC__peaks__annotation_barplot.png" width="400" />  
+- **[Annotation barplots](https://rdrr.io/bioc/ChIPseeker/man/plotAnnoBar.data.frame.html)**: `ATAC__peaks__grouped__annotation_barplot.pdf`
+<img src="/docs/examples/png/ATAC__peaks__grouped__annotation_barplot.png" width="400" />  
 
-- **[Distance to TSS](https://rdrr.io/bioc/ChIPseeker/man/plotDistToTSS.data.frame.html)**: `ATAC__peaks__distance_to_TSS.pdf`.
-<img src="/docs/examples/png/ATAC__peaks__distance_to_TSS.png" width="400" />  
+- **[Distance to TSS](https://rdrr.io/bioc/ChIPseeker/man/plotDistToTSS.data.frame.html)**: `ATAC__peaks__grouped__distance_to_TSS.pdf`.
+<img src="/docs/examples/png/ATAC__peaks__grouped__distance_to_TSS.png" width="400" />  
 
 ### Output folders
 - `Figures_Individual/1_Preprocessing/ATAC__peaks__grouped_plots`.
