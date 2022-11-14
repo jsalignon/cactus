@@ -55,16 +55,16 @@ barplots_params = [
 ]
 ```
 
-- **_params.padj_breaks_**: A groovy map that contains the cutoff for the adjusted p-value bins for each enrichment category. 
+- **_params.padj_breaks_**: A groovy map that contains 5 adjusted p-value cutoff for each enrichment category. 
 Default values:
 ```
 padj_breaks = [
-  genes_self:   "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-  peaks_self:   "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-  func_anno:    "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-  chrom_states: "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-  CHIP:         "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-  motifs:       "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )"
+  genes_self:   "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  peaks_self:   "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  func_anno:    "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  chrom_states: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  CHIP:         "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  motifs:       "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )"
 ]
 ```
 
