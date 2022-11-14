@@ -107,7 +107,7 @@ This process takes as input all enrichment results for comparisons of a given gr
 
 The heatmap shows the selected terms on the y-axis and the comparisons with fold change type (`COMP_FC`) on the x-axis with this format: `${condition_1}_${condition_2}_${FC}`.  
 
-The order of the `COMP_FC` entries on the x-axis, and on the y-axis for the `peaks_self`, `genes_self` enrichment categories is defined by *comparison.tsv* input file as well as the *up_down_pattern* parameter that can be set up within the *params.heatmaps__df_plots* parameter (see next subsection below).  
+The order of the `COMP_FC` entries on the x-axis, and on the y-axis for the `peaks_self`, `genes_self` enrichment categories is defined by *comparison.tsv* input file as well as the *up_down_pattern* parameter that can be set up within the *params.heatmaps_params* parameter (see next subsection below).  
 
 The order of the terms of the `chrom_states` enrichment categories (chromatin states) is defined by the chromatin state group (as defined in the original publication).  
 
@@ -116,7 +116,7 @@ All terms are shown for the `peaks_self`, `genes_self` and `chrom_states` enrich
 For the `CHIP`, `motifs` and `func_anno` enrichment categories a function has been created to select terms of interest (see the `params.heatmaps__df_filter_terms` parameter).
 Briefly, this function first remove terms with similar names. Next, it selects the top x shared terms (significant in multiple `COMP_FC`). Then, it selects the top y terms for each `COMP_FC`. After that, the terms with the lowest pvalues accross all `COMP_FC` are selected to reach the wished number of terms. Finally, hierarchical clustering (with euclidian distance) is performed to order terms by similarity. 
 
-Cells are colored with signed and binned adjusted pvalues as described in the [previous process](/docs/6_Enrich/Figures.md#Figures__making_enrichment_barplots) and several options are available in both processes through the *heatmaps__df_plots* parameter.  
+Cells are colored with signed and binned adjusted pvalues as described in the [previous process](/docs/6_Enrich/Figures.md#Figures__making_enrichment_barplots) and several options are available in both processes through the *heatmaps_params* parameter.  
 
 >**_Note_:** The genes-self and peaks-self heatmaps are not always symmetrical. This is because the heatmaps shows the enrichment of entries from the left side into the entries on the bottom side, and thus the target (set to overlap with) and background (NDA: Not Differentially Abundant entries) are different (obs. one can look at results tables for examples on these calculations).
 
