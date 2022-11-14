@@ -19,6 +19,7 @@ gsm_to_srr worm
 gsm_to_srr human
 gsm_to_srr mouse
 gsm_to_srr fly
+cd $test_datasets_dir
 
 
 
