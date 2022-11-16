@@ -15,29 +15,6 @@ cd $cactus_dir/references
 
 rm -r work worm fly mouse human util .cache .nextflow*
 
-# creating the annotationhub cache
-mkdir -p util/annotationhub_cache
-cd util/annotationhub_cache
-singularity shell --containall --cleanenv --home ${PWD} --workdir /dev/shm $homedir/workspace/singularity_containers/depot.galaxyproject.org-singularity--bioconductor-annotationhub-3.2.0--r41hdfd78af_0.img
-R
-library(AnnotationHub)
-ah = AnnotationHub()
-yes
-quit()
-no
-exit ; exit
-cd $cactus_dir/references
-
-# if cache is corrupted, delete it so it will be rebuilt automatically
-# rm -r $cactus_dir/references/util/annotationhub_cache
-
-# # testing
-# singularity shell --containall --cleanenv --home ${PWD} --workdir /dev/shm $homedir/workspace/singularity_containers/depot.galaxyproject.org-singularity--bioconductor-annotationhub-3.2.0--r41hdfd78af_0.img
-# R
-# library(AnnotationHub)
-# annotationhub_cache = 'util/annotationhub_cache'
-# ah = AnnotationHub(cache = annotationhub_cache)
-
 nextflow run $cactus_dir/scripts/create_references/create_references.nf -profile singularity
 
 
