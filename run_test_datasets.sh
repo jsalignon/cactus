@@ -56,6 +56,9 @@ nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularit
 nextflow run jsalignon/cactus -params-file parameters/vary_rank.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533
 nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533
 
+nextflow run ${CACTUS} -params-file parameters/vary_FDR.yml -profile singularity -resume -bg
+
+
 nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533 -bg > nf_log.txt
 
 

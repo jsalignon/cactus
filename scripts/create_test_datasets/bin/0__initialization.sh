@@ -14,12 +14,12 @@
 # cd $singularity_dir
 # singularity pull https://depot.galaxyproject.org/singularity/entrez-direct:16.2--he881be0_1
 
-cd $create_test_datasets_bin_dir/../samples_ids
-gsm_to_srr worm
-gsm_to_srr human
-gsm_to_srr mouse
-gsm_to_srr fly
-cd $test_datasets_dir
+# cd $create_test_datasets_bin_dir/../samples_ids
+# gsm_to_srr worm
+# gsm_to_srr human
+# gsm_to_srr mouse
+# gsm_to_srr fly
+# cd $test_datasets_dir
 
 
 

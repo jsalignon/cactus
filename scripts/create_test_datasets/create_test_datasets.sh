@@ -64,6 +64,8 @@ source $create_test_datasets_bin_dir/0__initialization.sh
 
 species="worm" ; n_reads_atac=200 ; n_reads_mrna=50
 
+gsm_to_srr $species $samples_ids_dir $singularity_dir
+
 source $create_test_datasets_bin_dir/1__get_fastq.sh $species
 rename -v 's/SRX/mrna_SRX/' ${fastq_dir}/SRX30291{12..20}*
 rename -v 's/SRX/atac_SRX/' ${fastq_dir}/SRX30291{24..35}*
@@ -80,6 +82,8 @@ source $create_test_datasets_bin_dir/3__make_design_files__worm.sh $n_reads_atac
 
 species="fly" ; n_reads_atac=300 ; n_reads_mrna=100
 
+gsm_to_srr $species $samples_ids_dir $singularity_dir
+
 source $create_test_datasets_bin_dir/1__get_fastq.sh $species
 rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX81740{44..53}*
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX81740{34..43}*
@@ -90,19 +94,24 @@ source $create_test_datasets_bin_dir/3__make_design_files__fly.sh $n_reads_atac 
 
 
 ##############################################
-### mouse (GSE181797)
+### mouse (GSE193392)
 ##############################################
 
 species="mouse" ; n_reads_atac=6000 ; n_reads_mrna=150
 
+gsm_to_srr $species $samples_ids_dir $singularity_dir
+
 source $create_test_datasets_bin_dir/1__get_fastq.sh $species
-rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX117086{63..78}*
-rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX117086{79..90}*
+rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX136541{74..81}*
+rename -v 's/SRX/mrna_SRX/' $fastq_dir/SRX137050{91..98}*
 ls "preprocessing/${species}/fastq"
-ls "${species}/data"
 
 source $create_test_datasets_bin_dir/2__subsample_reads.sh $species $n_reads_atac $n_reads_mrna
 source $create_test_datasets_bin_dir/3__make_design_files__mouse.sh $n_reads_atac $n_reads_mrna
+
+
+# nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${species}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume  --force_sratools_download
+
 
 
 ##############################################
@@ -110,6 +119,8 @@ source $create_test_datasets_bin_dir/3__make_design_files__mouse.sh $n_reads_ata
 ##############################################
 
 species="human" ; n_reads_atac=15000 ; n_reads_mrna=250
+
+gsm_to_srr $species $samples_ids_dir $singularity_dir
 
 source $create_test_datasets_bin_dir/1__get_fastq.sh $species
 rename -v 's/SRX/atac_SRX/' $fastq_dir/SRX2794*
@@ -150,8 +161,8 @@ species="fly" ; n_reads_atac=300 ; n_reads_mrna=100
 source $create_test_datasets_bin_dir/3__make_design_files__${species}.sh $n_reads_atac $n_reads_mrna
 
 species="mouse" ; n_reads_atac=6000 ; n_reads_mrna=150
-# nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${species}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
 source $create_test_datasets_bin_dir/3__make_design_files__${species}.sh $n_reads_atac $n_reads_mrna
+# nextflow run nf-core/fetchngs --input "$samples_ids_dir/srr_accession/srr_${species}.txt" --outdir ${prepro_dir} -profile singularity -r 1.6 -resume
 
 species="human" ; n_reads_atac=15000 ; n_reads_mrna=250
 source $create_test_datasets_bin_dir/3__make_design_files__${species}.sh $n_reads_atac $n_reads_mrna

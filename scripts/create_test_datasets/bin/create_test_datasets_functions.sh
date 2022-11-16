@@ -1,14 +1,17 @@
 
 gsm_to_srr (){
   species=$1
-  my_gsm_ids="$(cat gsm_accession/gsm_$species.txt | awk '{print}' ORS=' OR ' RS='\r\n' )"
-  singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 esearch -db sra -query "$my_gsm_ids" | singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 efetch -format runinfo | cut -d ',' -f 1 - | grep -v 'Run' - > "srr_accession/srr_$species.txt"
+  samples_ids_dir=$2
+  singularity_dir=$3
+  my_gsm_ids="$(cat $samples_ids_dir/gsm_accession/gsm_$species.txt | awk '{print}' ORS=' OR ' RS='\r\n' )"
+  singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 esearch -db sra -query "$my_gsm_ids" | singularity exec $singularity_dir/entrez-direct:16.2--he881be0_1 efetch -format runinfo | cut -d ',' -f 1 - | grep -v 'Run' - > "$samples_ids_dir/srr_accession/srr_$species.txt"
 }
 
 # $1 = ${prepro_dir}   => head -3 ${prepro_dir}/samplesheet/samplesheet.csv 
 make_samples_info_file (){
   samples_info_file=${1}/samplesheet/samples_info.tsv
-  cut -d"," -f5,6,15,17,20,28 ${1}/samplesheet/samplesheet.csv | sed 's/\"//g' | sed 's/ /_/g' | awk 'BEGIN { FS = ","; OFS = "\t"} {print $2, $1, $3, $4, $5, $6}'| column -t > $samples_info_file
+  samplesheet=${1}/samplesheet/samplesheet.csv
+  cat $samplesheet | sed 's/\",\"/\|/g' | cut -d"|" -f5,6,15,17,20,28 | sed 's/,\| /_/g' | sed 's/__/_/g' | awk 'BEGIN { FS = "|"; OFS = "\t"} {print $2, $1, $3, $4, $5, $6}'| column -t > $samples_info_file
   cat $samples_info_file
 }
 

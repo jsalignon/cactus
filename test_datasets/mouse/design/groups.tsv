@@ -1,3 +1,3 @@
-all	YngKid_vs_OldKid	YngLiv_vs_OldLiv	YngKid_vs_YngLiv	OldKid_vs_OldLiv
-age	YngKid_vs_OldKid	YngLiv_vs_OldLiv
-tissue	YngKid_vs_YngLiv	OldKid_vs_OldLiv
+all	WtStarv_vs_Wt	PhfStarv_vs_Phf	PhfStarv_vs_WtStarv	Phf_vs_Wt
+Starv	WtStarv_vs_Wt	PhfStarv_vs_Phf
+Phf	Phf_vs_Wt	PhfStarv_vs_WtStarv
