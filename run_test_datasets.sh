@@ -21,6 +21,45 @@ nextflow run $cactus_dir/scripts/create_references/create_references.nf -profile
 ####################################################################
 ## test datasets
 
+# running all tests from scratch
+for species in worm fly human mouse
+do
+  cd $test_ds_dir/$species
+  rm -r work results
+  nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 47 --executor_local_memory '250G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
+done
+
+
+# running all tests from scratch
+
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 47 --executor_local_memory '250G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
+
+for species in fly human mouse
+do
+  cd $test_ds_dir/$species
+  rm -r work results
+  nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 47 --executor_local_memory '250G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
+done
+
+
+
+
+split__threshold_values
+
+cd $test_ds_dir/worm
+rm -r work results
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
+cd $test_ds_dir/fly
+rm -r work results
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
+cd $test_ds_dir/mouse
+rm -r work results
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
+cd $test_ds_dir/human
+rm -r work results
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
+
+
 # worm
 cd $test_ds_dir/worm
 nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
@@ -68,6 +107,15 @@ nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile sing
 
 ####################################################################
 ## run times
+
+
+## building references
+# Completed at: 16-Nov-2022 18:32:19
+# Duration    : 31m 16s
+# CPU hours   : 13.0 (89.3% cached)
+# Succeeded   : 19
+# Cached      : 3'666
+
 
 # # application notes: worm
 # 

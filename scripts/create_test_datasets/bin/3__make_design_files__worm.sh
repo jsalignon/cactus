@@ -10,7 +10,7 @@ source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 # full_test.yml
 cat > ${species}/parameters/full_test.yml << EOL
 res_dir                   : 'results/full_test'
-species                    : 'worm'
+species                   : 'worm'
 chromatin_state           : 'iHMM.M1K16.worm_L3'
 split__threshold_type     : 'rank' 
 split__threshold_values   : [ 200, 1000 ]
