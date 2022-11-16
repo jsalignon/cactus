@@ -1,23 +1,5 @@
 
 
-//// list of processes (not in order)
-// get_fasta_and_gff
-// get_blacklisted_regions
-// get_hihmm_chromatin_state_data_part_1
-// get_hihmm_chromatin_state_data_part_1
-// get_homer_data
-// getting_orgdb
-// get_chip_data
-// indexing_genomes
-// filtering_annotation_file
-// get_hihmm_chromatin_state_data_part_2
-// getting_chromosome_length_and_transcriptome
-// making_bowtie2_indexes
-// get_hihmm_chromatin_state_data_part_2
-// generating_kallisto_transcriptome_indexes
-// get_bed_files_of_annotated_regions
-// getting_R_annotation_files
-
 
 params.number_of_cores = 8   // how to initialize if missing?
 number_of_cores = params.number_of_cores
@@ -1302,7 +1284,7 @@ Genome_and_annotation_3
 
 
 
-process getting_transcriptome {
+process making_transcriptome {
   tag "${species}"
 
 	label "gffread"
@@ -1407,7 +1389,7 @@ process filtering_annotation_file {
 
 // source !{params.bin_dir}/get_tab.sh
 
-process getting_bed_files_of_annotated_regions {
+process making_bed_files_of_annotated_regions {
 	tag "${species}"
 
 	label "bedops"
@@ -1605,7 +1587,7 @@ process getting_bed_files_of_annotated_regions {
 
 
 
-process getting_kallisto_indexes {
+process making_kallisto_indexes {
   tag "${species}"
 
   label "kallisto"
@@ -1673,7 +1655,7 @@ Orgdb_for_annotation
 	.join(GFF3_filtered_for_R)
 	.set{GFF3_filtered_for_R_1}
 
-process getting_R_annotation_files {
+process making_R_annotation_files {
   tag "${species}"
 
   label "bioconductor"
@@ -1942,40 +1924,42 @@ process getting_R_annotation_files {
 
 
 
-process making_timestamp {
-  tag "${species}"
-
-  label "r_basic"
-
-  publishDir path: "${species}", mode: 'link'
-
-  input:
-
-  output:
-    file('timestamp.txt')
-
-  shell:
-  '''
-		
-		library(magrittr)
-		
-		wl <- function(x) writeLines(x)
-		wl1 <- function(x) writeLines(paste0(x, '\n'))
-		wl2 <- function(x) writeLines(paste0('\n', x, '\n'))
-		
-		sink('timestamp.txt')
-			
-			paste0('This reference was built on ', Sys.Date(), '.') %>% wl2
-			
-			'The version of the workflow and package manager tools used are:' %>% wl
-			
-			system('nextflow -version', intern = T) %>% wl
-			system('singularity --version', intern = T) %>% wl1
-			
-		sink()
-		
-	'''
-}
+// process making_timestamp {
+//   tag "${species}"
+// 
+//   // label "r_basic"
+// 
+//   publishDir path: "${species}", mode: 'link'
+// 
+//   input:
+// 
+//   output:
+//     file('timestamp.txt')
+// 
+//   shell:
+//   '''
+// 
+// 		source("!{params.bin_dir}/get_linebreak.R")
+// 
+// 		library(magrittr)
+// 
+// 		wl <- function(x) writeLines(x)
+// 		wl1 <- function(x) writeLines(paste0(x, get_lb()))
+// 		wl2 <- function(x) writeLines(paste0(get_lb(), x, get_lb()))
+// 
+// 		sink("timestamp.txt")
+// 
+// 			paste0("This reference was built on ", Sys.Date(), ".") %>% wl2
+// 
+// 			"The version of the workflow and package manager tools used are:" %>% wl
+// 
+// 			system("nextflow -version", intern = T) %>% wl
+// 			system("singularity --version", intern = T) %>% wl1
+// 
+// 		sink()
+// 
+// 	'''
+// }
 
 
 // on completion
