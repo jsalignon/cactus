@@ -12,7 +12,7 @@
 // filtering_annotation_file
 // get_hihmm_chromatin_state_data_part_2
 // getting_chromosome_length_and_transcriptome
-// generating_bowtie2_indexes
+// making_bowtie2_indexes
 // get_hihmm_chromatin_state_data_part_2
 // generating_kallisto_transcriptome_indexes
 // get_bed_files_of_annotated_regions
@@ -114,7 +114,7 @@ HiHMM_chromatin_states = Channel
 
 
 
-process get_homer_data {
+process getting_homer_data {
 	tag "${species}"
 
 	label "samtools_bedtools_perl"
@@ -150,7 +150,7 @@ process get_homer_data {
 
 
 
-process get_pwms {
+process getting_pwms {
 
 	label "r_basic"
 
@@ -238,7 +238,7 @@ Ensembl_Assembly_1.pwms
 	.set{ cisbp_motifs_all_species_1 }
 
 
-process split_pwms {
+process splitting_pwms {
 	tag "${species}"
 
 	label "r_basic"
@@ -343,7 +343,7 @@ process split_pwms {
 
 
 
-process get_blacklisted_regions {
+process getting_blacklisted_regions {
 	tag "${species}"
 
 	label "cvbio"
@@ -404,7 +404,7 @@ process get_blacklisted_regions {
 
 
 
-process get_chip_metadata {
+process getting_chip_metadata {
 	tag "${species}"
 
 	label "encodexplorer"
@@ -626,7 +626,7 @@ process get_chip_metadata {
 
 
 
-process make_chip_ontology_groups {
+process making_chip_ontology_groups {
 	tag "${species}"
 
 	label "encodexplorer"
@@ -684,7 +684,7 @@ process make_chip_ontology_groups {
 
 
 
-process get_chip_data {
+process getting_chip_data {
 tag "${species}"
 
 label "encodexplorer"
@@ -714,7 +714,7 @@ shell:
 }
 
 
-process get_encode_chromatin_state_metadata {
+process getting_encode_chromatin_state_metadata {
 	tag "${species}"
 
 	label "encodexplorer"
@@ -836,7 +836,7 @@ process get_encode_chromatin_state_metadata {
 
 
 
-process get_encode_chromatin_state_data {
+process getting_encode_chromatin_state_data {
 	tag "${species}, ${dt_rds}"
 
 	label "encodexplorer"
@@ -900,7 +900,7 @@ process get_encode_chromatin_state_data {
 // 
 // 
 // 
-// process get_liftover_files {
+// process getting_liftover_files {
 // 	tag "${species}/${original_assembly} to ${target_assembly}"
 // 
 // 	publishDir path: "util/liftover_files", mode: 'link'
@@ -991,9 +991,8 @@ HiHMM_chromatin_states
 
 
 
-process get_hihmm_chromatin_state_data_part_1 {
+process getting_hihmm_chromatin_state_data_part_1 {
 	tag "${species}"
-
 
 	// label "ubuntu"
 
@@ -1024,7 +1023,7 @@ process get_hihmm_chromatin_state_data_part_1 {
 }
 
 
-process get_hihmm_chromatin_state_data_part_2 {
+process getting_hihmm_chromatin_state_data_part_2 {
 	tag "${species}"
 
 	publishDir path: "${species}/chromatin_states", mode: 'link'
@@ -1068,7 +1067,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 
 
 
-// process get_hihmm_chromatin_state_data {
+// process getting_hihmm_chromatin_state_data {
 // 	publishDir path: "${species}/chromatin_states", mode: 'link'
 // 
 // 	label "liftover"
@@ -1109,7 +1108,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 
 
 
-// process get_bowtie2_indexes_for_checking_contaminations {
+// process getting_bowtie2_indexes_for_checking_contaminations {
 // 	tag "${species}"
 // 
 // 	// container = "	kernsuite-debian/singularity-container"
@@ -1141,7 +1140,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 
 
 
-process get_contamination_bowtie2 {
+process getting_contamination_bowtie2 {
 	tag "${species}"
 
 	label "bowtie2_samtools"
@@ -1177,7 +1176,7 @@ process get_contamination_bowtie2 {
 
 
 
-process get_fasta_and_gff {
+process getting_fasta_and_gff {
 	tag "${species}"
 
 	label "samtools_bedtools_perl"
@@ -1254,7 +1253,7 @@ process get_fasta_and_gff {
 
 
 
-process generating_bowtie2_indexes {
+process making_bowtie2_indexes {
   tag "${species}"
 
   label "bowtie2_samtools"
@@ -1408,7 +1407,7 @@ process filtering_annotation_file {
 
 // source !{params.bin_dir}/get_tab.sh
 
-process get_bed_files_of_annotated_regions {
+process getting_bed_files_of_annotated_regions {
 	tag "${species}"
 
 	label "bedops"
@@ -1941,6 +1940,42 @@ process getting_R_annotation_files {
 // dim(gff3_df1) # 20447
 // length(which(is.na(gff3_df1$entrez_gene_id))) # => 563 id were lost out of 20K. Not great but still reasonnable.
 
+
+
+process making_timestamp {
+  tag "${species}"
+
+  label "r_basic"
+
+  publishDir path: "${species}", mode: 'link'
+
+  input:
+
+  output:
+    file('timestamp.txt')
+
+  shell:
+  '''
+		
+		library(magrittr)
+		
+		wl <- function(x) writeLines(x)
+		wl1 <- function(x) writeLines(paste0(x, '\n'))
+		wl2 <- function(x) writeLines(paste0('\n', x, '\n'))
+		
+		sink('timestamp.txt')
+			
+			paste0('This reference was built on ', Sys.Date(), '.') %>% wl2
+			
+			'The version of the workflow and package manager tools used are:' %>% wl
+			
+			system('nextflow -version', intern = T) %>% wl
+			system('singularity --version', intern = T) %>% wl1
+			
+		sink()
+		
+	'''
+}
 
 
 // on completion
