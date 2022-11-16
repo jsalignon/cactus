@@ -128,23 +128,23 @@ process get_homer_data {
 
 	shell:
 	'''
-		
+
 		species='!{species}'
 		species_code='!{species_code}'
 		homer_genomes_version='!{homer_genomes_version}'
 		homer_organisms_version='!{homer_organisms_version}'
 		homer_promoters_version='!{homer_promoters_version}'
-		
+
 		URL=http://homer.ucsd.edu/homer/data
-		
+
 		wget -nc $URL/genomes/${species_code}.v${homer_genomes_version}.zip
 		wget -nc $URL/organisms/${species}.v${homer_organisms_version}.zip
 		wget -nc $URL/promoters/${species}.v${homer_promoters_version}.zip
-		
+
 		for z in *.zip; do unzip "$z"; done
 		mv data/* .
 		rm -r data *.zip
-		 
+
 	'''
 }
 
@@ -159,34 +159,34 @@ process get_pwms {
 	output:
 		file('dt_cisbp_encode.rds') into cisbp_motifs_all_species
 		file('*')
-	
+
 	shell:
 	'''
 		#!/usr/bin/env Rscript
-		
+
 		homer_odd_score_threshold = !{params.homer_odd_score_threshold}
-		
+
 		url="http://cisbp.ccbr.utoronto.ca/data/2.00/DataFiles/Bulk_downloads/EntireDataset"
 		f1 = 'PWMs.zip'               ; download.file(paste0(url, '/', f1), f1)
 		f1 = 'TF_Information.txt.zip' ; download.file(paste0(url, '/', f1), f1)
-		
+
 		unzip('TF_Information.txt.zip')
 		unzip('PWMs.zip')
-		
+
 		system("sed -i 's/#/|/g' TF_Information.txt")
-		
+
 		library(data.table)
 		library(magrittr)
 		library(purrr)
 		pnrow <- function(x) print(nrow(x))
-	
+
 		dt_all = fread('TF_Information.txt') %T>% pnrow # 399265
-		
+
 		encode_species = c('Caenorhabditis_elegans', 'Drosophila_melanogaster', 'Mus_musculus', 'Homo_sapiens')
 		dt_cisbp = dt_all[TF_Species %in% encode_species] %T>% pnrow # 10329
 		dt_cisbp = dt_cisbp[Motif_ID != '.'] %T>% pnrow # 8628
 		dt_cisbp = dt_cisbp[!duplicated(TF_ID)] %T>% pnrow # 2936
-		
+
 		# removing emtpy motifs
 		nrows = sapply(dt_cisbp$Motif_ID, function(x) nrow(read.table(paste0('pwms/', x, '.txt'), sep = '\t')))
 		dt_cisbp = dt_cisbp[nrows != 1] %T>% pnrow # 2779
@@ -197,10 +197,10 @@ process get_pwms {
 		dt_cisbp[, homer_threshold := log2_odd_score * homer_odd_score_threshold]
 		dt_cisbp[, consensus_sequence := sapply(motif, function(motif1) paste0(colnames(motif1)[apply(motif1, 1, function(x) which.max(x))], collapse = ''))]
 		saveRDS(dt_cisbp, 'dt_cisbp_encode.rds')
-	
-		
+
+
 	'''
-	
+
 }
 
 // # filtering the cisbp database
@@ -250,30 +250,30 @@ process split_pwms {
 
 	output:
 		file('homer_motifs.txt')
-	
+
 	shell:
 	'''
 		#!/usr/bin/env Rscript
-		
+
 		library(data.table)
-		
+
 		dt_cisbp_encode = readRDS('!{dt_cisbp_encode_rds}')
 		species_long = '!{species_long}'
-		
+
 		species_long_1 = paste0(toupper(substr(species_long, 1, 1)), substr(species_long, 2, nchar(species_long)))
 		dt_cisbp = dt_cisbp_encode[TF_Species == species_long_1]
-		
+
 		sink('homer_motifs.txt')
-		
+
 			apply(dt_cisbp, 1, function(x) {
 					cat(paste0('>', x$consensus_sequence, '\t', x$TF_Name, '\t', x$homer_threshold, '\n'))
 					cat(paste0(apply(x$motif, 1, paste0, collapse = '\t'), '\n'))
 			})
-			
+
 		sink()
-		
+
 	'''
-	
+
 }
 
 
@@ -358,19 +358,19 @@ process get_blacklisted_regions {
 
 	shell:
 	'''
-			
+
 		species_code='!{species_code}'
 		ncbi_code='!{ncbi_code}'
-		
+
 		url_blacklist="https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists"
 		url_mapping="https://raw.githubusercontent.com/dpryan79/ChromosomeMappings/master"
 		wget -O ${species_code}_blacklist_NCBI.bed.gz $url_blacklist/${species_code}-blacklist.v2.bed.gz
 		gunzip  ${species_code}_blacklist_NCBI.bed.gz
-		
+
 		wget -O NCBI_to_Ensembl.txt $url_mapping/${ncbi_code}_UCSC2ensembl.txt
-		
+
 		cvbio UpdateContigNames -i ${species_code}_blacklist_NCBI.bed -o blacklisted_regions.bed -m NCBI_to_Ensembl.txt --comment-chars '#' --columns 0 --skip-missing true
-		
+
 	'''
 }
 
@@ -407,7 +407,7 @@ process get_blacklisted_regions {
 process get_chip_metadata {
 	tag "${species}"
 
-	label "encodeexplorer"
+	label "encodexplorer"
 
 	publishDir path: "${species}", mode: 'link', saveAs: {
     if (it.equals("encode_chip_metadata.csv")) "${it}"
@@ -431,14 +431,20 @@ process get_chip_metadata {
 		library(data.table)
 		library(magrittr)
 		library(purrr)
+		library(jsonlite)
+		library(RCurl)
 		
 		url_encode = 'https://www.encodeproject.org' 
 		url_search = paste0(url_encode, '/search/?')
 		url_append = '&frame=object&format=json&limit=all'
+
 		## getting all tables
 		query_chip_files = paste0('type=File&file_format=bed&output_type=optimal+IDR+thresholded+peaks&assay_title=TF+ChIP-seq&status=released&assembly=', assembly)
 		df_chip_files = get_encode_df(query_chip_files) %T>% pnrow # 2716
-		df_experiments = get_encode_df('type=Experiment&assay_title=TF+ChIP-seq&status=released') %T>% pnrow # 4425
+		
+		query_experiments = paste0('type=Experiment&assay_title=TF+ChIP-seq&status=released&assembly=', assembly)
+		df_experiments = get_encode_df(query_experiments) %T>% pnrow # 
+		
 		df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow # 936
 		df_genes = get_encode_df('type=Gene&targets=*') %T>% pnrow # 5989
 		
@@ -623,13 +629,13 @@ process get_chip_metadata {
 process make_chip_ontology_groups {
 	tag "${species}"
 
-	label "encodeexplorer"
+	label "encodexplorer"
 
 	publishDir path: "${species}", mode: 'link', saveAs: {
     if (it.indexOf(".txt") > 0) "${it}"
 		else if (it.indexOf(".tsv") > 0) "CHIP/${it}"
   }
-	
+
 	input:
 		set species, file(dt_encode_chip_rds) from Encode_chip_metadata
 
@@ -639,40 +645,40 @@ process make_chip_ontology_groups {
 	shell:
 	'''
 		#!/usr/bin/env Rscript
-		
+
 		library(data.table)
 		library(magrittr)
 		library(purrr)
-		
+
 		species = '!{species}'
 		dt1 = readRDS('!{dt_encode_chip_rds}')
 		source('!{params.bin_dir}/make_chip_ontology_groups_functions.R')
 		source('!{params.bin_dir}/get_tab.R')
-		
+
 		dt = copy(dt1)
 		dt$local_file %<>% gsub('.gz', '', ., fixed = T)
-		
+
 		l_tissue_chip_names        = get_ontology_chip_names(dt, 'organ_slims', 'organ')
 		l_cell_type_chip_names     = get_ontology_chip_names(dt, 'cell_slims', 'cell_type')
 		l_cell_line_chip_names     = get_ontology_chip_names(dt, 'ontology', 'cell_line')
 		l_system_chip_names        = get_ontology_chip_names(dt, 'system_slims', 'system')
 		l_developmental_chip_names = get_ontology_chip_names(dt, 'developmental_slims', 'development')
 		l_all_chip_names           = list(all = dt$local_file)
-		
+
 		l_ontology_chip_names = c(l_all_chip_names, l_tissue_chip_names, l_cell_type_chip_names, l_cell_line_chip_names, l_system_chip_names, l_developmental_chip_names)
 		ontology_order = map_int(l_ontology_chip_names, length) %>% sort %>% rev %>% names
 		l_ontology_chip_names %<>% .[ontology_order]
-		
+
 		dt_n_chip_by_ontology = data.table(ontology = names(l_ontology_chip_names), number_of_chip = map_int(l_ontology_chip_names, length))
-		
+
 		sink('chip_ontology_groups_sizes.txt')
 			 print(dt_n_chip_by_ontology)
 		sink()
-		
+
 		tb = tibble::enframe(l_ontology_chip_names) %>% {tidyr::unnest(., cols = c(value))}
 		write.table(tb, file = 'chip_ontology_groups.tsv', col.names = F, row.names = F, quote = F, sep = get_tab())
-		
-		
+
+
 	'''
 }
 
@@ -681,13 +687,13 @@ process make_chip_ontology_groups {
 process get_chip_data {
 tag "${species}"
 
-label "encodeexplorer"
+label "encodexplorer"
 
 publishDir path: "${species}/CHIP", mode: 'link'
 
 input:
 	set species, file(dt_rds) from Encode_chip_split_dt
-	
+
 output:
 	file("*.bed")
 
@@ -697,13 +703,13 @@ shell:
 	library(data.table)
 	dt = readRDS('!{dt_rds}')
 	url_encode = 'https://www.encodeproject.org' 
-	
+
 	local_file = dt$local_file
 	download.file(url = paste0(url_encode, dt$href), quiet = T, destfile = local_file, method = 'curl', extra = '-L' )
 	md5sum_downloaded_files = tools::md5sum(local_file)
 	if(dt$md5sum != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
 	system(paste('gunzip', local_file))
-			
+
 '''
 }
 
@@ -711,7 +717,7 @@ shell:
 process get_encode_chromatin_state_metadata {
 	tag "${species}"
 
-	label "encodeexplorer"
+	label "encodexplorer"
 
 	publishDir path: "${species}", mode: 'link', pattern: "*.csv"
 
@@ -725,28 +731,28 @@ process get_encode_chromatin_state_metadata {
 	shell:
 	'''
 		#!/usr/bin/env Rscript
-		
+
 		source('!{params.bin_dir}/encode_chip_functions.R')
 		assembly = '!{assembly}'
-		
+
 		library(data.table)
 		library(magrittr)
 		library(purrr)
-		
+
 		url_encode = 'https://www.encodeproject.org' 
 		url_search = paste0(url_encode, '/search/?')
 		url_append = '&frame=object&format=json&limit=all'
-		
-    
+
+
     ## fetching tables
-    
+
     df_ecsm_files = get_encode_df(paste0('type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=', assembly)) %T>% pnrow
     df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow
     df_annotations = get_encode_df('type=Annotation&annotation_type=chromatin+state&status=released') %T>% pnrow
-    
-    
+
+
     ## formatting and merging tables
-    
+
 		dt_biosample_types = data.table(
 		  df_biosample_types[, c('biosample_types', 'classification', 'term_name')],
 		  cell_slims  = collapse_slims(df_biosample_types$cell_slims),
@@ -755,35 +761,35 @@ process get_encode_chromatin_state_metadata {
 		  system_slims = collapse_slims(df_biosample_types$system_slims)
 		)
     colnames(dt_biosample_types)[1] = 'biosample_ontology'
-  
+
     dt_annotation = data.table(df_annotations[, c('annotations', 'aliases', 'description', 'organism', 'relevant_timepoint', 'relevant_timepoint_units', 'relevant_life_stage')])
     dt_annotation$aliases %<>% map_chr(~ifelse(is.null(.x), NA, .x))
     dt_annotation[, alias := map_chr(aliases, ~ifelse(is.null(.x), NA, .x))]
     dt_annotation[, aliases := NULL]
     dt_annotation$organism %<>% gsub('/organisms/', '', .) %>% gsub('/', '', .)
     colnames(dt_annotation) %<>% gsub('relevant_', '', .)
-    
+
     dt = data.table(df_ecsm_files[, c('accession', 'files', 'assembly', 'md5sum', 'href', 'dataset', 'biosample_ontology', 'file_size')])
     colnames(dt)[colnames(dt) == 'dataset'] = 'annotations'
     dt = dt_biosample_types[dt, , on = 'biosample_ontology']
     dt = dt_annotation[dt, , on = 'annotations']
 		dt[, local_file := paste0(accession, '.bed.gz')]    
-	
+
 		dt = dt[, c('accession', 'assembly', 'description', 'alias', 'timepoint', 'timepoint_units', 'life_stage', 'term_name', 'classification', 'cell_slims', 'organ_slims', 'developmental_slims', 'system_slims', 'organism', 'local_file', 'href', 'md5sum', 'file_size')]
-		
+
 		if(assembly == 'mm10') dt = dt[grep('18states', dt$alias)]
-		
+
 		dt1 = dt[, 1:(ncol(dt)-4)]
 		write.csv(dt1, 'encode_chromatin_states_metadata.csv')
-		
+
 		ldt = split(dt, dt$accession)
 		walk(ldt, ~saveRDS(.x, paste0(.x$accession, '.rds')))
-		
-		
+
+
 	'''
 }
 
-	
+
 
 
 
@@ -833,7 +839,7 @@ process get_encode_chromatin_state_metadata {
 process get_encode_chromatin_state_data {
 	tag "${species}, ${dt_rds}"
 
-	label "encodeexplorer"
+	label "encodexplorer"
 
 	publishDir path: "${species}/chromatin_states", mode: 'link'
 
@@ -847,12 +853,12 @@ process get_encode_chromatin_state_data {
 	shell:
 	'''
 		#!/usr/bin/env Rscript
-		
+
 		library(magrittr)
 		library(data.table)
 		dt = readRDS('!{dt_rds}')
 		source('!{params.bin_dir}/get_tab.R')
-		
+
 		# downloading the bed file
 		url_encode = 'https://www.encodeproject.org'
 		local_file = dt$local_file
@@ -860,23 +866,23 @@ process get_encode_chromatin_state_data {
 		md5sum_downloaded_files = tools::md5sum(local_file)
 		if(dt$md5sum != md5sum_downloaded_files) stop(paste('md5 sums not equal for file', local_file))
 		system(paste('gunzip', local_file))
-		
-		
+
+
 		# splitting each state in a separate file
 		accession = dt$accession
 		bed_file = paste0(accession, '.bed')
 		df = read.table(bed_file, sep = get_tab(), stringsAsFactors = F)
 		dir.create(accession)
 		df$V4 %<>% gsub('/', '_', .)
-		
+
 		v_states = sort(unique(df[,4]))
 		for(state in v_states){
 			df1 = df[df$V4 == state, ]
 			write.table(df1, paste0(accession, '/', state, '.bed'), col.names = F, row.names = F, quote = F, sep = get_tab())
 		}
-		
+
 		file.remove(bed_file)
-		
+
 	'''
 }
 
@@ -982,12 +988,12 @@ process get_encode_chromatin_state_data {
 HiHMM_chromatin_states
 	.combine(HiHMM_liftover, by:0)
 	.set{ HiHMM_chromatin_states_1 }
-	
+
 
 
 process get_hihmm_chromatin_state_data_part_1 {
 	tag "${species}"
-	
+
 	// label "ubuntu"
 
 	input:
@@ -995,21 +1001,21 @@ process get_hihmm_chromatin_state_data_part_1 {
 
 	output:
 		set species, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_2
-		
+
 
 	shell:
 	'''
-			
+
 			bed_name="!{bed_name}"
 			species="!{species}"
-			
+
 			bed_file="${bed_name}.bed"
 			bed_file_lifted="${bed_name}_lifted.bed"
-			
+
 			hiHMM_path="http://compbio.med.harvard.edu/modencode/webpage/hihmm"
-			
+
 			wget $hiHMM_path/$bed_file
-			
+
 			if [ $species = 'worm' ]; then
 				gawk -i inplace '{print "chr"$0}' $bed_file
 			fi
@@ -1019,7 +1025,7 @@ process get_hihmm_chromatin_state_data_part_1 {
 
 process get_hihmm_chromatin_state_data_part_2 {
 	tag "${species}"
-	
+
 	publishDir path: "${species}/chromatin_states", mode: 'link'
 
 	label "liftover"
@@ -1032,7 +1038,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 
 	shell:
 	'''
-					
+
 			original_assembly="!{original_assembly}"
 			liftover_name="!{liftover_name}"
 			bed_name="!{bed_name}"
@@ -1045,7 +1051,7 @@ process get_hihmm_chromatin_state_data_part_2 {
 			mkdir $bed_name
 			awk  -v FOLDER="$bed_name" ' { print > FOLDER"/"$4".bed" }' $bed_file_lifted
 			rm $bed_name/17_Unmap.bed
-			
+
 	'''
 }
 
@@ -1151,14 +1157,14 @@ process get_contamination_bowtie2 {
 
 	shell:
 	'''
-			
+
 		wget -O genome_contamination.fa.gz https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/009/496/595/GCF_009496595.1_ASM949659v1/GCF_009496595.1_ASM949659v1_genomic.fna.gz
 		echo "fasta file: GCF_009496595.1_ASM949659v1_genomic.fna.gz" > README.txt
-		
+
 		gunzip genome_contamination.fa.gz
-		
+
 		bowtie2-build --threads !{number_of_cores} genome_contamination.fa genome_contamination
-			
+
 	'''
 }
 
@@ -1190,29 +1196,29 @@ process get_fasta_and_gff {
 
 	shell:
 	'''
-	
+
 	source !{params.bin_dir}/check_checksum_ensembl.sh
 	species='!{species}'
 	species_long='!{species_long}'
 	genome='!{genome}'
 	assembly='!{assembly}'
 	release='!{release}'
-	
+
 	base_url=ftp://ftp.ensembl.org/pub/release-$release
-	
+
 	gff3_file=${species_long^}.$genome.$release.gff3.gz
 	fasta_file=${species_long^}.$genome.dna_sm.$assembly.fa.gz
-	
+
 	url_anno=$base_url/gff3/$species_long
 	wget -O annotation.gff3.gz $url_anno/$gff3_file 
 	wget -O checksums_anno $url_anno/CHECKSUMS
 	check_checksum_and_gunzip annotation.gff3.gz $gff3_file checksums_anno
-	
+
 	url_fasta=$base_url/fasta/$species_long/dna
 	wget -O genome.fa.gz $url_fasta/$fasta_file 
 	wget -O checksums_fasta $url_fasta/CHECKSUMS
 	check_checksum_and_gunzip genome.fa.gz $fasta_file checksums_fasta
-		
+
 	'''
 }
 
@@ -1302,18 +1308,18 @@ process getting_transcriptome {
 	label "gffread"
 
 	publishDir path: "${species}/genome/sequence", mode: 'link'
-		
+
   input:
     set species, file(gff3), file(fasta), file(fasta_indexes) from Fasta_fai_gff3
 
   output:
 		set species, file('transcriptome.fa') into Transcriptome_for_building_kallisto_indexes
-		
+
   shell:
   '''
-			
+
       gffread -C !{gff3} -g !{fasta} -w transcriptome.fa
-			
+
   '''
 
 }
@@ -1329,28 +1335,28 @@ process filtering_annotation_file {
 	label "ubuntu"
 
 	publishDir path: "${species}/genome/annotation/filtered", mode: 'link'
-		
+
   input:
     set species, file(gff3) from Gff3_annotation_for_filtering
 
   output:
 		set species, file('chromosomes_sizes.txt'), file(gff3), file('protein_coding_genes.gff3'), file('annotation_filtered_regions_and_pseudogenes.gff3') into GFF3_filtered_for_R
 		file("*.txt")
-		
+
   shell:
   '''
-			
+
 			gff3=!{gff3}
 			source !{params.bin_dir}/get_tab.sh
-		
+
 			tab=$(get_tab)
-		
+
 			gff3_filtered=annotation_filtered_regions_and_pseudogenes.gff3
 			# savings statistics on the unfiltered annotation file
 			cut -f1 ${gff3} | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region__raw_gff3_file.txt
 			awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene"){print $1}}' ${gff3} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__raw_gff3_file.txt 
 			cut -f3 ${gff3} | sort | uniq -c | sort -nr | grep -v "#" > nb_of_feature_by_feature_type__raw_gff3_file.txt
-			
+
 			# keeping only regions (contigs and chromosomes) with at least 5 genes, excluding the mitochondrial chromosome and removing all genes that are not encoding for proteins
 			regions_to_keep=$(awk -v OFS="$tab" '{if($1 > 4) print $2}' nb_of_genes_by_region__raw_gff3_file.txt | sort | paste -sd ' ')
 			awk -v FS="$tab" -v OFS="$tab" -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && ($3 == "gene" || $3 !~ "gene")) print}}' ${gff3} > ${gff3_filtered}
@@ -1358,15 +1364,15 @@ process filtering_annotation_file {
 			cut -f1 ${gff3_filtered} | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region__raw_gff3_file.txt
 			awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene"){print $1}}' ${gff3_filtered} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__filtered_gff3_file.txt 
 			cut -f3 ${gff3_filtered} | sort | uniq -c | sort -nr | grep -v "#" > nb_of_feature_by_feature_type__filtered_gff3_file.txt
-			
+
 			# exporting chromosomes sizes
 			awk -v FS="$tab" -v OFS="$tab" '{if ($3 == "region" || $3 == "chromosome" || $3 == "scaffold") {print $1, $5}}' ${gff3_filtered} | sort -k3nr > chromosomes_sizes.txt
-			
+
 			# exporting protein coding genes
 			grep -i protein_coding ${gff3_filtered} | awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene") print $0}' - > protein_coding_genes.gff3
-			
-			
-			
+
+
+
   '''
 
 }
@@ -1416,35 +1422,35 @@ process get_bed_files_of_annotated_regions {
 
 	shell:
 	'''
-	
+
 			gff3=!{gff3}
-			
+
 			# generating a gff3 file without chromosomes 
 			awk -v FS="\t" -v OFS="\t" '{if (substr($1, 1, 1) != "#" && $3 != "chromosome" && $3 != "scaffold" && $3 != "region" && $3 != "biological_region") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
 			gff2bed < annotation_clean.gff3 > annotation_clean.bed
-			
+
 			# Get already defined regions: exons, genes
 			awk -v FS="\t" -v OFS="\t" '{if ($3 == "exon") print $1, $4-1, $5}' annotation_clean.gff3 > exons.bed
 			awk -v FS="\t" -v OFS="\t" '{if ($3 == "gene") print $1, $4-1, $5}' annotation_clean.gff3 > genes.bed
 			# Get chromosomes sizes
 			awk -v FS="\t" -v OFS="\t" '{if ($3 == "chromosome" || $3 == "scaffold" || $3 == "region") {print $1, $5}}' ${gff3} | sort -k1,1 > chromosomes_sizes.txt
 			awk -v FS="\t" -v OFS="\t" '{print $1, "0", $2}' chromosomes_sizes.txt | sort -k1,1 -k2,2n > chromosomes_sizes.bed
-			
+
 			# Get intergenic regions
 			bedops --difference chromosomes_sizes.bed annotation_clean.bed > intergenic.bed
-			
+
 			# Get introns
 			bedops --difference chromosomes_sizes.bed <(cat exons.bed intergenic.bed | sort -k1,1 -k2,2n) > introns.bed
-			
+
 			# Get promoters
 			gff2bed < <(awk -v FS="\t" -v OFS="\t" '($3 == "gene") {print}' annotation_clean.gff3) > genes_detailed.bed
 			awk -v FS="\t" -v OFS="\t" '($6 == "+"){ print $1, ($2 - 1), $2, $4, $5, $6; }' genes_detailed.bed | bedops --range -1500:500 --everything - > promoters_forward.bed
 			awk -v FS="\t" -v OFS="\t" '($6 == "-"){ print $1, $3, ($3 + 1), $4, $5, $6; }' genes_detailed.bed | bedops --range -1500:500 --everything - > promoters_reverse.bed
 			bedops --everything promoters_forward.bed promoters_reverse.bed | cut -f1-3 > promoters.bed
-			
+
 			# deleting intermediate files
 			rm genes_detailed.bed promoters_forward.bed promoters_reverse.bed annotation_clean.bed chromosomes_sizes.bed
-			
+
 	'''
 }
 
@@ -1638,23 +1644,27 @@ process getting_orgdb {
   shell:
   '''
 		#!/usr/bin/env Rscript
-		
+
 		library(AnnotationHub)
 		species = '!{species}'
 		species_long = '!{species_long}'
 		ncbi_orgdb_version = '!{ncbi_orgdb_version}'
-		annotationhub_cache = '!{params.annotationhub_cache}'
-		
+
 		species_initial =  sapply(strsplit(species_long, '_')[[1]], substr, 1, 1) %>% {paste0(toupper(.[1]), .[2])}
+
+		ah = AnnotationHub(localHub = F, cache = '.')
 		
-		ah = AnnotationHub(cache = annotationhub_cache)
 		pattern = paste0('ncbi/standard/', ncbi_orgdb_version, '/org.', species_initial, '.eg.db.sqlite')
 		orgdb = query(ah, pattern)[[1]]
 		AnnotationDbi::saveDb(orgdb, 'orgdb.sqlite')
-		
+
   '''
 
 }
+
+// annotationhub_cache = '!{params.annotationhub_cache}'
+// ah = AnnotationHub(cache = annotationhub_cache)
+
 
 // if cache is corrupted, delete it so it will be rebuilt automatically
 // rm /home/jersal/workspace/cactus/data/util/annotationhub_cache/*
@@ -1679,12 +1689,12 @@ process getting_R_annotation_files {
   shell:
   '''
 		#!/usr/bin/env Rscript
-		
+
 		library(magrittr)
 		library(AnnotationDbi)
-		
-		source('!{params.cactus_dir}/software/bin/export_df_to_bed.R')
-		
+
+		source('!{params.cactus_dir}/bin/export_df_to_bed.R')
+
 		gff3_raw = '!{gff3_raw}'
 		gff3_genes_only = '!{gff3_genes_only}'
 		gff3_filtered_regions_and_pseudogenes = '!{gff3_filtered_regions_and_pseudogenes}'
@@ -1692,7 +1702,7 @@ process getting_R_annotation_files {
 		orgdb = AnnotationDbi::loadDb('!{orgdb}')
 		df_chr_size = read.table('!{chr_size}', sep = '\t')
 		species_long = '!{species_long}'
-		
+
 
 		# exporting annotation dataframe
 		anno_df = rtracklayer::readGFF(gff3_genes_only) 
@@ -1703,24 +1713,24 @@ process getting_R_annotation_files {
 		anno_df$chr = as.character(anno_df$seqid)
 		anno_df %<>% dplyr::select(chr, start, end, width, strand, gene_name, gene_id, entrez_id)
 		saveRDS(anno_df, 'df_genes_metadata.rds')
-		
+
 		# creating the seqinfo object
 		nr = nrow(df_chr_size)
 		seqinfo = GenomeInfoDb::Seqinfo(seqnames = df_chr_size[,1], seqlengths = df_chr_size[,2], isCircular = rep(F, nr) , genome = rep(species_long, nr))
 		saveRDS(seqinfo, 'seqinfo.rds')
-		
+
 		# exporting txdb
 		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_filtered_regions_and_pseudogenes, chrominfo = seqinfo)
 		AnnotationDbi::saveDb(txdb, file="txdb.sqlite")
-		
+
 		# exporting gene vs transcripts
 		txdb1 = GenomicFeatures::makeTxDbFromGFF(gff3_raw)
 		df_genes_transcripts = select(txdb1, keys = keys(txdb1), columns = c('GENEID', 'TXNAME', 'TXCHROM'), keytype = 'GENEID')
 		saveRDS(df_genes_transcripts, 'df_genes_transcripts.rds')
-		
+
 		# extracting promoters
 		promoters = GenomicFeatures::promoters(GenomicFeatures::genes(txdb), upstream = 1500, downstream = 500)
-		
+
 		# exporting promoters as dataframe
 		promoters_df = as.data.frame(promoters, stringsAsFactors = F)
 		promoters_df$start[promoters_df$start < 0] = 0
@@ -1731,7 +1741,7 @@ process getting_R_annotation_files {
 		promoters_df %<>% dplyr::arrange(seqnames, start)
 		promoters_df %<>% dplyr::rename(chr = seqnames)
 		saveRDS(promoters_df, file = 'promoters_df.rds')
-		
+
 		# exporting promoters as bed file
 		promoters_df1 = promoters_df
 		promoters_df1$score = 0
@@ -1745,8 +1755,8 @@ process getting_R_annotation_files {
 		options(clusterProfiler.download.method = 'wget')
 		kegg_environment = clusterProfiler:::prepare_KEGG(kegg_code, 'KEGG', "ncbi-geneid")
 		saveRDS(kegg_environment, 'kegg_environment.rds')
-		
-		
+
+
   '''
 
 }
@@ -1869,8 +1879,8 @@ process getting_R_annotation_files {
 // this line of code was replaced by:
 // rtracklayer::export(promoters, 'promoters.bed')
 
- 
- 
+
+
 // a = GenomicFeatures::promoters(GenomicFeatures::genes(txdb), upstream = 1500, downstream = 500)
 // rtracklayer::export(a, 'test.bed')
 // rtracklayer::export(a, 'test.bed', format = 'bed')
@@ -1941,4 +1951,3 @@ process getting_R_annotation_files {
   println "Workflow Duration: $workflow.duration"
   println ""
  }
- 
