@@ -1,4 +1,5 @@
 
+<img src="/docs/images/logo_cactus.png" width="400" />
 
 * [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
@@ -38,7 +39,7 @@ nextflow run jsalignon/cactus -profile singularity -params-file parameters/run.y
 
 One can update the pipeline using this command:
 ```
-nextflow pull salignon/cactus
+nextflow pull jsalignon/cactus
 ```
 
 Results are stored in the folder `results/Cactus_v${version}` (this path can be changed with the parameter *params.res_dir*).
@@ -80,7 +81,7 @@ Revisions hashes can be found (here)[https://github.com/jsalignon/cactus/commits
 >**_Note_:** When working with different revision of the same branch of the pipeline, one needs to drop and re-download the pipeline between runs with this command:
 
 ```
-nextflow drop salignon/cactus
+nextflow drop jsalignon/cactus
 ```
 
 

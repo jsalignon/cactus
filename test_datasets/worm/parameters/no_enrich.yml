@@ -1,5 +1,6 @@
-res_dir                   : 'results/test_worm'
+res_dir                   : 'results/no_enrich'
 species                    : 'worm'
 chromatin_state           : 'iHMM.M1K16.worm_L3'
 split__threshold_type     : 'rank' 
 split__threshold_values   : [ 200, 1000 ]
+disable_all_enrichments   : true

@@ -1,5 +1,7 @@
-res_dir                   : 'results/test_fly'
+res_dir                   : 'results/no_enrich__no_gtr'
 species                    : 'fly'
 chromatin_state           : 'iHMM.M1K16.fly_L3'
 split__threshold_type     : 'rank' 
 split__threshold_values   : [ 200, 1000 ]
+disable_all_enrichments   : true
+design__genes_to_remove   : 'design/genes_to_remove_empty.tsv'

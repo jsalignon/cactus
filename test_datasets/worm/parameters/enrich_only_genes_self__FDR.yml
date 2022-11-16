@@ -1,8 +1,8 @@
-res_dir                   : 'results/test_worm__enrich_only_genes_self'
+res_dir                   : 'results/enrich_only_genes_self__FDR'
 species                    : 'worm'
 chromatin_state           : 'iHMM.M1K16.worm_L3'
-split__threshold_type     : 'rank' 
-split__threshold_values   : [ 200 ]
+split__threshold_type     : 'FDR' 
+split__threshold_values   : [ 1.3, 3 ]
 do_genes_self_enrichment  : true
 do_peaks_self_enrichment  : false
 do_gene_set_enrichment    : false

@@ -27,7 +27,7 @@ get_plot_binned <- function(p1, signed_padj = F, add_var_to_plot = 'none', add_n
   col_bars_enriched = col_bars[1:6]
 
   if(!signed_padj) col_bars = col_bars_enriched
-  p_binned = p1 + aes(fill = padj_binned) + scale_fill_manual(values = col_bars, drop = F)
+  p_binned = p1 + aes(fill = padj_binned) + scale_fill_manual(values = col_bars, drop = F, name = '-log10(FDR)')
   
   col_points = RColorBrewer::brewer.pal(11, 'BrBG')
   col_points_depleted = col_points[1:6]
@@ -106,18 +106,9 @@ getting_yaxis_terms <- function(df, data_type){
 
 
 getting_padj_loglog_and_binned <- function(df, data_type, signed_padj){
-  padj = df$padj
-  padj_loglog = get_pval_loglog(padj)
-  
-  if(signed_padj) {
-    signs       = sign(df$L2OR)
-    padj        = padj        * signs
-    padj_loglog = padj_loglog * signs
-  }
-  padj_binned = get_padj_binned(padj, data_type, signed_padj)
-  
-  df$padj_loglog = padj_loglog
-  df$padj_binned = padj_binned
+
+  df$padj_loglog = get_pval_loglog(df$padj)
+  df$padj_binned = get_padj_binned(df$padj, df$L2OR, data_type, signed_padj)
   
   return(df)
 }
@@ -126,33 +117,32 @@ getting_padj_loglog_and_binned <- function(df, data_type, signed_padj){
 ## getting pval columns
 get_padj_binned_breaks <- function(data_type){
   breaks = switch(data_type,
-    genes_self   = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    peaks_self   = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    func_anno    = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    chrom_states = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    CHIP         = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0),
-    motifs       = c(1, 0.2, 0.05, 1e-5 , 1e-20 , 1e-100, 0)
+    genes_self   = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    peaks_self   = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    func_anno    = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    chrom_states = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    CHIP         = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
+    motifs       = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100)
   )
   return(breaks)
 }
 
 
-get_padj_binned <- function(padj, data_type, signed_padj){
+get_padj_binned <- function(padj, L2OR, data_type, signed_padj){
+  dt = data.table(padj = padj, L2OR = L2OR)
+  dt[, padj1 := padj * sign(L2OR)]
+  dt[padj == 0, padj1 := L2OR]
   breaks = get_padj_binned_breaks(data_type)
-  br_len = length(breaks) - 1
-  if(signed_padj) breaks = unique(c(breaks, -breaks))
-  padj_binned = cut(padj, breaks = breaks, include.lowest = T, right = F)
-  if(signed_padj) {
-    lpb = levels(padj_binned)
-    not_signif = '> 0.05'
-    padj_binned %<>% factor(., levels = c(lpb, not_signif))
-    padj_binned[padj_binned %in% lpb[c(1, length(lpb))]] = not_signif
-    new_levels_order = c(br_len:2, br_len * 2 + 1, (2 * br_len - 1):(br_len + 1))
-    new_levels = rev(levels(padj_binned)[new_levels_order])
-    padj_binned = factor(padj_binned, levels = new_levels)
-  } 
-  return(padj_binned)
+  breaks_1 = -log10(c(0, breaks))
+  if(signed_padj) breaks_1 = sort(unique(c(-breaks_1, breaks_1)))
+  dt[, padj1 := -log10(padj) * sign(L2OR)]
+  dt[, padj_binned := cut(padj1, breaks = breaks_1, include.lowest = T, right = T)]
+  dt[, padj_binned := factor(padj_binned, levels = rev(levels(padj_binned)))]
+  return(dt$padj_binned)
 }
+
+
+
 
 
 

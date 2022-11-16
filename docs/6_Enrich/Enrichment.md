@@ -1,4 +1,5 @@
 
+<img src="/docs/images/logo_cactus.png" width="400" />
 
 * [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
@@ -41,7 +42,7 @@ The columns that are unique to a particular analysis are described in the corres
 The keys of each subset are then augmented by adding the EC (Enrichment Category) variable. Thus the key becomes: `${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}`.  
 With, as defined in the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_abundance_results_in_subsets), the variables: 
  - ET: Experiment Type
- - PA: Peak Assignment
+ - PA: Peak Annotation
  - FC: Fold Change
  - TV: Theshold Value(s)
  - COMP: Comparison

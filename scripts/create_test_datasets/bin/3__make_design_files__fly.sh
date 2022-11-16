@@ -6,9 +6,9 @@ n_reads_mrna=$2
 prepro_dir="preprocessing/${species}"
 
 
-# run.yml
-cat > ${species}/parameters/run.yml << EOL
-res_dir                   : 'results/test_fly'
+# full_test.yml
+cat > ${species}/parameters/full_test.yml << EOL
+res_dir                   : 'results/full_test'
 species                    : 'fly'
 chromatin_state           : 'iHMM.M1K16.fly_L3'
 split__threshold_type     : 'rank' 
@@ -66,13 +66,20 @@ EOL
 # genes_to_remove_empty.tsv
 touch ${species}/design/genes_to_remove_empty.tsv
 
-# run__no_gtr.yml
-yml_file="${species}/parameters/run__no_gtr.yml"
-cp ${species}/parameters/run.yml $yml_file
-sed -i 's/test_fly/test_fly__no_gtr/g' $yml_file
+# no_enrich.yml
+yml_file="${species}/parameters/no_enrich.yml"
+cp ${species}/parameters/full_test.yml $yml_file
+sed -i 's/full_test/no_enrich/g' $yml_file
+cat >> $yml_file << EOL
+disable_all_enrichments   : true
+EOL
+
+# no_enrich__no_gtr.yml
+yml_file="${species}/parameters/no_enrich__no_gtr.yml"
+cp ${species}/parameters/no_enrich.yml $yml_file
+sed -i 's/no_enrich/no_enrich__no_gtr/g' $yml_file
 cat >> $yml_file << EOL
 design__genes_to_remove   : 'design/genes_to_remove_empty.tsv'
-disable_all_enrichments   : true
 EOL
 
 

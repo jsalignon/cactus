@@ -1,0 +1,16 @@
+GSM5776726 	WT, control, ATAC-seq, rep1
+GSM5776727 	WT, control, ATAC-seq, rep2
+GSM5776728 	WT, GlcStarv, ATAC-seq, rep1
+GSM5776729 	WT, GlcStarv, ATAC-seq, rep2
+GSM5776730 	Phf20-/-, control, ATAC-seq, rep1
+GSM5776731 	Phf20-/-, control, ATAC-seq, rep2
+GSM5776732 	Phf20-/-, GlcStarv, ATAC-seq, rep1
+GSM5776733 	Phf20-/-, GlcStarv, ATAC-seq, rep2
+GSM5799507 	WT, control, RNA-seq, rep1
+GSM5799508 	WT, control, RNA-seq, rep2
+GSM5799509 	WT, GlcStarv, RNA-seq, rep1
+GSM5799510 	WT, GlcStarv, RNA-seq, rep2
+GSM5799511 	Phf20-/-, control, RNA-seq, rep1
+GSM5799512 	Phf20-/-, control, RNA-seq, rep2
+GSM5799513 	Phf20-/-, GlcStarv, RNA-seq, rep1
+GSM5799514 	Phf20-/-, GlcStarv, RNA-seq, rep2

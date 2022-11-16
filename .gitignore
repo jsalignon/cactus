@@ -13,7 +13,6 @@ figshare/old_files
 references/
 testing/
 nf_log.txt
-run_test_datasets.sh
 docs/examples/pdf/*
 docs/examples/xlsx/*
 

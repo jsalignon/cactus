@@ -2,9 +2,9 @@
 
 # looking for test datasets with paired ATAC and mRNA -Seq data
   - worm and human:  GSE98758
-      query: ATAC-Seq AND mRNA seq AND Caenorhabditis elegans  [specie] AND young 
+      query: ATAC-Seq AND mRNA seq AND Caenorhabditis elegans  [organism]
   - mice:   GSE181797
-      query: ATAC-Seq AND mRNA seq AND mus musculus [specie] AND aging 
+      query: ATAC-Seq AND mRNA seq AND mus musculus [organism]  
   - fly:    GSE190714
 	    query: ATAC-Seq AND RNA-Seq AND Drosophila melanogaster [organism] 
 

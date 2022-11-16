@@ -1,5 +1,5 @@
-res_dir                   : 'results/test_mouse__no_enrich'
-species                    : 'mouse'
+res_dir                   : 'results/no_enrich'
+species                   : 'mouse'
 chromatin_state           : 'ENCFF809HLK'
 split__threshold_type     : 'rank' 
 split__threshold_values   : [ 200, 1000 ]

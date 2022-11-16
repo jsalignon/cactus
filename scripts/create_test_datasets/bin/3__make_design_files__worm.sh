@@ -7,9 +7,9 @@ prepro_dir="preprocessing/${species}"
 source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
 
 
-# run.yml
-cat > ${species}/parameters/run.yml << EOL
-res_dir                   : 'results/test_worm'
+# full_test.yml
+cat > ${species}/parameters/full_test.yml << EOL
+res_dir                   : 'results/full_test'
 species                    : 'worm'
 chromatin_state           : 'iHMM.M1K16.worm_L3'
 split__threshold_type     : 'rank' 
@@ -58,19 +58,26 @@ touch ${species}/design/genes_to_remove.tsv
 # regions_to_remove_empty.tsv
 touch ${species}/design/regions_to_remove_empty.tsv
 
-# run__no_rtr.yml
-yml_file="${species}/parameters/run__no_rtr.yml"
-cp ${species}/parameters/run.yml $yml_file
-sed -i 's/test_worm/test_worm__no_rtr/g' $yml_file
+# no_enrich.yml
+yml_file="${species}/parameters/no_enrich.yml"
+cp ${species}/parameters/full_test.yml $yml_file
+sed -i 's/full_test/no_enrich/g' $yml_file
 cat >> $yml_file << EOL
-design__regions_to_remove : 'design/regions_to_remove_empty.tsv'
 disable_all_enrichments   : true
 EOL
 
-# run__enrich_only_genes_self.yml
-yml_file="${species}/parameters/run__enrich_only_genes_self.yml"
-cp ${species}/parameters/run.yml $yml_file
-sed -i 's/test_worm/test_worm__enrich_only_genes_self/g' $yml_file
+# no_enrich__no_rtr.yml
+yml_file="${species}/parameters/no_enrich__no_rtr.yml"
+cp ${species}/parameters/no_enrich.yml $yml_file
+sed -i 's/no_enrich/no_enrich__no_rtr/g' $yml_file
+cat >> $yml_file << EOL
+design__regions_to_remove : 'design/regions_to_remove_empty.tsv'
+EOL
+
+# enrich_only_genes_self.yml
+yml_file="${species}/parameters/enrich_only_genes_self.yml"
+cp ${species}/parameters/full_test.yml $yml_file
+sed -i 's/full_test/enrich_only_genes_self/g' $yml_file
 sed -i 's/\[ 200, 1000 \]/\[ 200 \]/g' $yml_file
 cat >> $yml_file << EOL
 do_genes_self_enrichment  : true
@@ -80,5 +87,19 @@ do_chrom_state_enrichment : false
 do_motif_enrichment       : false
 do_chip_enrichment        : false
 EOL
+
+yml_file="${species}/parameters/enrich_only_chip.yml"
+cp ${species}/parameters/enrich_only_genes_self.yml $yml_file
+sed -i 's/enrich_only_genes_self/enrich_only_chip/g' $yml_file
+sed -i 's/do_genes_self_enrichment  : true/do_genes_self_enrichment  : false/g' $yml_file
+sed -i 's/do_chip_enrichment        : false/do_chip_enrichment        : true/g' $yml_file
+
+# enrich_only_genes_self__FDR.yml
+yml_file="${species}/parameters/enrich_only_genes_self__FDR.yml"
+cp ${species}/parameters/enrich_only_genes_self.yml $yml_file
+sed -i 's/enrich_only_genes_self/enrich_only_genes_self__FDR/g' $yml_file
+sed -i 's/\[ 200 \]/\[ 1.3, 3 \]/g' $yml_file
+sed -i 's/rank/FDR/g' $yml_file
+
 
 replace_spaces_by_tabs_in_the_design_tsv_files $species
