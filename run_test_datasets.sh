@@ -42,9 +42,16 @@ do
 done
 
 
+for species in fly human mouse
+do
+  cd $test_ds_dir/$species
+  nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 47 --executor_local_memory '250G' --res_dir 'results/full_test'  --split__peak_assignment ['all','prom','distNC'] --split__threshold_values [200,1000]
+done
 
 
-split__threshold_values
+
+
+
 
 cd $test_ds_dir/worm
 rm -r work results

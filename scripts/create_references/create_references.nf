@@ -1923,43 +1923,45 @@ process making_R_annotation_files {
 // length(which(is.na(gff3_df1$entrez_gene_id))) # => 563 id were lost out of 20K. Not great but still reasonnable.
 
 
+process making_timestamp {
+  tag "${species}"
 
-// process making_timestamp {
-//   tag "${species}"
-// 
-//   // label "r_basic"
-// 
-//   publishDir path: "${species}", mode: 'link'
-// 
-//   input:
-// 
-//   output:
-//     file('timestamp.txt')
-// 
-//   shell:
-//   '''
-// 
-// 		source("!{params.bin_dir}/get_linebreak.R")
-// 
-// 		library(magrittr)
-// 
-// 		wl <- function(x) writeLines(x)
-// 		wl1 <- function(x) writeLines(paste0(x, get_lb()))
-// 		wl2 <- function(x) writeLines(paste0(get_lb(), x, get_lb()))
-// 
-// 		sink("timestamp.txt")
-// 
-// 			paste0("This reference was built on ", Sys.Date(), ".") %>% wl2
-// 
-// 			"The version of the workflow and package manager tools used are:" %>% wl
-// 
-// 			system("nextflow -version", intern = T) %>% wl
-// 			system("singularity --version", intern = T) %>% wl1
-// 
-// 		sink()
-// 
-// 	'''
-// }
+  // label "r_basic"
+
+  publishDir path: "${species}", mode: 'link'
+
+  input:
+	  val species from Channel.of( 'worm', 'fly', 'mouse', 'human' )
+
+  output:
+    file('timestamp.txt')
+
+  shell:
+  '''
+		#!/usr/bin/env Rscript
+		
+		container_engine = '!{workflow.containerEngine}'
+		
+		library(magrittr)
+		
+		wl <- function(x) writeLines(x)
+		wl1 <- function(x) writeLines(paste0(x, "\n"))
+		wl2 <- function(x) writeLines(paste0("\n", x, "\n"))
+		
+		sink("timestamp.txt")
+		
+		  paste0("This reference was built on ", Sys.Date(), ".") %>% wl2
+		
+		  "The version of the workflow and package manager tools used are:" %>% wl
+		
+		  system("nextflow -version", intern = T) %>% wl
+		  system(paste(container_engine, "--version"), intern = T) %>% wl1
+		
+		sink()
+
+	'''
+}
+
 
 
 // on completion
