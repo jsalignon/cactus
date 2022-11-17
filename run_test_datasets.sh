@@ -1,7 +1,6 @@
 
 homedir=~
 eval homedir=$homedir
-
 cactus_dir=$homedir/workspace/cactus
 test_ds_dir=$cactus_dir/test_datasets
 app_not_dir=$test_ds_dir/application_note
@@ -60,6 +59,25 @@ nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularit
 cd $test_ds_dir/human
 nextflow run ${CACTUS} -params-file parameters/no_enrich.yml -profile singularity
 nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity
+
+
+# evaluation of the time needed to run Cactus on a typical laptop setup
+cd $test_ds_dir/worm
+rm -r work results
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 8 --executor_local_memory '16G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
+
+cd $test_ds_dir/fly
+rm -r work results
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 8 --executor_local_memory '16G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
+
+
+## worm
+# Completed at: 17-Nov-2022 15:29:02
+# Duration    : 26m 35s
+# CPU hours   : 2.9
+# Succeeded   : 874
+# Execution status: Succeeded
+
 
 
 ####################################################################

@@ -34,7 +34,7 @@ nextflow run jsalignon/cactus/scripts/download/download.nf  -profile singularity
 
 Running Cactus (and downloading containers):
 ```
-nextflow run jsalignon/cactus -profile singularity -params-file parameters/run.yml -r main -latest -resume
+nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r main -latest -resume
 ```
 
 One can update the pipeline using this command:
@@ -43,6 +43,15 @@ nextflow pull jsalignon/cactus
 ```
 
 Results are stored in the folder `results/Cactus_v${version}` (this path can be changed with the parameter *params.res_dir*).
+
+It is recommended to use either the worm or the fly test datasets when testing Cactus on a laptop to reduce runtime. With 8 cores and 16Gb RAM the worm and fly test dataset can be run in respectively ~27 and ~56 minutes using this command:
+```
+nextflow run jsalignon/cactus -r main -latest -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 8 --executor_local_memory '16G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
+```
+
+>**_Note_:** The run parameters can be set up in a *.yml* file or in the command line (as shown just above). The latter taking priority on the former. When setting parameters on the command line, one dash indicates [Nextflow's internal parameters](https://www.nextflow.io/docs/latest/config.html#config-profiles) (e.g. -profile) and two dashes indicate [Cactus' own parameters](/docs/3_Inputs/Parameters.md) (e.g. res_dir). 
+
+>**_Note_:** A minimum of 6 cores is required to run Cactus. 
 
 
 # Additional details
@@ -73,7 +82,7 @@ nextflow run jsalignon/cactus -profile {singulariy,docker,conda} -params-file pa
 
 For instance:
 ```
-nextflow run jsalignon/cactus -profile singularity -params-file parameters/run.yml -r 6db14711ed38b7611de20cf44fea0c000a2cf3fe -resume
+nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r 6db14711ed38b7611de20cf44fea0c000a2cf3fe -resume
 ```
 
 Revisions hashes can be found (here)[https://github.com/jsalignon/cactus/commits/main] (by clicking on "Copy the full SHA").
@@ -93,7 +102,7 @@ The general process to resolve a crashing pipeline is to go to the folder indica
 
 The *bg* argument can be used to run cactus in the background like this:
 ```
-nextflow run jsalignon/cactus -profile singularity -params-file parameters/run.yml -r main -latest -resume -bg > nf_log.txt
+nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r main -latest -resume -bg > nf_log.txt
 ```
 
 This creates a .nextflow.pid file that contains the master PID to kill to stop the run in the background. However, this does not always work. A workaround to kill all process from the current run folder is to use this snippet:

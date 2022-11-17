@@ -14,9 +14,7 @@
 
 ![](/docs/images/1_Intro.png "Introduction")
 
-**_CACTUS_**: (Chromatin ACcessibility and Transcriptomics Unification Software) is an open-source pipeline designed to easily analyze and visualize gene expression and/or chromatin accessibility data. It can handle any of the four Encode species (human, M. musculus, D. melanogaster and C. elegans). 
-The aim of the pipeline is to make it easy for the biologists, and bioinformaticians, to generate hypothesis of which molecular factors regulate gene expression and chromatin accessibility for the studied conditions. It achieves this by providing output that are both easy to use (merged pdf, formatted Excel tables, individual or separate tables/pdf) and to interpret (multiQC, volcano/PCA plots, standardized plots for mRNA and ATAC-Seq, grouped conditions for heatmap plots, …).
-Finally, a key aspect of Cactus is the emphasis on efficiency and reproducibility. This is achieved via Singularity, a containerization software, and Nextflow, a dataflow-based pipeline tool that automate parallelism. 
+**_CACTUS_**: (Chromatin ACcessibility and Transcriptomics Unification Software) is an mRNA-Seq and ATAC-Seq analysis pipeline that aims to facilitate the identification of candidate transcription factors regulating the conditions of intested. Currently Cactus can analyze data from any of the 4 ENCODE species: human, mice, fly and worm. The pipeline aims to be easy to use for people without bioinformatics skills, efficient and reproducible though the use of the workflow language Nextflow and different options for managing dependencies (Singulairy, Docker, Conda, Mamba). Output files are convenient to scroll through (merged or individual pdfs and tables, formatted Excel tables) and to interpret (e.g. multiQC, standardized downstream analysis figures, customizable heatmaps).
 
 **_Citation_**: Manuscript under preparation.
 

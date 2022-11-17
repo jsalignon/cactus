@@ -1,18 +1,21 @@
 
 # https://help.figshare.com/article/best-practice-for-managing-your-outputs-on-figshare
 
-cactus_dir=/home/jersal/workspace/cactus
+homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus
 test_dir=$cactus_dir/test_datasets
 refs_dir=$cactus_dir/references
+arch_dir=$cactus_dir/figshare/files_to_upload
 
-cd $cactus_dir/figshare/files_to_upload
+cd $arch_dir
 
 
 ##############################################
 ### Creating archives
 ##############################################
 
-n_cores=15
+n_cores=45
 
 # references
 tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf worm_refs.tar.gz $refs_dir/worm
@@ -23,11 +26,12 @@ tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf human_refs.tar.gz $re
 # test datasets
 tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf worm_test.tar.gz -C $test_dir/worm {data,design,parameters}
 tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf fly_test.tar.gz -C $test_dir/fly {data,design,parameters}
-# tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf mouse_test.tar.gz -C $test_dir/mouse {data,design,parameters}
+tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf mouse_test.tar.gz -C $test_dir/mouse {data,design,parameters}
 tar --use-compress-program="pigz -p ${n_cores} -k -r" -cvf human_test.tar.gz -C $test_dir/human {data,design,parameters}
 
 # adding the md5sum file
 md5sum *.tar.gz > md5_sums.txt
+ls -sh *.tar.gz
 
 # adding metadata files (README.txt)
 cp ../metadata/* .
@@ -61,7 +65,7 @@ put mouse_test.tar.gz
 put human_test.tar.gz
 
 put README.txt
-put manifest.txt
+# put manifest.txt
 
 cat debug_log.txt 
 # => this last commands allows to check if the put command worked. The upload often fail (i.e. " Incomplete upload, skipping..."). It needs to repeat it sometimes. It should be written: "started" and then on the line below "finished" for the upload to be successful.

@@ -33,6 +33,18 @@ Tests datasets have beed generated for each of the 4 species supported by Cactus
 | human  | 2731 MB |    158 MB     |
 | mouse  | 3100 MB |    261 MB     |   
 
+<!--  -->
+
+
+<!-- homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus
+test_dir=$cactus_dir/test_datasets
+refs_dir=$cactus_dir/references
+arch_dir=$cactus_dir/figshare/files_to_upload
+du -h $test_dir/**/data
+ls -sh $arch_dir/*.tar.gz
+ -->
 
 ## Downloading test datasets
 
