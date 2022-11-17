@@ -16,13 +16,12 @@
 
 Tests datasets have beed generated for each of the 4 species supported by Cactus. This allows to make sure the pipeline works equally well for each species. Downloading the smallest dataset (fly) should be sufficient for users to get a sense on how the pipeline works. Here are the sizes of the test datasets:
 
-| species | raw_files | sampled_files | sampled_atac | sampled_mrna |
-|:------:|:---------:|:-------------:|:------------:|:------------:|
-|  fly   |   17 GB   |    377 MB     |    329 MB    |    48 MB     |
-|  worm  |   68 GB   |    1.4 GB     |    1.3 GB    |    41 MB     |
-| human  |  118 GB   |    3.7 GB     |    3.6 GB    |    190 MB    |
-| mouse  |  104 GB   |     12 GB     |    11 GB     |    395 MB    |
-
+| specie | raw_files | sampled_files | sampled_atac | sampled_mrna |  tar   |
+|:------:|:---------:|:-------------:|:------------:|:------------:|:------:|
+|  fly   |   17 GB   |    377 MB     |    329 MB    |    48 MB     | 360 MB |
+|  worm  |   68 GB   |    1.4 GB     |    1.3 GB    |    41 MB     | 1.3 GB |
+| mouse  |   52 GB   |     6 GB      |    5.9 GB    |    142 MB    | 5.7 GB |
+| human  |  118 GB   |     9 GB      |    8.8 GB    |    190 MB    | 8.5 GB |
 
 > **_NOTE:_**  Sampled mRNA-Seq datasets are similar between the 4 species, however, sampled ATAC-Seq datasets are much larger for human and mice than for worm and fly. This is due to large difference in genome sizes but not in transcriptome size between these species; as shown here:
 
@@ -36,14 +35,64 @@ Tests datasets have beed generated for each of the 4 species supported by Cactus
 <!--  -->
 
 
-<!-- homedir=~
+<!-- 
+
+get_markdown_table <- function(specie){
+  tmp = read.table(paste0('~/workspace/cactus/test_datasets/preprocessing/', specie, '/samplesheet/samples_info_1.tsv'), header = T)
+  knitr::kable(tmp, 'pipe', align = 'c')
+}
+
+get_markdown_table('worm')
+get_markdown_table('fly')
+get_markdown_table('human')
+get_markdown_table('mouse')
+
+setwd('~/workspace/cactus/test_datasets')
+
+dir_size <- function(path, recursive = TRUE) {
+  stopifnot(is.character(path))
+  files <- list.files(path, full.names = T, recursive = recursive)
+  vect_size <- sapply(files, function(x) file.size(x))
+  size_files <- sum(vect_size)
+  order = ifelse(size_files > 10^9, 'GB', 'MB')
+  if(order == 'MB') size_files = paste0(format(size_files/10^6, digits = 2), ' MB')
+  if(order == 'GB') size_files = paste0(format(size_files/10^9, digits = 2), ' GB')
+  size_files
+}
+
+get_test_dataset_size <- function(specie){
+  df = data.frame(
+    specie = specie,
+    raw_files = dir_size(paste0('preprocessing/', specie, '/fastq')),
+    sampled_files =dir_size(paste0(specie, '/data')),
+    sampled_atac = dir_size(paste0(specie, '/data/atac')),
+    sampled_mrna = dir_size(paste0(specie, '/data/mrna')),
+    stringsAsFactors = F
+  )
+  return(df)
+}
+
+df = do.call(rbind, lapply(c('fly', 'worm', 'mouse', 'human'), get_test_dataset_size))
+
+df$tar = c('360 MB', '1.3 GB', '5.7 GB', '8.5 GB') 
+# => see bash code below for the size of the tar files (to enter manually)
+
+knitr::kable(df, 'pipe', align = 'c')
+
+ -->
+
+
+<!-- 
+
+homedir=~
 eval homedir=$homedir
 cactus_dir=$homedir/workspace/cactus
 test_dir=$cactus_dir/test_datasets
 refs_dir=$cactus_dir/references
 arch_dir=$cactus_dir/figshare/files_to_upload
 du -h $test_dir/**/data
-ls -sh $arch_dir/*.tar.gz
+ls -sh $arch_dir/*test.tar.gz
+
  -->
 
 ## Downloading test datasets

@@ -26,7 +26,14 @@
 
 ## Introduction
 <!-- 
-# get references folders sizes: du -h -d1 human mouse fly worm
+
+homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus
+refs_dir=$cactus_dir/references
+cd $refs_dir
+du -h -d0 human mouse fly worm
+
 # print table (in R):
 
 tb = tibble::tribble(
