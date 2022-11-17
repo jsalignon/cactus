@@ -30,64 +30,36 @@ do
 done
 
 
-# running all tests from scratch
-
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 47 --executor_local_memory '250G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
-
-for species in fly human mouse
-do
-  cd $test_ds_dir/$species
-  rm -r work results
-  nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 47 --executor_local_memory '250G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
-done
-
-
-for species in fly human mouse
+for species in worm fly human mouse
 do
   cd $test_ds_dir/$species
   nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 47 --executor_local_memory '250G' --res_dir 'results/full_test'  --split__peak_assignment ['all','prom','distNC'] --split__threshold_values [200,1000]
 done
 
 
-
-
-
-
-cd $test_ds_dir/worm
-rm -r work results
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
-cd $test_ds_dir/fly
-rm -r work results
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
-cd $test_ds_dir/mouse
-rm -r work results
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
-cd $test_ds_dir/human
-rm -r work results
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
-
+# running one by one specific files
 
 # worm
 cd $test_ds_dir/worm
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
-nextflow run ${CACTUS} -params-file parameters/no_rtr.yml -profile singularity -resume
-nextflow run ${CACTUS} -params-file parameters/enrich_only_genes_self.yml -profile singularity -resume
-nextflow run jsalignon/cactus -r e3e546b7e0f937019a6d0041923109c2207693dc -params-file parameters/no_enrich_fdr.yml -profile singularity -resume
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity
+nextflow run ${CACTUS} -params-file parameters/no_rtr.yml -profile singularity
+nextflow run ${CACTUS} -params-file parameters/enrich_only_genes_self.yml -profile singularity
+nextflow run jsalignon/cactus -r e3e546b7e0f937019a6d0041923109c2207693dc -params-file parameters/no_enrich_fdr.yml -profile singularity
 
 # fly
 cd $test_ds_dir/fly
-nextflow run ${CACTUS} -params-file parameters/no_gtr.yml -profile singularity -resume
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
+nextflow run ${CACTUS} -params-file parameters/no_gtr.yml -profile singularity
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity
 
 # mouse
 cd $test_ds_dir/mouse
-nextflow run ${CACTUS} -params-file parameters/no_enrich.yml -profile singularity -resume
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
+nextflow run ${CACTUS} -params-file parameters/no_enrich.yml -profile singularity
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity
 
 # human
 cd $test_ds_dir/human
-nextflow run ${CACTUS} -params-file parameters/no_enrich.yml -profile singularity -resume
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume
+nextflow run ${CACTUS} -params-file parameters/no_enrich.yml -profile singularity
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity
 
 
 ####################################################################
@@ -95,20 +67,18 @@ nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularit
 
 # worm
 cd $app_not_dir/worm
-nextflow run jsalignon/cactus -params-file parameters/base.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533
-nextflow run jsalignon/cactus -params-file parameters/vary_rank.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533
-nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533
+nextflow run jsalignon/cactus -params-file parameters/base.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533
+nextflow run jsalignon/cactus -params-file parameters/vary_rank.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533
+nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533
 
 # human
 cd $app_not_dir/human
-nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -resume -bg > nf_log.txt
-nextflow run jsalignon/cactus -params-file parameters/vary_rank.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533
-nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533
+nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -bg > nf_log.txt
+nextflow run ${CACTUS} -params-file parameters/vary_FDR.yml -profile singularity -bg
+nextflow run jsalignon/cactus -params-file parameters/vary_rank.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533
+nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533
+nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533 -bg > nf_log.txt
 
-nextflow run ${CACTUS} -params-file parameters/vary_FDR.yml -profile singularity -resume -bg
-
-
-nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533 -bg > nf_log.txt
 
 
 
@@ -136,7 +106,7 @@ nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile sing
 # CPU hours   : 769.8
 # Succeeded   : 3'626
 
-# nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -resume -r 49913b378da7386fada4f23bebfdc00eba404533
+# nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533
 # Completed at: 12-Nov-2022 09:50:12
 # Duration    : 4h 2m 13s
 # CPU hours   : 224.4 (78.4% cached)
