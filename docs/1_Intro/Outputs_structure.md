@@ -11,7 +11,14 @@
 [](END_OF_MENU)
 
 
-<!-- tree -I Run_Info -d -L 3 /home/jersal/workspace/cactus/test_datasets/human/results/25.07.22/ -->
+<!-- 
+homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus
+
+tree -I Run_Info -d -L 3 $cactus_dir/test_datasets/human/results/full_test
+
+-->
 
 ```
 .
