@@ -976,7 +976,9 @@ HiHMM_chromatin_states
 process getting_hihmm_chromatin_state_data_part_1 {
 	tag "${species}"
 
+	// label "curl"
 	// label "ubuntu"
+	// label "hihmm"
 
 	input:
 		set species, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
@@ -1001,8 +1003,15 @@ process getting_hihmm_chromatin_state_data_part_1 {
 			if [ $species = 'worm' ]; then
 				gawk -i inplace '{print "chr"$0}' $bed_file
 			fi
+			
 	'''
 }
+
+
+// => could not get any containers to work
+// with wegt:   wget: bad address 'compbio.med.harvard.edu'
+// wget $hiHMM_path/$bed_file
+// with curl:  FATAL:   stat /bin/bash: no such file or directory
 
 
 process getting_hihmm_chromatin_state_data_part_2 {
