@@ -65,7 +65,7 @@ put mouse_test.tar.gz
 put human_test.tar.gz
 
 put README.txt
-# put manifest.txt
+put manifest.txt
 
 cat debug_log.txt 
 # => this last commands allows to check if the put command worked. The upload often fail (i.e. " Incomplete upload, skipping..."). It needs to repeat it sometimes. It should be written: "started" and then on the line below "finished" for the upload to be successful.

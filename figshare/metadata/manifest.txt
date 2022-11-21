@@ -1,0 +1,15 @@
+
+README.txt (9.0K)
+md5_sums.txt (9.0K)
+
+# test datasets
+fly_test.tar.gz   (0.36 GB)
+worm_test.tar.gz  (1.3  GB)
+mouse_test.tar.gz (5.7  GB)
+human_test.tar.gz (8.5  GB)
+
+# reference datasets
+worm_refs.tar.gz  ( 0.81 GB)
+fly_refs.tar.gz   ( 0.98 GB)
+mouse_refs.tar.gz ( 7.2  GB)
+human_refs.tar.gz (12.0  GB)
