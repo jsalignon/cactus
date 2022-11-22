@@ -113,6 +113,29 @@ The parameters for this command are:
 
 ##  Details on the test datasets origins and labels
 
+<!-- 
+
+homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus
+test_dir=$cactus_dir/test_datasets
+cd $test_dir
+
+R
+
+get_kable_test_ds <- function(species){
+  df = read.table(paste0('preprocessing/', species, '/samplesheet/samples_info_1.tsv'), header = T)
+  knitr::kable(df[, c(1:5, 7)], align = 'c')
+}
+
+get_kable_test_ds('worm')
+get_kable_test_ds('human')
+get_kable_test_ds('fly')
+get_kable_test_ds('mouse')
+
+
+ -->
+
 ## Worm and human ([GSE98758](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE98758))
 
   **GEO Status**: Public on Aug 29, 2018
@@ -229,47 +252,38 @@ The parameters for this command are:
 
 
 
-## Mouse ([GSE181797](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE181797))
+## Mouse ([GSE193393](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE193393))
 
 
-  **GEO Status**: Public on Oct 01, 2021
+  **GEO Status**: Public on Jun 23, 2022
 
-  **GEO Title**: Revealing regulatory transcription factors of aging in the kidney and kidney through multi-omics analysis
+  **GEO Title**: PHF20 Activates Autophagy Genes through Enhancer Activation via H3K36me2 Binding Activity
   
-  **GEO Summary**: Aging is accompanied by a gradual loss of systemic metabolic homeostasis, which is maintained by multiple-organs, especially the kidney and kidney. However, a systematic study of the regulatory networks and regulatory transcription factors (TFs) of aging in the kidney and kidney remains lacking. Here, we performed an integrated analysis of multi-omics datasets in the kidney and kidney from young and aged mice, including RNA-seq, reduced representation bisulfite sequencing (RRBS) and ATAC-seq datasets, which indicated that enhanced inflammation and dysregulated metabolism were conserved signatures in aged kidney and kidney in both the transcriptome and epigenome. Transcription factor and regulatory network analysis indicated that activation of AP-1 and SPI1 was responsible for enhanced inflammation, and down-regulation of HNFs and PPARs contributed to dysregulated metabolism in aged kidney and kidney. Importantly, we found that the activation of AP-1 was cellular autonomous in aged hepatic and renal cells. However, enhanced SPI1 was caused by elevated infiltration of macrophages. Importantly, inhibition of AP-1 with small molecule combination attenuated inflammation phenotypes of aging in vivo and in vitro. Taken together, our analysis revealed common signatures and regulatory TFs of aging in the kidney and kidney, providing novel targets for the development of anti-aging interventions.
+  **GEO Summary**: Autophagy is a catabolic pathway that maintains cellular homeostasis under various stress conditions, including nutrient-deprived conditions. To elevate autophagic flux to a sufficient level under stress conditions, transcriptional activation of autophagy genes occurs to replenish autophagy components. Here, using combination of RNA-seq, ATAC-seq and ChIP-seq, we demonstrated found that plant homeodomain finger protein 20 (Phf20PHF20), which is an epigenetic reader possessing methyl binding activity, plays a key role in controlling the expression of autophagy genes. PHF20 activates autophagy genes through enhancer activation via H3K36me2 binding activity as an epigenetic reader and that our findings emphasize the importance of nuclear regulation of autophagy.
   
-  **GEO Design**: mRNA and ATAC-seq profiles of young and old kidney and kidney.
+  **GEO Design**: mRNA-seq, ATAC-seq and ChIP-seq experiments under normal and 24hrs of glucose starvation condition in WT and Phf20-/- MEFs
   
-  **Citation**:  *Citation missing*
+  **Citation**: Park SW, Kim J, Oh S, Lee J et al. PHF20 is crucial for epigenetic control of starvation-induced autophagy through enhancer activation. Nucleic Acids Res 2022 Aug 12;50(14):7856-7872. PMID: 35821310
   
   **Samples**:
-| experiment_accession | run_accession | sample_alias | library_layout | library_strategy |      sample_title      | sample_id |
-|:--------------------:|:-------------:|:------------:|:--------------:|:----------------:|:----------------------:|:---------:|
-|     SRX11708663      |  SRR15406500  |  GSM5511490  |     PAIRED     |     RNA-Seq      | Young_kidney_mRNA_rep1 | YngKid_1  |
-|     SRX11708664      |  SRR15406501  |  GSM5511491  |     PAIRED     |     RNA-Seq      | Young_kidney_mRNA_rep2 | YngKid_2  |
-|     SRX11708665      |  SRR15406502  |  GSM5511492  |     PAIRED     |     RNA-Seq      | Young_kidney_mRNA_rep3 | YngKid_3  |
-|     SRX11708666      |  SRR15406503  |  GSM5511493  |     PAIRED     |     RNA-Seq      | Young_kidney_mRNA_rep4 | YngKid_4  |
-|     SRX11708667      |  SRR15406504  |  GSM5511494  |     PAIRED     |     RNA-Seq      |  Old_kidney_mRNA_rep1  | OldKid_1  |
-|     SRX11708668      |  SRR15406505  |  GSM5511495  |     PAIRED     |     RNA-Seq      |  Old_kidney_mRNA_rep2  | OldKid_2  |
-|     SRX11708669      |  SRR15406506  |  GSM5511496  |     PAIRED     |     RNA-Seq      |  Old_kidney_mRNA_rep3  | OldKid_3  |
-|     SRX11708670      |  SRR15406507  |  GSM5511497  |     PAIRED     |     RNA-Seq      |  Old_kidney_mRNA_rep4  | OldKid_4  |
-|     SRX11708671      |  SRR15406508  |  GSM5511498  |     PAIRED     |     RNA-Seq      | Young_liver_mRNA_rep1  | YngLiv_1  |
-|     SRX11708672      |  SRR15406509  |  GSM5511499  |     PAIRED     |     RNA-Seq      | Young_liver_mRNA_rep2  | YngLiv_2  |
-|     SRX11708673      |  SRR15406510  |  GSM5511500  |     PAIRED     |     RNA-Seq      | Young_liver_mRNA_rep3  | YngLiv_3  |
-|     SRX11708674      |  SRR15406511  |  GSM5511501  |     PAIRED     |     RNA-Seq      | Young_liver_mRNA_rep4  | YngLiv_4  |
-|     SRX11708675      |  SRR15406512  |  GSM5511502  |     PAIRED     |     RNA-Seq      |  Old_liver_mRNA_rep1   | OldLiv_1  |
-|     SRX11708676      |  SRR15406513  |  GSM5511503  |     PAIRED     |     RNA-Seq      |  Old_liver_mRNA_rep2   | OldLiv_2  |
-|     SRX11708677      |  SRR15406514  |  GSM5511504  |     PAIRED     |     RNA-Seq      |  Old_liver_mRNA_rep3   | OldLiv_3  |
-|     SRX11708678      |  SRR15406515  |  GSM5511505  |     PAIRED     |     RNA-Seq      |  Old_liver_mRNA_rep4   | OldLiv_4  |
-|     SRX11708679      |  SRR15406516  |  GSM5511506  |     PAIRED     |     ATAC-seq     | Young_kidney_ATAC_rep1 | YngKid_1  |
-|     SRX11708680      |  SRR15406517  |  GSM5511507  |     PAIRED     |     ATAC-seq     | Young_kidney_ATAC_rep2 | YngKid_2  |
-|     SRX11708681      |  SRR15406518  |  GSM5511508  |     PAIRED     |     ATAC-seq     | Young_kidney_ATAC_rep3 | YngKid_3  |
-|     SRX11708682      |  SRR15406519  |  GSM5511509  |     PAIRED     |     ATAC-seq     |  Old_kidney_ATAC_rep1  | OldKid_1  |
-|     SRX11708683      |  SRR15406520  |  GSM5511510  |     PAIRED     |     ATAC-seq     |  Old_kidney_ATAC_rep2  | OldKid_2  |
-|     SRX11708684      |  SRR15406521  |  GSM5511511  |     PAIRED     |     ATAC-seq     |  Old_kidney_ATAC_rep3  | OldKid_3  |
-|     SRX11708685      |  SRR15406522  |  GSM5511512  |     PAIRED     |     ATAC-seq     | Young_liver_ATAC_rep1  | YngLiv_1  |
-|     SRX11708686      |  SRR15406523  |  GSM5511513  |     PAIRED     |     ATAC-seq     | Young_liver_ATAC_rep2  | YngLiv_2  |
-|     SRX11708687      |  SRR15406524  |  GSM5511514  |     PAIRED     |     ATAC-seq     | Young_liver_ATAC_rep3  | YngLiv_3  |
-|     SRX11708688      |  SRR15406525  |  GSM5511515  |     PAIRED     |     ATAC-seq     |  Old_liver_ATAC_rep1   | OldLiv_1  |
-|     SRX11708689      |  SRR15406526  |  GSM5511516  |     PAIRED     |     ATAC-seq     |  Old_liver_ATAC_rep2   | OldLiv_2  |
-|     SRX11708690      |  SRR15406527  |  GSM5511517  |     PAIRED     |     ATAC-seq     |  Old_liver_ATAC_rep3   | OldLiv_3  |
+  
+  | experiment_accession | run_accession | sample_alias | library_layout | library_strategy | sample_id  |
+  |:--------------------:|:-------------:|:------------:|:--------------:|:----------------:|:----------:|
+  |     SRX13654174      |  SRR17483668  |  GSM5776726  |     PAIRED     |     ATAC-seq     |    Wt_1    |
+  |     SRX13654175      |  SRR17483667  |  GSM5776727  |     PAIRED     |     ATAC-seq     |    Wt_2    |
+  |     SRX13654176      |  SRR17483666  |  GSM5776728  |     PAIRED     |     ATAC-seq     | WtStarv_1  |
+  |     SRX13654177      |  SRR17483665  |  GSM5776729  |     PAIRED     |     ATAC-seq     | WtStarv_2  |
+  |     SRX13654178      |  SRR17483664  |  GSM5776730  |     PAIRED     |     ATAC-seq     |   Phf_1    |
+  |     SRX13654179      |  SRR17483663  |  GSM5776731  |     PAIRED     |     ATAC-seq     |   Phf_2    |
+  |     SRX13654180      |  SRR17483662  |  GSM5776732  |     PAIRED     |     ATAC-seq     | PhfStarv_1 |
+  |     SRX13654181      |  SRR17483661  |  GSM5776733  |     PAIRED     |     ATAC-seq     | PhfStarv_2 |
+  |     SRX13705091      |  SRR17535397  |  GSM5799507  |     PAIRED     |     RNA-Seq      |    Wt_1    |
+  |     SRX13705092      |  SRR17535396  |  GSM5799508  |     PAIRED     |     RNA-Seq      |    Wt_2    |
+  |     SRX13705093      |  SRR17535395  |  GSM5799509  |     PAIRED     |     RNA-Seq      | WtStarv_1  |
+  |     SRX13705094      |  SRR17535394  |  GSM5799510  |     PAIRED     |     RNA-Seq      | WtStarv_2  |
+  |     SRX13705095      |  SRR17535392  |  GSM5799511  |     PAIRED     |     RNA-Seq      |   Phf_1    |
+  |     SRX13705096      |  SRR17535391  |  GSM5799512  |     PAIRED     |     RNA-Seq      |   Phf_2    |
+  |     SRX13705097      |  SRR17535390  |  GSM5799513  |     PAIRED     |     RNA-Seq      | PhfStarv_1 |
+  |     SRX13705098      |  SRR17535393  |  GSM5799514  |     PAIRED     |     RNA-Seq      | PhfStarv_2 |
+  
+  
