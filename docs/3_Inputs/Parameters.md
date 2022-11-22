@@ -46,9 +46,9 @@ Parameters can be passed to two different configuration files:
 
 # Mandatory parameters
 
+- **_params.species_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'.  
 - **_params.references_dir_**: Directory where references have been downloaded. 
 - **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before). This parameter is mandatory only if the singularity profile is used.
-- **_params.species_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'.  
 - **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.species}/encode_chromatin_states_metadata.csv` file.
 - **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq).
 - **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq).
