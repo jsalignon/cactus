@@ -47,8 +47,8 @@ Parameters can be passed to two different configuration files:
 # Mandatory parameters
 
 - **_params.references_dir_**: Directory where references have been downloaded. 
-- **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before).
-- **_params.specie_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'.  
+- **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before). This parameter is mandatory only if the singularity profile is used.
+- **_params.species_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'.  
 - **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.species}/encode_chromatin_states_metadata.csv` file.
 - **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq).
 - **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq).
@@ -67,7 +67,7 @@ In addition, it is recommended to set up a [NextFlow Tower token](https://www.ne
 
 Here are the recomended mandatory and optional parameters to put in the *~/.cactus.config* file: 
 - **_params.references_dir_**: Directory where references have been downloaded. Mandatory (no default).
-- **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before). Mandatory (no default).
+- **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before). Mandatory if the singularity profile is used.(no default).
 - **_params.tower_token_**: Tower token to monitor the pipeline on Tower. Default: ''. <!-- default set in conf/reports.config -->
 - **_params.enable_tower_**: Directory where containers have been / will be downloaded. Default: false. <!-- default set in conf/reports.config -->
 <!-- - **cactus_version**: which version of cactus to use. Default: *latest*. => To implement later!  -->
@@ -128,7 +128,7 @@ params.pwms_motifs = "${params.references_dir}/human/homer_data/homer_motifs.txt
 Other species parameters that may be useful to tweak in certain situations are: *params.blacklisted_regions*, *params.encode_chip_files* or *params.chromatin_state_1*.
 
 The species parameter is mandatory and allows cactus to know which reference files to use:
-- **_params.specie_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory (no default).
+- **_params.species_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory (no default).
 
 
 # Processes    
