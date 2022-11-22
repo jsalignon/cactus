@@ -110,13 +110,15 @@ In addition, the following filtering columns are added:
   - FC_{up,down}: up or down-regulated
   - PA_{3,8}kb: absolute distance of less than 3kb (kilo bases) or 8kb from the TSS
   - PA_2u1d: between 2kb upstream and 1kb downstream the TSS
-  - PA_TSS: overalp with the TSS
-  - PA_genProm: peak is in a genic region or in a promoter
-  - PA_genic: peak is in a genic region
-  - PA_prom: peak is in a promoter
+  - PA_TSS: overlap with the TSS
+  - PA_genProm: genic region or promoter
+  - PA_genic: genic region
+  - PA_prom: promoter
   - PA_distNC: peak is in a distal intergenic region or (in an intron but not in any of these regions: promoter, 5' UTR, 3' UTR and exon). distNC stands for distal noncoding. These regions have been shown in [Daugherty *et al.*](https://doi.org/10.1101/gr.226233.117) (First ATAC-Seq paper in *C. elegans*) to be enriched in active and repressed enhancers.  
 
-These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern with the parameter *params.peak_assignment_for_splitting_subsets*. New filtering columns could be added in the future if needed.
+These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern with the parameter *params.peak_assignment_for_splitting_subsets*. 
+
+> **_NOTE:_** New filtering columns could be added in the future if needed.
 
 ### Outputs
 - **Table**: 

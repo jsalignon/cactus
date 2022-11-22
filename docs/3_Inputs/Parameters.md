@@ -217,63 +217,76 @@ The species parameter is mandatory and allows cactus to know which reference fil
 
 ## 3. Enrichment: Figures
 
-- **_params.barplots__df_plots_**: An R dataframe that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
-    - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
-    - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
-    - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
-    - **_add_number_**: Write the number count on the plots.  
-    - **_max_terms_**: Number of terms to display.  
-    - **_max_characters_**: The limit of target names length. Longer targt names are cut.   
-    - **_default parameters template_**:  
+- **_params.padj_breaks_**: A groovy map containing the cutoff for the bins in the barplots and heatmaps figures. There should be 5 thresholds. The default parameters (see below) can be used as a template to modify the wished parameter.   
+	- **_default parameters template_**:  
 ```
-barplots__df_plots          = 'data.frame(' +
-	'data_type      = c("func_anno", "CHIP" , "motifs", "chrom_states", "genes_self", "peaks_self"),' +
-	'padj_threshold = c(     0.05  ,    0.05,    0.05 ,        0.05   ,      0.05   ,       0.05  ),' +
-	'signed_padj    = c(     T     ,    T   ,    T    ,        T      ,      T      ,       T     ),' +
-	'add_var        = c(    "none" ,  "none",  "none" ,      "none"   ,    "none"   ,     "none"  ),' +
-	'add_number     = c(     F     ,    F   ,    F    ,        F      ,      T      ,       T     ),' +
-	'max_terms      = c(    30     ,   30   ,   30    ,       30      ,     30      ,      30     ),' +
-	'max_characters = c(    50     ,   50   ,   50    ,       50      ,     50      ,      50     )' +
-	')'
-```
-- **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
-- **_params.heatmaps__df_plots_**: An R dataframe that contains parameters to be used for each of the possible enrichment categories (i.e. data types). The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
-    - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
-    - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
-    - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
-    - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
-    - **_add_number_**: Write the number count on the plots.  
-    - **_max_characters_**: The limit of target names length. Longer targt names are cut.  
-    - **_default parameters template_**:  
-```
-heatmaps__df_plots       = 'data.frame(' +
-	'data_type       = c("func_anno",  "CHIP", "motifs", "chrom_states", "genes_self", "peaks_self"),' +
-	'padj_threshold  = c(     0.05  ,   0.05 ,    0.05 ,        0.05   ,      0.05   ,       0.05  ),' +
-	'up_down_pattern = c(    "UUDD" ,  "UUDD",  "UUDD" ,      "UUDD"   ,    "UUDD"   ,     "UUDD"  ),' +
-	'signed_padj     = c(     T     ,     T  ,    T    ,        T      ,      T      ,       T     ),' +
-	'add_var         = c(    "none" ,  "none",  "none" ,      "none"   ,    "none"   ,     "none"  ),' +
-	'add_number      = c(     F     ,     F  ,    F    ,        F      ,      T      ,       T     ),' +
-	'max_characters  = c(    50     ,    50  ,   50    ,       50      ,     50      ,      50     )' +
-	')'
+padj_breaks = [
+	genes_self:   "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+	peaks_self:   "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+	func_anno:    "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+	chrom_states: "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+	CHIP:         "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
+	motifs:       "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )"
+]
 ```
 
-- **_params.heatmaps__df_filter_terms_**: An R data.frame that contains the parameters to use to filter the `CHIP`, `motifs`, `func_anno` enrichment categories. The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
+- **_params.barplots_params_**: A groovy map containing parameters for each enrichment category. The default parameters (see below) can be used as a template to modify the wished parameter. Each column in the template  Here is a description of the parameters in the same order as they appear in the groovy map:
+    - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
+    - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
+    - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
+    - **_add_number_**: Write the number count on the plots.  
+		- **_max_characters_**: The limit of target names length. Longer targt names are cut.   
+    - **_max_terms_**: Number of terms to display.  
+    - **_default parameters template_**:  
+```
+barplots_params = [
+	genes_self:   "c( 0.05, T, 'none', F, 50, 30 )",
+	peaks_self:   "c( 0.05, T, 'none', F, 50, 30 )",
+	func_anno:    "c( 0.05, T, 'none', F, 50, 30 )",
+	chrom_states: "c( 0.05, T, 'none', F, 50, 30 )",
+	CHIP:         "c( 0.05, T, 'none', F, 50, 30 )",
+	motifs:       "c( 0.05, T, 'none', F, 50, 30 )"
+]
+```
+- **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
+- **_params.heatmaps_params_**: A groovy map containing parameters for each enrichment category. The default parameters (see below) can be used as a template to modify the wished parameter. Each column in the template  Here is a description of the parameters in the same order as they appear in the groovy map:
+    - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
+		- **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
+		- **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
+		- **_add_number_**: Write the number count on the plots.  
+		- **_max_characters_**: The limit of target names length. Longer targt names are cut.  
+    - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
+    - **_default parameters template_**:  
+```
+/* columns: padj_threshold signed_padj add_var add_number max_characters up_down_pattern */
+heatmaps_params = [
+	genes_self:   "c( 0.05, T, 'none', T, 50, 'UUDD' )",
+	peaks_self:   "c( 0.05, T, 'none', T, 50, 'UUDD' )",
+	func_anno:    "c( 0.05, T, 'none', F, 50, 'UUDD' )",
+	chrom_states: "c( 0.05, T, 'none', F, 50, 'UUDD' )",
+	CHIP:         "c( 0.05, T, 'none', F, 50, 'UUDD' )",
+	motifs:       "c( 0.05, T, 'none', F, 50, 'UUDD' )"
+]
+```
+
+- **_params.heatmaps_filter_**: An R data.frame that contains the parameters to use to filter the `CHIP`, `motifs`, `func_anno` enrichment categories. The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
+	- **_n_shared_**: Number of shared terms to select. A threshold is defined with the **_threshold_type_** (options: "quantile" or "fixed" (i.e. pvalues)) and the **_threshold_value_** parameters. For each term, the number of `COMP_FC` that are below the threshold is counted. Terms are sorted by this count (with ties sorted randomly) and the top *n_shared* terms are selected.  
+	- **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
+	- **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
+	- **_threshold_type_**: see *n_shared*
+	- **_threshold_value_**: see *n_shared*
   - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.  
-  - **_n_shared_**: Number of shared terms to select. A threshold is defined with the **_threshold_type_** (options: "quantile" or "fixed" (i.e. pvalues)) and the **_threshold_value_** parameters. For each term, the number of `COMP_FC` that are below the threshold is counted. Terms are sorted by this count (with ties sorted randomly) and the top *n_shared* terms are selected.  
-  - **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
-  - **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
+	- **_remove_similar_n_**: see *remove_similar*
   - **_default parameters template_**: 
 ```
-heatmaps__df_filter_terms = 'data.frame(' +
-	'data_type        = c("func_anno",  "CHIP"   , "motifs"   ),' +
-	'n_shared         = c(     6     ,     8     ,    8       ),' +
-	'n_unique         = c(    20     ,    25     ,   25       ),' +
-	'n_total          = c(    26     ,    40     ,   40       ),' +
-	'threshold_type   = c( "fixed"   , "quantile",  "quantile"),' +
-	'threshold_value  = c(     0.05  ,     0.25  ,    0.25    ),' +
-	'remove_similar   = c(     F     ,     T     ,    T       ),' +
-	'remove_similar_n = c(     2     ,     2     ,    2       )' +
-	')'
+heatmaps_filter = [
+	genes_self:   "NULL",
+	peaks_self:   "NULL",
+	func_anno:    "c( 6, 20, 26, 'fixed', 0.05, F, 2)",
+	chrom_states: "NULL",
+	CHIP:         "c( 6, 20, 26, 'fixed', 0.05, F, 2)",
+	motifs:       "c( 6, 20, 26, 'fixed', 0.05, F, 2)"
+]
 ```
 
 

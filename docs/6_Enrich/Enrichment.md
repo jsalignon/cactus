@@ -60,7 +60,7 @@ And EC can be any of these:
 
 >**_Note_:** Please see the [References section](/docs/2_Install/References.md) for details on how the external databases were downloaded and preprocessed, as well as details on the labels of the targets used in the figures and tables.
 
-For all genomic regions enrichment analysis, the non differentially abundant (DA) regions are used as a background for computing the significance of the overlaps. While for genes enrichment analysis and option is provided (*params.use_nda_as_bg_for_func_anno*) to either non DA genes as a background or all genes in the database.
+For all genomic regions enrichment analysis, the non-differentially abundant (DA) regions are used as a background for computing the significance of the overlaps. While for genes enrichment analysis and option is provided (*params.use_nda_as_bg_for_func_anno*) to either non DA genes as a background or all genes in the database.
 
 
 ## Enrichment__computing_functional_annotations_overlaps

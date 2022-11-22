@@ -20,8 +20,8 @@
 ## DA_split__splitting_differential_abundance_results_in_subsets
 
 ### Description
-This process splits Differential abundance results into subsets in order to do enrichment analysis on many different angle and extract the most information out of the data.  
-5 filters are used to split:
+This process splits Differential abundance results into subsets in order to do enrichment analysis on many different angles and extract the most information out of the data.  
+4 filters are used to split:
   - ET: Experiment Type. Can be either 'ATAC', 'mRNA', 'both', 'both_ATAC', or 'both_mRNA'.  
   - PA: Peak Annotation. Can be any combination of 'all', 'PA_3kb', 'PA_8kb', 'PA_2u1d', 'PA_TSS', 'PA_genProm', 'PA_genic', 'PA_prom', 'PA_distNC'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included). <!-- this is named Peak Annotation (PA) in main.nf for now; need to change that -->
   PA_{3,8}kb: absolute distance of less than 3kb (kilo bases) or 8kb from the TSS
