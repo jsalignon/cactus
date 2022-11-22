@@ -258,7 +258,6 @@ barplots_params = [
     - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
     - **_default parameters template_**:  
 ```
-/* columns: padj_threshold signed_padj add_var add_number max_characters up_down_pattern */
 heatmaps_params = [
 	genes_self:   "c( 0.05, T, 'none', T, 50, 'UUDD' )",
 	peaks_self:   "c( 0.05, T, 'none', T, 50, 'UUDD' )",
