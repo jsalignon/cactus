@@ -293,11 +293,12 @@ heatmaps_filter = [
 
 - **_params.v_fdr_thresholds_**: Vector of thresholds for filtering tables. For each data type, entries with FDR above this threhold will be removed. Default: 
 ```
-tables__v_fdr_thresholds = 'c( mRNA_detailed = 1, ATAC_detailed = 1,' +
-															'res_simple = 1, res_filter = 1, func_anno = 1,' +
-															'genes_self = 1, peaks_self = 1, ' +
-															'chrom_states = 1, CHIP = 1, motifs = 1' +
-															')' 
+tables__v_fdr_thresholds = 
+	'c( mRNA_detailed = 1, ATAC_detailed = 1,' +
+			'res_simple = 1, res_filter = 1, func_anno = 1,' +
+			'genes_self = 1, peaks_self = 1, ' +
+			'chrom_states = 1, CHIP = 1, motifs = 1' +
+	')' 
 ```
 - **_params.excel__add_conditional_formatting_**: To enable or disable conditional coloring. Default: 'TRUE'.
 - **_params.excel__max_width_**: Maximum column width. Default: 40.
