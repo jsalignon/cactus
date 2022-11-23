@@ -283,8 +283,8 @@ heatmaps_filter = [
 	peaks_self:   "NULL",
 	func_anno:    "c( 6, 20, 26, 'fixed', 0.05, F, 2)",
 	chrom_states: "NULL",
-	CHIP:         "c( 6, 20, 26, 'fixed', 0.05, F, 2)",
-	motifs:       "c( 6, 20, 26, 'fixed', 0.05, F, 2)"
+	CHIP:         "c( 8, 25, 40, 'quantile', 0.25, T, 2)",
+	motifs:       "c( 8, 25, 40, 'quantile', 0.25, T, 2)"
 ]
 ```
 

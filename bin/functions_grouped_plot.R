@@ -40,7 +40,7 @@ select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n
   if(reverse) mat = -mat
   mat_full = mat
 
-  # if there are less terms than we want to select we downscale
+  # No filtering will be performed if there are less terms than the total number of terms we want to plot.
   if( nrow(mat) < n_total ){
 
     mat_final = mat_full
@@ -63,7 +63,6 @@ select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n
         worst_dupli = c(worst_dupli, worst_dupli1)
       }
       mat %<>% .[!rownames(.) %in% worst_dupli, ]
-
     }
 
     ## selecting the top y shared terms
@@ -101,8 +100,9 @@ select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n
   }
 
   # finally clustering terms
-  col_order = hclust(dist(as.matrix(mat_final)))$order
-  terms_levels = rownames(mat_final)[col_order]
+  mat_final1 = t(scale(t(mat_final)))
+  col_order = hclust(dist(as.matrix(mat_final1)))$order
+  terms_levels = rownames(mat_final1)[col_order]
 
   return(terms_levels)
 

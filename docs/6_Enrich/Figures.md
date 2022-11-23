@@ -161,9 +161,9 @@ heatmaps__df_plots = 'data.frame(
 
   - **_threshold_value_**: See *n_shared* above.
   
-  - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top 
+  - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the top *remove_similar_n* entries with the lowest pvalue are kept. Note that no filtering will be performed if there are less entries than *n_total* (that is if there are less terms than the total number of terms we want to plot).
   
-  - **_remove_similar_n_** entries with the lowest pvalue are kept.  
+  - **_remove_similar_n_**: See *n_shared* above.
 
 Default values:
 ```
