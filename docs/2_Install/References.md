@@ -134,7 +134,7 @@ The pipeline download the references from various sources and process it to prod
 
   - Timestamp: For full reproducibility purposes a *timestamp.txt* file is made in the reference's root folder. This file include information on the data on which the reference was built and the version of Nextflow and of the package manager tool that were used when building the reference.
 
-> **_NOTE:_** Custom references can be built if needed (e.g. for using a different genome version) by running the pipeline script with these commands:
+> **_NOTE:_** Custom references can be built if needed (e.g. for using a different genome version) by modifying the parsing script and then running it with these commands:
 ```
 cd $cactus_dir/references
 nextflow run $cactus_dir/scripts/create_references/create_references.nf -profile singularity
