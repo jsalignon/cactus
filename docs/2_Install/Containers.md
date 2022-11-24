@@ -10,11 +10,11 @@
 
 [](END_OF_MENU)
 
-Almost all packages (excepting those with a "/" in their id in the table below) used by Cactus are [Biocontainers](https://biocontainers-edu.readthedocs.io/en/latest/introduction.html). Biocontainer packages have the advantage to be available on conda and Mamba virtual environments, Singularity and Docker containers. As much as possible, single tools Biocontainers were used for easier maintenance. However, in some cases multiple-tools are needed (e.g. analysis in R) in which cases "mulled containers" via [BioContainers' multi-package-containers tool](https://github.com/BioContainers/multi-package-containers). The download of all tools happens automatically the first time Cactus is run. Singularity images are hosted on the [Galaxy singularity repository](https://depot.galaxyproject.org/singularity/).   
+Almost all packages (excepting those with a "/" in their id in the table below) used by Cactus are [Biocontainers](https://biocontainers-edu.readthedocs.io/en/latest/introduction.html). Biocontainer packages have the advantage to be available on conda and Mamba virtual environments, Singularity and Docker containers. As much as possible, single tools Biocontainers were used for easier maintenance. However, in some cases multiple-tools are needed (e.g. analysis in R) in which cases "mulled containers" were created via [BioContainers' multi-package-containers tool](https://github.com/BioContainers/multi-package-containers). The download of all tools happens automatically the first time Cactus is run. Singularity images are hosted on the [Galaxy singularity repository](https://depot.galaxyproject.org/singularity/).   
 
 Below are more details regarding the use of Singularity containers.
 
-Downloading all singularity containers uses 4 Gb of disk space in total. The parameter *singularity_containers_path* set in the *./.cactus.config* file should be set to indicate in which directory the containers should be downlaoded.
+Downloading all singularity containers uses 4 Gb of disk space in total. The parameter *singularity_containers_path* set in the *./.cactus.config* file should be set to indicate in which directory the containers should be downloaded.
 
 Here is the detail of the Singularity containers used and their size:
 
