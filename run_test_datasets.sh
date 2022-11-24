@@ -91,6 +91,11 @@ nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile sing
 
 # human
 cd $app_not_dir/human
+nextflow run ${CACTUS} -params-file parameters/vary_FDR_no_enrich.yml -profile singularity -bg 
+
+
+
+
 nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity -bg > nf_log.txt
 nextflow run ${CACTUS} -params-file parameters/vary_FDR.yml -profile singularity -bg
 nextflow run jsalignon/cactus -params-file parameters/vary_rank.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533
@@ -98,9 +103,8 @@ nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile sing
 nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533 -bg > nf_log.txt
 
 
-# diff work/0d/ab43897c472502d6e29daa680dfefa/.command.run work/24/aa20edd4220053c0a72748bf1fbcd1/.command.run
 
-nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -r e63553476a7239b15446664f860ce4d50a8eb1d7 -resume
+nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -r 874b7cd0280cecdf6cfc87407a00526d823e695c -resume
 
 nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533 -resume
 nextflow run jsalignon/cactus -params-file parameters/base.yml -profile singularity -r 49913b378da7386fada4f23bebfdc00eba404533 -resume

@@ -11,11 +11,12 @@
 [](END_OF_MENU)
 
 
-
-Cactus was built with the goal to make the installation as pain-free as possible. This was achieved by using only tools within containers for all analysis. Thereby, installation of most tools is done by simply downloading containers. However, two key dependencies are still necessary. These are [Nextflow](https://doi.org/10.1038/nbt.3820) (the pipeline tool) and [SingularityCE](https://doi.org/10.1371/journal.pone.0177459) (the container tool).  
-
-To install these tools please follow the instructions on these links: [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html), [SingularityCE](https://docs.sylabs.io/guides/latest/admin-guide/installation.html).  
+Cactus was built with the goal to make the installation as pain-free as possible. This was achieved by using only tools within containers or virtual environments for all analysis. Installation of most tools is done automatically the first time the pipeline is run. However, two key dependencies should still be installed. These are the workflow language [Nextflow](https://doi.org/10.1038/nbt.3820) ([Install](https://www.nextflow.io/docs/latest/getstarted.html#installation)) and a tools manager that can be any of:
+ - [SingularityCE](https://doi.org/10.1371/journal.pone.0177459) ([Install](https://docs.sylabs.io/guides/latest/admin-guide/installation.html))
+ - [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241) ([Install](https://docs.docker.com/get-docker/))
+ - [conda](https://docs.anaconda.com/anaconda/reference/release-notes/) ([Install](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html))
+ - [Mamba](https://medium.com/@QuantStack/open-software-packaging-for-science-61cecee7fc23) ([Install](https://mamba.readthedocs.io/en/latest/installation.html))
 
 In case of issue with the pipeline and/or for reproducibility purposes, it might be useful to try to run Cactus with the version of these tools that was used when developing the current Cactus release. These are:  
   - SingularityCE: version 3.10.0+91-g13f189977 (released on May 17, 2022)  
-  - Nextflow: version 22.05.0-edge build 5704 (released on May 25, 2022 )  
+  - Nextflow: version 22.09.2-edge.5765 (released on September 2, 2022)  

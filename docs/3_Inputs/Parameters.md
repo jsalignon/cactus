@@ -217,27 +217,27 @@ The species parameter is mandatory and allows cactus to know which reference fil
 
 ## 3. Enrichment: Figures
 
-- **_params.padj_breaks_**: A groovy map containing the cutoff for the bins in the barplots and heatmaps figures. There should be 5 thresholds. The default parameters (see below) can be used as a template to modify the wished parameter.   
-	- **_default parameters template_**:  
+- **_params.padj_breaks_**: A groovy map that contains 5 adjusted p-value bins cutoff for each enrichment category. 
+Default values:
 ```
 padj_breaks = [
-	genes_self:   "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-	peaks_self:   "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-	func_anno:    "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-	chrom_states: "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-	CHIP:         "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )",
-	motifs:       "c( 0.2, 0.05, 1e-5 , 1e-20 , 1e-100 )"
+  genes_self:   "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  peaks_self:   "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  func_anno:    "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  chrom_states: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  CHIP:         "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )",
+  motifs:       "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )"
 ]
 ```
 
-- **_params.barplots_params_**: A groovy map containing parameters for each enrichment category. The default parameters (see below) can be used as a template to modify the wished parameter. Each column in the template  Here is a description of the parameters in the same order as they appear in the groovy map:
+- **_params.barplots_params_**: A groovy map that contains parameters to be used for each enrichment category. The parameters are in order:
     - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
     - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
     - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
     - **_add_number_**: Write the number count on the plots.  
 		- **_max_characters_**: The limit of target names length. Longer targt names are cut.   
     - **_max_terms_**: Number of terms to display.  
-    - **_default parameters template_**:  
+Default values:
 ```
 barplots_params = [
 	genes_self:   "c( 0.05, T, 'none', F, 50, 30 )",
@@ -249,14 +249,14 @@ barplots_params = [
 ]
 ```
 - **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
-- **_params.heatmaps_params_**: A groovy map containing parameters for each enrichment category. The default parameters (see below) can be used as a template to modify the wished parameter. Each column in the template  Here is a description of the parameters in the same order as they appear in the groovy map:
+- **_params.heatmaps_params_**: A groovy map that contains parameters to be used for each enrichment category. The parameters are in order:
     - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
 		- **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
 		- **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
 		- **_add_number_**: Write the number count on the plots.  
 		- **_max_characters_**: The limit of target names length. Longer targt names are cut.  
     - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
-    - **_default parameters template_**:  
+Default values:
 ```
 heatmaps_params = [
 	genes_self:   "c( 0.05, T, 'none', T, 50, 'UUDD' )",
@@ -268,15 +268,15 @@ heatmaps_params = [
 ]
 ```
 
-- **_params.heatmaps_filter_**: An R data.frame that contains the parameters to use to filter the `CHIP`, `motifs`, `func_anno` enrichment categories. The default parameters (see below) can be used as a template to modify the wished parameter. Here are the parameters that can be set within this data.frame:
+- **_params.heatmaps_filter_**: A groovy map that contains parameters for filtering the `CHIP`, `motifs`, `func_anno` enrichment categories. The parameters are in order:
 	- **_n_shared_**: Number of shared terms to select. A threshold is defined with the **_threshold_type_** (options: "quantile" or "fixed" (i.e. pvalues)) and the **_threshold_value_** parameters. For each term, the number of `COMP_FC` that are below the threshold is counted. Terms are sorted by this count (with ties sorted randomly) and the top *n_shared* terms are selected.  
 	- **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
 	- **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
-	- **_threshold_type_**: see *n_shared*
-	- **_threshold_value_**: see *n_shared*
+	- **_threshold_type_**: See *n_shared* above.
+  - **_threshold_value_**: See *n_shared* above.
   - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.  
-	- **_remove_similar_n_**: see *remove_similar*
-  - **_default parameters template_**: 
+	- **_remove_similar_n_**: See *n_shared* above.
+Default values:
 ```
 heatmaps_filter = [
 	genes_self:   "NULL",

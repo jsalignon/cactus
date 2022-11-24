@@ -10,13 +10,13 @@
 
 [](END_OF_MENU)
 
-Almost all packages have been downloaded from the [Galaxy singularity repository](https://depot.galaxyproject.org/singularity/) (excepting those with a "/" in their id in the table below). 
+Almost all packages (excepting those with a "/" in their id in the table below) used by Cactus are [Biocontainers](https://biocontainers-edu.readthedocs.io/en/latest/introduction.html). Biocontainer packages have the advantage to be available on conda and Mamba virtual environments, Singularity and Docker containers. As much as possible, single tools Biocontainers were used for easier maintenance. However, in some cases multiple-tools are needed (e.g. analysis in R) in which cases "mulled containers" via [BioContainers' multi-package-containers tool](https://github.com/BioContainers/multi-package-containers). The download of all tools happens automatically the first time Cactus is run. Singularity images are hosted on the [Galaxy singularity repository](https://depot.galaxyproject.org/singularity/).   
 
-The largest containers are so-called "mulled containers". These are [Biocontainers](https://biocontainers-edu.readthedocs.io/en/latest/introduction.html) created via the [multi-package-containers tool](https://github.com/BioContainers/multi-package-containers). These are useful in processes were multiple tools are required. 
+Below are more details regarding the use of Singularity containers.
 
-Downloading all containers uses 4 Gb of disk space in total. The download of all containers happens automatically the first time Cactus is run. The parameter *singularity_containers_path* set in the *./.cactus.config* file should be set to indicate in which directory the containers should be downlaoded.
+Downloading all singularity containers uses 4 Gb of disk space in total. The parameter *singularity_containers_path* set in the *./.cactus.config* file should be set to indicate in which directory the containers should be downlaoded.
 
-Here is the detail of the containers used and their size:
+Here is the detail of the Singularity containers used and their size:
 
 
 |          name          |  size|id                                                                                            |
