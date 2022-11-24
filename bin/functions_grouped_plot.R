@@ -100,7 +100,8 @@ select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n
   }
 
   # finally clustering terms
-  mat_final1 = t(scale(t(mat_final)))
+  # mat_final1 = t(scale(t(mat_final)))
+  mat_final1 = mat_final
   col_order = hclust(dist(as.matrix(mat_final1)))$order
   terms_levels = rownames(mat_final1)[col_order]
 
