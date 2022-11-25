@@ -58,7 +58,7 @@ process download_references {
   
   script:
   def figshare_path = "https://ndownloader.figshare.com/files"
-  def local_file    = "${params.species}_test_dataset.tar.gz"
+  def local_file    = "${params.species}_references.tar.gz"
   
   """
   wget ${figshare_path}/${params.references_file} -O ${local_file}
