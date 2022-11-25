@@ -83,6 +83,8 @@ nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularit
 
 
 
+
+
 ####################################################################
 ## application notes
 
@@ -114,6 +116,17 @@ nextflow run jsalignon/cactus -params-file parameters/base.yml -profile singular
 
 nextflow run ${CACTUS} -params-file parameters/vary_FDR.yml -profile singularity -resume
 
+
+
+
+####################################################################
+## testing running Cactus from scratch
+
+homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus
+
+cd $cactus_dir/testing
 
 
 
