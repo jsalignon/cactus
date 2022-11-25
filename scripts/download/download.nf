@@ -20,7 +20,7 @@ process download_test_datasets {
   input:
 
   output:
-    set file('data/'), file('conf/'), file('design/')
+    set file('data/'), file('parameters/'), file('design/')
     
   script:
   def figshare_path = "https://ndownloader.figshare.com/files"
