@@ -129,6 +129,10 @@ cactus_dir=$homedir/workspace/cactus
 cd $cactus_dir/testing
 nextflow drop jsalignon/cactus
 
+nextflow run jsalignon/cactus/scripts/download/download.nf  -profile singularity --references --test_datasets --species fly -r main -latest --references_dir .
+
+
+
 nextflow run jsalignon/cactus/scripts/download/download.nf  -profile singularity --references --test_datasets --species worm -r main -latest --references_dir .
 
 nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r main -latest -resume --references_dir . --

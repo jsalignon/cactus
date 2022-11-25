@@ -1,19 +1,11 @@
 
 
-// nextflow run jsalignon/cactus/scripts/download/download.nf --references --test_datasets --species worm -r main -latest
-// nextflow run jsalignon/cactus -r main -latest
-
-// nextflow run $cactus/scripts/download/download.nf --references --test_datasets --species worm
-// nextflow run $cactus/scripts/download/download.nf --test_datasets --species worm
-// nextflow run $cactus/scripts/download/download.nf --references --species worm
-// nextflow run $cactus/scripts/download/download.nf  --species worm // => nothing done
-
 process download_test_datasets {
   tag params.species
 
   label "skewer_pigz"
 
-  publishDir path: "${launchDir}", mode: "link"
+  publishDir path: "${launchDir}", mode: params.pub_mode
 
   when: params.test_datasets
 
@@ -47,7 +39,7 @@ process download_references {
 
   label "skewer_pigz"
 
-  publishDir path: "${params.references_dir}", mode: "link"
+  publishDir path: "${params.references_dir}", mode: params.pub_mode
 
   when: params.references
 
