@@ -10,6 +10,7 @@ tmp/
 data/
 figshare/files_to_upload
 figshare/old_files
+figshare/reports
 references/
 testing/
 nf_log.txt
