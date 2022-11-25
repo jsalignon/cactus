@@ -1,0 +1,8 @@
+f3d3e13d67a8815ee677ec1fa52fae91  fly_refs.tar.gz
+afd9003a4aa17da98c77378be296216d  fly_test.tar.gz
+505b52488d07ee77d6479f4f5a388827  human_refs.tar.gz
+20e158bae65b8ee59ba5ff4f0bb10778  human_test.tar.gz
+a096529b1a19473d8894c909f8b52a86  mouse_refs.tar.gz
+120f0a8a69da3dac5cefc52d0c1a9f5c  mouse_test.tar.gz
+18854a3073842e2c39a2f7d630158334  worm_refs.tar.gz
+fba3e0331c142391a9bb8d4e6232482d  worm_test.tar.gz
