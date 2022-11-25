@@ -61,7 +61,7 @@ process download_references {
   def local_file    = "${params.species}_test_dataset.tar.gz"
   
   """
-  wget ${figshare_path}/${params.references_file}?access_token=${params.figshare_token} -O ${local_file}
+  wget ${figshare_path}/${params.references_file} -O ${local_file}
   local_md5sum=\$(md5sum ${local_file} | awk '{print \$1}')
   
   if [[ "\$local_md5sum" == "${params.references_md5sum}" ]] ; then
