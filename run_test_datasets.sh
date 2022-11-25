@@ -35,6 +35,9 @@ do
   nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 47 --executor_local_memory '250G' --res_dir 'results/full_test'  --split__peak_assignment ['all','prom','distNC'] --split__threshold_values [200,1000]
 done
 
+cd $cactus_dir/testing
+nextflow run jsalignon/cactus/scripts/download/download.nf  -profile singularity --references --test_datasets --species worm -r main -latest --references_dir .
+
 
 # running one by one specific files
 
