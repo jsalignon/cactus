@@ -109,7 +109,7 @@ do
     mkdir -p $tools_manager/$species
     cd $test_dir/$tools_manager/$species
     nextflow run jsalignon/cactus/scripts/download/download.nf -r main -latest --test_datasets --references --references_dir refs -profile $tools_manager --species $species 
-    nextflow run jsalignon/cactus -params-file parameters/full_test.yml --references_dir refs/$species -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
+    nextflow run jsalignon/cactus -r main -latest -params-file parameters/full_test.yml --references_dir $test_dir/$tools_manager/$species/refs -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
   done
 done
 
