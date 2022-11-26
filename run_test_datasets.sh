@@ -86,8 +86,16 @@ nextflow run jsalignon/cactus -params-file parameters/full_test.yml -profile sin
 
 
 
-nextflow run /home/jersal/workspace/cactus/scripts/download/download.nf --test_datasets --references --species fly --references_dir refs --cactus_dir /home/jersal/workspace/cactus -profile singularity
+nextflow run /home/jersal/workspace/cactus/scripts/download/download.nf --test_datasets --references --species fly --references_dir refs --cactus_dir /home/jersal/workspace/cactus 
 
+rm -r data parameters design refs
+nextflow run jsalignon/cactus/scripts/download/download.nf -r main -latest --test_datasets --references --species fly --references_dir refs -profile singularity 
+
+nextflow run jsalignon/cactus/scripts/download/download.nf -c https://github.com/jsalignon/cactus/scripts/download/nextflow.config -r main -latest --test_datasets --references --species fly --references_dir refs -profile singularity 
+workflow 
+
+
+nextflow run jsalignon/cactus/scripts/download/download.nf  -profile singularity --test_datasets --species fly -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 --references_dir test
 
 
 ####################################################################
