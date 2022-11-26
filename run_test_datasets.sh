@@ -73,6 +73,8 @@ cd $test_ds_dir/fly
 rm -r work results
 nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 8 --executor_local_memory '16G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
 
+nextflow run jsalignon/cactus -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 8 --executor_local_memory '16G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200] -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume
+
 
 ## worm
 # Completed at: 17-Nov-2022 15:29:02
@@ -82,6 +84,9 @@ nextflow run ${CACTUS} -params-file parameters/full_test.yml -profile singularit
 # Execution status: Succeeded
 
 
+
+
+nextflow run /home/jersal/workspace/cactus/scripts/download/download.nf --test_datasets --references --species fly --references_dir refs --cactus_dir /home/jersal/workspace/cactus -profile singularity
 
 
 
@@ -97,6 +102,25 @@ nextflow run jsalignon/cactus -params-file parameters/vary_FDR.yml -profile sing
 # human
 cd $app_not_dir/human
 nextflow run ${CACTUS} -params-file parameters/vary_FDR_no_enrich.yml -profile singularity -bg 
+
+
+
+rm -r work
+
+nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__no_enrich' --chromatin_state 'ENCFF321DGG' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3,3,5,10] --split__peak_assignment ['all','distNC','prom'] --disable_all_enrichments true
+mv .nextflow.log results/2022_11_25__no_enrich/Run_Info/nf.log
+
+nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich_self' --chromatin_state 'ENCFF321DGG' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3,3,5,10] --split__peak_assignment ['all','distNC','prom'] --do_genes_self_enrichment true --do_peaks_self_enrichment true --do_gene_set_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
+mv .nextflow.log results/2022_11_25__no_enrich/Run_Info/nf.log
+
+nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich' --chromatin_state 'ENCFF321DGG' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all']
+mv .nextflow.log results/2022_11_25__enrich/Run_Info/nf.log
+
+nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich_hihmm_chrom_state_1' --chromatin_state 'iHMM.M1K16.human_GM' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all'] --do_gene_set_enrichment false  --do_genes_self_enrichment false --do_peaks_self_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
+mv .nextflow.log results/2022_11_25__enrich_hihmm_chrom_state_1/Run_Info/nf.log
+
+nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich_hihmm_chrom_state_2' --chromatin_state 'iHMM.M1K16.human_H1' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all'] --do_gene_set_enrichment false --do_genes_self_enrichment false --do_peaks_self_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
+mv .nextflow.log results/2022_11_25__enrich_hihmm_chrom_state_2/Run_Info/nf.log
 
 
 
