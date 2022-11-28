@@ -43,35 +43,31 @@ Parameters can be passed to two different configuration files:
 
 - a run-specific configuration file: this file is the only input needed for a cactus run. It can for instance be named like that (relative path from the run folder): *yml/run.yml*. An example can be found [here](/test_datasets/worm/parameters/run.yml).
 
+Parameters can also be set up directly on the command line. See [here](https://www.nextflow.io/docs/latest/config.html) for more details on how parameters from various sources are handled by Nextflow.
+
 
 # Mandatory parameters
 
-- **_params.species_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'.  
-- **_params.references_dir_**: Directory where references have been downloaded. 
-- **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before). This parameter is mandatory only if the singularity profile is used.
-- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.species}/encode_chromatin_states_metadata.csv` file.
-- **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq).
-- **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq).
-- **_params.design__comparisons_**: path to the [comparisons design file](/docs/3_Inputs/Design.md#Comparisons).
-- **_params.design__regions_to_remove_**: path to the [regions to remove design file](/docs/3_Inputs/Design.md#Regions-to-remove).
-- **_params.design__groups_**: path to the [groups design file](/docs/3_Inputs/Design.md#Groups).
+- **_params.species_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory. No default.
+- **_params.references_dir_**: Directory where references have been downloaded. Mandatory. No default.
+- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.species}/encode_chromatin_states_metadata.csv` file. Mandatory. No default.
+
+Additionally, these parameters are mandatory if conda, mamba or singularity is used:
+- **_params.singularity_cache_dir_**: Directory where singularity images are downloaded to when Cactus is run for the first time. Mandatory if the singularity profile is used. No default.
+- **_params.conda_cache_dir_**:  Directory where conda environments are downloaded to when Cactus is run for the first time. Mandatory if the conda profile is used. No default.
+- **_params.mamba_cache_dir_**:  Directory where mamba environments are downloaded to when Cactus is run for the first time. Mandatory if the mamba profile is used. No default.
 
 
-# Global configuration file
+# Global configuration file and mandatory parameters
 
 Any parameter can be set in the *~/.cactus.config* file.  
 
-However, two mandatory parameters are recommended to be put there mandatory to indicate the path where to download the references and the singularity containers.  
+It is highly recommended to set up here the [mandatory parameters](/docs/3_Inputs/Parameters.md). One exception is `params.chromatin_state` that can be set-up globally (with *~/.cactus.config*) or locally (in the *.yml* file or on the command line) depending on the users' need.
 
-In addition, it is recommended to set up a [NextFlow Tower token](https://www.nextflow.io/docs/latest/config.html#scope-tower) here in order to monipor pipelines' execution using [Nextflow Tower](https://cloud.tower.nf/).  
-
-Here are the recomended mandatory and optional parameters to put in the *~/.cactus.config* file: 
-- **_params.references_dir_**: Directory where references have been downloaded. Mandatory (no default).
-- **_params.singularity_images_dir_**: Directory where containers have been downloaded or will be downloaded (if cactus has not been run before). Mandatory if the singularity profile is used.(no default).
+In addition, it is recommended to set up a [NextFlow Tower token](https://www.nextflow.io/docs/latest/config.html#scope-tower) in the *~/.cactus.config* file for monitoring pipelines' execution using [Nextflow Tower](https://cloud.tower.nf/) with these parameters:
 - **_params.tower_token_**: Tower token to monitor the pipeline on Tower. Default: ''. <!-- default set in conf/reports.config -->
 - **_params.enable_tower_**: Directory where containers have been / will be downloaded. Default: false. <!-- default set in conf/reports.config -->
 <!-- - **cactus_version**: which version of cactus to use. Default: *latest*. => To implement later!  -->
-<!-- - **cactus_dir**: Directory where cactus is installed. Default: *~/workspace/cactus*.  => should not be needed by user... or not? -->
 
 
 # Design
@@ -93,18 +89,18 @@ This part contains parameters from [Nextflow's executor scope](https://www.nextf
 
 - **_params.executor.queueSize_**: How many processes are queued at a given time. Default: *100*.  
 - **_params.executor.$local.memory_**: Maximum total memory that will be used on the server (or local machine) during the run. Default: *80 GB*.  
-- **_params.executor.$local.cpus_**: Maximum total number of CPUs that will be used on the server (or local machine) during the run. Default: *50*.  
+- **_params.executor.$local.cpus_**: Maximum total number of CPUs that will be used on the server (or local machine) during the run. Default: *15*.  
 
 
 # Output Files
 
 - **_params.res_dir_**: Name of the directory where results will be saved. Default: 'results/Cactus_v${cactus_version}'.  <!-- default set in conf/version.config -->
 - **_params.pub_mode_**: Type of publication mode to use. Options available [here](https://www.nextflow.io/docs/latest/process.html#publishdir). Default: 'link'. <!-- default set in conf/version.config -->
-- **_params.save_fastq_type_**: Saving only the last, none or all fastq files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
-- **_params.save_bam_type_**: Saving only the last, none or all bam files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
-- **_params.save_bed_type_**: Saving only the last, none or all bed files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
+- **_params.save_fastq_type_**: Saving only the last, none or all fastq files. Options: 'none', 'last', 'all'. Default: 'none'. <!-- default set in conf/run_default.config -->
+- **_params.save_bam_type_**: Saving only the last, none or all bam files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_default.config -->
+- **_params.save_bed_type_**: Saving only the last, none or all bed files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_default.config -->
 - **_params.save_1bp_bam_**: Saving the 1 base pair reads after all filtering steps and tn5-shift adjustement
-- adjustment the ATAC-shift. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_base.config -->
+- adjustment the ATAC-shift. Options: 'none', 'last', 'all'. Default: false. <!-- default set in conf/run_default.config -->
 - **_params.report_dir_**: Directory where reports will be saved. Default: '${params.res_dir}/Run_Info/${params.current_date}'. <!-- default set in conf/reports.config -->
 
 
@@ -116,19 +112,19 @@ This part contains parameters from [Nextflow's executor scope](https://www.nextf
 
 
 # References 
-<!-- default sets in conf/run_base.config -->
+<!-- default sets in conf/run_default.config -->
 
 This part contains the path to the references. 
 
-Cactus preparse all references to simplify access to external databases for the user. However, there can be occasions where a user want to user another reference file. Any parameter from the [*species.config* file](/conf/species.config) can be modified if needed. For instance, a user analyzing worm data can try to see if human motifs are enriched by using this parameter:
+Cactus parses all references to simplify access to external databases for the user. However, there can be occasions where one wants to use another reference file. Any parameter from the [*species.config* file](/conf/species.config) can be modified if needed. For instance, a user analyzing worm data can try to see if human motifs are enriched by using this parameter:
 ```
 params.pwms_motifs = "${params.references_dir}/human/homer_data/homer_motifs.txt"
 ```
 
-Other species parameters that may be useful to tweak in certain situations are: *params.blacklisted_regions*, *params.encode_chip_files* or *params.chromatin_state_1*.
+Other species parameters that may be useful to tweak in certain situations are: *params.blacklisted_regions*, *params.encode_chip_files* or *params.chromatin_state*.
 
 The species parameter is mandatory and allows cactus to know which reference files to use:
-- **_params.species_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory (no default).
+- **_params.species_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory. No default.
 
 
 # Processes    
@@ -153,7 +149,8 @@ The species parameter is mandatory and allows cactus to know which reference fil
 - **_params.memory_picard_**: maximum memory used by Picard. Default: '20G'.
 - **_params.fastqc__nb_threads_**: number of threads used by FastQC. Default: 2.
 - **_params.do_bigwig_**: enable or disable this process. Default: true.
-- **_params.deeptools__binsize_bigwig_creation_**: size of the bins in the bigwig file. Smaller values increase computation time. Default: 10000.
+- **_params.deeptools__binsize_bigwig_creation_**: size of the bins for the creation of the bigwig file. Smaller values increase computation time. Default: 10.
+- **_params.deeptools__binsize_bigwig_correlation_**: size of the bins for computing correlation between samples. Smaller values increase computation time. Default: 10000.
 - **_params.deeptools__nb_threads_**: number of threads used by DeepTools. Default: 6.
 - **_params.deeptools__nb_of_1_bp_samples_**: number of 1 bp sites to sample for the coverage plots. Default: 10000.
 - **_params.deeptools__normalization_method_**: normalization method to use when creating BigWig files. See [here](https://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html) for options. Default: 'None'.
@@ -173,11 +170,12 @@ The species parameter is mandatory and allows cactus to know which reference fil
 
 ## 2. Differential Abundance: DA_ATAC
 
-- **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 1.
-- **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 'DBA_DESEQ2'.
 - **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. See the [DiffBind::dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) for details. Default: false.
+- **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 1.
+- **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 'DBA_EDGER'.
 - **_params.diffbind__min_count_**: Minimum read count value. Any interval with fewer than this many overlapping reads will be set to have this count. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for details. Default: 0.
-- **_params.diffbind__normalize_**: Normalization method to use. See the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) for options. Default: 'DBA_NORM_RLE'.
+- **_params.diffbind__normalization_**: Normalization method to use. See the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) for options. Default: 'DBA_NORM_TMM'.
+- **_params.diffbind__summits_**: Option to control the summit heights and locations calculated for each peak. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for options. Default: 75.
 - **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
 - **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
@@ -193,8 +191,9 @@ The species parameter is mandatory and allows cactus to know which reference fil
 ## 2. Differential Abundance: Split
 
 - **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Options: 'FDR', 'rank'. Default: 'FDR'. 
-- **_params.split__threshold_values_**: Defines the threshold cuttoff value(s). If *params.split__threshold_type == 'rank'* all entries ranked below this value will be kept (with entries ranked from lowest (rank = 1) to highest adjusted pvalues). If *params.split__threshold_type == 'FDR'* all entries with a -log10(p-value) below this threshold will be kept. i.e. *params.split__threshold_values == [ 1.3 ]* will keep all entries with a pvalue below 0.05. Multiple thresholds can be added but from the same type (FDR or rank). Default: [ 1.3 ].
+- **_params.split__threshold_values_**: Defines the threshold cuttoff value(s). If *params.split__threshold_type == 'rank'* all entries ranked below this value will be kept (with entries ranked from lowest (rank = 1) to highest adjusted pvalues). If *params.split__threshold_type == 'FDR'* all entries with a -log10(p-value) below this threshold will be kept. i.e. *params.split__threshold_values == [ 1.3 ]* will keep all entries with a pvalue below 0.05 (-log10(0.05) = 1.30103). Multiple thresholds can be added but from the same type (FDR or rank). Default: [ 1.3 ].
 - **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all', 'prom', 'distNC' ].
+- **_params.min_entries_DA_bed_**: Subsets with fewer entries than that will be filtered out from enrichment analysis. Default: 2. 
 
 
 ## 3. Enrichment: Enrichment
@@ -207,9 +206,9 @@ The species parameter is mandatory and allows cactus to know which reference fil
 - **_params.do_motif_enrichment_**: Enable or disable motifs enrichment analysis. Default: true.
 - **_params.do_chip_enrichment_**: Enable or disable CHIP-Seq enrichment analysis. Default: true.
 - **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
-- **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis. Options: 'KEGG', 'GO_CC', 'GO_MF', 'GO_BP'. Default: ['BP', 'KEGG']. 
+- **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis (KEEG, GO BP, GO CC or GO MF). Options: 'KEGG', 'CC', 'MF', 'BP'. Default: ['BP', 'KEGG']. 
 - **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
-- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.species}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
+- **_params.chromatin_state_**: Chromatin state to use. Options are listed in the `${params.references_dir}/${params.species}/encode_chromatin_states_metadata.csv` file. Mandatory. No default.
 - **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${species}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${species}/encode_chip_metadata.csv` file. Default: 'all'.
 - **_params.homer__nb_threads_**: number of threads used by Bowtie2. Default: 6.
 - **_params.motifs_test_type_**: The test to use for motif inputs. If 'Binomial' a two-sided binomial test is performed instead of the two-sided Fischer test. Options: 'binomial' or 'fischer' (any value). Default: 'binomial'.
@@ -246,7 +245,7 @@ The species parameter is mandatory and allows cactus to know which reference fil
 	- **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
 	- **_threshold_type_**: See *n_shared* above.
   - **_threshold_value_**: See *n_shared* above.
-  - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.  
+  - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.
 	- **_remove_similar_n_**: See *n_shared* above.
 
 

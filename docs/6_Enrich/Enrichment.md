@@ -73,7 +73,7 @@ Overlap of gene lists with functional annotation databases is performed using [c
 ### Parameters
 - **_params.do_gene_set_enrichment_**: enable or disable this process. Default: true.
 - **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
-- **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis. Options: 'KEGG', 'GO_CC', 'GO_MF', 'GO_BP'. Default: ['BP', 'KEGG']. 
+- **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis (KEEG, GO BP, GO CC or GO MF). Options: 'KEGG', 'CC', 'MF', 'BP'. Default: ['BP', 'KEGG']. 
 - **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
 
 
@@ -93,7 +93,7 @@ The input genomic regions are:
  - genomic regions of subsets from the splitting process -> for computing self overlap of genomic regions subsets within the experiment.
 
 ### Parameters
-- **_params.chromatin_state_1_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. Mandatory (no default).
+- **_params.chromatin_state_1_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. Mandatory. No default.
 - **_params.chip_ontology_**: CHIP ontology to use to filter the ENCODE CHIP files. Options are listed in the `references/${specie}/available_chip_ontology_groups.txt` file and details on the groups can be found in the file `references/${specie}/encode_chip_metadata.csv` file. Default: 'all'.
 
 
