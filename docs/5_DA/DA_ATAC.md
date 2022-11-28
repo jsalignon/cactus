@@ -62,7 +62,7 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 
 ### Parameters
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
-- **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
+- **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed on the volcano plot. Default: 15.
 
 ### Outputs
 - **Volcano plots**: 

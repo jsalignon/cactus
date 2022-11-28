@@ -37,7 +37,7 @@
 
 # Configuration files
 
-Parameters can be passed to two different configuration files:  
+Parameters can be set up in two different configuration files:  
 
 - a global configuration file: that applies to all runs and with name and path: *~/.cactus.config*. An example can be found [here](/conf/.example.cactus.config).
 
@@ -62,7 +62,7 @@ Additionally, these parameters are mandatory if conda, mamba or singularity is u
 
 Any parameter can be set in the *~/.cactus.config* file.  
 
-It is highly recommended to set up here the [mandatory parameters](/docs/3_Inputs/Parameters.md). One exception is `params.chromatin_state` that can be set-up globally (with *~/.cactus.config*) or locally (in the *.yml* file or on the command line) depending on the users' need.
+It is highly recommended to set up here the [mandatory parameters](/docs/3_Inputs/Parameters.md#Mandatory-parameters). One exception is `params.chromatin_state` that can be set-up globally (in *~/.cactus.config*) or locally (in the run-specific *.yml* file or on the command line) depending on the users' need.
 
 In addition, it is recommended to set up a [NextFlow Tower token](https://www.nextflow.io/docs/latest/config.html#scope-tower) in the *~/.cactus.config* file for monitoring pipelines' execution using [Nextflow Tower](https://cloud.tower.nf/) with these parameters:
 - **_params.tower_token_**: Tower token to monitor the pipeline on Tower. Default: ''. <!-- default set in conf/reports.config -->
@@ -95,7 +95,7 @@ This part contains parameters from [Nextflow's executor scope](https://www.nextf
 # Output Files
 
 - **_params.res_dir_**: Name of the directory where results will be saved. Default: 'results/Cactus_v${cactus_version}'.  <!-- default set in conf/version.config -->
-- **_params.pub_mode_**: Type of publication mode to use. Options available [here](https://www.nextflow.io/docs/latest/process.html#publishdir). Default: 'link'. <!-- default set in conf/version.config -->
+- **_params.pub_mode_**: Type of publication mode to use. Options are available [here](https://www.nextflow.io/docs/latest/process.html#publishdir). Default: 'link'. <!-- default set in conf/version.config -->
 - **_params.save_fastq_type_**: Saving only the last, none or all fastq files. Options: 'none', 'last', 'all'. Default: 'none'. <!-- default set in conf/run_default.config -->
 - **_params.save_bam_type_**: Saving only the last, none or all bam files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_default.config -->
 - **_params.save_bed_type_**: Saving only the last, none or all bed files. Options: 'none', 'last', 'all'. Default: 'last'. <!-- default set in conf/run_default.config -->
@@ -108,7 +108,7 @@ This part contains parameters from [Nextflow's executor scope](https://www.nextf
 <!-- default set in conf/version.config -->
 
 - **_params.resume_**: Enable or disable resuming of the run with the current cache. Default: true.  
-- **_params.cache_**: Type of cache to make. Options avalable [here](https://www.nextflow.io/docs/latest/process.html?highlight=deep#cache). Default: 'deep'.  
+- **_params.cache_**: Type of cache to make. Options are available [here](https://www.nextflow.io/docs/latest/process.html?highlight=deep#cache). Default: 'deep'.  
 
 
 # References 
@@ -116,25 +116,24 @@ This part contains parameters from [Nextflow's executor scope](https://www.nextf
 
 This part contains the path to the references. 
 
-Cactus parses all references to simplify access to external databases for the user. However, there can be occasions where one wants to use another reference file. Any parameter from the [*species.config* file](/conf/species.config) can be modified if needed. For instance, a user analyzing worm data can try to see if human motifs are enriched by using this parameter:
+Cactus parses all references to simplify access to external databases to the user. However, there can be occasions where one wants to use another reference file. Any parameter from the [*species.config* file](/conf/species.config) can be modified if needed. For instance, a user analyzing worm data can try to see if human motifs are enriched by using this parameter:
 ```
 params.pwms_motifs = "${params.references_dir}/human/homer_data/homer_motifs.txt"
 ```
 
 Other species parameters that may be useful to tweak in certain situations are: *params.blacklisted_regions*, *params.encode_chip_files* or *params.chromatin_state*.
 
-The species parameter is mandatory and allows cactus to know which reference files to use:
-- **_params.species_**: species under study. Options: 'worm', 'fly', 'mouse', 'human'. Mandatory. No default.
-
 
 # Processes    
 <!-- run this script: docs/util/get_all_parameters.sh and then use this file: docs/3_Inputs/all_config_entries.txt ; note that the last .md files need manual input for the default since they span multiple lines (for Figures.md and Tables.md) ; not also that the macs promoter parameters are duplicated 3 times and need to be removed ; also the memory_picard_ and deeptools__binsize_bigwig_creation_ parameters are duplicated and should be cleaned-->
 
+Default parameters for the processes are defined [here](/conf/run_default.config).
+
 
 ## 1. Preprocessing: ATAC_peaks
 
-- **_params.macs2__qvalue_**: q-value (minimum FDR) cutoff to call significant regions. Default: '5e-2'.
-- **_params.input_control_overlap_portion_**: threshold of the fraction of overlapping input control peaks to remove peaks. The percentage is regarding the treatment/sample peaks, not the input control peaks. Default: 0.2.
+- **_params.macs2__qvalue_**: q-value (minimum FDR) cutoff to call significant peaks with macs2. Default: '5e-2'.
+- **_params.input_control_overlap_portion_**: sample peaks that overlap with the input control by more than this percentage (of the sample peak) will be removed. Default: 0.2.
 - **_params.do_saturation_curve_**: enable or disable this process. Default: true.
 - **_params.do_raw_peak_annotation_**: to enable or disable this process. Default: true.
 - **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
@@ -179,20 +178,20 @@ The species parameter is mandatory and allows cactus to know which reference fil
 - **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
 - **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
-- **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
+- **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed on the volcano plot. Default: 15.
 
 
 ## 2. Differential Abundance: DA_mRNA
 
 - **_params.sleuth_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
-- **_params.sleuth_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed. Default: 15.
+- **_params.sleuth_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed on the volcano plot. Default: 15.
 
 
 ## 2. Differential Abundance: Split
 
 - **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Options: 'FDR', 'rank'. Default: 'FDR'. 
-- **_params.split__threshold_values_**: Defines the threshold cuttoff value(s). If *params.split__threshold_type == 'rank'* all entries ranked below this value will be kept (with entries ranked from lowest (rank = 1) to highest adjusted pvalues). If *params.split__threshold_type == 'FDR'* all entries with a -log10(p-value) below this threshold will be kept. i.e. *params.split__threshold_values == [ 1.3 ]* will keep all entries with a pvalue below 0.05 (-log10(0.05) = 1.30103). Multiple thresholds can be added but from the same type (FDR or rank). Default: [ 1.3 ].
-- **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all', 'prom', 'distNC' ].
+- **_params.split__threshold_values_**: Groovy list defining the threshold cuttoff value(s). If *params.split__threshold_type = 'rank'* all entries ranked below this value will be kept (with entries ranked from lowest (rank = 1) to highest adjusted pvalues). If *params.split__threshold_type = 'FDR'* all entries with a -log10(adjusted p-value) below this threshold will be kept. e.g., *params.split__threshold_values = [ 1.3 ]* will keep all entries with an adjusted pvalue below 0.05 (i.e., -log10(0.05) = 1.30103). Multiple thresholds can be added but from the same type (FDR or rank). Default: [ 1.3 ].
+- **_params.split__peak_assignment_**: Groovy list defining the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all', 'prom', 'distNC' ].
 - **_params.min_entries_DA_bed_**: Subsets with fewer entries than that will be filtered out from enrichment analysis. Default: 2. 
 
 
@@ -217,22 +216,19 @@ The species parameter is mandatory and allows cactus to know which reference fil
 ## 3. Enrichment: Figures
 
 - **_params.padj_breaks__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
--  for each enrichment category. 
-- padj_breaks_**: A groovy map that contains 5 adjusted p-value bins cutoff for each enrichment category. 
-   = "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )"
 
 - **_params.barplots_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}**: A string converted to a vector in R containing options to customize the barplots. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', F, 50, 30 )". The options are in order: 
     - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
     - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
     - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
-    - **_add_number_**: Write the number count on the plots.  
+    - **_add_number_**: Write the number count on the plots.
 		- **_max_characters_**: The limit of target names length. Longer targt names are cut.   
     - **_max_terms_**: Number of terms to display.  
 
 - **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
 
 - **_params.heatmaps_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}**: A string converted to a vector in R containing options to customize the heatmaps. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', T, 50, 'UUDD' )". The options are in order: 
-    - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
+    - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
 		- **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
 		- **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
 		- **_add_number_**: Write the number count on the plots.  
