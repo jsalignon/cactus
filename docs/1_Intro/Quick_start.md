@@ -107,7 +107,7 @@ nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_
 
 This creates a .nextflow.pid file that contains the master PID to kill to stop the run in the background. However, this does not always work. A workaround to kill all process from the current run folder is to use this snippet:
 ```
-kill -9 `ps -aux | grep username | grep "${PWD}" | awk '{print $2}'`
+kill -9 `ps -aux | grep $(whoami) | grep "${PWD}" | awk '{print $2}'`
 ```
 
 Then, one can inspect/grep the nf_log.txt file to go to the folder that we want to inspect in more details. Once in the appropriate folder, This snippet can be used to go the the appropriate folder and open a shell with the container in the same settings as in cactus and display the set of commands that were ran: 
