@@ -31,17 +31,14 @@ Finally, it is possible to add additional colored point to the top of the bars t
 
 ### Parameters
 - **_params.padj_breaks__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
--  for each enrichment category. 
-- padj_breaks_**: A groovy map that contains 5 adjusted p-value bins cutoff for each enrichment category. 
-   = "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )"
 
 - **_params.barplots_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}**: A string converted to a vector in R containing options to customize the barplots. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', F, 50, 30 )". The options are in order:
- - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
- - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
- - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
- - **_add_number_**: Write the number count on the plots.
- - **_max_characters_**: The length limit of terms names.
- - **_max_terms_**: Number of terms to display.
+	- **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
+	- **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
+	- **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
+	- **_add_number_**: Write the number count on the plots.
+	- **_max_characters_**: The length limit of terms names.
+	- **_max_terms_**: Number of terms to display.
 
 
 ### Outputs
