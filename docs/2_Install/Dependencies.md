@@ -17,6 +17,16 @@ Cactus was built with the goal to make the installation as pain-free as possible
  - [conda](https://docs.anaconda.com/anaconda/reference/release-notes/) ([Install](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html))
  - [Mamba](https://medium.com/@QuantStack/open-software-packaging-for-science-61cecee7fc23) ([Install](https://mamba.readthedocs.io/en/latest/installation.html))
 
-In case of issue with the pipeline and/or for reproducibility purposes, it might be useful to try to run Cactus with the version of these tools that was used when developing the current Cactus release. These are:  
+When using conda or mamba, the set-up should be as described in [Bioconda's usage section](https://bioconda.github.io/#usage):
+```
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+```
+
+In case of issue with the pipeline and/or for reproducibility purposes, it might be useful to try to run Cactus with the version of these tools that were used when developing the current Cactus release. These are:  
   - SingularityCE: version 3.10.0+91-g13f189977 (released on May 17, 2022)  
   - Nextflow: version 22.09.2-edge.5765 (released on September 2, 2022)  
+  - Conda: version 22.9.0 (released on September 20, 2022)  
+Docker version 18.06.1-ce, build e68fc7a

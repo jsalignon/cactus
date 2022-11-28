@@ -101,9 +101,11 @@ memory_size='250G'
 cd $test_dir 
 # rm -r *
 
-for tools_manager in singularity conda
+# for tools_manager in singularity conda
+for tools_manager in conda
 do 
-  for species in worm fly human mouse
+for species in worm
+# for species in worm fly human mouse
   do
     cd $test_dir
     mkdir -p $tools_manager/$species
