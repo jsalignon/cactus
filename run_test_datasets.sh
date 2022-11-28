@@ -99,7 +99,7 @@ cpu_nb=47
 memory_size='250G'
 
 cd $test_dir 
-rm -r *
+# rm -r *
 
 for tools_manager in singularity conda
 do 
@@ -108,8 +108,8 @@ do
     cd $test_dir
     mkdir -p $tools_manager/$species
     cd $test_dir/$tools_manager/$species
-    nextflow run jsalignon/cactus/scripts/download/download.nf -r main -latest --test_datasets --references --references_dir refs -profile $tools_manager --species $species 
-    nextflow run jsalignon/cactus -r main -latest -params-file parameters/full_test.yml --references_dir $test_dir/$tools_manager/$species/refs -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
+    nextflow run jsalignon/cactus/scripts/download/download.nf -r main -latest --test_datasets --references --references_dir refs -profile $tools_manager --species $species -resume
+    nextflow run jsalignon/cactus -r main -latest -params-file parameters/full_test.yml --references_dir $test_dir/$tools_manager/$species/refs -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200] -resume
   done
 done
 
@@ -144,20 +144,31 @@ nextflow run ${CACTUS} -params-file parameters/vary_FDR_no_enrich.yml -profile s
 
 rm -r work
 
-nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__no_enrich' --chromatin_state 'ENCFF321DGG' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3,3,5,10] --split__peak_assignment ['all','distNC','prom'] --disable_all_enrichments true
+nextflow run jsalignon/cactus -profile singularity -r 8e43dd8c7045bd8bc8f3f426e3902c2ee52f93f5 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__no_enrich' --chromatin_state 'ENCFF321DGG' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3,3,5,10] --split__peak_assignment ['all','distNC','prom'] --disable_all_enrichments true
 mv .nextflow.log results/2022_11_25__no_enrich/Run_Info/nf.log
 
-nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich_self' --chromatin_state 'ENCFF321DGG' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3,3,5,10] --split__peak_assignment ['all','distNC','prom'] --do_genes_self_enrichment true --do_peaks_self_enrichment true --do_gene_set_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
+
+nextflow run jsalignon/cactus -profile singularity -r 8e43dd8c7045bd8bc8f3f426e3902c2ee52f93f5 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich_self' --chromatin_state 'ENCFF321DGG' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3,3,5,10] --split__peak_assignment ['all','distNC','prom'] --do_genes_self_enrichment true --do_peaks_self_enrichment true --do_gene_set_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
 mv .nextflow.log results/2022_11_25__no_enrich/Run_Info/nf.log
 
-nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich' --chromatin_state 'ENCFF321DGG' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all']
+nextflow run jsalignon/cactus -profile singularity -r 8e43dd8c7045bd8bc8f3f426e3902c2ee52f93f5 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich' --chromatin_state 'ENCFF321DGG' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all']
 mv .nextflow.log results/2022_11_25__enrich/Run_Info/nf.log
 
-nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich_hihmm_chrom_state_1' --chromatin_state 'iHMM.M1K16.human_GM' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all'] --do_gene_set_enrichment false  --do_genes_self_enrichment false --do_peaks_self_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
+nextflow run jsalignon/cactus -profile singularity -r 8e43dd8c7045bd8bc8f3f426e3902c2ee52f93f5 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich_hihmm_chrom_state_1' --chromatin_state 'iHMM.M1K16.human_GM' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all'] --do_gene_set_enrichment false  --do_genes_self_enrichment false --do_peaks_self_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
 mv .nextflow.log results/2022_11_25__enrich_hihmm_chrom_state_1/Run_Info/nf.log
 
-nextflow run jsalignon/cactus -profile singularity -r ea3ae1a882732e5ecdcaf70faf911e8679c68ff0 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich_hihmm_chrom_state_2' --chromatin_state 'iHMM.M1K16.human_H1' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all'] --do_gene_set_enrichment false --do_genes_self_enrichment false --do_peaks_self_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
+nextflow run jsalignon/cactus -profile singularity -r 8e43dd8c7045bd8bc8f3f426e3902c2ee52f93f5 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'human' --res_dir 'results/2022_11_25__enrich_hihmm_chrom_state_2' --chromatin_state 'iHMM.M1K16.human_H1' --chip_ontology 'cell_type.fibroblast' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all'] --do_gene_set_enrichment false --do_genes_self_enrichment false --do_peaks_self_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
 mv .nextflow.log results/2022_11_25__enrich_hihmm_chrom_state_2/Run_Info/nf.log
+
+
+
+cd $app_not_dir/worm
+
+nextflow run jsalignon/cactus -profile singularity -r 8e43dd8c7045bd8bc8f3f426e3902c2ee52f93f5 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'worm' --res_dir 'results/2022_11_25__enrich_self' --chromatin_state 'iHMM.M1K16.worm_L3' --chip_ontology 'all' --split__threshold_type 'FDR' --split__threshold_values [1.3,3,5,10] --split__peak_assignment ['all','distNC','prom'] --do_genes_self_enrichment true --do_peaks_self_enrichment true --do_gene_set_enrichment false --do_motif_enrichment false --do_chip_enrichment false --do_chrom_state_enrichment true
+
+nextflow run jsalignon/cactus -profile singularity -r 8e43dd8c7045bd8bc8f3f426e3902c2ee52f93f5 -resume --executor_local_cpus 47 --executor_local_memory '250G' --species 'worm' --res_dir 'results/2022_11_25__enrich' --chromatin_state 'iHMM.M1K16.worm_L3' --chip_ontology 'all' --split__threshold_type 'FDR' --split__threshold_values [1.3] --split__peak_assignment ['all']
+
+
 
 
 

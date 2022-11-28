@@ -4759,8 +4759,10 @@ process Figures__making_enrichment_heatmap {
     # selecting and ordering the y-axis terms
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
 
-      mat = mat[rowSums(mat) != 0,] %>% .[, colSums(.) != 0, drop = F]
-      if(ncol(mat) < 2 | nrow(mat) < 2) quit(save = 'no')
+      sel_rows = which(rowSums(mat) != 0)
+      sel_cols = which(colSums(mat) != 0)
+      if(sel_rows < 2 | sel_cols < 2) quit(save = 'no')
+      mat = mat[sel_rows, sel_cols]
       comp_order1 = comp_order_levels %>% .[. %in% colnames(mat)]
       
       terms_levels = select_y_axis_terms_grouped_plot(mat, 
