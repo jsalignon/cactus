@@ -35,13 +35,13 @@ Finally, it is possible to add additional colored point to the top of the bars t
 - padj_breaks_**: A groovy map that contains 5 adjusted p-value bins cutoff for each enrichment category. 
    = "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )"
 
-- **_params.barplots_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}**: A string converted to a vector in R containing options to customize the barplots. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', F, 50, 30 )". The options are in order: 
-   - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
-   - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
-   - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
-   - **_add_number_**: Write the number count on the plots.  
-		- **_max_characters_**: The limit of target names length. Longer targt names are cut.   
-   - **_max_terms_**: Number of terms to display.  
+- **_params.barplots_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}**: A string converted to a vector in R containing options to customize the barplots. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', F, 50, 30 )". The options are in order:
+ - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
+ - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
+ - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
+ - **_add_number_**: Write the number count on the plots.
+ - **_max_characters_**: The length limit of terms names.
+ - **_max_terms_**: Number of terms to display.
 
 
 ### Outputs
@@ -99,22 +99,22 @@ Cells are colored with signed and binned adjusted pvalues as described in the [p
 ### Parameters
 - **_params.padj_breaks_**: same argument as in the [previous process](/docs/6_Enrich/Figures.md#Figures__making_enrichment_barplots).
 - **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
-- **_params.heatmaps_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}**: A string converted to a vector in R containing options to customize the heatmaps. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', T, 50, 'UUDD' )". The options are in order: 
-    - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.  
-		- **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
-		- **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
-		- **_add_number_**: Write the number count on the plots.  
-		- **_max_characters_**: The limit of target names length. Longer targt names are cut.  
-    - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
+- **_params.heatmaps_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}**: A string converted to a vector in R containing options to customize the heatmaps. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', T, 50, 'UUDD' )". The options are in order:
+  - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
+  - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).
+  - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).
+  - **_add_number_**: Write the number count on the plots.
+  - **_max_characters_**: The limit of target names length. Longer targt names are cut.
+  - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
 
-- **_params.heatmaps_filter__{func_anno,CHIP,motifs}**: A string converted to a vector in R containing options to customize the selection of terms for the heatmaps. Such filtering parameters are only available for the `func_anno`, `CHIP` and `motifs` enrichment categories. Default for `func_anno`: "c( 6, 20, 26, 'fixed', 0.05, F, 2)". Default for `CHIP` and `motifs`: "c( 8, 25, 40, 'quantile', 0.25, T, 2)". The options are in order: 
+- **_params.heatmaps_filter__{func_anno,CHIP,motifs}**: A string converted to a vector in R containing options to customize the selection of terms for the heatmaps. Such filtering parameters are only available for the `func_anno`, `CHIP` and `motifs` enrichment categories. Default for `func_anno`: "c( 6, 20, 26, 'fixed', 0.05, F, 2)". Default for `CHIP` and `motifs`: "c( 8, 25, 40, 'quantile', 0.25, T, 2)". The options are in order:
 	- **_n_shared_**: Number of shared terms to select. A threshold is defined with the **_threshold_type_** (options: "quantile" or "fixed" (i.e. pvalues)) and the **_threshold_value_** parameters. For each term, the number of `COMP_FC` that are below the threshold is counted. Terms are sorted by this count (with ties sorted randomly) and the top *n_shared* terms are selected.  
 	- **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
 	- **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
 	- **_threshold_type_**: See *n_shared* above.
   - **_threshold_value_**: See *n_shared* above.
-  - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.  
-	- **_remove_similar_n_**: See *n_shared* above.
+  - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.
+  - **_remove_similar_n_**: See *n_shared* above.
 
 
 ### Outputs
