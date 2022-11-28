@@ -115,6 +115,8 @@ for species in worm fly human mouse
   done
 done
 
+species=worm
+tools_manager=conda
 
 for species in worm
 # for species in worm fly human mouse
