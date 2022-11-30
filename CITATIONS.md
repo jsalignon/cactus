@@ -38,9 +38,8 @@
 
 > Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017 Apr 11;35(4):316-319. PubMed PMID: 28398311.
 
-<a name="#test_tools">
-## Tools
-</a>
+<h2 name="#test_tools">Tools</h2>
+
 
 ## Dependencies
 
@@ -65,9 +64,8 @@
   > Kurtzer GM, Sochat V, Bauer MW. Singularity: Scientific containers for mobility of compute. PLoS One. 2017 May 11;12(5):e0177459. doi: 10.1371/journal.pone.0177459. eCollection 2017. PubMed PMID: 28494014; PubMed Central PMCID: PMC5426675.
 
 
-<a name="#cactus_tools">
-## Tools
-</a>
+<h2 name="#cactus_tools">Tools</h2>
+
 
 - [BBMap](https://sourceforge.net/projects/bbmap/)
 
