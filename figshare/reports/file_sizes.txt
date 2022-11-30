@@ -1,8 +1,0 @@
-983M fly_refs.tar.gz
-360M fly_test.tar.gz
- 12G human_refs.tar.gz
-8.5G human_test.tar.gz
-7.2G mouse_refs.tar.gz
-5.7G mouse_test.tar.gz
-811M worm_refs.tar.gz
-1.3G worm_test.tar.gz

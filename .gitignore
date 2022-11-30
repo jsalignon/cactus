@@ -17,6 +17,7 @@ nf_log.txt
 docs/examples/pdf/*
 docs/examples/xlsx/*
 case_study/
+run_test_datasets.sh
 
 /test_datasets/*/*
 !/test_datasets/*/parameters

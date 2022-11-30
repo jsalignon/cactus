@@ -77,24 +77,14 @@ Analysis parameters can be changed in the yml input file. See the [Parameters](/
 
 # Reproducibility
 
-It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since [text stolen from Maxime/Sarek]. On can specify the version of the pipeline using the –version argument this way:
+It's a good idea to specify a [release version](https://github.com/jsalignon/cactus/releases) when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since. One can specify the version of the pipeline using the *-r* argument this way:
 ```
-nextflow run jsalignon/cactus -profile {singulariy,docker,conda,mamba} -params-file parameter_file -r revision_hash -resume
+nextflow run jsalignon/cactus -r release_tag -profile {singulariy,docker,conda,mamba} -params-file parameter_file
 ```
-
 For instance:
 ```
-nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r 6db14711ed38b7611de20cf44fea0c000a2cf3fe -resume
+nextflow run jsalignon/cactus -r 0.9.0 -profile singularity -params-file parameters/full_test.yml
 ```
-
-Revisions hashes can be found (here)[https://github.com/jsalignon/cactus/commits/main] (by clicking on "Copy the full SHA").
-
->**_Note_:** When working with different revision of the same branch of the pipeline, one needs to drop and re-download the pipeline between runs with this command:
-
-```
-nextflow drop jsalignon/cactus
-```
-
 
 # Troubleshooting
 
@@ -104,7 +94,7 @@ The general process to resolve a crashing pipeline is to go to the folder indica
 
 The *-bg* argument can be used to run cactus in the background like this:
 ```
-nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r main -latest -resume -bg > nf_log.txt
+nextflow run jsalignon/cactus -r main -latest -profile singularity -params-file parameters/full_test.yml -bg > nf_log.txt
 ```
 
 This creates a .nextflow.pid file that contains the master PID to kill to stop the run in the background. However, this does not always work. A workaround to kill all running processed from the current run folder is to use this function:
@@ -115,7 +105,7 @@ kill_nextflow_processes() {
 kill_nextflow_processes
 ```
 
-Then, one can inspect/grep the nf_log.txt file to go to the folder that we want to inspect in more details. Once in the appropriate folder, the following function can be used to open a shell with the container in the same settings as in Cactus and displaying the set of commands that were ran (in the .command.sh file): 
+Then, one can inspect/grep the nf_log.txt file to go to the folder that we want to inspect in more details. Once in the appropriate folder, the following function can be used, if one uses singularity, to open a shell with the container in the same settings as in Cactus and displaying the set of commands that were ran (in the .command.sh file): 
 
 ```
 load_singularity_container() {
