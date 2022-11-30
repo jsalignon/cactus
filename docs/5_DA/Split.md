@@ -19,6 +19,9 @@
 
 ## DA_split__splitting_differential_abundance_results_in_subsets
 
+![](/docs/images/figure_1.png "Splitting filters")
+![](/docs/images/splitting_experiment_type.png "Splitting filter: experiment type")
+
 ### Description
 This process splits Differential abundance results into subsets in order to do enrichment analysis on many different angles and extract the most information out of the data.  
 4 filters are used to split:

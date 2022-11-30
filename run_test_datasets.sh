@@ -116,15 +116,23 @@ for species in worm fly human mouse
 done
 
 species=worm
-tools_manager=conda
+tools_manager=mamba
 
+
+
+homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus
+test_dir=$cactus_dir/testing
+
+# species=worm
+# tools_manager=conda
 
 for species in worm
 # for species in worm fly human mouse
 do 
 # for tools_manager in singularity docker conda mamba 
-for tools_manager in mamba conda
-# for tools_manager in conda
+for tools_manager in docker
   do
     cd $test_dir
     mkdir -p $tools_manager/$species
@@ -134,6 +142,10 @@ for tools_manager in mamba conda
   done
 done
 
+
+# worm conda (already made containers)
+# Duration    : 10m 27s
+# CPU hours   : 4.1
 
 
 

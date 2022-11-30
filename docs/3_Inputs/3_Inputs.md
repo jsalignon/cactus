@@ -12,8 +12,6 @@
 
 
 
-![](/docs/images/3_Inputs.png "Inputs")
-
 This section covers the inputs files needed by Cactus. There are 3 kind of inputs files: 
  - [Data](/docs/3_Inputs/Data.md) (*.fastq.gz* files): raw sequencing output files
  - [Design](/docs/3_Inputs/Design.md) (*.tsv* files): to indicate the design of the experiment; that is how fastq files relate to samples and conditions, and comparisons to perform and groups of comparisons to plot together in the heatmaps

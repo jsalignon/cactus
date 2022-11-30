@@ -12,8 +12,6 @@
 
 
 
-![](/docs/images/6_Enrich.png "Enrichment")
-
 This section covers enrichment analysis for each [subset from DAA](/docs/5_DA/5_DA.md).  
 
 For a given subset and term of interest (i.e. a pathway, a CHIP profile, ...), [enrichment](/docs/6_Enrich/Enrichment.md) is measured by computing the overlap genes/genomic regions in the subset versus the genes/genomic regions not in the subset. Finally, a Fischer test is performed to determine enrichment or depletion of the term since in most cases both can be biologically meaningful (see [reference](https://academic.oup.com/bioinformatics/article/23/4/401/181853?login=true)).  

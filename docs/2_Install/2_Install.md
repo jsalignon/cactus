@@ -12,8 +12,6 @@
 
 
 
-![](/docs/images/2_Install.png "Installation")
-
 This section covers the Installation of Cactus, with:
   - the installation of the two [dependencies](/docs/2_Install/Dependencies.md): Nextflow and a tools manager (containers: Docker or Singularity, virtual environments: conda or Mamba)
   - the [containers / virtual environments](/docs/2_Install/Containers.md) used by Cactus, their origin and their size

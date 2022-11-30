@@ -12,7 +12,7 @@
 
 
 
-![](/docs/images/1_Intro.png "Introduction")
+![](/docs/images/figure_1.png "Introduction")
 
 **CACTUS** (Chromatin ACcessibility and Transcriptomics Unification Software) is an mRNA-Seq and ATAC-Seq analysis pipeline that aims to help researchers formulating hypothesis on the molecular mechanisms regulating their conditions of interest. Cactus does standard preprocessing and differential abundance analysis followed by enrichment analysis on various large scale external datasets (gene ontologies, pathways, motifs, CHIP-Seq and chromatin states). Currently, Cactus can analyze data from any of the 4 ENCODE species: *H. sapiens*, *M. musculus*, *D. melanogaster* and *C. elegans* . The pipeline aims to be easy to use for people without bioinformatics skills, efficient and reproducible through the use of the workflow language Nextflow and different options for managing dependencies (Singularity, Docker, Conda, Mamba), and flexible with many parameters available to customize the analysis. Output files are convenient to scroll through (e.g., multiQC, merged and individual pdfs and tables, formatted Excel tables) and to interpret (e.g., standardized downstream analysis figures, customizable heatmaps).
 
