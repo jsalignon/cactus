@@ -18,27 +18,6 @@
     - [ATAC-Seq](#ATAC-Seq)
     - [Statistics](#Statistics)
 
-  
-  
-  
-  # Scripts
-  
-  ## Create references
-  
-  ### Tools 
-  ### Databases
-  
-  ## Create test datasets
-  
-  ### Tools 
-  
-  ### Databases
-  
-  # Research papers
-  
-  ## 
-  
-  ## Statistics
 
 
 # Cactus
