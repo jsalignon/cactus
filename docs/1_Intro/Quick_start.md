@@ -13,28 +13,30 @@
 
 # Dependencies and profiles
 
-Cactus needs two software to be installed in order to run: Nextflow and one of SingularityCE, Docker or Conda.
-Then, the *-profile* argument should be used to specicify which executor to use. In general, it is recommended to use SingularityCE on HPC systems since Singularity containers can be [run without sudo](https://blogs.oregonstate.edu/learningbydoing/2022/01/04/docker-and-singularity-containers-which-one-is-better/). Users should see with their administrator which of these 3 options are available and recommeneded.
+Cactus needs two software to be installed in order to run: Nextflow and one of SingularityCE, Docker, conda or Mamba.
+Then, the *-profile* argument should be used to specicify which tools manager to use. In general, it is recommended to use SingularityCE on HPC systems since Singularity containers can be [run without sudo](https://blogs.oregonstate.edu/learningbydoing/2022/01/04/docker-and-singularity-containers-which-one-is-better/) and Singularity images are [immutable](https://singularity-docs.readthedocs.io/en/latest/) which ensures a high level of reproducibility and verification of images (see also [here](https://spiediedocs.binghamton.edu/docs/conda_singularity_modules.html)). Users should see with their administrator which of these 4 options are available and recommended.
 
 
 # Install and run
 
-The first step is to create the global configuration file *.cactus.config* located in the home folder. This file must indicate the path where to download the references and the singularity containers. Here is an example of a *.cactus.config* file when using singulariyt:
+The first step is to create the global configuration file *.cactus.config* located in the home folder. This file must indicate the path where to download the references and the singularity containers. Here is an example of a *.cactus.config* file when using Singularity with a Tower token to monitor the pipeline runs on [Nextflow Tower](https://cloud.tower.nf/):
 ```
-params.references_dir         = '/home/user/workspace/cactus/references'
-params.singularity_images_dir = '/home/user/workspace/singularity_containers'
+params.references_dir         = "${HOME}/workspace/cactus/references"
+params.singularity_images_dir = "${HOME}/workspace/singularity_containers"
+params.tower_token            = "*"
+params.enable_tower           = true
 ```
 
 Downloading references and test datasets:
 ```
-nextflow run jsalignon/cactus/scripts/download/download.nf  -profile singularity --references --test_datasets --species worm -r main -latest
+nextflow run jsalignon/cactus/scripts/download/download.nf -r main -latest --test_datasets --references -profile singularity --species worm
 ```
 
 >**_Note_:** Test datasets are also available for the species fly, human and mouse. They can be tested by changing the *--species* argument.  
 
 Running Cactus (and downloading containers):
 ```
-nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r main -latest -resume
+nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r main -latest
 ```
 
 One can update the pipeline using this command:
@@ -42,14 +44,14 @@ One can update the pipeline using this command:
 nextflow pull jsalignon/cactus
 ```
 
-Results are stored in the folder `results/Cactus_v${version}` (this path can be changed with the parameter *params.res_dir*).
+Results are stored in the folder `results/Cactus_v${cactus_version}` (this path can be changed with the parameter *params.res_dir*).
 
 It is recommended to use either the worm or the fly test datasets when testing Cactus on a laptop to reduce runtime. With 8 cores and 16Gb RAM the worm and fly test dataset can be run in respectively ~27 and ~56 minutes using this command:
 ```
 nextflow run jsalignon/cactus -r main -latest -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 8 --executor_local_memory '16G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
 ```
 
->**_Note_:** The run parameters can be set up in a *.yml* file or in the command line (as shown just above). The latter taking priority on the former. When setting parameters on the command line, one dash indicates [Nextflow's internal parameters](https://www.nextflow.io/docs/latest/config.html#config-profiles) (e.g. -profile) and two dashes indicate [Cactus' own parameters](/docs/3_Inputs/Parameters.md) (e.g. res_dir). 
+>**_Note_:** The run parameters can be set up in a *.yml* file or in the command line (as shown just above). The latter taking priority on the former. When setting parameters on the command line, one dash indicates [Nextflow's internal parameters](https://www.nextflow.io/docs/latest/cli.html#run) (e.g. -profile) and two dashes indicate [Cactus' own parameters](/docs/3_Inputs/Parameters.md) (e.g. res_dir). 
 
 >**_Note_:** A minimum of 6 cores is required to run Cactus. 
 
@@ -77,7 +79,7 @@ Analysis parameters can be changed in the yml input file. See the [Parameters](/
 
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since [text stolen from Maxime/Sarek]. On can specify the version of the pipeline using the –version argument this way:
 ```
-nextflow run jsalignon/cactus -profile {singulariy,docker,conda} -params-file parameter_file -r revision_hash -resume
+nextflow run jsalignon/cactus -profile {singulariy,docker,conda,mamba} -params-file parameter_file -r revision_hash -resume
 ```
 
 For instance:
@@ -98,24 +100,30 @@ nextflow drop jsalignon/cactus
 
 In general, scrolling through [Nextflow’s documentation](https://www.nextflow.io/docs/latest/index.html) can help resolving most issues.  
 
-The general process to resolve a crashing pipeline is to go to the folder indicated in the crash report, launch the appropriate container, and run the lines of codes indicated in the crash report. This way one can try to identify and solve the issue. For finer inspection of the code and analysis a good idea is to run cactus in the background to get a detailled log file. Note that the [*-dump-channels* argument](https://www.nextflow.io/docs/latest/cli.html#run) can also be used to explore channel contents.
+The general process to resolve a crashing pipeline is to go to the folder indicated in the crash report, launch the appropriate container, and run the lines of codes indicated in the crash report. This way one can try to identify and solve the issue. For finer inspection of the code and analysis, a good idea is to run cactus in the background to get a detailled log file. Note that the [*-dump-channels* argument](https://www.nextflow.io/docs/latest/cli.html#run) can also be used to explore channel contents.
 
-The *bg* argument can be used to run cactus in the background like this:
+The *-bg* argument can be used to run cactus in the background like this:
 ```
 nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r main -latest -resume -bg > nf_log.txt
 ```
 
-This creates a .nextflow.pid file that contains the master PID to kill to stop the run in the background. However, this does not always work. A workaround to kill all process from the current run folder is to use this snippet:
+This creates a .nextflow.pid file that contains the master PID to kill to stop the run in the background. However, this does not always work. A workaround to kill all running processed from the current run folder is to use this function:
 ```
-kill -9 `ps -aux | grep $(whoami) | grep "${PWD}" | awk '{print $2}'`
+kill_nextflow_processes() {
+  kill -9 `ps -aux | grep $(whoami) | grep "${PWD}/work" | awk '{print $2}'`
+}
+kill_nextflow_processes
 ```
 
-Then, one can inspect/grep the nf_log.txt file to go to the folder that we want to inspect in more details. Once in the appropriate folder, This snippet can be used to go the the appropriate folder and open a shell with the container in the same settings as in cactus and display the set of commands that were ran: 
+Then, one can inspect/grep the nf_log.txt file to go to the folder that we want to inspect in more details. Once in the appropriate folder, the following function can be used to open a shell with the container in the same settings as in Cactus and displaying the set of commands that were ran (in the .command.sh file): 
 
 ```
+load_singularity_container() {
+  container=$(grep SINGULARITY .command.run | sed 's/.*\/dev\/shm //g' | sed 's/.img.*/.img/g')
+  singularity shell -B /home/jersal --containall --cleanenv --home $PWD --workdir /dev/shm $container
+}
 cd work/59/8a6fb9*
-container=$(grep SINGULARITY .command.run | sed 's/.*tmp //g' | sed 's/.img.*/.img/g')
-singularity shell -B /home/user --containall --cleanenv --home $PWD --workdir /dev/shm $container
+load_singularity_container
 cat .command.sh
 ```
 

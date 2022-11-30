@@ -149,6 +149,14 @@ done
 
 
 
+species=worm
+tools_manager=conda
+cd $test_dir/$tools_manager/$species
+
+nextflow run jsalignon/cactus -r main -latest -params-file parameters/full_test.yml --references_dir $test_dir/$tools_manager/$species/refs -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --res_dir 'results/random_test'  --split__peak_assignment ['all'] --split__threshold_values [200] -resume -bg > test.log
+kill_nextflow_processes
+
+
 
 nextflow run /home/jersal/workspace/cactus/scripts/download/download.nf --test_datasets --references --species fly --references_dir refs --cactus_dir /home/jersal/workspace/cactus 
 
