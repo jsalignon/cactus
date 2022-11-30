@@ -1,15 +1,16 @@
 
-## This script tests all tools managers and all species. It can be adjusted depending on available tools.
-
+# setting up paths
 homedir=~
 eval homedir=$homedir
 cactus_dir=$homedir/workspace/cactus
 test_dir=$cactus_dir/testing
 
+# setting up variables
+cactus_version=0.9.0
 cpu_nb=47
 memory_size='250G'
 
-
+# running Cactus on all tests datasets and with all tools manager 
 cd $test_dir 
 # rm -r *
 
