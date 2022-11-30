@@ -6,14 +6,14 @@
     - [jsalignon/cactus](#jsalignon/cactus)
     - [Languages](#Languages)
     - [Dependencies](#Dependencies)
-    - [Pipeline tools](#cactus_tools)
+    - [Tools](#cactus_tools)
   - [Scripts](#Scripts)
     - [Create references](#Create-references)
-      - [Tools](#test_tools)
-      - [Databases](#Databases)
+      - [Tools](#create_refs_tools)
+      - [Databases](#create_refs_databases)
     - [Create test datasets](#Create-test-datasets)
-      - [Tools](#Tools)
-      - [Databases](#Databases)
+      - [Tools](#create_test_ds_tools)
+      - [Databases](#create_test_ds_databases)
   - [Research papers](#Research-papers)
     - [ATAC-Seq](#ATAC-Seq)
     - [Statistics](#Statistics)
@@ -37,8 +37,6 @@
 - [Nextflow](https://doi.org/10.1038/nbt.3820)
 
 > Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017 Apr 11;35(4):316-319. PubMed PMID: 28398311.
-
-<h2 name="test_tools">Tools</h2>
 
 
 ## Dependencies
@@ -183,7 +181,7 @@
 
 ## Create references
 
-### Tools 
+<h3 name="create_refs_tools">Tools</h3>
 
 - [GffRead](https://doi.org/10.12688/f1000research.23297.2)
 
@@ -203,8 +201,7 @@
 
 > Shane Neph, M. Scott Kuehn, Alex P. Reynolds, Eric Haugen, Robert E. Thurman, Audra K. Johnson, Eric Rynes, Matthew T. Maurano, Jeff Vierstra, Sean Thomas, Richard Sandstrom, Richard Humbert, John A. Stamatoyannopoulos, BEDOPS: high-performance genomic feature operations, Bioinformatics, Volume 28, Issue 14, 15 July 2012, Pages 1919–1920.
 
-
-### Databases
+<h3 name="create_refs_databases">Databases</h3>
 
 - [ChrommHmm](https://doi.org/10.1038/nmeth.1906)
 
@@ -244,7 +241,7 @@
 
 ## Create test datasets
 
-### Tools 
+<h3 name="create_test_ds_tools">Tools</h3>
 
 - [nf-core/fetchngs](https://doi.org/10.1038/s41587-020-0439-x)
 
@@ -252,7 +249,8 @@
 
 - [seqtk](https://github.com/lh3/seqtk)
 
-### Databases
+
+<h3 name="create_test_ds_databases">Databases</h3>
 
 - [NCBI GEO](https://doi.org/10.1093/nar/gks1193)
 
@@ -280,3 +278,4 @@
 - [Multiple testing adjustment with the False Discovery Rate](https://doi.org/10.1093/bioinformatics/btl633)
 
 > Benjamini, Y., and Hochberg, Y. (1995).  Controlling the false discovery rate: a practical and powerful approach to multiple testing.  _Journal of the Royal Statistical Society Series B_,*57*, 289-300.
+
