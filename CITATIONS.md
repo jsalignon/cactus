@@ -257,6 +257,18 @@
 > Tanya Barrett, Stephen E. Wilhite, Pierre Ledoux, Carlos Evangelista, Irene F. Kim, Maxim Tomashevsky, Kimberly A. Marshall, Katherine H. Phillippy, Patti M. Sherman, Michelle Holko, Andrey Yefanov, Hyeseung Lee, Naigong Zhang, Cynthia L. Robertson, Nadezhda Serova, Sean Davis, Alexandra Soboleva, NCBI GEO: archive for functional genomics data sets—update, Nucleic Acids Research, Volume 41, Issue D1, 1 January 2013, Pages D991–D995.
 
 
+### Studies
+
+ - [Worm and human (GSE98758)](https://doi.org/10.1016/j.devcel.2018.07.006)
+> Kolundzic E, Ofenbauer A, Bulut SI, Uyar B et al. FACT Sets a Barrier for Cell Fate Reprogramming in Caenorhabditis elegans and Human Cells. Dev Cell 2018 Sep 10;46(5):611-626.e12. PMID: 30078731
+
+ - [Fly (GSE149339)](https://doi.org/10.1101/gad.341768.120)
+> Judd, J., Duarte, F. M. & Lis, J. T. Pioneer-like factor GAF cooperates with PBAP (SWI/SNF) and NURF (ISWI) to regulate transcription. Genes Dev. 35, 147–156 (2021).
+
+- [Mouse (GSE193393)](https://doi.org/10.1093/nar/gkac584)
+> Park SW, Kim J, Oh S, Lee J et al. PHF20 is crucial for epigenetic control of starvation-induced autophagy through enhancer activation. Nucleic Acids Res 2022 Aug 12;50(14):7856-7872. PMID: 35821310
+
+
 # Research papers
 
 ## ATAC-Seq

@@ -268,7 +268,7 @@ get_kable_test_ds('mouse')
   
   **GEO Design**: mRNA-seq, ATAC-seq and ChIP-seq experiments under normal and 24hrs of glucose starvation condition in WT and Phf20-/- MEFs
   
-  **Citation**: Park SW, Kim J, Oh S, Lee J et al. PHF20 is crucial for epigenetic control of starvation-induced autophagy through enhancer activation. Nucleic Acids Res 2022 Aug 12;50(14):7856-7872. PMID: 35821310
+  **Citation**: [Park SW, Kim J, Oh S, Lee J et al. PHF20 is crucial for epigenetic control of starvation-induced autophagy through enhancer activation. Nucleic Acids Res 2022 Aug 12;50(14):7856-7872. PMID: 35821310](https://doi.org/10.1093/nar/gkac584)
   
   **Samples**:
   
