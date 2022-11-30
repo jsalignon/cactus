@@ -14,7 +14,7 @@
 
 ## Introduction
 
-Tests datasets have beed generated for each of the 4 species supported by Cactus. This allows to make sure the pipeline works equally well for each species. Downloading the smallest dataset (fly) should be sufficient for users to get a sense on how the pipeline works. Here are the sizes of the test datasets:
+Tests datasets have beed generated for each of the 4 species supported by Cactus. This allows to make sure the pipeline works equally well for each species. Downloading the smallest datasets (fly or worm) should be sufficient for users to get a sense on how the pipeline works. Here are the sizes of the test datasets:
 
 | specie | raw_files | sampled_files | sampled_atac | sampled_mrna |  tar   |
 |:------:|:---------:|:-------------:|:------------:|:------------:|:------:|
@@ -106,10 +106,10 @@ The parameters for this command are:
  - *--species*: can be any of the 4 species supported by Cactus (worm, fly, mouse or human)
  - *--threads* can be set to determine the number of thread used by pigz for uncompressing the references archive files
 
- > **_NOTE:_**  The test datasets contains 4 folders: fastq, tsv, conf and yml; as described in the [Inputs](/docs/3_Inputs/3_Inputs.md) section.  
+ > **_NOTE:_** The test datasets contains 3 folders: data, design and parameters; as described in the [Inputs](/docs/3_Inputs/3_Inputs.md) section.  
  
- > **_NOTE:_**  The test datasets should not be downloaded in the main cactus directory, otherwise the test dataset's conf folder will erase cactus' conf folder.  
-
+ > **_NOTE:_** A template script to run all test datasets with all tools manager can be found [here](/test_datasets/running_the_test_datasets.sh).
+ 
 
 ##  Details on the test datasets origins and labels
 
