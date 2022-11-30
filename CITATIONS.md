@@ -5,11 +5,11 @@
   - [Cactus](#Cactus)
     - [jsalignon/cactus](#jsalignon/cactus)
     - [Languages](#Languages)
-    - [Software packaging/containerisation tools](#Software-packaging/containerisation-tools)
-    - [Pipeline tools](#Pipeline-tools)
+    - [Dependencies](#Dependencies)
+    - [Pipeline tools](#cactus_tools)
   - [Scripts](#Scripts)
     - [Create references](#Create-references)
-      - [Tools](#Tools)
+      - [Tools](#test_tools)
       - [Databases](#Databases)
     - [Create test datasets](#Create-test-datasets)
       - [Tools](#Tools)
@@ -38,8 +38,11 @@
 
 > Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017 Apr 11;35(4):316-319. PubMed PMID: 28398311.
 
+<a name="#test_tools">
+## Tools
+</a>
 
-## Software packaging/containerisation tools
+## Dependencies
 
 - [Anaconda](https://anaconda.com)
 
@@ -55,12 +58,16 @@
 
 - [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241)
 
+- [Mamba](https://medium.com/@QuantStack/open-software-packaging-for-science-61cecee7fc23)
+
 - [Singularity](https://pubmed.ncbi.nlm.nih.gov/28494014/)
 
   > Kurtzer GM, Sochat V, Bauer MW. Singularity: Scientific containers for mobility of compute. PLoS One. 2017 May 11;12(5):e0177459. doi: 10.1371/journal.pone.0177459. eCollection 2017. PubMed PMID: 28494014; PubMed Central PMCID: PMC5426675.
 
 
-## Pipeline tools
+<a name="#cactus_tools">
+## Tools
+</a>
 
 - [BBMap](https://sourceforge.net/projects/bbmap/)
 
