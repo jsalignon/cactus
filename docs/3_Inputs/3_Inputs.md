@@ -39,6 +39,7 @@ Here is an example of input files at the run directory folder:
     ├── groups.tsv
     ├── mrna_fastq.tsv
     └── regions_to_remove.tsv
+    └── genes_to_remove.tsv
 ```
 
 >**_Note_:** There is an additional .cactus.config file that is located in the root folder and that indicates the global configuration of cactus for all runs of the user.  

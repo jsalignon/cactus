@@ -12,10 +12,12 @@
 
 
 
-This section covers Differential Abundance Analysis (DAA), that is differential binding analysis for [ATAC-Seq](/docs/5_DA/DA_ATAC.md) (with [DiffBind](https://doi.org/10.1038/nature10730)) and Differential Gene Expression Analysis for [mRNA-Seq](/docs/5_DA/DA_mRNA.md) (with [sleuth](http://dx.doi.org/10.1038/nmeth.4324)), as well as [splitting](/docs/5_DA/Split.md) the DAA results in subsets according to specified filters.
+This section covers Differential Abundance Analysis (DAA), that is differential binding analysis for [ATAC-Seq](/docs/5_DA/DA_ATAC.md) (with [DiffBind](https://doi.org/10.1038/nature10730)) and Differential Gene Expression Analysis for [mRNA-Seq](/docs/5_DA/DA_mRNA.md) (with [sleuth](http://dx.doi.org/10.1038/nmeth.4324)), as well as [splitting](/docs/5_DA/Split.md) the DAA results into subsets according to specified filters.
 
-DAA results are processed in a standardized way to produce homogeneous plots (PCA and volcano) and tables (csv and formatted excel) for the two data types.
+DAA results are processed to make standardized figures (PCA and volcano) and tables (csv and formatted excel) for the two data types.
 
-Finally, subsets of DAA results are extracted to allow more fine-grained analysis of the datasets. For each subset, gene sets are sent for genes-self and pathway/ontology enrichment analysis and for making Venn Diagram plots, while genomic regions are sent for peaks-self, chromatin states, motifs and CHIP enrichment analysis.  
+Finally, subsets of DAA results are extracted to allow more fine-grained analysis of the datasets. For each subset, gene sets are sent for genes-self (comparisons with other experiments) and pathway/ontology enrichment analysis and for making Venn Diagram plots, while genomic regions are sent for peaks-self, chromatin states, motifs and CHIP enrichment analysis. Genes-self and peak-self enrichment analysis consists in comparing comparisons in the current run for subsets that pass the same filters.
 
-The subsets are made using various keys (Fold change type, significance score, peak assignment (for ATAC-Seq)). Finally, if both ATAC-Seq and mRNA-Seq data are present then results of both experiment can be combined by keeping gene sets or genomic regions that pass all filters/keys in both experiments.  
+The subsets are made using various filtering keys (Experiment type, Fold change type, significance score, peak assignment (for ATAC-Seq)). If both ATAC-Seq and mRNA-Seq data are present then results of both experiment can be combined by keeping gene sets or genomic regions that pass all filters/keys in both experiments.  
+
+Figures and details on how DAA results are split into subsets are shown in the [split section](/docs/5_DA/Split.md).
