@@ -19,11 +19,11 @@
 
 ## DA_split__splitting_differential_abundance_results_in_subsets
 
-<a href="url"> <img src="/docs/images/splitting_filters.png" width="300" /> </a>  
+<a href="url"> <img src="/docs/images/splitting_filters.png" width="500" /> </a>  
 Diagrams showing all filters.  
 Dotted black and grey arrows indicate respectively potential additional filters and not-showed filters. Abbreviations: FDR - False Discovery Rate, prom – promoter, distNC – distal non-coding.  
 
-<a href="url"> <img src="/docs/images/splitting_experiment_type.png" width="450" /> </a>  
+<a href="url"> <img src="/docs/images/splitting_experiment_type.png" width="750" /> </a>  
 Diagrams illustrating the Experiment type filter.  
 
 ### Description
