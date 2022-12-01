@@ -1,4 +1,14 @@
 
+# # creating the case study datasets
+# homedir=~
+# eval homedir=$homedir
+# cactus_dir=$homedir/workspace/cactus
+# create_test_ds_dir=$cactus_dir/scripts/create_test_datasets
+# create_test_datasets_bin_dir=$create_test_ds_dir/bin
+# source $create_test_datasets_bin_dir/make_application_note_dirs.sh
+# source $create_test_datasets_bin_dir/create_test_datasets_functions.sh
+
+
 # setting up paths
 homedir=~
 eval homedir=$homedir

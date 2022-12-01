@@ -33,76 +33,76 @@ get_comp_order_levels <- function(comp_order, up_down_pattern = 'UUDD'){
 
 # the output is the selected terms ordered by clustering
 
-select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n_total = 26, threshold_type = 'fixed', threshold_value = 0.05, seed = 38, remove_similar = F, remove_similar_n = 2, reverse = T){
+select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n_total = 26, threshold_type = 'fixed', threshold_value = 0.05, seed = 38, remove_similar = F, remove_similar_n = 2, reverse = T, agglomeration_method = 'complete'){
 
   set.seed(seed)
 
-  if(reverse) mat = -mat
-  mat_full = mat
+  if(reverse) mat1 = -abs(mat)
 
   # No filtering will be performed if there are less terms than the total number of terms we want to plot.
-  if( nrow(mat) < n_total ){
+  if( nrow(mat1) < n_total ){
 
-    mat_final = mat_full
+    mat1_final = -mat
 
   } else {
 
     if(remove_similar){
 
       # keeping only the top x yaxis_terms for yaxis_terms with similar names
-      rn = rownames(mat)
+      rn = rownames(mat1)
       purrr__map_chr <- function(x, c1) lapply(x, function(y) y[c1]) %>% as.character
       yaxis_terms_names = purrr__map_chr(strsplit(rn, '_'), 1)
       duplicated_yaxis_terms = names(which(table(yaxis_terms_names) > 1))
       worst_dupli = c()
       for(yaxis_terms in duplicated_yaxis_terms){
         sel = which(yaxis_terms_names == yaxis_terms)
-        dupli_min_pval = apply(mat[sel, ], 1, min)
+        dupli_min_pval = apply(mat1[sel, ], 1, min)
         ranked = rank(dupli_min_pval, ties.method = 'random')
         worst_dupli1 = names(ranked)[ranked > remove_similar_n]
         worst_dupli = c(worst_dupli, worst_dupli1)
       }
-      mat %<>% .[!rownames(.) %in% worst_dupli, ]
+      mat1 %<>% .[!rownames(.) %in% worst_dupli, ]
     }
 
     ## selecting the top y shared terms
-    all_pvalues = c(unname(mat))
+    all_pvalues = c(unname(mat1))
     if(threshold_type == 'quantile') threshold = quantile(all_pvalues, threshold_value)
     if(threshold_type == 'fixed') threshold = threshold_value
-    shared_sum = apply(mat, 1, function(x) sum(x < threshold))
+    shared_sum = apply(mat1, 1, function(x) sum(x < threshold))
     shared_terms = c()
     if(any(shared_sum > 1)){
       ranked = rank(shared_sum, ties.method = 'random')
       shared_terms = names(ranked)[ranked <= n_shared]
       # we remove selected shared terms so that they do not appear in the unique terms
-      mat %<>% .[!rownames(.) %in% shared_terms, ]
+      mat1 %<>% .[!rownames(.) %in% shared_terms, ]
     }
 
     # selecting the top (n_unique / n_comp) terms for each comparison
-    n_comp = ncol(mat)
+    n_comp = ncol(mat1)
     top_N = floor(n_unique / n_comp)
-    top_N_terms = apply(mat, 2, function(x) { 
+    top_N_terms = apply(mat1, 2, function(x) { 
                     ranked = rank(x, ties.method = 'random')
                     names(ranked)[ranked <= top_N] 
                   } ) %>% c %>% unique
-    mat %<>% .[!rownames(.) %in% top_N_terms, ]
+    mat1 %<>% .[!rownames(.) %in% top_N_terms, ]
 
     # filling missing values with the lowest pvalues overall
     cur_terms = unique(c(shared_terms, top_N_terms))
     n_missing = n_total - length(cur_terms)
     if(n_missing > 0){
-      ranked = rank(apply(mat, 1, min), ties.method = 'random')
+      ranked = rank(apply(mat1, 1, min), ties.method = 'random')
       low_pval_terms = names(ranked)[ranked <= n_missing]
       cur_terms %<>% c(., low_pval_terms)
     }
 
-    mat_final = mat_full %>% .[rownames(.) %in% cur_terms, ]
+    mat_final = -mat %>% .[rownames(.) %in% cur_terms, ]
   }
 
   # finally clustering terms
-  # mat_final1 = t(scale(t(mat_final)))
   mat_final1 = mat_final
-  col_order = hclust(dist(as.matrix(mat_final1)))$order
+  # mat_final1 = t(scale(t(mat_final)))
+  # mat_final1 = scale(mat_final)
+  col_order = hclust(dist(as.matrix(mat_final1)), method = agglomeration_method)$order
   terms_levels = rownames(mat_final1)[col_order]
 
   return(terms_levels)
@@ -128,7 +128,7 @@ select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n
 # The input of this function should be a matrix of padj_loglog values that is already ordered (with a pre-set order, or via clustering with the  select_y_axis_terms_grouped_plot function).
 # The output is dataframe in long format to serve as input to ggplot2
 
-add_matrix_indexes_to_df <- function(cur_mat, cur_df, rows, cols, data_type, signed_loglog = F){
+add_matrix_indexes_to_df <- function(cur_mat, cur_df, rows, cols, signed_loglog = F){
 
   # conversion to long format
   df1 = data.frame(yaxis_terms = rownames(cur_mat), cur_mat, stringsAsFactors = F)

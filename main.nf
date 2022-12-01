@@ -4691,13 +4691,14 @@ process Figures__making_enrichment_heatmap {
     up_down_pattern = plot_params[6] %>% as.character
     
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
-      n_shared         = filters[1] %>% as.integer
-      n_unique         = filters[2] %>% as.integer
-      n_total          = filters[3] %>% as.integer
-      threshold_type   = filters[4] %>% as.character
-      threshold_value  = filters[5] %>% as.numeric
-      remove_similar   = filters[6] %>% as.logical
-      remove_similar_n = filters[7] %>% as.integer
+      n_shared             = filters[1] %>% as.integer
+      n_unique             = filters[2] %>% as.integer
+      n_total              = filters[3] %>% as.integer
+      threshold_type       = filters[4] %>% as.character
+      threshold_value      = filters[5] %>% as.numeric
+      remove_similar       = filters[6] %>% as.logical
+      remove_similar_n     = filters[7] %>% as.integer
+      agglomeration_method = filters[8] %>% as.integer
     }
 
     # loading, merging and processing data
@@ -4752,8 +4753,10 @@ process Figures__making_enrichment_heatmap {
     }
 
     # reformatting df to a matrix
-    mat_dt = dcast(as.data.table(df), yaxis_terms ~ comp_FC, 
-                    value.var = 'padj_loglog', fill = get_pval_loglog(1))
+    dt = data.table::copy(df) %>% setDT
+    dt[, signed_padj_log_log := sign(L2OR) * padj_loglog]
+    mat_dt = dcast(dt, yaxis_terms ~ comp_FC, 
+                    value.var = 'signed_padj_log_log', fill = get_pval_loglog(1))
     mat = as.matrix(mat_dt[,-1]) %>% set_rownames(mat_dt$yaxis_terms)
 
     # selecting and ordering the y-axis terms
@@ -4767,10 +4770,9 @@ process Figures__making_enrichment_heatmap {
       
       terms_levels = select_y_axis_terms_grouped_plot(mat, 
         n_shared = n_shared, n_unique = n_unique, n_total = n_total, 
-        threshold_type = threshold_type, 
-        threshold_value = threshold_value, 
-        remove_similar = remove_similar, 
-        remove_similar_n = remove_similar_n, seed = seed)
+        threshold_type = threshold_type, threshold_value = threshold_value, 
+        remove_similar = remove_similar, remove_similar_n = remove_similar_n, 
+        seed = seed, agglomeration_method = agglomeration_method)
 
     }
 
@@ -4789,8 +4791,7 @@ process Figures__making_enrichment_heatmap {
     rownames(mat_final) %<>% get_shorter_names(max_characters)
 
     # creating a data.frame with row and column indexes for plotting
-    df_final = add_matrix_indexes_to_df(mat_final, df, nrows, 
-                    ncols, data_type)
+    df_final = add_matrix_indexes_to_df(mat_final, df, nrows, ncols)
 
     # making and saving plots
     p1 = getting_heatmap_base(df_final, nrows, ncols, title = key, 
