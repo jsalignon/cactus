@@ -235,15 +235,13 @@ Default parameters for the processes are defined [here](/conf/run_default.config
   - **_max_characters_**: The limit of target names length. Longer targt names are cut.
   - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
 
-- **_params.heatmaps_filter__{func_anno,CHIP,motifs}**: A string converted to a vector in R containing options to customize the selection of terms for the heatmaps. Such filtering parameters are only available for the `func_anno`, `CHIP` and `motifs` enrichment categories. Default for `func_anno`: "c( 6, 20, 26, 'fixed', 0.05, F, 2, 'ward.D')". Default for `CHIP` and `motifs`: "c( 8, 25, 40, 'quantile', 0.25, T, 2, 'ward.D')". The options are in order:
-	- **_n_shared_**: Number of shared terms to select. A threshold is defined with the **_threshold_type_** (options: "quantile" or "fixed" (i.e. pvalues)) and the **_threshold_value_** parameters. For each term, the number of `COMP_FC` that are below the threshold is counted. Terms are sorted by this count (with ties sorted randomly) and the top *n_shared* terms are selected.  
-	- **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
-	- **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
-	- **_threshold_type_**: See *n_shared* above.
-  - **_threshold_value_**: See *n_shared* above.
-  - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.
-	- **_remove_similar_n_**: See *n_shared* above.
-  - **_agglomeration_method_**: Agglomeration method used for hierarchical clustering of selected terms on the y-axis. See [here](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/hclust) for options. Default: 'ward.D'.
+	- **_params.heatmaps_filter__{func_anno,CHIP,motifs}**: A string converted to a vector in R containing options to customize the selection of terms for the heatmaps. Such filtering parameters are only available for the `func_anno`, `CHIP` and `motifs` enrichment categories. Default for `func_anno`: "c( 26, 8, 18, F, 2, 'ward.D')". Default for `CHIP` and `motifs`: "c( 40, 10, 30, T, 2, 'ward.D')". The options are in order:
+	  - **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
+		- **_n_shared_**: Number of shared terms to select. Shared terms are defined as terms with the highest median absolute -log10 pvalue accross `COMP_FC`.
+		- **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
+	  - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.
+		- **_remove_similar_n_**: See *n_shared* above.
+	  - **_agglomeration_method_**: Agglomeration method used for hierarchical clustering of selected terms on the y-axis. See [here](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/hclust) for options. Default: 'ward.D'.
 
 
 ## 3. Enrichment: Tables

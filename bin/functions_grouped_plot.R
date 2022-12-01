@@ -33,7 +33,7 @@ get_comp_order_levels <- function(comp_order, up_down_pattern = 'UUDD'){
 
 # the output is the selected terms ordered by clustering
 
-select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n_total = 26, threshold_type = 'fixed', threshold_value = 0.05, seed = 38, remove_similar = F, remove_similar_n = 2, reverse = T, agglomeration_method = 'complete'){
+select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n_total = 26, seed = 38, remove_similar = F, remove_similar_n = 2, reverse = T, agglomeration_method = 'complete'){
 
   set.seed(seed)
 
@@ -66,17 +66,10 @@ select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n
 
     ## selecting the top y shared terms
     all_pvalues = c(unname(mat1))
-    if(threshold_type == 'quantile') threshold = quantile(all_pvalues, threshold_value)
-    if(threshold_type == 'fixed') threshold = threshold_value
-    shared_sum = apply(mat1, 1, function(x) sum(x < threshold))
-    shared_terms = c()
-    if(any(shared_sum > 1)){
-      ranked = rank(shared_sum, ties.method = 'random')
-      shared_terms = names(ranked)[ranked <= n_shared]
-      # we remove selected shared terms so that they do not appear in the unique terms
-      mat1 %<>% .[!rownames(.) %in% shared_terms, ]
-    }
-
+    sorted_median_pvalues = sort(apply(mat1, 1, median))
+    shared_terms = names(sorted_median_pvalues)[1:n_shared]
+    mat1 %<>% .[!rownames(.) %in% shared_terms, ]
+    
     # selecting the top (n_unique / n_comp) terms for each comparison
     n_comp = ncol(mat1)
     top_N = floor(n_unique / n_comp)
@@ -86,7 +79,7 @@ select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n
                   } ) %>% c %>% unique
     mat1 %<>% .[!rownames(.) %in% top_N_terms, ]
 
-    # filling missing values with the lowest pvalues overall
+    # filling missing values with the lowest pvalues overall (note: a difference with the previous selection (n_unique) is that the terms selected here could all come from the same COMP_FC if terms are much more significant in one COMP_FC vs the others)
     cur_terms = unique(c(shared_terms, top_N_terms))
     n_missing = n_total - length(cur_terms)
     if(n_missing > 0){
