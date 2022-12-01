@@ -4697,6 +4697,7 @@ process Figures__making_enrichment_heatmap {
       remove_similar       = filters[4] %>% as.logical
       remove_similar_n     = filters[5] %>% as.integer
       agglomeration_method = filters[6] %>% as.character
+      select_enriched      = filters[7] %>% as.logical
     }
 
     # loading, merging and processing data
@@ -4770,7 +4771,7 @@ process Figures__making_enrichment_heatmap {
         n_shared = n_shared, n_unique = n_unique, 
         remove_similar = remove_similar, remove_similar_n = remove_similar_n, 
         seed = seed, agglomeration_method = agglomeration_method, 
-        signed_padj = signed_padj)
+        select_enriched = select_enriched)
 
     }
 
