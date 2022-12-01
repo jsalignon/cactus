@@ -4770,7 +4770,6 @@ process Figures__making_enrichment_heatmap {
       
       terms_levels = select_y_axis_terms_grouped_plot(mat, 
         n_shared = n_shared, n_unique = n_unique, n_total = n_total, 
-        threshold_type = threshold_type, threshold_value = threshold_value, 
         remove_similar = remove_similar, remove_similar_n = remove_similar_n, 
         seed = seed, agglomeration_method = agglomeration_method)
 
