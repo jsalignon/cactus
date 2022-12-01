@@ -105,34 +105,21 @@ getting_yaxis_terms <- function(df, data_type){
 
 
 
-getting_padj_loglog_and_binned <- function(df, data_type, signed_padj){
+getting_padj_loglog_and_binned <- function(df, signed_padj, padj_breaks){
 
   df$padj_loglog = get_pval_loglog(df$padj)
-  df$padj_binned = get_padj_binned(df$padj, df$L2OR, data_type, signed_padj)
+  df$padj_binned = get_padj_binned(df$padj, df$L2OR, signed_padj, padj_breaks)
   
   return(df)
 }
 
 
-## getting pval columns
-get_padj_binned_breaks <- function(data_type){
-  breaks = switch(data_type,
-    genes_self   = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
-    peaks_self   = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
-    func_anno    = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
-    chrom_states = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
-    CHIP         = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100),
-    motifs       = c(0.2, 0.05, 1e-5 , 1e-20 , 1e-100)
-  )
-  return(breaks)
-}
 
-
-get_padj_binned <- function(padj, L2OR, data_type, signed_padj){
+get_padj_binned <- function(padj, L2OR, signed_padj, padj_breaks){
   dt = data.table(padj = padj, L2OR = L2OR)
   dt[, padj1 := padj * sign(L2OR)]
   dt[padj == 0, padj1 := L2OR]
-  breaks = get_padj_binned_breaks(data_type)
+  # breaks = get_padj_binned_breaks(data_type)
   breaks_1 = -log10(c(0, breaks))
   if(signed_padj) breaks_1 = sort(unique(c(-breaks_1, breaks_1)))
   dt[, padj1 := -log10(padj) * sign(L2OR)]

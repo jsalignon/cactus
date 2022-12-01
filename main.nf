@@ -4594,7 +4594,7 @@ process Figures__making_enrichment_barplots {
     df %<>% .[, names(.) != 'genes_id']
 
     # adding the loglog and binned padj columns
-    df %<>% getting_padj_loglog_and_binned(data_type, signed_padj)
+    df %<>% getting_padj_loglog_and_binned(signed_padj, padj_breaks)
 
     # adding the yaxis_terms column with shortened and unique names
     df$yaxis_terms = df$tgt %>% get_shorter_names(max_characters)
@@ -4728,7 +4728,7 @@ process Figures__making_enrichment_heatmap {
     df$yaxis_terms = df$tgt
 
     # adding loglog and binned padj columns
-    df %<>% getting_padj_loglog_and_binned(data_type, signed_padj = signed_padj)
+    df %<>% getting_padj_loglog_and_binned(signed_padj = signed_padj, padj_breaks)
 
     purrr__map_chr <- function(x, c1) lapply(x, function(y) y[c1]) %>% 
                       as.character
