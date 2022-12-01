@@ -4698,7 +4698,7 @@ process Figures__making_enrichment_heatmap {
       threshold_value      = filters[5] %>% as.numeric
       remove_similar       = filters[6] %>% as.logical
       remove_similar_n     = filters[7] %>% as.integer
-      agglomeration_method = filters[8] %>% as.integer
+      agglomeration_method = filters[8] %>% as.character
     }
 
     # loading, merging and processing data
