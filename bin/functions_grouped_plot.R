@@ -42,7 +42,7 @@ select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n
   # No filtering will be performed if there are less terms than the total number of terms we want to plot.
   if( nrow(mat1) < n_total ){
 
-    mat1_final = -mat
+    mat_final = -mat
 
   } else {
 
