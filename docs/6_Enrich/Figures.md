@@ -111,6 +111,7 @@ Cells are colored with signed and binned adjusted pvalues as described in the [p
   - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.
   - **_remove_similar_n_**: See *n_shared* above.
   - **_agglomeration_method_**: Agglomeration method used for hierarchical clustering of selected terms on the y-axis. See [here](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/hclust) for options. Default: 'ward.D'.
+  - **_select_enriched_**: Boolean indicating if only the most enriched terms should be selected (if TRUE/T) or the most enriched or depleted terms (if FALSE/F).
 
 ### Outputs
 - `Figures_Individual/3_Enrichment/Heatmaps__${EC}/${key}__heatmap.pdf` 
