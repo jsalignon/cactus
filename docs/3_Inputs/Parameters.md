@@ -215,7 +215,7 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 
 ## 3. Enrichment: Figures
 
-- **_(params.padj_breaks__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs})_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
+- **_params.padj_breaks___**{**_genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs__**}: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
 
 - **_params.barplots_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the barplots. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', F, 50, 30 )". The options are in order:
   - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
