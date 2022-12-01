@@ -215,9 +215,9 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 
 ## 3. Enrichment: Figures
 
-- **_params.padj_breaks\__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
+- **_(params.padj_breaks__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs})_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
 
-- **_params.barplots_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}**: A string converted to a vector in R containing options to customize the barplots. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', F, 50, 30 )". The options are in order:
+- **_params.barplots_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the barplots. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', F, 50, 30 )". The options are in order:
   - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
   - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
   - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
@@ -227,7 +227,7 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 
 - **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
 
-- **_params.heatmaps_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}**: A string converted to a vector in R containing options to customize the heatmaps. There is one parameter for each enrichment category. Default for `genes_self` and `peaks_self`: "c( 0.05, T, 'none', T, 50, 'UUDD' )". Default for `func_anno`, `chrom_states`, `CHIP` and `motifs`: "c( 0.05, T, 'none', F, 50, 'UUDD' )". The options are in order:
+- **_params.heatmaps_params__{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the heatmaps. There is one parameter for each enrichment category. Default for `genes_self` and `peaks_self`: "c( 0.05, T, 'none', T, 50, 'UUDD' )". Default for `func_anno`, `chrom_states`, `CHIP` and `motifs`: "c( 0.05, T, 'none', F, 50, 'UUDD' )". The options are in order:
   - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
   - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).
   - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).
@@ -235,7 +235,7 @@ Default parameters for the processes are defined [here](/conf/run_default.config
   - **_max_characters_**: The limit of target names length. Longer targt names are cut.
   - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
 
-- **_params.heatmaps_filter__{func_anno,CHIP,motifs}**: A string converted to a vector in R containing options to customize the selection of terms for the heatmaps. Such filtering parameters are only available for the `func_anno`, `CHIP` and `motifs` enrichment categories. Default for `func_anno`: "c( 26, 18, 8, F, 2, 'ward.D')". Default for `CHIP` and `motifs`: "c( 40, 30, 10, T, 2, 'ward.D')". The options are in order:
+- **_params.heatmaps_filter__{func_anno,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the selection of terms for the heatmaps. Such filtering parameters are only available for the `func_anno`, `CHIP` and `motifs` enrichment categories. Default for `func_anno`: "c( 26, 18, 8, F, 2, 'ward.D')". Default for `CHIP` and `motifs`: "c( 40, 30, 10, T, 2, 'ward.D')". The options are in order:
   - **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
   - **_n_shared_**: Number of shared terms to select. Shared terms are defined as terms with the highest median absolute -log10 pvalue accross `COMP_FC`.
   - **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
