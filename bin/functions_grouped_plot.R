@@ -33,11 +33,11 @@ get_comp_order_levels <- function(comp_order, up_down_pattern = 'UUDD'){
 
 # the output is the selected terms ordered by clustering
 
-select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n_total = 26, seed = 38, remove_similar = F, remove_similar_n = 2, reverse = T, agglomeration_method = 'complete'){
+select_y_axis_terms_grouped_plot <- function(mat, n_shared = 6, n_unique = 20, n_total = 26, seed = 38, remove_similar = F, remove_similar_n = 2, agglomeration_method = 'complete'){
 
   set.seed(seed)
 
-  if(reverse) mat1 = -abs(mat)
+  mat1 = -abs(mat)
 
   # No filtering will be performed if there are less terms than the total number of terms we want to plot.
   if( nrow(mat1) < n_total ){
