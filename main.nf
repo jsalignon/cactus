@@ -4691,11 +4691,9 @@ process Figures__making_enrichment_heatmap {
     up_down_pattern = plot_params[6] %>% as.character
     
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
-      n_shared             = filters[1] %>% as.integer
-      n_unique             = filters[2] %>% as.integer
-      n_total              = filters[3] %>% as.integer
-      threshold_type       = filters[4] %>% as.character
-      threshold_value      = filters[5] %>% as.numeric
+      n_total              = filters[1] %>% as.integer
+      n_shared             = filters[2] %>% as.integer
+      n_unique             = filters[3] %>% as.integer
       remove_similar       = filters[6] %>% as.logical
       remove_similar_n     = filters[7] %>% as.integer
       agglomeration_method = filters[8] %>% as.character
@@ -4768,8 +4766,8 @@ process Figures__making_enrichment_heatmap {
       mat = mat[sel_rows, sel_cols]
       comp_order1 = comp_order_levels %>% .[. %in% colnames(mat)]
       
-      terms_levels = select_y_axis_terms_grouped_plot(mat, 
-        n_shared = n_shared, n_unique = n_unique, n_total = n_total, 
+      terms_levels = select_y_axis_terms_grouped_plot(mat, n_total = n_total, 
+        n_shared = n_shared, n_unique = n_unique, 
         remove_similar = remove_similar, remove_similar_n = remove_similar_n, 
         seed = seed, agglomeration_method = agglomeration_method)
 
