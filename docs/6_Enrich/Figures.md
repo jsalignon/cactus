@@ -104,7 +104,7 @@ Cells are colored with signed and binned adjusted pvalues as described in the [p
   - **_max_characters_**: The limit of target names length. Longer targt names are cut.
   - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
 
-- **_params.heatmaps_filter__{func_anno,CHIP,motifs}**: A string converted to a vector in R containing options to customize the selection of terms for the heatmaps. Such filtering parameters are only available for the `func_anno`, `CHIP` and `motifs` enrichment categories. Default for `func_anno`: "c( 26, 8, 18, F, 2, 'ward.D')". Default for `CHIP` and `motifs`: "c( 40, 10, 30, T, 2, 'ward.D')". The options are in order:
+- **_params.heatmaps_filter__{func_anno,CHIP,motifs}**: A string converted to a vector in R containing options to customize the selection of terms for the heatmaps. Such filtering parameters are only available for the `func_anno`, `CHIP` and `motifs` enrichment categories. Default for `func_anno`: "c( 26, 18, 8, F, 2, 'ward.D')". Default for `CHIP` and `motifs`: "c( 40, 30, 10, T, 2, 'ward.D')". The options are in order:
   - **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).
   - **_n_shared_**: Number of shared terms to select. Shared terms are defined as terms with the highest median absolute -log10 pvalue accross `COMP_FC`.
   - **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
@@ -112,13 +112,11 @@ Cells are colored with signed and binned adjusted pvalues as described in the [p
   - **_remove_similar_n_**: See *n_shared* above.
   - **_agglomeration_method_**: Agglomeration method used for hierarchical clustering of selected terms on the y-axis. See [here](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/hclust) for options. Default: 'ward.D'.
 
-
 ### Outputs
 - `Figures_Individual/3_Enrichment/Heatmaps__${EC}/${key}__heatmap.pdf` 
 - `Figures_Merged/3_Enrichment/Heatmaps__${EC}.pdf`.
 
 >**_Note_:** The key for this process is `${ET}__${PA}__${TV}__${GRP}__{EC}`, `${GRP}` being the current group of comparisons.
-
 
 ### Examples
 - **Genes self**:  
