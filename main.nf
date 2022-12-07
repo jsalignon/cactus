@@ -4843,7 +4843,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.dump(tag: 'merging_pdf')
 process Figures__merging_pdfs {
   tag "${file_name}"
 
-  label "pdftk"
+  label "pdftools"
 
   publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
 
@@ -4856,7 +4856,7 @@ process Figures__merging_pdfs {
   script:
     """
 
-    pdftk `ls *pdf | sort` cat output ${file_name}.pdf
+    pdfunite `ls *pdf | sort` ${file_name}.pdf
 
     """
 }
