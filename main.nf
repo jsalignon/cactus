@@ -1733,7 +1733,7 @@ process ATAC_peaks__removing_specific_regions {
     if [ ! -s rtr_filtered.txt ]; then
       for FILE in ${BED_FILES}
       do
-        id=`basename $FILE "__peaks_kept_after_blacklist_removal.bed"`
+        id=${FILE/__*/}
         cp $FILE "${id}__peaks_kept_after_specific_regions_removal.bed"
       done
     else
@@ -1743,7 +1743,6 @@ process ATAC_peaks__removing_specific_regions {
       for FILE in ${BED_FILES}
       do
         id=${FILE/__*/}
-
         intersectBed -v -a $FILE -b rtr_filtered_formatted.txt \
           > "${id}__peaks_kept_after_specific_regions_removal.bed"
         intersectBed -u -a $FILE -b rtr_filtered_formatted.txt \
@@ -2335,7 +2334,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
 
     ##### Preparing the metadata table
     use_input_control %<>% toupper %>% as.logical
-    bed_bam_files = list.files(pattern = '*.bam$|*.bed$')
+    bed_bam_files = list.files(pattern = '*.bam$|*_removal.bed$')
     cur_files = grep('diffbind_peaks', bed_bam_files, value = T, invert = T)
     df = data.frame(path = cur_files, stringsAsFactors=F)
     cursplit = sapply(cur_files, strsplit, '_')
