@@ -1907,7 +1907,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
     peaks_bed_file = '!{peaks_bed_file}'
     upstream       = !{params.macs2_peaks__promoter_up}
     downstream     = !{params.macs2_peaks__promoter_down}
-    tx_db          = AnnotationDbi::loadDb('!{params.txdb}')
+    tx_db          = AnnotationDbi::loadDb('!{params.txdb}') 
 
     check_upstream_and_downstream_1 <- function (upstream, downstream){
         if (class(upstream) != class(downstream)) {
@@ -2780,7 +2780,7 @@ process DA_ATAC__annotating_diffbind_peaks {
     library(magrittr)
 
     COMP = '!{COMP}'
-    tx_db <- loadDb('!{params.txdb}')
+    tx_db <- loadDb('!{params.txdb}') 
     upstream = !{params.diffbind_peaks__promoter_up}
     downstream = !{params.diffbind_peaks__promoter_down}
     diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')

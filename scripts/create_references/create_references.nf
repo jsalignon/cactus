@@ -1350,7 +1350,8 @@ process filtering_annotation_file {
 
 			# keeping only regions (contigs and chromosomes) with at least 5 genes, excluding the mitochondrial chromosome and removing all genes that are not encoding for proteins
 			regions_to_keep=$(awk -v OFS="$tab" '{if($1 > 4) print $2}' nb_of_genes_by_region__raw_gff3_file.txt | sort | paste -sd ' ')
-			awk -v FS="$tab" -v OFS="$tab" -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && ($3 == "gene" || $3 !~ "gene")) print}}' ${gff3} > ${gff3_filtered}
+			awk -v FS="$tab" -v OFS="$tab" -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element") print}}' ${gff3} > ${gff3_filtered}
+			
 			# savings statistics on the filtered annotation file
 			cut -f1 ${gff3_filtered} | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region__raw_gff3_file.txt
 			awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene"){print $1}}' ${gff3_filtered} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__filtered_gff3_file.txt 
@@ -1369,6 +1370,22 @@ process filtering_annotation_file {
 }
 
 
+//// outputs:
+// - protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
+// - anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
+
+//// mitochondrial chromosomes:
+// worm  |         fly          | mouse  | human  
+// MtDNA | mitochondrion_genome |   MT   |  MT
+
+// scaffolds
+// fly: 2110000*
+// human: GL000*, KI270*
+
+// source !{params.bin_dir}/get_tab.sh
+
+
+
 // note: the important thing is to keep all contigs when mapping reads to prevent misalignement of reads to wrong location. However, discarding reads mapped to contigs after mapping is a matter of taste and depends on the downstream application. In our case, we need to avoid small contigs to avoid erroneous annotations of peaks to the closest gene. So we discard small contigs (current threshold: we keep only contigs with 5 genes or more).
 
 // singularity pull ubuntu:22.04
@@ -1384,19 +1401,6 @@ process filtering_annotation_file {
 // awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print}}' -
 //  awk '{if($3 == "gene"){print $1}}' fly/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr 
 
-//// outputs:
-// - protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
-// - anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
-
-//// mitochondrial chromosomes:
-// worm  |         fly          | mouse  | human  
-// MtDNA | mitochondrion_genome |   MT   |  MT
-
-// scaffolds
-// fly: 2110000*
-// human: GL000*, KI270*
-
-// source !{params.bin_dir}/get_tab.sh
 
 process making_bed_files_of_annotated_regions {
 	tag "${species}"
@@ -1685,13 +1689,14 @@ process making_R_annotation_files {
 		library(AnnotationDbi)
 
 		source('!{params.cactus_dir}/bin/export_df_to_bed.R')
+		source('!{params.bin_dir}/get_tab.R')
 
 		gff3_raw = '!{gff3_raw}'
 		gff3_genes_only = '!{gff3_genes_only}'
 		gff3_filtered_regions_and_pseudogenes = '!{gff3_filtered_regions_and_pseudogenes}'
 		species = '!{species}'
 		orgdb = AnnotationDbi::loadDb('!{orgdb}')
-		df_chr_size = read.table('!{chr_size}', sep = '\t')
+		df_chr_size = read.table('!{chr_size}', sep = get_tab())
 		species_long = '!{species_long}'
 
 
