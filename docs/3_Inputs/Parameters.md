@@ -175,6 +175,9 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 - **_params.diffbind__min_count_**: Minimum read count value. Any interval with fewer than this many overlapping reads will be set to have this count. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for details. Default: 0.
 - **_params.diffbind__normalization_**: Normalization method to use. See the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) for options. Default: 'DBA_NORM_TMM'.
 - **_params.diffbind__summits_**: Option to control the summit heights and locations calculated for each peak. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for options. Default: 75.
+- **_params.diffbind__make_grey_list_**: Should a grey list be created or not. This option can be set to 'TRUE' only if *params.use_input_control* is also *'TRUE'*. If 'TRUE', a grey list region will be created from the input control to hide hotspot regions. See the [dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) function for details. Default: 'FALSE'.
+- **_params.diffbind__design_**: Should contrasts be specified automatically or not. See the [dba.contrast function](https://rdrr.io/bioc/DiffBind/man/dba.contrast.html) function for details. Default: 'TRUE'.
+- **_params.diffbind__edger_tagwise_**: If using *diffbind__analysis_method = 'edgeR'* should tag-wise dispersion estimates be computed or not. See [here](https://rdrr.io/bioc/DiffBind/src/R/DBA.R) and [here](https://www.rdocumentation.org/packages/edgeR/versions/3.14.0/topics/estimateTagwiseDisp) for details. Default: 'TRUE'.
 - **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
 - **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
@@ -198,9 +201,9 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 ## 3. Enrichment: Enrichment
 
 - **_params.disable_all_enrichments_**: If true all enrichment analysis are disabled. Default: false.
-- **_params.do_gene_set_enrichment_**: Enable or disable gene set enrichment analysis. Default: true.
 - **_params.do_genes_self_enrichment_**: Enable or disable genes self enrichment analysis. Default: true.
 - **_params.do_peaks_self_enrichment_**: Enable or disable peaks self enrichment analysis. Default: true.
+- **_params.do_func_anno_enrichment_**: Enable or disable gene set enrichment analysis. Default: true.
 - **_params.do_chrom_state_enrichment_**: Enable or disable chromatin states enrichment analysis. Default: true.
 - **_params.do_motif_enrichment_**: Enable or disable motifs enrichment analysis. Default: true.
 - **_params.do_chip_enrichment_**: Enable or disable CHIP-Seq enrichment analysis. Default: true.
@@ -241,7 +244,7 @@ Default parameters for the processes are defined [here](/conf/run_default.config
   - **_n_unique_**: Numbers of top terms to select. `top_N` is defined as `n_unique / n_comp` (with n_comp being the number of `COMP_FC`) rounded to the lower bound. Then for each `COMP_FC`, the `top_N` terms with the lowest pvalues are selected.
   - **_remove_similar_**: If true (T) entries similar names will be removed. Similar names is defined as entries that are the same before the final underscore; i.e. FOXO_L1 and FOXO_L2. For each similar entry group, the lowest pvalue of each entry is computed and the top **_remove_similar_n_** entries with the lowest pvalue are kept.
   - **_remove_similar_n_**: See *n_shared* above.
-  - **_agglomeration_method_**: Agglomeration method used for hierarchical clustering of selected terms on the y-axis. See [here](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/hclust) for options. Default: 'ward.D'.
+  - **_agglomeration_method_**: Agglomeration method used for hierarchical clustering of selected terms on the y-axis. See [here](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/hclust) for options. 
   - **_select_enriched_**: Boolean indicating if only the most enriched terms should be selected (if TRUE/T) or the most enriched or depleted terms (if FALSE/F).
 
 ## 3. Enrichment: Tables

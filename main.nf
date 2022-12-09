@@ -2315,25 +2315,29 @@ process DA_ATAC__doing_differential_abundance_analysis {
     library(magrittr)
     library(parallel)
 
-    COMP = '!{COMP}'
-    use_input_control = '!{params.use_input_control}'
     source('!{projectDir}/bin/export_df_to_bed.R')
     cur_seqinfo = readRDS('!{params.cur_seqinfo}')
 
-    min_overlap     = !{params.diffbind__min_overlap}
-    min_count       = !{params.diffbind__min_count}
-    analysis_method = !{params.diffbind__analysis_method}
-    normalization   = !{params.diffbind__normalization}
-    summits         = !{params.diffbind__summits}
-    
+    COMP              = '!{COMP}'
+    use_input_control = '!{params.use_input_control}'
+    make_grey_list    = !{params.diffbind__make_grey_list}
+    min_overlap       = !{params.diffbind__min_overlap}
+    min_count         = !{params.diffbind__min_count}
+    analysis_method   = !{params.diffbind__analysis_method}
+    normalization     = !{params.diffbind__normalization}
+    summits           = !{params.diffbind__summits}
+    design            = !{params.diffbind__design}
+    edger_tagwise     = !{params.diffbind__edger_tagwise}
     
     conditions = strsplit(COMP, '_vs_')[[1]]
     cond1 = conditions[1]
     cond2 = conditions[2]
+    use_input_control %<>% toupper %>% as.logical
 
+    if(make_grey_list & !use_input_control) stop('Grey lists cannot be created without an input control')
+    
 
     ##### Preparing the metadata table
-    use_input_control %<>% toupper %>% as.logical
     bed_bam_files = list.files(pattern = '*.bam$|*_removal.bed$')
     cur_files = grep('diffbind_peaks', bed_bam_files, value = T, invert = T)
     df = data.frame(path = cur_files, stringsAsFactors=F)
@@ -2390,13 +2394,14 @@ process DA_ATAC__doing_differential_abundance_analysis {
     dbo = tryCatch(
       expr = {
 
-        config = data.frame(AnalysisMethod = analysis_method, 
-                RunParallel = F, singleEnd = F)
+        config = data.frame(AnalysisMethod = analysis_method, RunParallel = F, 
+                            singleEnd = F)
 
-        dbo <- dba(sampleSheet = df1, minOverlap = min_overlap, 
-                  config = config)
+        dbo <- dba(sampleSheet = df1, minOverlap = min_overlap, config = config)
 
-        if(use_input_control) dbo <- dba.blacklist(dbo, blacklist = F, 
+        dbo$config$edgeR$bTagwise = edger_tagwise
+
+        if(make_grey_list) dbo <- dba.blacklist(dbo, blacklist = F, 
           greylist = cur_seqinfo)
 
         dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = F, 
@@ -2407,10 +2412,9 @@ process DA_ATAC__doing_differential_abundance_analysis {
         dbo <- dba.normalize(dbo, normalize = normalization, 
           library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
 
-        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2, reorderMeta = list(Condition = cond2))
+        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2, reorderMeta = list(Condition = cond2), design = design)
 
-        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
-          bReduceObjects = F)
+        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F,   bReduceObjects = F)
 
       }, error = function(e) {
         print(e$message)
@@ -3902,7 +3906,7 @@ process Enrichment__computing_functional_annotations_overlaps {
   label "bioconductor"
 
   when: 
-    params.do_gene_set_enrichment && params.do_any_enrichment
+    params.do_func_anno_enrichment && params.do_any_enrichment
 
   input:
     set key, data_type, func_anno, file(gene_set_rds) \

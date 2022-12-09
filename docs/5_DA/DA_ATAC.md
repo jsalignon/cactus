@@ -34,6 +34,9 @@ Briefly, DiffBind estimates reads abundance at selected peaks of interest (i.e. 
 - **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 'DBA_EDGER'.
 - **_params.diffbind__normalization_**: Normalization method to use. See the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) for options. Default: 'DBA_NORM_TMM'.
 - **_params.diffbind__summits_**: Option to control the summit heights and locations calculated for each peak. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for options. Default: 75.
+- **_params.diffbind__make_grey_list_**: Should a grey list be created or not. This option can be set to 'TRUE' only if *params.use_input_control* is also *'TRUE'*. If 'TRUE', a grey list region will be created from the input control to hide hotspot regions. See the [dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) function for details. Default: 'FALSE'.
+- **_params.diffbind__design_**: Should contrasts be specified automatically or not. See the [dba.contrast function](https://rdrr.io/bioc/DiffBind/man/dba.contrast.html) function for details. Default: 'TRUE'.
+- **_params.diffbind__edger_tagwise_**: If using *diffbind__analysis_method = 'edgeR'* should tag-wise dispersion estimates be computed or not. See [here](https://rdrr.io/bioc/DiffBind/src/R/DBA.R) and [here](https://www.rdocumentation.org/packages/edgeR/versions/3.14.0/topics/estimateTagwiseDisp) for details. Default: 'TRUE'.
 
 ### Outputs
 - **Consensus peaks**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__bed/${comparison}__diffbind_peaks_gr.bed`.
