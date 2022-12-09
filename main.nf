@@ -2896,34 +2896,33 @@ process DA_ATAC__plotting_differential_abundance_results {
 
     ##### PCA plots
 
-    if(nrow(dbo$binding) == nrow(res)){
-      
-      # Handling unnanotated peaks
-      v_gene_names = res$gene_name[match(1:nrow(dbo$binding), res$peak_id)]
-      sel = which(is.na(v_gene_names))
-      v_gene_names[is.na(v_gene_names)] = paste0('no_gene_', 1:length(sel))
-      sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
-      print(dbo$peaks[[1]][sel,])
-      sink()
-      
-      # doing and plotting the PCA
-      prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(dbo$binding), 
-      cor = F, bLog = T)$pc
-      rownames(prcomp1$x) = v_gene_names
-      
-      lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
-      lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
-      
-      pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
+    # Handling unnanotated peaks and peaks missing from the dba.report function
+    v_gene_names = res$gene_name[match(1:nrow(dbo$binding), res$peak_id)]
+    v_gene_names[is.na(v_gene_names)] = 'no_gene'
+    v_gene_names %<>% make.unique(sep = '_')
+    sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
+      print(dbo$peaks[[1]][grep('no_gene', v_gene_names),])
+    sink()
+    
+    # doing and plotting the PCA
+    prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(res)+1, cor = F, bLog = T)$pc
+    
+    mat = dbo$binding %>% .[, 4:ncol(.)] %>% set_rownames(v_gene_names)
+    mat[mat <= 1] = 1
+    mat %<>% log2
+    prcomp1 = prcomp(mat)
+    
+    lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
+    lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
+    
+    pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
       make_4_plots(lp_1_2)
-      dev.off()
-      
-      pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
+    dev.off()
+    
+    pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
       make_4_plots(lp_3_4)
-      dev.off()
-      
-    }
-
+    dev.off()
+    
 
     ##### other plots
 
