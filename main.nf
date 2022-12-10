@@ -2412,9 +2412,16 @@ process DA_ATAC__doing_differential_abundance_analysis {
         dbo <- dba.normalize(dbo, normalize = normalization, 
           library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
 
-        dbo <- dba.contrast(dbo, categories = DBA_CONDITION, minMembers = 2, reorderMeta = list(Condition = cond2), design = design)
+        if(design){
+          dbo <- dba.contrast(dbo, design = '~Condition', 
+                      reorderMeta = list(Condition = cond2), minMembers = 2)
+        } else {
+          dbo <- dba.contrast(dbo, design = F, 
+                      group1 = dbo$masks[[cond1]], group2 = dbo$masks[[cond2]], 
+                      name1 = cond1, name2 = cond2, minMembers = 2)
+        }
 
-        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F,   bReduceObjects = F)
+        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = F)
 
       }, error = function(e) {
         print(e$message)
