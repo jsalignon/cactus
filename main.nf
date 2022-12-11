@@ -2328,6 +2328,11 @@ process DA_ATAC__doing_differential_abundance_analysis {
     summits           = !{params.diffbind__summits}
     design            = !{params.diffbind__design}
     edger_tagwise     = !{params.diffbind__edger_tagwise}
+    filter            = !{params.diffbind__filter}
+    background        = !{params.diffbind__background}
+    library_size      = !{params.diffbind__library_size}
+    scale_control     = !{params.diffbind__scale_control}
+    sub_control       = !{params.diffbind__sub_control}
     
     conditions = strsplit(COMP, '_vs_')[[1]]
     cond1 = conditions[1]
@@ -2405,12 +2410,13 @@ process DA_ATAC__doing_differential_abundance_analysis {
           greylist = cur_seqinfo)
 
         dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = F, 
-          fragmentSize = 1, minOverlap = min_overlap, 
-          score = DBA_SCORE_NORMALIZED, bUseSummarizeOverlaps = F, 
-          bSubControl = F, minCount = min_count, summits = summits)
+                fragmentSize = 1, minOverlap = min_overlap, 
+                score = score, bUseSummarizeOverlaps = F, 
+                bSubControl = sub_control, bScaleControl = scale_control, 
+                minCount = min_count, summits = summits, filter = filter)
 
         dbo <- dba.normalize(dbo, normalize = normalization, 
-          library = DBA_LIBSIZE_BACKGROUND,  background = TRUE)
+          library = library_size,  background = background)
 
         if(design){
           dbo <- dba.contrast(dbo, design = '~Condition', 
