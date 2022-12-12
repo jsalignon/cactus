@@ -2333,6 +2333,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
     library_size      = !{params.diffbind__library_size}
     scale_control     = !{params.diffbind__scale_control}
     sub_control       = !{params.diffbind__sub_control}
+    score             = !{params.diffbind__score}
     
     conditions = strsplit(COMP, '_vs_')[[1]]
     cond1 = conditions[1]
@@ -2416,7 +2417,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
                 minCount = min_count, summits = summits, filter = filter)
 
         dbo <- dba.normalize(dbo, normalize = normalization, 
-          library = library_size,  background = background)
+                              library = library_size, background = background)
 
         if(design){
           dbo <- dba.contrast(dbo, design = '~Condition', 
@@ -2427,7 +2428,8 @@ process DA_ATAC__doing_differential_abundance_analysis {
                       name1 = cond1, name2 = cond2, minMembers = 2)
         }
 
-        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, bReduceObjects = F)
+        dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
+                                bReduceObjects = F)
 
       }, error = function(e) {
         print(e$message)
