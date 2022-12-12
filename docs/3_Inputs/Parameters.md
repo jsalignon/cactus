@@ -169,8 +169,8 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 
 ## 2. Differential Abundance: DA_ATAC
 
-Differential Binding Analysis:
-See the function links for details on what they are doing and possible options. The parameters are:
+**Differential Binding Analysis:**  
+See the function links for details and possible options. The parameters are:
 - For the [dba](https://rdrr.io/bioc/DiffBind/man/dba.html) function: 
   - **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. Default: 'DBA_EDGER'.
 - For edgeR analysis method:
@@ -193,7 +193,7 @@ See the function links for details on what they are doing and possible options. 
 - For the [dba.contrast](https://rdrr.io/bioc/DiffBind/man/dba.contrast.html) function:
   - **_params.diffbind__design_**: Should contrasts be specified with a formula or not. Default: 'TRUE'.
 
-Annotations and figures:
+**Annotations and figures:**
 - **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
 - **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
