@@ -169,15 +169,30 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 
 ## 2. Differential Abundance: DA_ATAC
 
-- **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. See the [DiffBind::dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) for details. Default: false.
-- **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 1.
-- **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. See the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html) for details. Default: 'DBA_EDGER'.
-- **_params.diffbind__min_count_**: Minimum read count value. Any interval with fewer than this many overlapping reads will be set to have this count. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for details. Default: 0.
-- **_params.diffbind__normalization_**: Normalization method to use. See the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) for options. Default: 'DBA_NORM_TMM'.
-- **_params.diffbind__summits_**: Option to control the summit heights and locations calculated for each peak. See the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) for options. Default: 75.
-- **_params.diffbind__make_grey_list_**: Should a grey list be created or not. This option can be set to 'TRUE' only if *params.use_input_control* is also *'TRUE'*. If 'TRUE', a grey list region will be created from the input control to hide hotspot regions. See the [dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) function for details. Default: 'FALSE'.
-- **_params.diffbind__design_**: Should contrasts be specified automatically or not. See the [dba.contrast function](https://rdrr.io/bioc/DiffBind/man/dba.contrast.html) function for details. Default: 'TRUE'.
-- **_params.diffbind__edger_tagwise_**: If using *diffbind__analysis_method = 'edgeR'* should tag-wise dispersion estimates be computed or not. See [here](https://rdrr.io/bioc/DiffBind/src/R/DBA.R) and [here](https://www.rdocumentation.org/packages/edgeR/versions/3.14.0/topics/estimateTagwiseDisp) for details. Default: 'TRUE'.
+Differential Binding Analysis:
+- For the [dba function](https://rdrr.io/bioc/DiffBind/man/dba.html): 
+  - **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. Default: 'DBA_EDGER'.
+- For edgeR analysis method:
+  - **_params.diffbind__edger_tagwise_**: If using *diffbind__analysis_method = 'edgeR'* should tag-wise dispersion estimates be computed or not. See [here](https://rdrr.io/bioc/DiffBind/src/R/DBA.R) and [here](https://www.rdocumentation.org/packages/edgeR/versions/3.14.0/topics/estimateTagwiseDisp) for details. Default: 'NULL'.
+- For the [dba.blacklist function](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html):
+  - **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. Default: false.
+  - **_params.diffbind__make_grey_list_**: Should a grey list be created or not. This option can be set to 'TRUE' only if *params.use_input_control* is also *'TRUE'*. If 'TRUE', a grey list region will be created from the input control to hide hotspot regions. Default: 'FALSE'.
+- For the [dba.count function](https://rdrr.io/bioc/DiffBind/man/dba.count.html) (see the link for details and options):
+  - **_params.diffbind__min_count_**: Minimum read count value. Any interval with fewer than this many overlapping reads will be set to have this count. Default: 0.
+  - **_params.diffbind__filter_**: Intervals with values lower than this are excluded from analysis. Default: 1.
+  - **_params.diffbind__summits_**: Option to control the summit heights and locations calculated for each peak. Default: 75.
+  - **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. Default: 1.
+  - **_params.diffbind__sub_control_**: Option to determine if the input control reads should be substracted to each site in each sample. Default: 'FALSE'.
+  - **_params.diffbind__scale_control_**: Option to determine if reads should be scaled by library size when using the *params.diffbind__sub_control_* option. Default: 'FALSE'.
+  - **_params.diffbind__score_**: Score to use in the binding affinity matrix. Raw read counts are used for analysis. This parameter only influence the counts shown in the detailled_ATAC results tables (for each individual replicates). Default: 'DBA_SCORE_NORMALIZED'.
+- For the [dba.normalize function](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html):
+  - **_params.diffbind__normalization_**: Normalization method to use. Default: 'DBA_NORM_TMM'.
+  - **_params.diffbind__background_**: Should background bins be used for normalization. Can be 'FALSE', 'TRUE' (default bin size of 15000bp), or an integer (indicating the bin size). Default: 'TRUE'. 
+  - **_params.diffbind__library_size_**: Method used to calculate library size. Default: 'DBA_LIBSIZE_BACKGROUND'.
+- For the [dba.contrast function](https://rdrr.io/bioc/DiffBind/man/dba.contrast.html):
+  - **_params.diffbind__design_**: Should contrasts be specified with a formula or not. Default: 'TRUE'.
+
+Annotations and figures:
 - **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
 - **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
@@ -186,6 +201,7 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 
 ## 2. Differential Abundance: DA_mRNA
 
+Figures:
 - **_params.sleuth_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
 - **_params.sleuth_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed on the volcano plot. Default: 15.
 
