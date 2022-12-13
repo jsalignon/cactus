@@ -222,8 +222,8 @@ Figures:
 - **_params.do_peaks_self_enrichment_**: Enable or disable peaks self enrichment analysis. Default: true.
 - **_params.do_func_anno_enrichment_**: Enable or disable gene set enrichment analysis. Default: true.
 - **_params.do_chrom_state_enrichment_**: Enable or disable chromatin states enrichment analysis. Default: true.
-- **_params.do_motif_enrichment_**: Enable or disable motifs enrichment analysis. Default: true.
 - **_params.do_chip_enrichment_**: Enable or disable CHIP-Seq enrichment analysis. Default: true.
+- **_params.do_motif_enrichment_**: Enable or disable motifs enrichment analysis. Default: true.
 - **_params.use_nda_as_bg_for_func_anno_**: use non-differentially expressed genes as the background for differentially analysis. If FALSE, all genes in the database are used. Default: 'FALSE'.
 - **_params.func_anno_databases_**: which database(s) to query for functional annotation enrichment analysis (KEEG, GO BP, GO CC or GO MF). Options: 'KEGG', 'CC', 'MF', 'BP'. Default: ['BP', 'KEGG']. 
 - **_params.simplify_cutoff_**: [Similarity cutoff](https://rdrr.io/bioc/clusterProfiler/man/simplify-methods.html) to removed redundant go terms. Default: 0.8. 
