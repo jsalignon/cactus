@@ -1382,24 +1382,11 @@ process filtering_annotation_file {
 // fly: 2110000*
 // human: GL000*, KI270*
 
-// source !{params.bin_dir}/get_tab.sh
-
-
-
 // note: the important thing is to keep all contigs when mapping reads to prevent misalignement of reads to wrong location. However, discarding reads mapped to contigs after mapping is a matter of taste and depends on the downstream application. In our case, we need to avoid small contigs to avoid erroneous annotations of peaks to the closest gene. So we discard small contigs (current threshold: we keep only contigs with 5 genes or more).
-
-// singularity pull ubuntu:22.04
-
-// not sure how the annotation will work in chipseeker. Need to check manually. Maybe we need to remove more features. In this case this command will do it:
-// awk -v FS="\t" -v OFS="\t" -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element") print $1}}' ${gff3} > ${gff3_filtered}
-
 
 // awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' - | wc -l # 30
 // awk '{if($3 == "gene"){print $1}}' human/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print $2}}' - | wc -l # 25
-// 
-// awk '{if($3 == "gene"){print $1}}' human/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print}}' -
-// awk '{if($3 == "gene"){print $1}}' mouse/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr | awk '{if ($1 >= 5) {print}}' -
-//  awk '{if($3 == "gene"){print $1}}' fly/genome/annotation/annotation.gff3 | sort | uniq -c | sort -nr 
+
 
 
 process making_bed_files_of_annotated_regions {
@@ -1757,10 +1744,11 @@ process making_R_annotation_files {
 
 }
 
-// source('!{cactusdir}/src/R_analysis/general_functions.R')
+//// inputs:
+// - gff3_raw (i.e., annotation.gff3) is the raw gff3 file. It is used to create the full gene vs transcripts table. All transcripts should be there as this table is used by Kallisto for alignment free transcripts quantification
+// - gff3_genes_only (i.e., protein_coding_genes.gff3) only include entries with feature type being gene. It is used to create the df_genes_metadata table that contains coordinates, gene name and gene ID for Ensembl and NCBI. This file is used in multiple occasions in Cactus for correspondance between gene_id and gene name (volcano plots), for adding coordinate informations (for the res_detailed_atac tables) or for correspondance between Ensembl and NCBI ids (KEGG enrichment).
+// - gff3_filtered_regions_and_pseudogenes (i.e., anno_without_pseudogenes.gff3) contains all features types excepting ncRNA_gene. It is used for creating a txdb database without non coding transcripts. The resulting txdb file omits all features that don't have a parental gene. Therefere, all transcripts and exons of ncRNA_genes (i.e., miRNA, lnc_RNA, rRNA, tRNA, ...) are excluded from the txdb file. This txdb file is used for the annotation of ATAC-Seq peaks, but also for the creation of promoter files used in the mRNA-Seq analysis.
 
-// cur_seq_info = rtracklayer::SeqinfoForUCSCGenome('ce11')
-// cur_seq_info@seqnames %<>% gsub('chr', '', .)
 
 // For enrichGO, the go terms are stored into a package and accessed liked that:  goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
 // so everything is run in local within the clusterProfiler:::get_GO_data function
@@ -1768,7 +1756,12 @@ process making_R_annotation_files {
 // using download.method = 'wget' is necessary as curl is not in the container. Loading the clusterProfiler at the end is necessary otherwise it interfere with some AnnotationDbi functions
 
 
-///// Checking if the -C option of gffread really did filter non-coding transcripts, and if we have the same set of genes as in my manually filtered gff3 files
+// unfortunately, the "promoters function" extract promoters with coordinate below zero (I found this bug for 3 mitochondrial genes in C elegans). Thus we need to put them at zero.
+// promoters_df %<>% dplyr::select(chr:strand, gene_name, gene_id, entrez_id)
+// promoters_df %<>% dplyr::mutate(seqnames = as.character(seqnames), strand = as.character(strand))
+
+
+///// Checking if the -C option of gffread really did filter non-coding transcripts, and if we have the same set of genes as in my manually filtered gff3 files (here in worms)
 
 //// in the appropriate worm work folders
 // library(magrittr)
@@ -1831,110 +1824,8 @@ process making_R_annotation_files {
 
 
 
-// rtracklayer::export(promoters, 'promoters.bed')
-
-// unfortunately, the "promoters function" extract promoters with coordinate below zero (I found this bug for 3 mitochondrial genes in C elegans). Thus we need to put them at zero.
-
-// promoters_df %<>% dplyr::select(chr:strand, gene_name, gene_id, entrez_id)
-// promoters_df %<>% dplyr::mutate(seqnames = as.character(seqnames), strand = as.character(strand))
 
 
-// Rle(promoters_df$seqnames)
-// factor-Rle of length 20191 with 7 runs
-//   Lengths:  2908  3520  2683  3285  4994  2789    12
-//   Values :     I    II   III    IV     V     X MtDNA
-
-
-
-// df_genes_transcripts = select(txdb, keys = keys(txdb), columns = c('GENEID', 'TXNAME'), keytype = "GENEID")
-// dim(df_genes_transcripts)
-// [1] 33552     2
-
-// a = select(txdb, keys = keys(txdb)[1:5], columns = c('GENEID', 'TXID', 'TXNAME', 'TXSTART', 'TXEND', 'TXSTRAND'), keytype = "GENEID")
-//   GENEID  TXID               TXNAME TXSTRAND  TXSTART    TXEND
-// 1 2L52.1  5291 transcript:2L52.1a.1        +     1848     4717
-// 2 2L52.1  5292 transcript:2L52.1b.1        +     3410     4663
-// 3 4R79.2 22496 transcript:4R79.2b.1        - 17480396 17482329
-// 4 4R79.2 22497 transcript:4R79.2a.1        - 17480396 17483332
-
-// columns(txdb)
-// [1] "CDSCHROM"   "CDSEND"     "CDSID"      "CDSNAME"    "CDSPHASE"
-// [6] "CDSSTART"   "CDSSTRAND"  "EXONCHROM"  "EXONEND"    "EXONID"
-// [11] "EXONNAME"   "EXONRANK"   "EXONSTART"  "EXONSTRAND" "GENEID"
-// [16] "TXCHROM"    "TXEND"      "TXID"       "TXNAME"     "TXSTART"
-// [21] "TXSTRAND"   "TXTYPE"
-
-// vec = anno_df$gene_name %>% setNames(., anno_df$gene_id)
-// saveRDS(vec, 'gene_id_to_name_vector.rds', version = 2)
-// 
-// vec = anno_df$entrez_id %>% setNames(., anno_df$gene_id)
-// saveRDS(vec, 'gene_ensembl_id_to_entrez_id_vector.rds', version = 2)
-
-
-// saveDfFromGRangesAsBed(all_promoters, file = 'promoters.bed')
-// this line of code was replaced by:
-// rtracklayer::export(promoters, 'promoters.bed')
-
-
-
-// a = GenomicFeatures::promoters(GenomicFeatures::genes(txdb), upstream = 1500, downstream = 500)
-// rtracklayer::export(a, 'test.bed')
-// rtracklayer::export(a, 'test.bed', format = 'bed')
-// 
-// txdb = 
-// a = annotatePeak(gr, c(-200, 200), level = 'gene')
-
-
-
-// txdb = GenomicFeatures::makeTxDbFromGFF("/home/jersal/lluis/atac/bin/igenomes/references/Caenorhabditis_elegans/Ensembl/WBcel235/Annotation/Genes/genes.gff3")
-// 
-// txdb = GenomicFeatures::makeTxDbFromGFF("genes.gff3")
-// 
-// anno_df1 = rtracklayer::readGFF(anno_file) 
-// gr = GenomicRanges::makeGRangesFromDataFrame(anno_df1)
-
-
-
-// => in fact I don't need a txdb object
-// GenomicFeatures::promoters(a, upstream = 500, downstream = 500)
-// GenomicFeatures::promoters(a, upstream = 1, downstream = 1)
-
-
-// library(biomaRt)
-
-// species_initial = paste(sapply(strsplit(tolower(species), '_')[[1]], function(x) substr(x, 1,1)), collapse = '')
-
-
-// dataset = switch(species, 
-// 	Caenorhabditis_elegans = 'celegans_gene_ensembl', 
-// 	Drosophila_melanogaster = 'dmelanogaster_gene_ensembl', 
-// 	Mus_musculus = 'mmusculus_gene_ensembl', 
-// 	Homo_sapiens = 'hsapiens_gene_ensembl'
-// )
-// 
-// mart = useMart("ensembl", dataset = dataset)
-// 
-// ensembl_gene_id = gff3_df$gene_id
-// df_biomart = getBM( filters = 'ensembl_gene_id', attributes = c('ensembl_gene_id', 'entrezgene_id'), values = ensembl_gene_id, mart = mart )
-// 
-// gff3_df$entrez_gene_id = df_biomart$entrezgene_id[match(gff3_df$gene_id, df_biomart$ensembl_gene_id)]
-
-
-
-// mart = useMart("ensembl")
-// a = listDatasets(mart)
-// a[grepl('elegans|hsapiens|musculus|melanogaster', a$dataset), ]
-// 									 dataset                              description    version
-// 48       hsapiens_gene_ensembl                 Human genes (GRCh38.p13) GRCh38.p13
-// 53  dmelanogaster_gene_ensembl Drosophila melanogaster genes (BDGP6.28)   BDGP6.28
-// 104      celegans_gene_ensembl  Caenorhabditis elegans genes (WBcel235)   WBcel235
-// 130     mmusculus_gene_ensembl                  Mouse genes (GRCm38.p6)  GRCm38.p6
-
-// ## for C elegans
-// dim(gff3_df) # 31293
-// gff3_df1 = gff3_df[, c('gene_id', 'entrez_gene_id')] %>% .[!duplicated(.), ]
-// dim(gff3_df1) # 20447
-// length(which(is.na(gff3_df1$entrez_gene_id))) # => 563 id were lost out of 20K. Not great but still reasonnable.
 
 
 process making_timestamp {
@@ -1943,6 +1834,8 @@ process making_timestamp {
   // label "r_basic"
 
   publishDir path: "${species}", mode: 'link'
+
+	cache: false
 
   input:
 	  val species from Channel.of( 'worm', 'fly', 'mouse', 'human' )

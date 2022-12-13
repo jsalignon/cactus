@@ -15,6 +15,10 @@ cd $arch_dir
 ### Creating archives
 ##############################################
 
+# rm *{.tar.gz,.txt}
+# rm *_refs.tar.gz md5_sums.txt   # updating references
+# rm *_test.tar.gz md5_sums.txt   # updating test datasets
+
 n_cores=45
 
 # references
@@ -34,7 +38,7 @@ md5sum *.tar.gz > md5_sums.txt
 cp md5_sums.txt ../reports/md5_sums.txt
 ls -sh *.tar.gz > ../reports/file_sizes.txt
 
-# adding metadata files (README.txt)
+# adding metadata files (i.e. the README and manifest files)
 cp ../metadata/* .
 
 
@@ -52,7 +56,7 @@ set ftp:ssl-protect-data on
 set ftp:passive-mode on
 set ftp:auto-passive-mode on
 set ssl:verify-certificate no
-mkdir -p data/cactus
+# mkdir -p data/cactus
 cd data/cactus
 
 put worm_refs.tar.gz
