@@ -1835,7 +1835,7 @@ process making_timestamp {
 
   publishDir path: "${species}", mode: 'link'
 
-	cache: false
+	cache false
 
   input:
 	  val species from Channel.of( 'worm', 'fly', 'mouse', 'human' )
