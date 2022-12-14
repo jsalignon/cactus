@@ -15,7 +15,7 @@ cd $arch_dir
 ### Creating archives
 ##############################################
 
-# rm *{.tar.gz,.txt}
+# rm *{.tar.gz,.txt}              # updating all files
 # rm *_refs.tar.gz md5_sums.txt   # updating references
 # rm *_test.tar.gz md5_sums.txt   # updating test datasets
 
@@ -64,13 +64,13 @@ put fly_refs.tar.gz
 put mouse_refs.tar.gz
 put human_refs.tar.gz
 
-put worm_test.tar.gz
-put fly_test.tar.gz
-put mouse_test.tar.gz
-put human_test.tar.gz
+# put worm_test.tar.gz
+# put fly_test.tar.gz
+# put mouse_test.tar.gz
+# put human_test.tar.gz
 
-put README.txt
-put manifest.txt
+# put README.txt
+# put manifest.txt
 put md5_sums.txt
 
 cat debug_log.txt 

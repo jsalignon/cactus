@@ -1258,7 +1258,7 @@ process ATAC_QC_reads__running_multiQC {
     """
 }
 
-// This kind of commands could maybe make a more pretty multiqc report, 
+// These types of commands could maybe make a more pretty multiqc report, 
 // but I would need to investigate more on how to do that exactly
 // FILENAME=`basename bam_stats.csv .csv`
 // cut -d "," -f 1-2 bam_stats.csv > ${FILENAME}_test_mqc.csv
@@ -1266,11 +1266,6 @@ process ATAC_QC_reads__running_multiQC {
 // FILENAME=`basename ${bam_stat} .csv`
 // cut -d "," -f 1-6 ${bam_stat} > \${FILENAME}_percentage_mqc.csv
 // cut -d "," -f 1,7-10 ${bam_stat} > \${FILENAME}_counts_mqc.csv
-
-// the raw multiqc_data folder is probably not useful to publish. 
-// Interested people may add it back though by uncommenting these 2 lines.
-
-
 
 
 
@@ -1985,7 +1980,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 //     }
 
 
-// these are ATAC-Seq peaks from macs
+// inputs of this process are ATAC-Seq peaks from macs
 
 // defaults parameters for the annotation function
 // 1 function (peak, tssRegion = c(-3000, 3000), TxDb = NULL, 
@@ -2320,20 +2315,20 @@ process DA_ATAC__doing_differential_abundance_analysis {
 
     COMP              = '!{COMP}'
     use_input_control = '!{params.use_input_control}'
-    make_grey_list    = !{params.diffbind__make_grey_list}
-    min_overlap       = !{params.diffbind__min_overlap}
-    min_count         = !{params.diffbind__min_count}
-    analysis_method   = !{params.diffbind__analysis_method}
-    normalization     = !{params.diffbind__normalization}
-    summits           = !{params.diffbind__summits}
-    design            = !{params.diffbind__design}
-    edger_tagwise     = !{params.diffbind__edger_tagwise}
-    filter            = !{params.diffbind__filter}
-    background        = !{params.diffbind__background}
-    library_size      = !{params.diffbind__library_size}
-    scale_control     = !{params.diffbind__scale_control}
-    sub_control       = !{params.diffbind__sub_control}
-    score             = !{params.diffbind__score}
+    make_grey_list    = !{params.make_grey_list}
+    min_overlap       = !{params.min_overlap}
+    min_count         = !{params.min_count}
+    analysis_method   = !{params.analysis_method}
+    normalization     = !{params.normalization}
+    summits           = !{params.summits}
+    design            = !{params.design}
+    edger_tagwise     = !{params.edger_tagwise}
+    filter            = !{params.filter}
+    background        = !{params.background}
+    library_size      = !{params.library_size}
+    scale_control     = !{params.scale_control}
+    sub_control       = !{params.sub_control}
+    score             = !{params.score}
     
     conditions = strsplit(COMP, '_vs_')[[1]]
     cond1 = conditions[1]
@@ -2400,32 +2395,30 @@ process DA_ATAC__doing_differential_abundance_analysis {
     dbo = tryCatch(
       expr = {
 
-        config = data.frame(AnalysisMethod = analysis_method, RunParallel = F, 
-                            singleEnd = F)
+        config = data.frame(AnalysisMethod = analysis_method, RunParallel = F)
 
-        dbo <- dba(sampleSheet = df1, minOverlap = min_overlap, config = config)
+        dbo <- dba(sampleSheet = df1, config = config)
 
         dbo$config$edgeR$bTagwise = edger_tagwise
 
         if(make_grey_list) dbo <- dba.blacklist(dbo, blacklist = F, 
           greylist = cur_seqinfo)
 
-        dbo <- dba.count(dbo, bParallel = F, bRemoveDuplicates = F, 
-                fragmentSize = 1, minOverlap = min_overlap, 
-                score = score, bUseSummarizeOverlaps = F, 
+        dbo <- dba.count(dbo, bRemoveDuplicates = F, bUseSummarizeOverlaps = F,
+                fragmentSize = 1, minOverlap = min_overlap, score = score, 
                 bSubControl = sub_control, bScaleControl = scale_control, 
-                minCount = min_count, summits = summits, filter = filter)
-
+                summits = summits, minCount = min_count, filter = filter)
+  
         dbo <- dba.normalize(dbo, normalize = normalization, 
                               library = library_size, background = background)
 
         if(design){
-          dbo <- dba.contrast(dbo, design = '~Condition', 
-                      reorderMeta = list(Condition = cond2), minMembers = 2)
+          dbo <- dba.contrast(dbo, design = T, minMembers = 2,
+                                    contrast = c('Condition', cond1, cond2))
         } else {
-          dbo <- dba.contrast(dbo, design = F, 
-                      group1 = dbo$masks[[cond1]], group2 = dbo$masks[[cond2]], 
-                      name1 = cond1, name2 = cond2, minMembers = 2)
+          dbo <- dba.contrast(dbo, design = F, minMembers = 2,
+                                   group1 = dbo$masks[[cond1]], name1 = cond1
+                                   group2 = dbo$masks[[cond2]], name2 = cond2)
         }
 
         dbo <- dba.analyze(dbo, bBlacklist = F, bGreylist = F, 
@@ -2453,7 +2446,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
                                  method = 'BH')
 
     # adding the raw reads counts of each replicate
-    cp_raw = dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_READS)
+    cp_raw = dba.peakset(dbo, bRetrieve = TRUE, score = score)
     mcols(cp_raw) = apply(mcols(cp_raw), 2, round, 2)
     m <- findOverlaps(all_peaks_gr, cp_raw)
     names_subject = names(mcols(cp_raw))
@@ -2476,293 +2469,71 @@ process DA_ATAC__doing_differential_abundance_analysis {
 }
 
 
-// not sure these lines of codes will be needed
-// string_as_object <- function(x) eval(parse(text = x))
-// min_overlap     = string_as_object('!params.dba_min_overlap')
-// analysis_method = string_as_object('!params.dba_analysis_method')
-// min_count       = string_as_object('!params.dba_min_count')
-// score           = string_as_object('!params.dba_min_count')
 
 
-// => generating the set of all peaks found in all replicates, and a set of 
-// differentially abundant/accessible peaks (can also be called differentially 
-// bound regions)
+////// Here we use DiffBind to make a consensus peak set, to count the number of reads in each merged peak, and to do differential binding analysis
 
 
-////// justification for the parameters used
+////// Details on the choice of the default parameters
 
-//// dba: minOverlap = 1
-// could be set to 1 (any peak), or 2 peaks present in at least 2 peak set. The latter is much more stringent in situations where one has only 2 replicates per condition, which is why I decided to go with 1 for now.
-// https://support.bioconductor.org/p/57809/
+//// dba (options set in the config data.frame)
+// AnalysisMethod = DBA_EDGER (Default)
+//      -> from empirical experience using DESeq2 results in very varying number of peaks, with often very few peaks. EdgeR results were looking more meaningful
+// RunParallel = FALSE (Hardcoded)
+//      -> parallel analysis has been disabled since all the cores were used instead of the number specified in dbo$config$cores parameters
+// edgeR$bTagwise = TRUE
+//      -> controls wether edgeR::estimateGLMTagwiseDisp is called after edgeR::estimateGLMTrendedDisp when analysis method is edgeR. Same default as DiffBind.
 
-//// grey list is applied only if we have an input control as the greylist is made based on the input control sample. It is applied at the very beginning to filter out the grey regions from the start.
+//// dba.count
+// bRemoveDuplicates = F (Hardcoded)
+//      -> no need since duplicates where already removed. 
+// bUseSummarizeOverlaps = F (Hardcoded)
+//      -> summarizeOverlaps is a more advanced counting function. However, DiffBind's internal function is enough since anyway we count 1 bp reads so it should be pretty straightforward. 
+//         Note that the singleEnd, intersectMode, fragments inter.feature, yieldSize and scanbamparam arguments are not needed since bUseSummarizeOverlaps is set to FALSE
+// fragmentSize = 1 (Hardcoded)
+//      -> to tell DiffBind to extend reads by 1 bp. We don't want more since this is our most precise signal (Note we could set it to 0 it should be the same as it would mean to take the read lenght as it is). A visual explaination of why we don't want to extend 1 base pair shifted reads for ATAC-Seq can be found here https://twitter.com/XiChenUoM/status/1336658454866325506. 
+// min_overlap = 1 (Default)
+//      -> this means we keep any peak from any replicate. The Differential Binding analysis should anyway give low pvalue to less significant peaks. Users with a lot of replicates may want to increase this number. See this thread for details: https://support.bioconductor.org/p/57809/
+// score = 'DBA_SCORE_NORMALIZED' (Default)
+//      -> scores are not for anything besides downstream analysis (i.e. PCA, plots) (https://support.bioconductor.org/p/69924/). The score chosen here is shown in the res_detailed_atac table files.
+// sub_control = FALSE (Default)
+//      -> substracting control reads to sample reads is disabled by default as using greylist is a more recent and recommended approach. 
+// scale_control = 'TRUE' (Default)
+//      -> this option is used only if sub_control is TRUE. This means the control reads will be normalized by library size before substracting it to the sample reads.
+// summits = 75 
+//      -> by setting summits to 75, the summits of the consensus peaks will be extended by 75 bp on both side. This option prevents the generation of very large peaks after merging peaks from many replicates. See this threads for more details on setting up the summits parameters in ATAC-Seq: https://support.bioconductor.org/p/9138959/.
+// min_count = 0 
+//      -> Minimum read count values for keeping intervals. Same default as DiffBind.
+// filter = 1 
+//      -> value to use for filtering intervals with low read counts. Same default as DiffBind.
 
-//// dbo$config$AnalysisMethod = DBA_DESEQ2 
-// https://support.bioconductor.org/p/98736/
-// For normalization, edgeR uses the TMM method which relies on a core of sites that don't systematically change their binding affinities. While this assumption of usually true for RNA-seq, there are many ChIP-seq experiments where one sample group has a completely different binding profile than the other sample group. Often, in one condition there is very little binding, but in the other condition much additional binding has been induced. ...  This is the reason we changed the default analysis method in DiffBind from edgeR to DESeq2.
+//// dba.normalize
+// normalization = 'DBA_NORM_DEFAULT' (Default)
+//      -> normalization method. Same default as DiffBind.
+// library_size = 'DBA_LIBSIZE_BACKGROUND' (Default)
+//      -> method used to calculate library size. Same default as DiffBind.
+// background = 'TRUE' (Default)
+//      -> background normalization is the recommended method for ATAC-Seq as described in DiffBind's vignette and in this paper: https://doi.org/10.1186/s13072-020-00342-y
 
-//// dba.count: summits = 75
-// DiffBind Vignette
-// When forming the global binding matrix consensus peaksets, DiﬀBind ﬁrst identiﬁes all unique
-// peaks amongst the relevant peaksets. As part of this process, it merges overlapping peaks,
-// replacing them with a single peak representing the narrowest region that covers all peaks
-// that overlap by at least one base. There are at least two consequences of this that are worth
-// noting.
-// First, as more peaksets are included in analysis, the average peak width tends to become
-// longer as more overlapping peaks are detected and the start/end points are adjusted outward
-// to account for them. Secondly, peak counts may not appear to add up as you may expect
-// due to merging. For example, if one peakset contains two small peaks near to each other,
-// while a second peakset includes a single peak that overlaps both of these by at least one
-// base, these will all be replaced in the merged matrix with a single peak. As more peaksets
-// are added, multiple peaks from multiple peaksets may be merged together to form a single,
-// wider peak. Use of the "summits" parameter is recommended to control for this widening
-// eﬀect.
-// ?dba.count
-// summits: unless set to ‘FALSE’, summit heights (read pileup) and
-// locations will be calculated for each peak.  
-// If the value of ‘summits’ is ‘TRUE’ (or ‘0’), the summits
-// will be calculated but the peaksets will be unaffected.  If
-// the value is greater than zero, all consensus peaks will be
-// re-centered around a consensus summit, with the value of
-// ‘summits’ indicating how many base pairs to include upstream
-// and downstream of the summit (so all consensus peaks will be
-// of the same width, namely ‘2 * summits + 1’).
-// https://support.bioconductor.org/p/9138959/
-// "Generally, ATAC-seq benefits from using the summits parameter at a relatively low value (50 or 100) to focus on clear regions of open chromatin with less background signal. Note that often there are two "peaks" in ATAC fragment lengths."
-// => by setting summits to 75, the summits of the consensus peaks will be extende by 75 bp on both side. 
+//// dba.contrast
+// design = 'TRUE' (Default)
+//      -> using the older DiffBind method, or the newer one with a formula. Somehow the pvalues are not matching between the two methods even with the same contrasts.
+// minMembers = 2 (Hardcoded)
+//      -> Minimum number of replicates per conditions. This was lowered to 2 (instead of 3) to accomodate conditions with few replicates. 
 
-//// dba.count: fragmentSize = 1, bUseSummarizeOverlaps = F
-//// dbo$config$singleEnd = T
-// ?dba.count
-// bUseSummarizeOverlaps: logical indicating that ‘summarizeOverlaps’
-//           should be used for counting instead of the built-in counting
-//           code.  This option is slower but uses the more standard
-//           counting function. If ‘TRUE’, all read files must be BAM
-//           (.bam extension), with associated index files (.bam.bai
-//           extension).  The ‘fragmentSize’ parameter must absent.
-// fragmentSize: This value will be used as the length of the reads.  Each
-//           read will be extended from its endpoint along the appropriate
-//           strand by this many bases.  If set to zero, the read size
-//           indicated in the BAM/BED file will be used. ‘fragmentSize’
-//           may also be a vector of values, one for each ChIP sample plus
-//           one for each unique Control library.
-// https://support.bioconductor.org/p/9138959/
-// The fragmentSize parameter is only used if you have single-end data (otherwise the paired-end insert size is used). In that case, it is a good idea to specify a value for this parameter to "extend" the single-end reads by the mean fragment size.
-// bUseSummarizeOverlaps=TRUE is generally the preferred option. If it is set to FALSE, it will use some internal code that, among other things, does not match paired-end reads, resulting in counts that may be up to double (each end counted separately). That option also gives you more fine-grained control over how the counting is done via $config parameters.
-// => we do want each pair to be analyzed separately. And we want to keep reads at 1 bp as this is the most precise signal we have (transposase-shifted 5' end of reads)
+//// dba.analyze
+// bBlacklist = FALSE (Hardcoded)
+//      -> disabling blacklisted regions as they have been removed already in a previous process
+// bGreylist = FALSE (Hardcoded)
+//      -> disabling grelylist regions as they are applied before with DiffBind
+// bReduceObjects = FALSE (Hardcoded)
+//      -> keeping full objects in case user need them
 
 
-
-//// dbo <- dba.normalize(dbo, normalize = DBA_NORM_LIB, )
-// https://support.bioconductor.org/p/p133577/
-
-//// dba.normalize: 
-//// dba.normalize: normalize = DBA_NORM_RLE, library = DBA_LIBSIZE_BACKGROUND,  background = TRUE
-// => background
-// help(dba.normalize)
-// background: This parameter controls the option to use "background"
-//           bins, which should not have differential enrichment between
-//           samples, as the basis for normalizing (instead of using reads
-//           counts overlapping consensus peaks).  When enabled, the
-//           chromosomes for which there are peaks in the consensus
-//           peakset are tiled into large bins and reads overlapping these
-//           bins are counted.
-//
-// Vignette:
-// An assumption in RNA-seq analysis, that the read count matrix reﬂects an unbiased repre-
-// sentation of the experimental data, may be violated when using a narrow set of consensus
-// peaks that are chosen speciﬁcally based on their rates of enrichment. It is not clear that
-// using normalization methods developed for RNA-seq count matrices on the consensus reads
-// will not alter biological signals; it is probably a good idea to avoid using the consensus count matrix (Reads in Peaks) for normalizing unless there is a good prior reason to expect balanced changes in binding.
-// https://support.bioconductor.org/p/p133577/
-// If you are getting different results, it is likely that there is a systematic shift in enriched regions in one of the conditions. Unless you have a specific reason to believe this is due to technical issues, this is likely a biological signal you want to retain. In this case, you should NOT use RLE on the binding matrix.
-// DBA_NORM_LIB is a quick way to perform a minimal normalization. I would try:
-// normalize <- dba.normalize(CTCF_narrowpeakscount, method = DBA_DESEQ2, 
-//                            normalize = DBA_NORM_RLE,  background=TRUE)
-// to run RLE against background bins rather than the binding matrix.
-// This should probably be the default, but computing the background bins is somewhat compute intensive.
-// => normalize
-// Vignette:
-// # About normalization
-// DiﬀBind relies on three underlying core methods for normalization. These include the "na-
-// tive" normalization methods supplied with DESeq2 and edgeR , as well as a simple library-
-// based method. The normalization method is speciﬁed with the normalize parameter to
-// dba.normalize
-// The native DESeq2 normalization method is based on calculating the geometric mean for
-// each gene across samples[6], and is referred to "RLE" or DBA_NORM_RLE in DiﬀBind .
-// The native edgeR normalization method is based on the trimmed mean of M-values approach[7],
-// and is referred to as "TMM" or DBA_NORM_TMM in DiﬀBind .
-// A third method is also provided that avoids making any assumptions regarding the distribution
-// of reads between binding sites in diﬀerent samples that may be speciﬁc to RNA-seq analysis
-// and inappropriate for ChIP-seq analysis. This method ( "lib" or DBA_NORM_LIB ) is based on
-// the diﬀerent library sizes for each sample, computing normalization factors to weight each
-// sample so as to appear to have the same library size. For DESeq2 , this is accomplished
-// by dividing the number of reads in each library by the mean library size. For edgeR , the
-// normalization factors are all set to 1.0 , indicating that only library-size normalization should occur.
-// Note that any of these normalization methods can be used with either the DESeq2 or
-// edgeR analysis methods, as DiﬀBind converts normalization factors to work appropriately
-// in either DESeq2 or edgeR .
-
-
-//// Other references
+//// Some relevant links
 // https://support.bioconductor.org/p/86594/
 // https://support.bioconductor.org/p/107679/
 
-
-// note: it may be better to use a fragment size of 150 together with the slopBed 75 bp shifted reads. Need to check that in more details some day. For now "fragmentSize = 1" should be good enough.
-
-
-
-
-// cut -f1,1 ctl_2_peaks_kept_after_blacklist_removal_filtered.bed | sort | uniq // X
-
-
-// I get this error with the fly test dataset:
-// Error in estimateSizeFactorsForMatrix(counts(object), locfunc = locfunc,  : 
-//   every gene contains at least one zero, cannot compute log geometric means
-// https://www.biostars.org/p/440379/
-
-// df_tmp = data.frame(dba.peakset(dbo, bRetrieve = TRUE, score = DBA_SCORE_TMM_READS_FULL_CPM))
-// data.frame(df_tmp)[, 6:ncol(df_tmp)]
-// which(apply(data.frame(df_tmp)[, 6:ncol(df_tmp)], 1, function(x) all(x == 0)))
-
-// here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
-
-// # cur_greylist <- dba.blacklist(dbo, Retrieve=DBA_GREYLIST)
-
-
-// ?dba.count
-// bSubControl: logical indicating whether Control read counts are
-//           subtracted for each site in each sample. If there are more
-//           overlapping control reads than ChIP reads, the count will be
-//           set to the ‘minCount’ value specified when ‘dba.count’ was
-//           called, or zero if no value is specified.
-// 
-//           If ‘bSubControl’ is not explicitly specified, it will be set
-//           to ‘TRUE’ unless a greylist has been applied (see
-//           ‘dba.blacklist’).
-
-
-
-// adding bUseSummarizeOverlaps = F to the dba.count call. This way we count as before, with 1 bp fragment length as it should be.
-// https://rdrr.io/bioc/DiffBind/man/dba.count.html
-
-// => removing the creation of a dbo1 object; the score DBA_SCORE_READS is obtained with the subsequent call to dba.peakset
-// >         dbo1 <- dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1, minOverlap = 0, score = DBA_SCORE_READS)
-// Warning message:
-// In dba.count(dbo, bParallel = F, bRemoveDuplicates = FALSE, fragmentSize = 1,  :
-//   No action taken, returning passed object...
-
-
-
-// # note: I also disable bScaleControl since it is used only to normalize controls reads prior to the substraction with bSubControl. But since we don't do that anymore and use greylist it doesn't matter so we can remove this parameter
-// https://support.bioconductor.org/p/69924/
-
-// # About normalization
-// DiﬀBind relies on three underlying core methods for normalization. These include the "na-
-// tive" normalization methods supplied with DESeq2 and edgeR , as well as a simple library-
-// based method. The normalization method is speciﬁed with the normalize parameter to
-// dba.normalize
-// The native DESeq2 normalization method is based on calculating the geometric mean for
-// each gene across samples[6], and is referred to "RLE" or DBA_NORM_RLE in DiﬀBind .
-// The native edgeR normalization method is based on the trimmed mean of M-values approach[7],
-// and is referred to as "TMM" or DBA_NORM_TMM in DiﬀBind .
-// A third method is also provided that avoids making any assumptions regarding the distribution
-// of reads between binding sites in diﬀerent samples that may be speciﬁc to RNA-seq analysis
-// and inappropriate for ChIP-seq analysis. This method ( "lib" or DBA_NORM_LIB ) is based on
-// the diﬀerent library sizes for each sample, computing normalization factors to weight each
-// sample so as to appear to have the same library size. For DESeq2 , this is accomplished
-// by dividing the number of reads in each library by the mean library size. For edgeR , the
-// normalization factors are all set to 1.0 , indicating that only library-size normalization should occur.
-// Note that any of these normalization methods can be used with either the DESeq2 or
-// edgeR analysis methods, as DiﬀBind converts normalization factors to work appropriately
-// in either DESeq2 or edgeR .
-
-// DBA_NORM_NATIVE: equal DBA_NORM_TMM for edgeR and DBA_NORM_RLE for DESeq2
-
-
-// => it is in fact recommended to use greylist regions instead of substracting controls! We update the code accordingly
-// https://support.bioconductor.org/p/97717/
-// https://github.com/crazyhottommy/ChIP-seq-analysis/blob/master/part3_Differential_binding_by_DESeq2.md
-// https://support.bioconductor.org/p/72098/#72173
-
-// From the Diffbind manual it also says:
-// Another way of thinking about greylists is that they are one way of using the information in
-// the control tracks to improve the reliability of the analysis. Prior to version 3.0, the default
-// in DiﬀBind has been to simply subtract control reads from ChIP reads in order to dampen
-// the magnitude of enrichment in anomalous regions. Greylists represent a more principled way
-// of accomplishing this. If a greylist has been applied, the current default in DiﬀBind is to not
-// subtract control reads.
-
-
-// we should keep the bFullLibrarySize parameter to TRUE
-// The issue is how the data are normalized. Setting bFullLibrarySize=FALSE uses a standard RNA-seq normalization method (based on the number of reads in consensus peaks), which assumes that most of the "genes" don't change expression, and those that do are divided roughly evenly in both directions. Using the default bFullLibrarySize=TRUE avoids these assumptions and does a very simple normalization based on the total number of reads for each library.
-
-// THe bTagwise argument should not be needed but we keep it just in case and to be clearer
-// Next edgeR::estimateGLMTrendedDisp is called with the DGEList and a design matrix derived
-// from the design formula. By default, edgeR::estimateGLMTagwiseDisp is called next; this
-// can be bypassed by setting DBA$config$edgeR$bTagwise=FALSE . 15
-
-// the diffbind package changed a lot since the version I was using. The contrast command should be changed, and the dba.analyze command too. I will need to read in more details the method
-// dbo <- dba.contrast(dbo, ~Condition, minMembers = 2)
-// Error in dba.analyze(dbo, bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE,  :
-//   unused arguments (bTagwise = FALSE, bFullLibrarySize = TRUE, bSubControl = TRUE)
-
-
-// here is the description of the changes: https://bioconductor.org/packages/release/bioc/news/DiffBind/NEWS
-  // Changes in version 3.0     
-
-  // - Moved edgeR bTagwise parameter to $config option
-  // - Remove normalization options bSubControl, bFullLibrarySize, filter, and filterFun from dba.analyze(), now set in dba.normalize().
-  // - dba.normalize(): is a new function; - bSubControl default depend on presence of Greylist
-  // - Default for bUseSummarizeOverlaps in dba.count is now TRUE
-  // 
-  // 	The previous methods for modelling are maintained for backward
-  // 	compatibility, however they are not the default.  To repeat
-  // 	earlier analyses, dba.contrast() must be called explicitly with
-  // 	design=FALSE. See ?DiffBind3 for more information.
-  // 
-  //   The default mode for dba.count() is now to center around
-  //   summits (resulting in 401bp intervals).  To to avoid
-  //   recentering around summits as was the previous default, set
-  //   summits=FALSE (or to a more appropriate value).
-  // 
-  //   Normalization options have been moved from dba.analyze() to the
-  //   new interface function dba.normalize(). Any non-default
-  //   normalization options must be specified using dba.normalize().
-
-// from the manuel:
-//   2. bFullLibrarySize: This is now part of the library parameter for dba.normalize . li
-// brary=DBA_LIBSIZE_FULL is equivalent to bFullLibrarySize=TRUE , and library=DBA_LIBSIZE_PEAKREADS
-// is equivalent to bFullLibrarySize=FALSE .
-
-// from the R help:
-// DBA_LIBSIZE_FULL: Full library size (all reads in library)
-// DBA_LIBSIZE_PEAKREADS: Library size is Reads in Peaks
-
-
-// rtracklayer::export(promoters, 'promoters.bed')
-
-// note: diffbind_peaks: means the peaks from diffbind, not that these peaks are 
-// diffbound (differentially bound). This set is in fact all the peaks that 
-// diffbind found in all replicates. The corresponding bed file will be used 
-// as a control for downstream enrichment tasks (CHIP, motifs, chromatin states).
-
-//// Scores are not for anything besides downstream analysis (i.e. PCA, plots)
-// https://support.bioconductor.org/p/69924/
-// 2. Peak scores. Peak scores can be exported, but are mostly used for plotting 
-// data that doesn't have a differential analysis run via dba.analyze(). For 
-// example, after calling dba.count(), the heatmaps and PCA plots will use the 
-// peak scores. You can see the peak scores using dba.peakset() with 
-// bRetrieve=TRUE. The documentation for dba.count() describes the  different 
-// scoring methods available (currently 16). These range from using the raw read 
-// counts (with or without control reads subtracted), to variations of RPKM 
-// normalized read counts and TMM normalized counts (the normalization method 
-//   used by edgeR) and some scores based on summits (we do recommend using the 
-//     summits option in dba.count). When you run an analysis using dba.analyze(), 
-//     the normalization method used by the underlying differential expression 
-//     package (edgeR or DESeq2) will be used for plots and reports (ie, when 
-//       bCounts=TRUE in a call to dba.report).
 
 
 process DA_ATAC__annotating_diffbind_peaks {
@@ -2920,7 +2691,7 @@ process DA_ATAC__plotting_differential_abundance_results {
     sink()
     
     # doing and plotting the PCA
-    prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(res)+1, cor = F, bLog = T)$pc
+    prcomp1 <- pv_pcmask__custom(dbo, nrow(res)+1, cor = F, bLog = T)$pc
     
     mat = dbo$binding %>% .[, 4:ncol(.)] %>% set_rownames(v_gene_names)
     mat[mat <= 1] = 1
@@ -2961,7 +2732,7 @@ Merging_pdfs_channel = Merging_pdfs_channel
 Merging_pdfs_channel = Merging_pdfs_channel
   .mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
 
-// DiffBind__pv_pcmask__custom was adapted from DiffBind::pv.pcmask. 
+// pv_pcmask__custom was adapted from DiffBind::pv.pcmask. 
 // This little hacking is necessary because DiffBind functions plots PCA but 
 // do not return the object.
 // alternatively, the PCA could be made from scratch as done here: 
@@ -3658,12 +3429,6 @@ process DA_split__splitting_differential_abundance_results_in_subsets {
 // commands to check venn diagrams sizes:
 // dt[rank < 1001][L2FC > 0]$gene_id %>% unique %>% length
 // dt[rank < 1001][L2FC < 0]$gene_id %>% unique %>% length
-
-
-// a=      res_simple %>% .[.$ET == 'ATAC', ] %>% 
-//     .[.$rank < 1001 & .$FC > 0, ] %>% .$gene_id %>% unique
-// c = a %>% .[!. %in% b]
-// dt[gene_id == c[1]]
 
 
 // res_simple[, c('ET', 'FC', 'TV_1000')] %>% table
@@ -4836,23 +4601,6 @@ process Figures__making_enrichment_heatmap {
 Merging_pdfs_channel = Merging_pdfs_channel.mix(Heatmaps_for_merging_pdfs
   .groupTuple(by: [0, 1]))
 
-
-// 
-// signed_padj = F;  add_loglog = F; add_L2OR = F
-// signed_padj = T;  add_loglog = T; add_L2OR = T
-// 
-// 
-// ## Some explainations on the selection of terms to display (with the example 
-// of the algorithm for genes)
-// # 26 terms at max will be plotted since it is the maximum to keep a readable 
-// plot
-// # the first 6 slots will be attributed to terms that are the most shared 
-// amoung groups (if any term is shared)
-// # then the top_N term for each group will be selected, aiming at 20 terms max
-// # then the lowest pvalues overall will fill the rest of the terms (since 
-// shared terms will leave empty gaps)
-// # Note that there should be at maximum 10 comparisons in each grouping plot 
-// (10 * 2 for up and down means at least 1 pvalue for each comparison)
 
 
 

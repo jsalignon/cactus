@@ -174,22 +174,22 @@ See the function links for details and possible options. The parameters are:
 - For the [dba](https://rdrr.io/bioc/DiffBind/man/dba.html) function: 
   - **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. Default: 'DBA_EDGER'.
 - For edgeR analysis method:
-  - **_params.diffbind__edger_tagwise_**: If using *diffbind__analysis_method = 'edgeR'* should tag-wise dispersion estimates be computed or not. See [here](https://rdrr.io/bioc/DiffBind/src/R/DBA.R) and [here](https://www.rdocumentation.org/packages/edgeR/versions/3.14.0/topics/estimateTagwiseDisp) for details. Default: 'NULL'.
+  - **_params.diffbind__edger_tagwise_**: If using *diffbind__analysis_method = 'edgeR'* should tag-wise dispersion estimates be computed or not. See [here](https://rdrr.io/bioc/DiffBind/src/R/DBA.R) and [here](https://www.rdocumentation.org/packages/edgeR/versions/3.14.0/topics/estimateTagwiseDisp) for details. Default: 'TRUE'.
 - For the [dba.blacklist](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) function:
   - **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. Default: false.
   - **_params.diffbind__make_grey_list_**: Should a grey list be created or not. This option can be set to 'TRUE' only if *params.use_input_control* is also *'TRUE'*. If 'TRUE', a grey list region will be created from the input control to hide hotspot regions. Default: 'FALSE'.
 - For the [dba.count](https://rdrr.io/bioc/DiffBind/man/dba.count.html) function:
-  - **_params.diffbind__min_count_**: Minimum read count value. Any interval with fewer than this many overlapping reads will be set to have this count. Default: 0.
-  - **_params.diffbind__filter_**: Intervals with values lower than this are excluded from analysis. Default: 1.
-  - **_params.diffbind__summits_**: Option to control the summit heights and locations calculated for each peak. Default: 75.
   - **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. Default: 1.
-  - **_params.diffbind__sub_control_**: Option to determine if the input control reads should be substracted to each site in each sample. Default: 'FALSE'.
-  - **_params.diffbind__scale_control_**: Option to determine if reads should be scaled by library size when using the *params.diffbind__sub_control_* option. Default: 'FALSE'.
   - **_params.diffbind__score_**: Score to use in the binding affinity matrix. Raw read counts are used for analysis. This parameter only influence the counts shown in the detailled_ATAC results tables (for each individual replicates). Default: 'DBA_SCORE_NORMALIZED'.
+  - **_params.diffbind__sub_control_**: Option to determine if the input control reads should be substracted to each site in each sample. Default: 'FALSE'.
+  - **_params.diffbind__scale_control_**: Option to determine if reads should be scaled by library size when using the *params.diffbind__sub_control_* option. Default: 'TRUE'.
+  - **_params.diffbind__min_count_**: Minimum read count value. Any interval with fewer than this many overlapping reads will be set to have this count. Default: 0.
+  - **_params.diffbind__summits_**: Option to control the summit heights and locations calculated for each peak. Default: 75.
+  - **_params.diffbind__filter_**: Intervals with values lower than this are excluded from analysis. Default: 1.
 - For the [dba.normalize](https://rdrr.io/bioc/DiffBind/man/dba.normalize.html) function:
-  - **_params.diffbind__normalization_**: Normalization method to use. Default: 'DBA_NORM_TMM'.
-  - **_params.diffbind__background_**: Should background bins be used for normalization. Can be 'FALSE', 'TRUE' (default bin size of 15000bp), or an integer (indicating the bin size). Default: 'TRUE'. 
+  - **_params.diffbind__normalization_**: Normalization method to use. Default: 'DBA_NORM_DEFAULT'.
   - **_params.diffbind__library_size_**: Method used to calculate library size. Default: 'DBA_LIBSIZE_BACKGROUND'.
+  - **_params.diffbind__background_**: Should background bins be used for normalization. Can be 'FALSE', 'TRUE' (default bin size of 15000bp), or an integer (indicating the bin size). Default: 'TRUE'. 
 - For the [dba.contrast](https://rdrr.io/bioc/DiffBind/man/dba.contrast.html) function:
   - **_params.diffbind__design_**: Should contrasts be specified with a formula or not. Default: 'TRUE'.
 

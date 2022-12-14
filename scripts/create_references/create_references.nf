@@ -195,24 +195,20 @@ process getting_pwms {
 // 
 // 'TF_Information_all_motifs.txt' is a superset of 'TF_Information.txt'.  It also includes any motif that can be inferred for a given TF, given the TF family-specific threshold.  For example, if a TF has a directly determined motif, and two TFs with motifs with 90% and 80% identical DBDs to it, TF_Information.txt will only include the direct motif, but 
 // TF_Information_all_motifs.txt will include all three motifs.  Likewise, if a TF does not have a direct motif, but has two TFs with 90% and 80% identical DBDs to it, TF_Information.txt will only include the motif from the 90% indentical TF, while TF_Information_all_motifs.txt would include both.\cr\cr
-// 
-// 
+
 // However, there are still multiple entries per TF
-// dt_encode[TF_Species == 'Caenorhabditis_elegans']$TF_Name %>% table %>% sort %>% rev %>% head(10)
+// dt_cisbp[TF_Species == 'Caenorhabditis_elegans']$TF_Name %>% table %>% sort %>% rev %>% head(10)
 //   hlh-1   skn-1  snpc-4   pha-4   efl-1   tra-1 nhr-182   mab-3  lin-39   eor-1
 //       7       4       3       3       3       2       2       2       2       2
-// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'skn-1']
-// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'hlh-1']
+// dt_cisbp[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'skn-1']
+// dt_cisbp[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'hlh-1']
+// dt_cisbp[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'snpc-4']
 // 
 // I think I understand what happened: the entries that are duplicated are all from the similarity regression method. And they all have the same score. So instead of picking one arbitrarily, CISBP kept all of these entries with the same score.
 // Conclusions: these are probably exactly the same motifs (or very very similar). So we can just keep the first of them!
 
-// dt_cisbp[, TF_Species] %>% table %>% t %>% t
-// .                         [,1]
-//   Caenorhabditis_elegans   372
-//   Drosophila_melanogaster  424
-//   Homo_sapiens            1111
-//   Mus_musculus             872
+// removing empty motifs
+// https://github.com/TedCCLeung/PhMotif/blob/9ace03a196e02375b3024af3506b9f58e98f1a1d/data-raw/processCISB
 
 
 Ensembl_Assembly_1.pwms
@@ -261,69 +257,6 @@ process splitting_pwms {
 
 
 
-// bioconductor-universalmotif:1.8.3--r40h399db7b_0
-
-// dt_encode = dt_all[TF_Species %in% encode_species]
-// dt_encode = dt_encode[Motif_ID != '.']
-// dt_encode1 = dt_encode[!duplicated(TF_ID)]
-// > dt_encode$TF_Species %>% table
-// .
-//  Caenorhabditis_elegans Drosophila_melanogaster            Homo_sapiens
-//                     402                    1301                    5422
-//            Mus_musculus
-//                    1503
-// >
-// > dt_encode1$TF_Species %>% table
-// .
-//  Caenorhabditis_elegans Drosophila_melanogaster            Homo_sapiens
-//                     373                     425                    1200
-//            Mus_musculus
-//                     938
-
-// However, there are still multiple entries per TF
-// dt_encode[TF_Species == 'Caenorhabditis_elegans']$TF_Name %>% table %>% sort %>% rev %>% head(10)
-  // hlh-1   skn-1  snpc-4   pha-4   efl-1   tra-1 nhr-182   mab-3  lin-39   eor-1
-  //     7       4       3       3       3       2       2       2       2       2
-// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'skn-1']
-// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'hlh-1']
-// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'snpc-4']
-// dt_encode[TF_Species == 'Caenorhabditis_elegans' & TF_Name == 'pha-4']
-
-// I think I understand what happened: the entries that are duplicated are all from the similarity regression method. And they all have the same score. So instead of picking one arbitrarily, CISBP kept all of these entries with the same score. I could keep only the CHIP.
-// Conclusions: these are probably exactly the same motifs (or very very similar). So we can just keep the first of them!
-
-
-// # Identifying and removing empty motifs files
-// file_is_correct = map_lgl(paste0('pwms/', dt_encode$Motif_ID, '.txt'), function(f1) {ifelse(nrow(fread(f1)) == 1, F, T)})
-// file_is_correct %>% table # => all TRUE
-// TRUE
-// 8628
-
-// https://github.com/TedCCLeung/PhMotif/blob/9ace03a196e02375b3024af3506b9f58e98f1a1d/data-raw/processCISBPfiles.R
-
-
-// nice explanations about the cisbp files here:
-// https://github.com/Danko-Lab/rtfbs_db/blob/a29f73b24e8984aad8bcd1227b06446ebef44b08/rtfbsdb/man/CisBP.getTFinformation.Rd
-// Three TF information files in CisBP dataset.\cr\cr
-// 1: TF_Information.txt : (direct motifs) or (no direct but inferred motifs with 90\%)\cr
-// 2: TF_Information_all_motifs.txt: (direct motifs) and (inferred motifs above the threshold)\cr
-// 3: F_Information_all_motifs_plus.txt: All motifs\cr
-
-// 'TF_Information_all_motifs.txt' is a superset of 'TF_Information.txt'.  It also includes any motif that can be inferred for a given TF, given the TF family-specific threshold.  For example, if a TF has a directly determined motif, and two TFs with motifs with 90% and 80% identical DBDs to it, TF_Information.txt will only include the direct motif, but 
-// TF_Information_all_motifs.txt will include all three motifs.  Likewise, if a TF does not have a direct motif, but has two TFs with 90% and 80% identical DBDs to it, TF_Information.txt will only include the motif from the 90% indentical TF, while TF_Information_all_motifs.txt would include both.\cr\cr
-
-
-
-// f1 = 'TF_Information_all_motifs.txt.zip' ; download.file(paste0(url, '/', f1), f1)
-// unzip('TF_Information_all_motifs.txt.zip')
-// system("sed -i 's/#/|/g' TF_Information_all_motifs.txt")
-// dt_all = fread('TF_Information_all_motifs.txt')
-
-
-
-
-
-
 
 process getting_blacklisted_regions {
 	tag "${species}"
@@ -367,21 +300,6 @@ process getting_blacklisted_regions {
 // mouse: GRCm38_UCSC2ensembl.txt
 //   fly: BDGP6_ensembl2UCSC.txt 
 //  worm: WBcel235_UCSC2ensembl.txt
-
-// this lines fails with a weird Nextflow bug of variable substitution:
-// ncbi_code_1=${ncbi_code//\.*/}
-// Script compilation error
-// - file : /home/jersal/workspace/cactus/software/get_data/parse_genome_files.nf
-// - cause: Unexpected character: '\'' @ line 96, column 4.
-
-
-// AnnotationDbi::saveDb(org.Ce.eg.db, file = 'org_db_ce.sqlite')
-// saveRDS(cur_seq_info, '~/workspace/cactus/data/worm/genome/sequence/cur_seqinfo.rds')
-// 
-// cur_seq_info = rtracklayer::SeqinfoForUCSCGenome('ce11')
-// cur_seq_info@seqnames %<>% gsub('chr', '', .)
-
-
 
 
 
@@ -521,65 +439,6 @@ process getting_chip_metadata {
 	'''
 }
 
-
-// Legend for the stage_cell column:
-// 
-// Worm:
-// 	L1 YA L4 LE L3 L2 MS EE ME Da
-// 	93 86 77 67 50 50 35 12  2  1
-// 
-//  -  L1: L1 stage
-//  -  YA: Young Adult
-//  -  L4: L4 stage
-//  -  LE: Late Embryo
-//  -  L3: L3 stage
-//  -  L2: L2 stage
-//  -  MS: Mixed Stage embryo
-//  -  EE: Early Embryo
-//  -  ME: Mid-Embryo
-//  -  Da: Dauer
-// 
-// 
-// Fly:
-// 	 Em  PP  WT  Pu  FA  WP  MA  Kc  SO  MS  OF  La
-// 	372  57  46  14  10   8   8   7   3   3   1   1
-// 
-//  - Em: Embryo
-//  - PP: Prepupa
-//  - WT: Wandering third instar larval stage
-//  - Pu: Puppa
-//  - FA: Female Adult
-//  - WP: White prepupa stage
-//  - MA: Male Adult
-//  - Kc: Kc167 cell line (embryonic)
-//  - SO: Cell line from strain Oregon-R S2
-//  - MS: Mixed Sex Adult
-//  - OF: Ovary female
-//  - La: larva (48 days)
-// 
-// Human:
-//    K562   HepG2  HEK293 GM12878   Other    MCF7    A549      H1   liver Ishikaw
-//     432     249     193     156     137     106      55      54      35      24
-//   SKNSH  HeLaS3 HEK293T   IMR90  MCF10A  HCT116    T47D GM12891      NC GM23338
-//      19      19      17      12      10      10       7       7       6       6
-// 
-//  - NC: Neural Cell
-//  - Other: Any ontology present less than 5 times
-//  - Ishikaw: Ishikawa
-//  - SKNSH: SK-N-SH
-// 
-// Mouse:
-//    MEL CH12LX  Other  liver   lung  heart G1EER4    G1E  ESE14
-//     49     39     36      7      5      5      5      5      5
-// 
-//  - Other: Any ontology present less than 4 times
-//  - CH12LX: CH12.LX
-//  - G1EER4: G1E-ER4
-//  -  ESE14: ES-E14
-
-
-
-
 // Here are examples of json links associated to a given bed file 
 
 // of a worm experiment:
@@ -602,9 +461,6 @@ process getting_chip_metadata {
 // dt1 = copy(dt)
 // dt1[, href1 := paste0('/files/', file, '/@@download/', file, '.bed.gz')]
 // identical(dt1$href, dt1$href1) # T
-
-
-
 
 
 
@@ -771,12 +627,6 @@ process getting_encode_chromatin_state_metadata {
 	'''
 }
 
-
-
-
-
-// dt[local_file == 'ENCFF686HVR.bed.gz']
-
 // search link
 // https://www.encodeproject.org/search/?type=File&annotation_type=chromatin+state&assembly=GRCh38&assembly=mm10&status=released&file_format=bed
 
@@ -785,21 +635,6 @@ process getting_encode_chromatin_state_metadata {
 // df_biosample_types = get_encode_df('type=BiosampleType') %T>% pnrow # 936
 // df_annotations = get_encode_df('type=Annotation&annotation_type=chromatin+state&status=released') %T>% pnrow # 1251
 
-// >   df_ecsm_files = get_encode_df(paste0('type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=', assembly)) %T>% pnrow
-// Error in get_encode_df(paste0("type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=",  :
-//   url doesnt exist
-// > paste0('type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=', assembly)
-// [1] "type=File&annotation_type=chromatin+state&status=released&file_format=bed&assembly=hg38"
-// >
-
-
-	// ## donwloading and unzipping the data
-	// sapply(1:nrow(dt), function(c1) download.file(url = paste0(url_encode, dt$href[c1]), quiet = T, destfile = dt$local_file[c1], method = 'curl', extra = '-L' ))
-	// dt[, md5sum_downloaded_files := tools::md5sum(local_file)]
-	// if(any(dt$md5sum != dt$md5sum_downloaded_files)) stop('not all md5 sums are equal')
-	// system('for z in *.gz; do gunzip "$z"; done')
-
-
 // All experiments have been made in a 15 and 18 state model
 // However, the 15 state model is much bigger
 // > dt[alias %in% c("zhiping-weng:chromhmm-8marks-15states-mm10-heart-12.5", "zhiping-weng:chromhmm-10marks-18states-mm10-heart-12.5")][, c('description', 'file_size')]
@@ -807,13 +642,12 @@ process getting_encode_chromatin_state_metadata {
 // 1: ChromHMM 15-state model for heart (embryonic 12.5 days) 121270263
 // 2: ChromHMM 18 state model for heart (embryonic 12.5 days)   8684869
 
-// => using the 18 state model
-
 // dt[grep('18states', dt$alias)]$file_size %>% max #   8684869
 // dt[grep('15states', dt$alias)]$file_size %>% min # 109950661
 
+// => we will use the 18 state models only
 
-
+// dt[local_file == 'ENCFF686HVR.bed.gz']
 
 
 
@@ -867,102 +701,6 @@ process getting_encode_chromatin_state_data {
 
 	'''
 }
-
-
-
-// liftover_files_to_get = Channel
-// 	.from( 	
-// 		[
-// 			['human', 'hg19', 'hg38'],
-// 			[ 'worm', 'ce10', 'ce11'],
-// 			[  'fly',  'dm3', 'dm6'],
-// 			['mouse',  'mm10', 'mm39']
-// 		]
-// 	)
-// 
-// 
-// 
-// process getting_liftover_files {
-// 	tag "${species}/${original_assembly} to ${target_assembly}"
-// 
-// 	publishDir path: "util/liftover_files", mode: 'link'
-// 
-// 	label "liftover"
-// 
-// 	input:
-// 		set species, original_assembly, target_assembly from liftover_files_to_get
-// 
-// 	output:
-// 		set species, original_assembly, target_assembly, file("*.over.chain.gz") into liftover_files
-// 
-// 	shell:
-// 	'''
-// 
-// 			original_assembly="!{original_assembly}"
-// 			target_assembly="!{target_assembly}"
-// 
-// 			target_assembly_1=$(echo $target_assembly | awk '{ printf ("%s%s", toupper (substr ($0, 1, 1)), substr ($0, 2)); }')
-// 			liftover_name="${original_assembly}To${target_assembly_1}"
-// 			liftover_file="${liftover_name}.over.chain.gz"
-// 			url="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
-// 			wget $url/$liftover_file
-// 
-// 	'''
-// }
-
-//// md5sum is missing for ce10ToCe11 => so we unfortunately need to skip md5sum checking of files
-// (command not needed: wget $url/$liftover_file $url/md5sum.txt)
-// https://hgdownload.cse.ucsc.edu/goldenPath/ce10/liftOver/md5sum.txt
-// However, I do still manually check that the file of the file we get is the same as the one indicated online. That is:
-// ce10ToCe11.over.chain.gz     2015-06-23 15:39  3.2K  
-// mm10ToMm39.over.chain.gz     2020-07-30 14:50   24K  
-// hg19ToHg38.over.chain.gz     2013-12-31 23:08  222K
-// dm3ToDm6.over.chain.gz     2014-08-28 14:29  1.8M  
-
-// ls -sh util/liftover_files
-
-
-// Encode_bed_for_liftover
-// 	.join(liftover_files, by:[0,1])
-// 	.view()
-
-
-// process convert_bed_coordinates_to_latest_assembly {
-// 	tag "${species}/${out_folder}"
-// 
-// 	publishDir path: "${species}/{out_folder}", mode: 'link'
-// 
-// 	label "liftover"
-// 
-// 	input:
-// 		set species, out_folder, original_assembly, target_assembly, file(bed_file) from channel_xx
-// 
-// 	output:
-// 		file("*")
-// 
-// 	shell:
-// 	'''
-// 
-// 			original_assembly="!{original_assembly}"
-// 			liftover_name="!{liftover_name}"
-// 			bed_name="!{bed_name}"
-// 			bed_file="!{bed_file}"
-// 
-// 			liftover_file="${liftover_name}.over.chain.gz"
-// 			bed_file_lifted="${bed_name}_lifted.bed"
-// 
-// 			liftover_path="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
-// 			wget $liftover_path/$liftover_file
-// 			liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed
-// 			mkdir $bed_name
-// 			awk  -v FOLDER="$bed_name" ' { print > FOLDER"/"$4".bed" }' $bed_file_lifted
-// 
-// 			rm $bed_name/17_Unmap.bed
-// 
-// 	'''
-// }
-
-
 
 
 
@@ -1045,88 +783,6 @@ process getting_hihmm_chromatin_state_data_part_2 {
 
 	'''
 }
-
-
-// this command fails in the container but not outside the container:
-// wget "http://compbio.med.harvard.edu/modencode/webpage/hihmm/iHMM.M1K16.human_H1.bed"
-// wget: bad header line:     XeuOGalu: ptQ; path=/; Max-Age=900
-
-
-
-
-
-
-
-
-// process getting_hihmm_chromatin_state_data {
-// 	publishDir path: "${species}/chromatin_states", mode: 'link'
-// 
-// 	label "liftover"
-// 
-// 	input:
-// 		set species, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
-// 
-// 	output:
-// 		file(bed_name)
-// 
-// 	shell:
-// 	'''
-// 
-// 			liftover_name="!{liftover_name}"
-// 			bed_name="!{bed_name}"
-// 			original_assembly="!{original_assembly}"
-// 
-// 			liftover_file="${liftover_name}.over.chain.gz"
-// 			bed_file="${bed_name}.bed"
-// 			bed_file_lifted="${bed_name}_lifted.bed"
-// 
-// 			liftover_path="https://hgdownload.cse.ucsc.edu/goldenPath/${original_assembly}/liftOver"
-// 			hiHMM_path="http://compbio.med.harvard.edu/modencode/webpage/hihmm"
-// 			wget $liftover_path/$liftover_file
-// 			wget $hiHMM_path/$bed_file
-// 			gawk -i inplace '{print "chr"$0}' $bed_file
-// 			liftOver $bed_file  $liftover_file $bed_file_lifted unmapped.bed 
-// 			mkdir $bed_name
-// 			awk ' { print >  $bed_name"/"$4".bed" }' $bed_file_lifted
-// 	'''
-// }
-// 
-// // this command fails in the container but not outside the container:
-// // wget "http://compbio.med.harvard.edu/modencode/webpage/hihmm/iHMM.M1K16.human_H1.bed"
-// // wget: bad header line:     XeuOGalu: ptQ; path=/; Max-Age=900
-// => all containers I tried fail with this command
-
-
-
-
-// process getting_bowtie2_indexes_for_checking_contaminations {
-// 	tag "${species}"
-// 
-// 	// container = "	kernsuite-debian/singularity-container"
-// 	container = "aws-cli_latest.sif"
-// 	// label "bioconductor"
-// 
-// 	input:
-// 		// set species, bed_name, original_assembly, liftover_name from HiHMM_chromatin_states_1
-// 
-// 	output:
-// 		// set species, bed_name, file('*.bed'), original_assembly, liftover_name into HiHMM_chromatin_states_2
-// 
-// 
-// 	shell:
-// 	'''
-// 
-// 			aws s3 --no-sign-request --region eu-west-1 sync s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Sequence/STARIndex/ ./my_refs/
-// 
-// 
-// 	'''
-// }
-// 
-// // https://ewels.github.io/AWS-iGenomes/
-// // https://support.illumina.com/sequencing/sequencing_software/igenome.html
-// note: I pulled the singularity image separately prior to run the script in this case
-
-// => E coli OP50 strain is not present on iGenomes. Need to get the file another way.
 
 
 
@@ -1436,39 +1092,11 @@ process making_bed_files_of_annotated_regions {
 	'''
 }
 
-// # generating a gff3 file without chromosomes => (so as to make the complement of chromosome size to get intergenic regions). "Biological regions" are also removed (= Predicted TSS, CpG islands, fosmids) since they are not really true features
-
-
-// Not needed finally?
-// # Filter out predicted "biological regions" (= TSS, CpG islands and chromosomes),  and sort the gff file
-// awk -v FS="\t" -v OFS="\t" '{if (substr($1, 1, 1) != "#" && $3 != "biological_region" && $3 != "region" && $3 != "scaffold") print}' $gff3 | sort -k1,1 -k4,4n > annotation_clean.gff3
-// gff2bed < annotation_clean.gff3 > annotation_clean.bed
-
-
- // awk '{if ($1 !~ "##" && $1 !~ "Scaffold"  && $1 !~ "2110000") print}' annotation.gff3  |  cut -f1 | sort | uniq
-
-// tab=$(get_tab)
-// awk -v my_var="$tab" ' BEGIN {OFS=my_var} {print $1, $2}' test_anno_2.bed
-
-// not that to get intergenic there commands are equivalent"
-// bedops --difference chrom_size.bed target_file.bed
-// bedtools --complement target_file.bed chrom_size.txt
-
-// cut -f8 annotation_clean.bed | sort | uniq | paste -sd "  " - 
-// cut -f1 exons.bed | uniq	
-
-// Here are the lines used to create the get_tab.sh script (creating within bash prevent the issue with windows line-breaks)
-// cat > get_data/bin/get_tab.sh << EOL
-// #!/usr/bin/env bash
-// 
-// get_tab () { echo "\t" ; }
-// 
-// EOL
-
-
-// cat '!{params.bin_dir}/get_tab.sh'
-
-
+// In this process, we make bed files for introns, exons, intergenic regions and promoters. 
+// A gff3 file without chromosomes entries is used to create intergenic regions using the complement between chromosome sizes and all annotated features in the genome (excluding "biological_regions"; i.e., Predicted TSS, CpG islands, fosmids).
+// Introns are defined as the complement of exonic and intergenic regions.
+ 
+// main links
 // https://www.biostars.org/p/112251/#314840 => get intergenic, exons and introns .bed
 // https://www.biostars.org/p/360842/#9531161 // => get promoter.bed
 
@@ -1477,114 +1105,17 @@ process making_bed_files_of_annotated_regions {
 // https://davetang.org/muse/2013/01/18/defining-genomic-regions/
 // https://bedparse.readthedocs.io/en/stable/Tutorial.html // => could not make it work
 
-// grep -v "sequence-region" annotation.bed | cut -f 8 | sort | uniq | paste -sd "  " - 
-// biological_region CDS C_gene_segment chromosome D_gene_segment exon five_prime_UTR gene J_gene_segment lnc_RNA miRNA mRNA ncRNA ncRNA_gene pseudogene pseudogenic_transcript rRNA scaffold scRNA snoRNA snRNA three_prime_UTR tRNA unconfirmed_transcript V_gene_segment
-
-// commands not needed:
-// # convert gff3 to bed
-// gff2bed < annotation.gff3 > annotation.bed
-//
-// # make a bed file of chromosome sizes
-// awk 'OFS="\t" {print $1, "0", $2}' chromosome_size.txt | sort -k1,1 -k2,2n > chromosome_size.bed
-// awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "five_prime_UTR")  print $1, $4-1, $5}' annotation_clean.gff3 > five_prime_UTR.bed
-// awk -v my_var="$tab" 'BEGIN {OFS=my_var} {if ($3 == "three_prime_UTR") print $1, $4-1, $5}' annotation_clean.gff3 > three_prime_UTR.bed
-// # Get all regions
-// bedops --everything promoters.bed exons.bed introns.bed intergenic.bed genic_regions.bed > all_regions.bed
-
-// The gff3 file needs to be sorted:
-// Error: Sorted input specified, but the file annotation.gff3 has the following out of order record
-// 1       havana  pseudogenic_transcript  12010   13670   .       +       .       ID=transcript:ENST00000450305;Parent=gene:ENSG00000223972;Name=DDX11L1-201;biotype=transcribed_unprocessed_pseudogene;tag=basic;transcript_id=ENST00000450305;transcript_support_level=NA;version=2
-
-
-// ## Exploring a bit the structure of the gff file
-// 
-// awk '{ if(substr($1, 1, 1) != "#") {print $0}}' annotation.gff3 | head
-// 
-// awk '{ if($3 == "gene") {print $0}}' annotation.gff3 | head -1
-// // 1       ensembl_havana  gene    65419   71585   .       +       .       ID=gene:ENSG00000186092;Name=OR4F5;biotype=protein_coding;description=olfactory receptor family 4 subfamily F member 5 [Source:HGNC Symbol%3BAcc:HGNC:14825];gene_id=ENSG00000186092;logic_name=ensembl_havana_gene_homo_sapiens;version=6
-// 
-// awk '{ if($3 == "exon") {print $0}}' annotation.gff3 | head -1
-// // 1       havana  exon    11869   12227   .       +       .       Parent=transcript:ENST00000456328;Name=ENSE00002234944;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00002234944;rank=1;version=1
-// 
-// awk '{ if($3 == "mRNA") {print $0}}' annotation.gff3 | head -1
-// // 1       havana  mRNA    65419   71585   .       +       .       ID=transcript:ENST00000641515;Parent=gene:ENSG00000186092;Name=OR4F5-202;biotype=protein_coding;tag=basic;transcript_id=ENST00000641515;version=2
-// 
-// 
-// awk '{ if($3 == "exon") {print $0}}' annotation.gff3 | head -10
-// // 1       havana  exon    11869   12227   .       +       .       Parent=transcript:ENST00000456328;Name=ENSE00002234944;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00002234944;rank=1;version=1
-// // 1       havana  exon    12010   12057   .       +       .       Parent=transcript:ENST00000450305;Name=ENSE00001948541;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001948541;rank=1;version=1
-// // 1       havana  exon    14404   14501   .       -       .       Parent=transcript:ENST00000488147;Name=ENSE00001843071;constitutive=1;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001843071;
-// 
-// awk '{ if($9 ~ /ENST00000456328/) {print $0}}' annotation.gff3 | head -1
-// // 1       havana  lnc_RNA 11869   14409   .       +       .       ID=transcript:ENST00000456328;Parent=gene:ENSG00000223972;Name=DDX11L1-202;biotype=processed_transcript;tag=basic;transcript_id=ENST00000456328;transcript_support_level=1;version=2
-// 
-// awk '{ if($9 ~ /ENST00000450305/) {print $0}}' annotation.gff3 | head -1
-// // 1       havana  pseudogenic_transcript  12010   13670   .       +       .       ID=transcript:ENST00000450305;Parent=gene:ENSG00000223972;Name=DDX11L1-201;biotype=transcribed_unprocessed_pseudogene;tag=basic;transcript_id=ENST00000450305;transcript_support_level=NA;version=2
-// 
-// awk '{ if($9 ~ /ENST00000488147/) {print $0}}' annotation.gff3 | head -1
-// // 1       havana  pseudogenic_transcript  14404   29570   .       -       .       ID=transcript:ENST00000488147;Parent=gene:ENSG00000227232;Name=WASH7P-201;biotype=unprocessed_pseudogene;tag=basic;transcript_id=ENST00000488147;transcript_support_level=NA;version=1
-// 
-// // => the first exons are from pseudogenes or non-coding RNAs that is why the coordinates of the first gene starts way after the first exons
-
-
-
-// head -300 annotation.gff3
-
-// ##sequence-region   KI270756.1 1 79590
-// ##sequence-region   KI270757.1 1 71251
-// ##sequence-region   MT 1 16569
-// ##sequence-region   X 1 156040895
-// ##sequence-region   Y 2781480 56887902
-// #!genome-build  GRCh38.p13
-// #!genome-version GRCh38
-// #!genome-date 2013-12
-// #!genome-build-accession NCBI:GCA_000001405.28
-// #!genebuild-last-updated 2020-09
-// 1       GRCh38  chromosome      1       248956422       .       .       .       ID=chromosome:1;Alias=CM000663.2,chr1,NC_000001.11
-// ###
-// 1       .       biological_region       10469   11240   1.3e+03 .       .       external_name=oe %3D 0.79;logic_name=cpg
-// 1       .       biological_region       10650   10657   0.999   +       .       logic_name=eponine
-// 1       .       biological_region       10655   10657   0.999   -       .       logic_name=eponine
-// 1       .       biological_region       10678   10687   0.999   +       .       logic_name=eponine
-// 1       .       biological_region       10681   10688   0.999   -       .       logic_name=eponine
-// 1       .       biological_region       10707   10716   0.999   +       .       logic_name=eponine
-// 1       .       biological_region       10708   10718   0.999   -       .       logic_name=eponine
-// 1       .       biological_region       10735   10747   0.999   -       .       logic_name=eponine
-// 1       .       biological_region       10737   10744   0.999   +       .       logic_name=eponine
-// 1       .       biological_region       10766   10773   0.999   +       .       logic_name=eponine
-// 1       .       biological_region       10770   10779   0.999   -       .       logic_name=eponine
-// 1       .       biological_region       10796   10801   0.999   +       .       logic_name=eponine
-// 1       .       biological_region       10810   10819   0.999   -       .       logic_name=eponine
-// 1       .       biological_region       10870   10872   0.999   +       .       logic_name=eponine
-// 1       .       biological_region       10889   10893   0.999   -       .       logic_name=eponine
-// 1       havana  pseudogene      11869   14409   .       +       .       ID=gene:ENSG00000223972;Name=DDX11L1;biotype=transcribed_unprocessed_pseu
-// dogene;description=DEAD/H-box helicase 11 like 1 (pseudogene) [Source:HGNC Symbol%3BAcc:HGNC:37102];gene_id=ENSG00000223972;logic_name=havana_hom
-// o_sapiens;version=5
-
-// => the first lines are chromosome sizes, then few lines describe the genome build, then a first line indicate the start of the chromosome 1, then there is a serie of short regions with external id "logic_name=eponine". These corresponds to predicted Transcription Start Sites. And then finally the real features appear. These predicted TSS could be removed from all analysis since these are anyway putative features (these regions would thus be considered intergenic if no other feature overlap these)
-// https://www.sanger.ac.uk/tool/eponine/
-
-// $ awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 == "biological_region") print}' annotation.gff3 | head -100
-// 1       .       biological_region       827637  827722  1       -       .       external_name=rank %3D 2;logic_name=firstef
-// 1       .       biological_region       904315  905706  1.34e+03        .       .       external_name=oe %3D 1.03;logic_name=cpg
-
-// => firstef regions are also predicted TSS regions
-// https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3577817/#pone.0054843-Davuluri1
-// To evaluate the prediction performance of our method, we have compared our method with four other open access human promoter prediction programs. We have selected these four methods among a number of promoter prediction tools because they have performed well in the previous comparative studies. The methods are FirstEF [52], Eponine [14], Ep3 [22] and ProSOM [53]. All these methods are free and publicly available. FirstEF is based on discriminant analysis to find potential first donor sites and CpG-related and non-CpG-related promoter regions. Ep3 uses large scale structural properties of DNA to locate promoter regions in whole genome sequence and ProSOM utilizes self-organizing maps to distinguish promoters from non-promoter sequences.
-
-// And CpG island can be intergenic as well. We remove all these
-
-
-// -> the command to filter and sort the gff file:
-// awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 != "biological_region") print}' annotation.gff3 | head
-// awk 'OFS="\t" {if (substr($1, 1, 1) != "#" && $3 != "biological_region") print}' annotation.gff3 | sort -k1,1V -k4,4n -k5,5n | head
-
-
 // scaffolds should be kept
 // https://www.biostars.org/p/223541/
 // The scaffolds are needed, they are likely parts of the reference genome which could not yet in this assembly build be confidently assigned to chromosomes. This is typical of repeat containing scaffolds. They are likely to be small and not gene rich, but excluding them would cause short reads which should map to them to be forced to map to the chromosomes and cause problemes downstream, such as false SNPs etc.
 
-
+// Here are the lines used to create the get_tab.sh script (creating within bash prevent the issue with Windows line-breaks)
+// cat > get_data/bin/get_tab.sh << EOL
+// #!/usr/bin/env bash
+// 
+// get_tab () { echo "\t" ; }
+// 
+// EOL
 
 
 process making_kallisto_indexes {
@@ -1647,9 +1178,8 @@ process getting_orgdb {
 // annotationhub_cache = '!{params.annotationhub_cache}'
 // ah = AnnotationHub(cache = annotationhub_cache)
 
-
 // if cache is corrupted, delete it so it will be rebuilt automatically
-// rm /home/jersal/workspace/cactus/data/util/annotationhub_cache/*
+// rm $cactus_dir/data/util/annotationhub_cache/*
 
 Orgdb_for_annotation
 	.join(GFF3_filtered_for_R)
@@ -1761,7 +1291,7 @@ process making_R_annotation_files {
 // promoters_df %<>% dplyr::mutate(seqnames = as.character(seqnames), strand = as.character(strand))
 
 
-///// Checking if the -C option of gffread really did filter non-coding transcripts, and if we have the same set of genes as in my manually filtered gff3 files (here in worms)
+///// Checking if the -C option of gffread really did filter all non-coding transcripts, and if we have the same set of genes as in my manually filtered gff3 files (here in worms)
 
 //// in the appropriate worm work folders
 // library(magrittr)
@@ -1789,7 +1319,7 @@ process making_R_annotation_files {
 // [21] "ctc-2"          "nduo-3"         "nduo-5" -->
 // 
 // 
-// => there are minor differences. So the -C option of gff3 does a good job. However, it is good to still make our own gff3-derived gene table to make sure we work on the same genes in ATAC-Seq and mRNA-Seq (since for instead mitochondrial reads are removed)
+// => there are minor differences. So the -C option of gff3 does a good job. However, it is good to still make our own gff3-derived gene table to make sure we work on the same genes in ATAC-Seq and mRNA-Seq (since for instance mitochondrial transcripts are removed)
 // 
 // 
 // df_gff3 = rtracklayer::readGFF('annotation.gff3') %>% data.frame
