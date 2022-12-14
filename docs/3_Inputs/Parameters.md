@@ -170,7 +170,7 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 ## 2. Differential Abundance: DA_ATAC
 
 **Differential Binding Analysis:**  
-See the function links for details and possible options. The parameters are:
+See the function links for details and possible options. Details on the choice of default values can be found [here](https://github.com/jsalignon/cactus/blob/main/main.nf#L2474-L2530). The parameters are:
 - For the [dba](https://rdrr.io/bioc/DiffBind/man/dba.html) function: 
   - **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. Default: 'DBA_EDGER'.
 - For edgeR analysis method:
