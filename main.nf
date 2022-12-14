@@ -2315,20 +2315,21 @@ process DA_ATAC__doing_differential_abundance_analysis {
 
     COMP              = '!{COMP}'
     use_input_control = '!{params.use_input_control}'
-    make_grey_list    = !{params.make_grey_list}
-    min_overlap       = !{params.min_overlap}
-    min_count         = !{params.min_count}
-    analysis_method   = !{params.analysis_method}
-    normalization     = !{params.normalization}
-    summits           = !{params.summits}
-    design            = !{params.design}
-    edger_tagwise     = !{params.edger_tagwise}
-    filter            = !{params.filter}
-    background        = !{params.background}
-    library_size      = !{params.library_size}
-    scale_control     = !{params.scale_control}
-    sub_control       = !{params.sub_control}
-    score             = !{params.score}
+    
+    analysis_method   = !{params.diffbind__analysis_method}
+    edger_tagwise     = !{params.diffbind__edger_tagwise}
+    make_grey_list    = !{params.diffbind__make_grey_list}
+    min_overlap       = !{params.diffbind__min_overlap}
+    score             = !{params.diffbind__score}
+    sub_control       = !{params.diffbind__sub_control}
+    scale_control     = !{params.diffbind__scale_control}
+    min_count         = !{params.diffbind__min_count}
+    summits           = !{params.diffbind__summits}
+    filter            = !{params.diffbind__filter}
+    normalization     = !{params.diffbind__normalization}
+    library_size      = !{params.diffbind__library_size}
+    background        = !{params.diffbind__background}
+    design            = !{params.diffbind__design}
     
     conditions = strsplit(COMP, '_vs_')[[1]]
     cond1 = conditions[1]
