@@ -2418,7 +2418,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
                                     contrast = c('Condition', cond1, cond2))
         } else {
           dbo <- dba.contrast(dbo, design = F, minMembers = 2,
-                                   group1 = dbo$masks[[cond1]], name1 = cond1
+                                   group1 = dbo$masks[[cond1]], name1 = cond1,
                                    group2 = dbo$masks[[cond2]], name2 = cond2)
         }
 
@@ -2489,7 +2489,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
 // bRemoveDuplicates = F (Hardcoded)
 //      -> no need since duplicates where already removed. 
 // bUseSummarizeOverlaps = F (Hardcoded)
-//      -> summarizeOverlaps is a more advanced counting function. However, DiffBind's internal function is enough since anyway we count 1 bp reads so it should be pretty straightforward. 
+//      -> summarizeOverlaps is a more advanced counting function. However, DiffBind's internal function is enough since anyway we count 1 bp reads so it should be pretty straightforward (there is no need for advanced functions for counting overlapping features). And Diffbind's internal function allows to count both read pair separately which is what we want. Note also that when the fragmentSize argument is present, bUseSummarizeOverlaps is automatically set to FALSE.
 //         Note that the singleEnd, intersectMode, fragments inter.feature, yieldSize and scanbamparam arguments are not needed since bUseSummarizeOverlaps is set to FALSE
 // fragmentSize = 1 (Hardcoded)
 //      -> to tell DiffBind to extend reads by 1 bp. We don't want more since this is our most precise signal (Note we could set it to 0 it should be the same as it would mean to take the read lenght as it is). A visual explaination of why we don't want to extend 1 base pair shifted reads for ATAC-Seq can be found here https://twitter.com/XiChenUoM/status/1336658454866325506. 
