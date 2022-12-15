@@ -2692,7 +2692,7 @@ process DA_ATAC__plotting_differential_abundance_results {
     sink()
     
     # doing and plotting the PCA
-    prcomp1 <- pv_pcmask__custom(dbo, nrow(res)+1, cor = F, bLog = T)$pc
+    prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(res)+1, cor = F, bLog = T)$pc
     
     mat = dbo$binding %>% .[, 4:ncol(.)] %>% set_rownames(v_gene_names)
     mat[mat <= 1] = 1
