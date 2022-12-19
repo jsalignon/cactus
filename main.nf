@@ -1904,7 +1904,7 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
     tx_db               = AnnotationDbi::loadDb('!{params.txdb}') 
     upstream            = !{params.chipseeker__promoter_up}
     downstream          = !{params.chipseeker__promoter_down}
-    overlap             = !{params.chipseeker__overlap}
+    overlap             = '!{params.chipseeker__overlap}'
     ignore_overlap      = !{params.chipseeker__ignore_overlap}
     annotation_priority = !{params.chipseeker__annotation_priority}
 
@@ -2577,7 +2577,7 @@ process DA_ATAC__annotating_diffbind_peaks {
     tx_db               = loadDb('!{params.txdb}') 
     upstream            = !{params.chipseeker__promoter_up}
     downstream          = !{params.chipseeker__promoter_down}
-    overlap             = !{params.chipseeker__overlap}
+    overlap             = '!{params.chipseeker__overlap}'
     ignore_overlap      = !{params.chipseeker__ignore_overlap}
     annotation_priority = !{params.chipseeker__annotation_priority}
 

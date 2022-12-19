@@ -1256,6 +1256,7 @@ process making_R_annotation_files {
 		                           chr = as.character(seqid), entrez_id = v_entrez_id)
 		anno_df %<>% dplyr::select(chr, start, end, width, strand, gene_name, gene_id, entrez_id)
 		rownames(anno_df) <- NULL
+		saveRDS(anno_df, 'df_genes_metadata.rds')
 
 		# exporting txdb
 		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_filtered, chrominfo = seqinfo)
