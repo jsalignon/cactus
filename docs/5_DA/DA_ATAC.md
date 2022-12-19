@@ -63,8 +63,12 @@ See the function links for details and possible options. Details on the choice o
 Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/btv145). Each peak is assigned to its closest gene using the [annotatePeak function](https://github.com/YuLab-SMU/ChIPseeker/blob/master/R/annotatePeak.R).
 
 ### Parameters
-- **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
-- **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+Parameters of the [annotatePeak](https://rdrr.io/bioc/ChIPseeker/man/annotatePeak.html) function:
+- **_params.chipseeker__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.chipseeker__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.chipseeker__overlap_**: this parameter together with the *params.chipseeker__ignore_overlap* controls the genes to which peaks are assigned to. If *params.chipseeker__overlap* equals "all" and *params.chipseeker__ignore_overlap* equals 'FALSE' then if a peak overlaps to a genomic feature (i.e., exon, intron, 5'UTR, 3'UTR, CDS) it will be assigned to this gene. Otherwise, the peak will be assigned to the neighboring gene regardless of overlap with genomic features. Options: "all", "TSS". Default: 'all'.
+- **_params.chipseeker__ignore_overlap_**: this parameter together with the *params.chipseeker__overlap* controls the genes to which peaks are assigned to. If *params.chipseeker__overlap* equals "all" and *params.chipseeker__ignore_overlap* equals 'FALSE' then if a peak overlaps to a genomic feature (i.e., exon, intron, 5'UTR, 3'UTR, CDS) it will be assigned to this gene. Otherwise, the peak will be assigned to the neighboring gene regardless of overlap with genomic features. Options: "all", "TSS". Default: 'FALSE'.
+- **_params.chipseeker__annotation_priority_**: This parameter controls the order of priorities when there are overlaping features that overlap with the peak for assigning a genomic region for the "annotation" column. Default: "c('Promoter', '5UTR', '3UTR', 'Exon', 'Intron', 'Downstream', 'Intergenic')".
 
 ### Outputs
 - **Annotated peaks (data.frame object)**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__dataframe/${comparison}__diffb_anno_peaks_df.rds`.

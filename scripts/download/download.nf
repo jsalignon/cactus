@@ -1,7 +1,7 @@
 
 
 process download_test_datasets {
-  tag params.species
+  tag params.species + " " + params.figshare_version
 
   label "skewer_pigz"
 
@@ -35,7 +35,7 @@ process download_test_datasets {
 // pigz -d -k -r -c -p 3 $local_file | tar -xvf - // same command with abbreviations
 
 process download_references {
-  tag params.species
+  tag params.species + " " + params.figshare_version
 
   label "skewer_pigz"
 

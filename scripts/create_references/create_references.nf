@@ -1026,6 +1026,7 @@ process filtering_annotation_file {
 }
 
 
+
 //// outputs:
 // - protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
 // - anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks

@@ -135,9 +135,12 @@ Default parameters for the processes are defined [here](/conf/run_default.config
 - **_params.macs2__qvalue_**: q-value (minimum FDR) cutoff to call significant peaks with macs2. Default: '5e-2'.
 - **_params.input_control_overlap_portion_**: sample peaks that overlap with the input control by more than this percentage (of the sample peak) will be removed. Default: 0.2.
 - **_params.do_saturation_curve_**: enable or disable this process. Default: true.
-- **_params.do_raw_peak_annotation_**: to enable or disable this process. Default: true.
-- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
-- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+Parameters of the [annotatePeak](https://rdrr.io/bioc/ChIPseeker/man/annotatePeak.html) function:
+- **_params.chipseeker__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.chipseeker__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.chipseeker__overlap_**: this parameter together with the *params.chipseeker__ignore_overlap* controls the genes to which peaks are assigned to. If *params.chipseeker__overlap* equals "all" and *params.chipseeker__ignore_overlap* equals 'FALSE' then if a peak overlaps to a genomic feature (i.e., exon, intron, 5'UTR, 3'UTR, CDS) it will be assigned to this gene. Otherwise, the peak will be assigned to the neighboring gene regardless of overlap with genomic features. Options: "all", "TSS". Default: 'all'.
+- **_params.chipseeker__ignore_overlap_**: this parameter together with the *params.chipseeker__overlap* controls the genes to which peaks are assigned to. If *params.chipseeker__overlap* equals "all" and *params.chipseeker__ignore_overlap* equals 'FALSE' then if a peak overlaps to a genomic feature (i.e., exon, intron, 5'UTR, 3'UTR, CDS) it will be assigned to this gene. Otherwise, the peak will be assigned to the neighboring gene regardless of overlap with genomic features. Options: "all", "TSS". Default: 'FALSE'.
+- **_params.chipseeker__annotation_priority_**: This parameter controls the order of priorities when there are overlaping features that overlap with the peak for assigning a genomic region for the "annotation" column. Default: "c('Promoter', '5UTR', '3UTR', 'Exon', 'Intron', 'Downstream', 'Intergenic')".
 
 
 ## 1. Preprocessing: ATAC_reads
@@ -194,8 +197,7 @@ See the function links for details and possible options. Details on the choice o
   - **_params.diffbind__design_**: Should contrasts be specified with a formula or not. Default: 'TRUE'.
 
 **Annotations and figures:**
-- **_params.diffbind_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
-- **_params.diffbind_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- Parameters of the [annotatePeak](https://rdrr.io/bioc/ChIPseeker/man/annotatePeak.html) function -> see part 1. ATAC_peaks above.
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
 - **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed on the volcano plot. Default: 15.
 

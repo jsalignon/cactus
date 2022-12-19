@@ -138,8 +138,12 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 
 ### Parameters
 - **_params.do_raw_peak_annotation_**: to enable or disable this process. Default: true.
-- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
-- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+Parameters of the [annotatePeak](https://rdrr.io/bioc/ChIPseeker/man/annotatePeak.html) function:
+- **_params.chipseeker__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.chipseeker__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.chipseeker__overlap_**: this parameter together with the *params.chipseeker__ignore_overlap* controls the genes to which peaks are assigned to. If *params.chipseeker__overlap* equals "all" and *params.chipseeker__ignore_overlap* equals 'FALSE' then if a peak overlaps to a genomic feature (i.e., exon, intron, 5'UTR, 3'UTR, CDS) it will be assigned to this gene. Otherwise, the peak will be assigned to the neighboring gene regardless of overlap with genomic features. Options: "all", "TSS". Default: 'all'.
+- **_params.chipseeker__ignore_overlap_**: this parameter together with the *params.chipseeker__overlap* controls the genes to which peaks are assigned to. If *params.chipseeker__overlap* equals "all" and *params.chipseeker__ignore_overlap* equals 'FALSE' then if a peak overlaps to a genomic feature (i.e., exon, intron, 5'UTR, 3'UTR, CDS) it will be assigned to this gene. Otherwise, the peak will be assigned to the neighboring gene regardless of overlap with genomic features. Options: "all", "TSS". Default: 'FALSE'.
+- **_params.chipseeker__annotation_priority_**: This parameter controls the order of priorities when there are overlaping features that overlap with the peak for assigning a genomic region for the "annotation" column. Default: "c('Promoter', '5UTR', '3UTR', 'Exon', 'Intron', 'Downstream', 'Intergenic')".
 
 ### Outputs
 - **Annotated peaks R objects**: `Processed_Data/1_Preprocessing/ATAC__peaks__annotated_rds/${sample}__annotated_peaks.rds`.
@@ -151,8 +155,8 @@ Peaks are annotated with [ChIPseeker](http://dx.doi.org/10.1093/bioinformatics/b
 Using ChIPseeker and [ggplot2](https://ggplot2.tidyverse.org/) to plot coverage and average profile around TSS for each sample (one plot type per sample).
 
 ### Parameters
-- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
-- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.chipseeker__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.chipseeker__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 
 ### Outputs
 - **[Coverage plots](https://rdrr.io/bioc/ChIPseeker/man/covplot.html)**: 
@@ -172,8 +176,8 @@ Using ChIPseeker and [ggplot2](https://ggplot2.tidyverse.org/) to plot coverage 
 Using ChIPseeker and ggplot2 to plot coverage and average profile around TSS for all samples grouped (one plot type for all samples).
 
 ### Parameters
-- **_params.macs2_peaks__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
-- **_params.macs2_peaks__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
+- **_params.chipseeker__promoter_up_**: promoter start; upstream from TSS site. Default: 1500.
+- **_params.chipseeker__promoter_down_**: promoter end; downstream from TSS site. Default: 500.
 
 ### Outputs
 - **[Average profile plots](https://rdrr.io/bioc/ChIPseeker/man/plotAvgProf.html)**: `ATAC__peaks__grouped__average_profile.pdf`

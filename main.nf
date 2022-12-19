@@ -1898,11 +1898,15 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
 
     library(ChIPseeker)
     library(magrittr)
-    id             = '!{id}'
-    peaks_bed_file = '!{peaks_bed_file}'
-    upstream       = !{params.macs2_peaks__promoter_up}
-    downstream     = !{params.macs2_peaks__promoter_down}
-    tx_db          = AnnotationDbi::loadDb('!{params.txdb}') 
+    
+    id                  = '!{id}'
+    peaks_bed_file      = '!{peaks_bed_file}'
+    tx_db               = AnnotationDbi::loadDb('!{params.txdb}') 
+    upstream            = !{params.chipseeker__promoter_up}
+    downstream          = !{params.chipseeker__promoter_down}
+    overlap             = !{params.chipseeker__overlap}
+    ignore_overlap      = !{params.chipseeker__ignore_overlap}
+    annotation_priority = !{params.chipseeker__annotation_priority}
 
     check_upstream_and_downstream_1 <- function (upstream, downstream){
         if (class(upstream) != class(downstream)) {
@@ -1932,17 +1936,15 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
     if(nb_of_peaks == 0) {quit('no')}
     peaks = readPeakFile('!{peaks_bed_file}')
 
-    promoter <- getPromoters(TxDb       = tx_db, 
-                             upstream   = upstream, 
+    promoter <- getPromoters(TxDb       = tx_db, upstream   = upstream, 
                              downstream = downstream)
 
     tag_matrix = getTagMatrix(peaks, windows = promoter)
 
-    annotated_peaks = annotatePeak(peaks, 
-                                  TxDb      = tx_db, 
-                                  tssRegion = c(-upstream, downstream), 
-                                  level     = 'gene', 
-                                  overlap   = 'all')
+    annotated_peaks = annotatePeak(peaks, TxDb = tx_db, level = 'gene',
+                            tssRegion = c(-upstream, downstream), 
+                            overlap = overlap, ignoreOverlap = ignore_overlap,
+                            genomicAnnotationPriority = annotation_priority)
 
     genes = as.data.frame(annotated_peaks)$geneId
 
@@ -2047,8 +2049,8 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_each_sample {
     library(ggplot2)
 
     id = '!{id}'
-    upstream = !{params.macs2_peaks__promoter_up}
-    downstream = !{params.macs2_peaks__promoter_down}
+    upstream = !{params.chipseeker__promoter_up}
+    downstream = !{params.chipseeker__promoter_down}
     lres = readRDS('!{annotated_peaks_objects_rds}')
 
     pdf(paste0(id, '__peaks_coverage.pdf'))
@@ -2096,8 +2098,8 @@ process ATAC_QC_peaks__plotting_annotated_macs2_peaks_for_all_samples_grouped {
     '''
     #!/usr/bin/env Rscript
 
-    upstream = !{params.macs2_peaks__promoter_up}
-    downstream = !{params.macs2_peaks__promoter_down}
+    upstream = !{params.chipseeker__promoter_up}
+    downstream = !{params.chipseeker__promoter_down}
 
     library(ChIPseeker)
     library(ggplot2)
@@ -2483,7 +2485,7 @@ process DA_ATAC__doing_differential_abundance_analysis {
 // RunParallel = FALSE (Hardcoded)
 //      -> parallel analysis has been disabled since all the cores were used instead of the number specified in dbo$config$cores parameters
 // edgeR$bTagwise = TRUE
-//      -> controls wether edgeR::estimateGLMTagwiseDisp is called after edgeR::estimateGLMTrendedDisp when analysis method is edgeR. Same default as DiffBind.
+//      -> controls wether edgeR::estimateGLMTagwiseDisp is called after edgeR::estimateGLMTrendedDisp when analysis method is edgeR. Same default as DiffBind. Details can be found here: https://support.bioconductor.org/p/75541/.
 
 //// dba.count
 // bRemoveDuplicates = F (Hardcoded)
@@ -2570,19 +2572,21 @@ process DA_ATAC__annotating_diffbind_peaks {
     library(ChIPseeker)
     library(magrittr)
 
-    COMP = '!{COMP}'
-    tx_db <- loadDb('!{params.txdb}') 
-    upstream = !{params.diffbind_peaks__promoter_up}
-    downstream = !{params.diffbind_peaks__promoter_down}
-    diffbind_peaks_gr = readRDS('!{diffbind_peaks_gr}')
+    COMP                = '!{COMP}'
+    diffbind_peaks_gr   = readRDS('!{diffbind_peaks_gr}')
+    tx_db               = loadDb('!{params.txdb}') 
+    upstream            = !{params.chipseeker__promoter_up}
+    downstream          = !{params.chipseeker__promoter_down}
+    overlap             = !{params.chipseeker__overlap}
+    ignore_overlap      = !{params.chipseeker__ignore_overlap}
+    annotation_priority = !{params.chipseeker__annotation_priority}
 
 
     ##### annotating peaks
-    anno_peak_cs = annotatePeak(diffbind_peaks_gr, 
-                                TxDb = tx_db, 
-                                tssRegion = c(-upstream, downstream), 
-                                level = 'gene', 
-                                overlap = 'all')
+    anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, level = 'gene',
+                            tssRegion = c(-upstream, downstream), 
+                            overlap = overlap, ignoreOverlap = ignore_overlap,
+                            genomicAnnotationPriority = annotation_priority)
 
     ##### creating the data frame object
     anno_peak_gr = anno_peak_cs@anno
