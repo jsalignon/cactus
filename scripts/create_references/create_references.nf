@@ -987,38 +987,60 @@ process filtering_annotation_file {
     set species, file(gff3) from Gff3_annotation_for_filtering
 
   output:
-		set species, file('chromosomes_sizes.txt'), file(gff3), file('protein_coding_genes.gff3'), file('annotation_filtered_regions_and_pseudogenes.gff3') into GFF3_filtered_for_R
+		set species, file('chromosomes_sizes.txt'), file(gff3), 
+			file('annotation_filtered_regions_features.gff3') into GFF3_filtered_for_R
 		file("*.txt")
 
   shell:
   '''
 
-			gff3=!{gff3}
 			source !{params.bin_dir}/get_tab.sh
-
+			gff3=!{gff3}
 			tab=$(get_tab)
 
-			gff3_filtered=annotation_filtered_regions_and_pseudogenes.gff3
-			# savings statistics on the unfiltered annotation file
-			cut -f1 ${gff3} | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region__raw_gff3_file.txt
-			awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene"){print $1}}' ${gff3} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__raw_gff3_file.txt 
-			cut -f3 ${gff3} | sort | uniq -c | sort -nr | grep -v "#" > nb_of_feature_by_feature_type__raw_gff3_file.txt
+			gff3_filtered=annotation_filtered_regions_features.gff3
 
-			# keeping only regions (contigs and chromosomes) with at least 5 genes, excluding the mitochondrial chromosome and removing all genes that are not encoding for proteins
-			regions_to_keep=$(awk -v OFS="$tab" '{if($1 > 4) print $2}' nb_of_genes_by_region__raw_gff3_file.txt | sort | paste -sd ' ')
-			awk -v FS="$tab" -v OFS="$tab" -v rtk="$regions_to_keep" 'BEGIN{split(rtk, rtk1, " ")} {for (c1 in rtk1) {if($1 == rtk1[c1] && $1 != "mitochondrion_genome" && $1 != "MT" && $1 != "MtDNA" && $3 !~ "ncRNA" && $3 !~ "pseudogen" && $3 !~ "transposable_element") print}}' ${gff3} > ${gff3_filtered}
+			## savings statistics on the unfiltered annotation file
+			n_features_by_regions () { cut -f1 ${1} | sort | uniq -c | grep -v "#" | sort -nr > "nb_of_feature_by_region__${2}_gff3_file.txt" ; }
+			n_genes_by_regions () { awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene"){print $1}}' ${1} | sort | uniq -c | sort -nr	> "nb_of_genes_by_region__${2}_gff3_file.txt" ; }
+			n_features_by_feature_type () { cut -f3 ${1} | sort | uniq -c | sort -nr | grep -v "#" > "nb_of_feature_by_feature_type__${2}_gff3_file.txt" ; }
 			
-			# savings statistics on the filtered annotation file
-			cut -f1 ${gff3_filtered} | sort | uniq -c | grep -v "#" | sort -nr > nb_of_feature_by_region__raw_gff3_file.txt
-			awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene"){print $1}}' ${gff3_filtered} | sort | uniq -c | sort -nr	> nb_of_genes_by_region__filtered_gff3_file.txt 
-			cut -f3 ${gff3_filtered} | sort | uniq -c | sort -nr | grep -v "#" > nb_of_feature_by_feature_type__filtered_gff3_file.txt
-
-			# exporting chromosomes sizes
+			n_features_by_regions      $gff3 raw
+			n_genes_by_regions         $gff3 raw
+			n_features_by_feature_type $gff3 raw
+			
+			## selecting regions to keep
+			# keeping only regions (contigs and chromosomes) with at least 5 genes 
+			# and excluding the mitochondrial chromosome 
+			regions_to_keep=$(                              \
+			  awk -v OFS="$tab" '{if($1 > 4) print $2}'     \
+			  nb_of_genes_by_region__raw_gff3_file.txt |    \
+			  grep -vIw "MtDNA\\|MT\\|mitochondrion_genome" \
+				| sort | paste -sd ' ')
+			
+			## selecting features to keep
+			# keeping only regions, protein coding genes (gene, mRNA) and subfeatures (exons, 5' UTR...)
+			features_to_keep="chromosome region scaffold mRNA gene exon five_prime_UTR CDS three_prime_UTR"
+			
+			## filtering regions and features
+			awk -v FS="$tab" -v OFS="$tab" \
+			    -v rtk="$regions_to_keep" -v ftk="$features_to_keep" \
+			    'BEGIN{split(rtk, rtk1, " "); split(ftk, ftk1, " ")}{
+			      for (c1 in rtk1){
+			        for(c2 in ftk1){
+			          if($1 == rtk1[c1] && $3 == ftk1[c2]) print
+			        }  
+			      } 
+			    }' \
+			    ${gff3} > ${gff3_filtered}
+			
+			## savings statistics on the filtered annotation file
+			n_features_by_regions      $gff3_filtered filtered
+			n_genes_by_regions         $gff3_filtered filtered
+			n_features_by_feature_type $gff3_filtered filtered
+			
+			## exporting chromosomes sizes
 			awk -v FS="$tab" -v OFS="$tab" '{if ($3 == "region" || $3 == "chromosome" || $3 == "scaffold") {print $1, $5}}' ${gff3_filtered} | sort -k3nr > chromosomes_sizes.txt
-
-			# exporting protein coding genes
-			grep -i protein_coding ${gff3_filtered} | awk -v FS="$tab" -v OFS="$tab" '{if($3 == "gene") print $0}' - > protein_coding_genes.gff3
-
 
 
   '''
@@ -1028,8 +1050,7 @@ process filtering_annotation_file {
 
 
 //// outputs:
-// - protein_coding_genes.gff3 is used to create the gene metadata table for all analysis
-// - anno_without_pseudogenes.gff3 is used for creating a txdb database without non coding transcripts, for the annotation of ATAC seq peaks
+// - annotation_filtered_regions_features.gff3 is used to create the gene metadata table and a txdb database for the annotation of ATAC seq peaks. 
 
 //// mitochondrial chromosomes:
 // worm  |         fly          | mouse  | human  
@@ -1194,7 +1215,7 @@ process making_R_annotation_files {
   publishDir path: "${species}/genome/annotation/R", mode: 'link'
 
   input:
-		set species, species_long, orgdb, file(chr_size), file(gff3_raw), file(gff3_genes_only), file(gff3_filtered_regions_and_pseudogenes) from GFF3_filtered_for_R_1
+		set species, species_long, orgdb, file(chr_size), file(gff3_raw), file(gff3_filtered) from GFF3_filtered_for_R_1
 
   output:
     file('*')
@@ -1209,38 +1230,36 @@ process making_R_annotation_files {
 		source('!{params.cactus_dir}/bin/export_df_to_bed.R')
 		source('!{params.bin_dir}/get_tab.R')
 
-		gff3_raw = '!{gff3_raw}'
-		gff3_genes_only = '!{gff3_genes_only}'
-		gff3_filtered_regions_and_pseudogenes = '!{gff3_filtered_regions_and_pseudogenes}'
-		species = '!{species}'
-		orgdb = AnnotationDbi::loadDb('!{orgdb}')
-		df_chr_size = read.table('!{chr_size}', sep = get_tab())
-		species_long = '!{species_long}'
+		species       = '!{species}'
+		species_long  = '!{species_long}'
+		orgdb         = AnnotationDbi::loadDb('!{orgdb}')
+		df_chr_size   = read.table('!{chr_size}', sep = get_tab())
+		gff3_raw      = '!{gff3_raw}'
+		gff3_filtered = '!{gff3_filtered}'
 
-
-		# exporting annotation dataframe
-		anno_df = rtracklayer::readGFF(gff3_genes_only) 
-		entrez_id = mapIds(orgdb, keys = anno_df$gene_id,  column = 'ENTREZID', keytype = 'ENSEMBL', multiVals = 'first')
-		anno_df %<>% dplyr::rename(gene_name = Name)
-		anno_df %<>% dplyr::mutate(width = end - start)
-		anno_df$entrez_id = entrez_id
-		anno_df$chr = as.character(anno_df$seqid)
-		anno_df %<>% dplyr::select(chr, start, end, width, strand, gene_name, gene_id, entrez_id)
-		saveRDS(anno_df, 'df_genes_metadata.rds')
-
+		
 		# creating the seqinfo object
 		nr = nrow(df_chr_size)
 		seqinfo = GenomeInfoDb::Seqinfo(seqnames = df_chr_size[,1], seqlengths = df_chr_size[,2], isCircular = rep(F, nr) , genome = rep(species_long, nr))
 		saveRDS(seqinfo, 'seqinfo.rds')
-
-		# exporting txdb
-		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_filtered_regions_and_pseudogenes, chrominfo = seqinfo)
-		AnnotationDbi::saveDb(txdb, file="txdb.sqlite")
-
+		
 		# exporting gene vs transcripts
 		txdb1 = GenomicFeatures::makeTxDbFromGFF(gff3_raw)
 		df_genes_transcripts = select(txdb1, keys = keys(txdb1), columns = c('GENEID', 'TXNAME', 'TXCHROM'), keytype = 'GENEID')
 		saveRDS(df_genes_transcripts, 'df_genes_transcripts.rds')
+		
+		# exporting annotation dataframe
+		anno_df = rtracklayer::readGFF(gff3_filtered) 
+		anno_df %<>% as.data.frame %>% .[.$type == 'gene',]
+		v_entrez_id = mapIds(orgdb, keys = anno_df$gene_id,  column = 'ENTREZID', keytype = 'ENSEMBL', multiVals = 'first')
+		anno_df %<>% dplyr::mutate(gene_name = Name, width = end - start, 
+		                           chr = as.character(seqid), entrez_id = v_entrez_id)
+		anno_df %<>% dplyr::select(chr, start, end, width, strand, gene_name, gene_id, entrez_id)
+		rownames(anno_df) <- NULL
+
+		# exporting txdb
+		txdb = GenomicFeatures::makeTxDbFromGFF(gff3_filtered, chrominfo = seqinfo)
+		AnnotationDbi::saveDb(txdb, file="txdb.sqlite")
 
 		# extracting promoters
 		promoters = GenomicFeatures::promoters(GenomicFeatures::genes(txdb), upstream = 1500, downstream = 500)
@@ -1277,8 +1296,9 @@ process making_R_annotation_files {
 
 //// inputs:
 // - gff3_raw (i.e., annotation.gff3) is the raw gff3 file. It is used to create the full gene vs transcripts table. All transcripts should be there as this table is used by Kallisto for alignment free transcripts quantification
-// - gff3_genes_only (i.e., protein_coding_genes.gff3) only include entries with feature type being gene. It is used to create the df_genes_metadata table that contains coordinates, gene name and gene ID for Ensembl and NCBI. This file is used in multiple occasions in Cactus for correspondance between gene_id and gene name (volcano plots), for adding coordinate informations (for the res_detailed_atac tables) or for correspondance between Ensembl and NCBI ids (KEGG enrichment).
-// - gff3_filtered_regions_and_pseudogenes (i.e., anno_without_pseudogenes.gff3) contains all features types excepting ncRNA_gene. It is used for creating a txdb database without non coding transcripts. The resulting txdb file omits all features that don't have a parental gene. Therefere, all transcripts and exons of ncRNA_genes (i.e., miRNA, lnc_RNA, rRNA, tRNA, ...) are excluded from the txdb file. This txdb file is used for the annotation of ATAC-Seq peaks, but also for the creation of promoter files used in the mRNA-Seq analysis.
+// - gff3_filtered (i.e., annotation_filtered_regions_features.gff3) contains filtered regions (chromosomes or contig with at least 5 genes, and no mitochondrial chromosome) and filtered features (all subfeatures (CDS, exon...) but only protein coding genes (gene, mRNA) and regions). 
+// This file is used to create the df_genes_metadata table that contains coordinates, gene name and gene ID for Ensembl and NCBI. This file is also used for correspondance between gene_id and gene name (volcano plots), for adding coordinate informations (for the res_detailed_atac tables) or for correspondance between Ensembl and NCBI ids (KEGG enrichment). 
+// This file is also used for creating a txdb database. The txdb database omits all subfeatures (CDS, exon...) that don't have a parental gene. Therefere, all subfeatures of ncRNA_genes (i.e., miRNA, lnc_RNA, rRNA, tRNA, ...) are excluded from the txdb file. This txdb file is used for the annotation of ATAC-Seq peaks, but also for the creation of promoter files used in the mRNA-Seq analysis.
 
 
 // For enrichGO, the go terms are stored into a package and accessed liked that:  goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
