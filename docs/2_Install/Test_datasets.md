@@ -32,7 +32,26 @@ Tests datasets have beed generated for each of the 4 species supported by Cactus
 | human  | 2731 MB |    158 MB     |
 | mouse  | 3100 MB |    261 MB     |   
 
-<!--  -->
+Below is a table that shows the time needed to run each tests datasets on a local server with 47 CPUs and 300Gb of RAM:
+
+| Species | Duration | CPU_hours | Tasks |
+|:-------:|:--------:|:---------:|:-----:|
+|   fly   |   22m    |    9.8    | 1496  |
+|  worm   |   11m    |    4.2    |  874  |
+|  human  |  2h 12m  |   51.5    |  981  |
+|  mouse  |  3h 27m  |   77.5    |  801  |
+
+
+<!-- 
+
+df = data.frame(
+  Species = c('fly', 'worm', 'human', 'mouse'),
+  Duration = c('22m', '11m', '2h 12m', '3h 27m'),
+  CPU_hours = c(9.8, 4.2, 51.5, 77.5),
+  Tasks = c(1496, 874, 981, 801)
+  )
+knitr::kable(df, 'pipe', align = 'c')
+ -->
 
 
 <!-- 
