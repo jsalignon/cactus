@@ -2819,21 +2819,40 @@ process DA_ATAC__saving_detailed_results_tables {
       gene_name, gene_id, pval, padj, L2FC, distance_to_tss, annotation, conc, 
       conc_cond1, conc_cond2, counts_cond1, counts_cond2, dplyr::everything())
 
-    # adding the filtering columns
+    # adding the filtering columns and the jbrowse column
+    get_sep_big_nb <- function(x) formatC(x, format = 'f', big.mark = ",", 
+                                             digits = 0)
+    get_jbrowse_vec <- function(chr, start, end){
+      paste0(chr, ':', get_sep_big_nb(start), '..', get_sep_big_nb(end))
+    }
     res_detailed %<>% dplyr::mutate(
-      FC_up = L2FC > 0,
-      FC_down = L2FC < 0,
-
-      PA_8kb = abs(distance_to_tss) < 8000,
-      PA_3kb = abs(distance_to_tss) < 3000,
-      PA_2u1d = distance_to_tss > -2000 & distance_to_tss < 1000,
-      PA_TSS = distance_to_tss == 0,
-      PA_genProm = genic | promoter,
-      PA_genic = genic,
-      PA_prom = promoter,
-      PA_distNC = distal_intergenic | ( intron & !promoter & !five_UTR  & 
-        !three_UTR  & !exon)
+      FC_up     = L2FC > 0,
+      FC_down   = L2FC < 0,
+    	
+    	PA_gene   = genic,
+    	PA_interG = intergenic,
+    	PA_prom   = promoter,
+    	PA_5pUTR  = five_UTR, 
+    	PA_3pUTR  = three_UTR,
+    	PA_exon   = exon,
+    	PA_intron = intron,
+    	PA_downst = downstream,
+    	PA_distIn = distal_intergenic,
+    	
+    	PA_UTR    = five_UTR | three_UTR,
+      PA_TSS    = distance_to_tss == 0,
+      PA_genPro = genic | promoter,
+      PA_distNC = distal_intergenic | 
+                  ( intron & !(promoter | five_UTR  | three_UTR  | exon)),
+      PA_3kb    = abs(distance_to_tss) > 3000,
+      PA_8kb    = abs(distance_to_tss) > 8000,
+      PA_30kb   = abs(distance_to_tss) > 30000,
+    
+    	jbrowse   = get_jbrowse_vec(chr, start, end)
     )
+    
+    res_detailed %<>% dplyr::select(
+      COMP:end, gene_name:counts_cond2, jbrowse, gene_chr:PA_30kb)
 
     # saving table
     saveRDS(res_detailed, paste0(COMP, '__res_detailed_atac.rds'))
@@ -2841,6 +2860,7 @@ process DA_ATAC__saving_detailed_results_tables {
     '''
 }
 
+// options()$ChIPseeker.downstreamDistance # 300 default
 
 Formatting_csv_tables_channel = Formatting_csv_tables_channel
   .mix(ATAC_detailed_tables_for_formatting_table)
@@ -4823,7 +4843,7 @@ process Tables__saving_excel_tables {
 
 
     get_nms_type <- function(nms){
-      nms_coordinates = c('chr','start', 'end',	'width', 'strand')
+      nms_coordinates = c('chr','start', 'end',	'width', 'strand', 'jbrowse')
       nms_coordinates = c(nms_coordinates, paste0('gene_', nms_coordinates))
 
       if(nms %in% c('GE', 'ET', 'PA', 'FC', 'TV', 'COMP')) return('filter') else
