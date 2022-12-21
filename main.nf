@@ -96,25 +96,29 @@ save_last_bed   = params.save_bed_type   in ['last', 'all'] ? true : false
 do_atac = params.experiment_types in ['atac', 'both']
 do_mRNA = params.experiment_types in ['mRNA', 'both']
 
-params.do_any_enrichment = !params.disable_all_enrichments
+do_OSE = params.do_only_self_enrichment
+di_ALL = params.disable_all_enrichments
 
-if(params.do_only_self_enrichment){
-  params.do_genes_self_enrichment  = true
-  params.do_peaks_self_enrichment  = true
-  params.do_func_anno_enrichment   = false
-  params.do_chrom_state_enrichment = false
-  params.do_chip_enrichment        = false
-  params.do_motif_enrichment       = false
+do_peaks_self  = (params.do_peaks_self_enrichment  ||  do_OSE) && !di_ALL
+do_genes_self  = (params.do_genes_self_enrichment  ||  do_OSE) && !di_ALL
+do_func_anno   =  params.do_func_anno_enrichment   && !do_OSE  && !di_ALL
+do_chrom_state =  params.do_chrom_state_enrichment && !do_OSE  && !di_ALL
+do_chip        =  params.do_chip_enrichment        && !do_OSE  && !di_ALL
+do_motif       =  params.do_motif_enrichment       && !do_OSE  && !di_ALL
+
+if(params.common_padj_breaks == null){
+  padj_breaks_final = params.padj_breaks
+} else {
+  padj_breaks_final = [
+    genes_self:   params.common_padj_breaks,
+    peaks_self:   params.common_padj_breaks,
+    func_anno:    params.common_padj_breaks,
+    chrom_states: params.common_padj_breaks,
+    CHIP:         params.common_padj_breaks,
+    motifs:       params.common_padj_breaks
+  ]
 }
 
-if(params.common_padj_breaks != null){
-  params.padj_breaks__genes_self   = params.common_padj_breaks
-  params.padj_breaks__peaks_self   = params.common_padj_breaks
-  params.padj_breaks__func_anno    = params.common_padj_breaks
-  params.padj_breaks__chrom_states = params.common_padj_breaks
-  params.padj_breaks__CHIP         = params.common_padj_breaks
-  params.padj_breaks__motifs       = params.common_padj_breaks
-}
 
 
 //// Creating empty channels
@@ -3756,7 +3760,7 @@ process Enrichment__computing_functional_annotations_overlaps {
   label "bioconductor"
 
   when: 
-    params.do_func_anno_enrichment && params.do_any_enrichment
+    do_func_anno
 
   input:
     set key, data_type, func_anno, file(gene_set_rds) \
@@ -3928,7 +3932,7 @@ process Enrichment__computing_genes_self_overlaps {
   label "r_basic"
 
   when:
-    params.do_genes_self_enrichment && params.do_any_enrichment
+    do_genes_self
 
   input:
     set key, data_type, file(lgenes), file('all_gene_sets/*') \
@@ -4020,13 +4024,13 @@ CHIP_channel_all
 
 
 Bed_regions_to_overlap_with = Channel.empty()
-if(params.do_any_enrichment){
   
-  if( params.do_peaks_self_enrichment ) Bed_regions_to_overlap_with = Bed_regions_to_overlap_with.mix(DA_regions_channel)
-  if( params.do_chrom_state_enrichment ) Bed_regions_to_overlap_with = Bed_regions_to_overlap_with.mix(Chrom_states_channel)
-  if( params.do_chip_enrichment ) Bed_regions_to_overlap_with = Bed_regions_to_overlap_with.mix(CHIP_channel_filtered)
-  
-}
+if( do_peaks_self )  Bed_regions_to_overlap_with = 
+                     Bed_regions_to_overlap_with.mix(DA_regions_channel)
+if( do_chrom_state ) Bed_regions_to_overlap_with = 
+                     Bed_regions_to_overlap_with.mix(Chrom_states_channel)
+if( do_chip )        Bed_regions_to_overlap_with = 
+                     Bed_regions_to_overlap_with.mix(CHIP_channel_filtered)
 
 
 DA_regions_with_bg_for_computing_peaks_overlaps_3
@@ -4128,7 +4132,7 @@ process Enrichment__computing_motifs_overlaps {
              mode: "${pub_mode}"
 
   when: 
-    params.do_motif_enrichment && params.do_any_enrichment
+    do_motif
 
   input:
     set key, data_type, file(DA_regions), file(all_regions) \
@@ -4365,7 +4369,7 @@ Enrichment_results_for_plotting
           it[2], it[3], it[4] ]  }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, DT_short, comp_order, TV, rds_files
   .map{ [ it[0], it[1], params.heatmaps_params[it[2]], 
-            params.padj_breaks[it[2]], params.heatmaps_filter[it[2]], 
+            padj_breaks_final[it[2]], params.heatmaps_filter[it[2]], 
             it[3], it[4], it[5] ] }
   // format: key, DT, plots_params, padj_breaks, filters, comp_order, TV, rds_files
   .dump(tag:'heatmap')
@@ -4382,7 +4386,7 @@ Enrichment_results_for_plotting_barplots_1
   .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|BP|CC|MF)', ''), it[2] ]  }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, DT_short, rds_file
   .dump(tag: 'barplot')
-  .map{ [ it[0], it[1], params.barplots_params[it[2]], params.padj_breaks[it[2]], it[3]]}
+  .map{ [ it[0], it[1], params.barplots_params[it[2]], padj_breaks_final[it[2]], it[3]]}
   // format: key (ET__PA__FC__TV__COMP__DT), DT, plots_params, padj_breaks, rds_file
   .set{ Enrichment_results_for_plotting_barplots_2 }
 
