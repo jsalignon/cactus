@@ -50,7 +50,7 @@ In additions, two types of tables are produced: res_simple and res_filter. These
 ### Parameters
 - **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Options: 'FDR', 'rank'. Default: 'FDR'. 
 - **_params.split__threshold_values_**: Groovy list defining the threshold cuttoff value(s). If *params.split__threshold_type = 'rank'* all entries ranked below this value will be kept (with entries ranked from lowest (rank = 1) to highest adjusted pvalues). If *params.split__threshold_type = 'FDR'* all entries with a -log10(adjusted p-value) below this threshold will be kept. e.g., *params.split__threshold_values = [ 1.3 ]* will keep all entries with an adjusted pvalue below 0.05 (i.e., -log10(0.05) = 1.30103). Multiple thresholds can be added but from the same type (FDR or rank). Default: [ 1.3 ].
-- **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all', 'prom', 'distNC' ].
+- **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all' ].
 
 ### Outputs
 - **Gene lists**: `Processed_Data/2_Differential_Abundance/DA_split__genes_rds/${key}__genes.rds`

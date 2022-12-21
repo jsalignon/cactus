@@ -2885,6 +2885,9 @@ Merging_pdfs_channel = Merging_pdfs_channel
 // alternatively, the PCA could be made from scratch as done here: 
 // https://support.bioconductor.org/p/76346/
 
+// paste(names(PA_filters), collapse = "', '")
+// [1] "gene', 'interG', 'prom', '5pUTR', '3pUTR', 'exon', 'intron', 'downst', 'distIn', 'UTR', 'TSS', 'genPro', 'distNC', '3kb', '8kb', '30kb"
+
 
 
 params.design__genes_to_remove_1 = workflow.launchDir.toString() + '/' +
