@@ -32,6 +32,27 @@ plot_volcano_custom <- function(res, sig_level, label_column, title, sig_color =
 
 
 
+plot_FDR_by_PA_filters <- function(res, title, outlier_size = 0.8, outlier_stroke = 0.4, outlier_alpha = 0.4, epsilon = 10^-320){
+  res1 = res[!is.na(res$padj), ]
+  res1 %<>% dplyr::mutate(L2FC = ifelse(L2FC > 0, 'up', 'down'))
+  res1$min_log10_FDR = -log10(res1$padj + epsilon)
+  
+  PA_filters = grep('PA_', names(res), value = T) %>% setNames(., gsub('PA_', '', .))
+  df1 = purrr::map_dfr(PA_filters, function(cur_PA) res1[which(res1[[cur_PA]]), c('min_log10_FDR', 'L2FC'), drop = F], .id = 'PA')
+  df1 %<>% dplyr::mutate(PA = factor(PA, levels = names(PA_filters)))
+  
+  p1 = ggplot(df1, aes(x = PA, y = min_log10_FDR, colour = L2FC)) + 
+   geom_boxplot(outlier.size = outlier_size, outlier.stroke = outlier_stroke, outlier.alpha = outlier_alpha) + 
+   ylab('-log10(FDR)') + xlab('Peak Assignment') + 
+   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) + 
+   ggtitle(title)
+  
+  return(p1)
+  
+}
+
+
+
 ##### PCA plots
 
 

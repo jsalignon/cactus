@@ -2554,14 +2554,13 @@ process DA_ATAC__annotating_diffbind_peaks {
     do_atac
 
   input:
-    set COMP, file(diffbind_peaks_gr), file(diffbind_peaks_dbo) \
+    set COMP, file(diffbind_peaks_gr), file(diffbind_object) \
       from Diffbind_peaks_for_annotating_them
 
   output:
     file('*.rds')
-    set COMP, file("*_df.rds") into Annotated_diffbind_peaks_for_saving_tables
-    set COMP, file("*_df.rds"), file(diffbind_peaks_dbo) \
-      into Annotated_diffbind_peaks_for_plotting
+    set COMP, file("*_df.rds"), file(diffbind_object) \
+      into Annotated_diffbind_peaks_for_saving_tables
 
   shell:
     '''
@@ -2615,135 +2614,6 @@ process DA_ATAC__annotating_diffbind_peaks {
 
 
 
-process DA_ATAC__plotting_differential_abundance_results {
-  tag "${COMP}"
-
-  label "diffbind"
-  // label "differential_abundance"
-
-  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
-    saveAs: {
-      if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
-      else if (it.indexOf("_PCA_1_2.pdf") > 0) "ATAC__PCA_1_2/${it}"
-      else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
-      else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
-    }
-
-  publishDir path: "${out_processed}/${out_path}/ATAC__non_annotated_peaks", 
-             pattern: "*__ATAC_non_annotated_peaks.txt", mode: "${pub_mode}"
-
-  input:
-    val out_path from Channel.value('2_Differential_Abundance')
-    set COMP, file(annotated_peaks), file(diffbind_object_rds) \
-      from Annotated_diffbind_peaks_for_plotting
-
-  output:
-    set val("ATAC__volcano"), out_path, file('*__ATAC_volcano.pdf') \
-      into ATAC_Volcano_for_merging_pdfs
-    set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') \
-      into ATAC_PCA_1_2_for_merging_pdfs
-    set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') \
-      into ATAC_PCA_3_4_for_merging_pdfs
-    set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') \
-      into ATAC_Other_plot_for_merging_pdfs
-    file("*__ATAC_non_annotated_peaks.txt")
-
-  shell:
-    '''
-    #!/usr/bin/env Rscript
-
-
-    ##### loading data and libraries
-
-    library(ggplot2)
-    library(magrittr)
-    library(grid)
-    library(DiffBind)
-
-    source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
-
-    COMP = '!{COMP}'
-
-    dbo = readRDS('!{diffbind_object_rds}')
-    fdr_threshold = !{params.diffbind_plots__fdr_threshold}
-    top_n_labels = !{params.diffbind_plots__top_n_labels}
-    dbo$config$th = fdr_threshold
-    df_genes_metadata = readRDS('!{params.df_genes_metadata}')
-    df_annotated_peaks = readRDS('!{annotated_peaks}')
-
-
-    ##### volcano plots
-
-    res = df_annotated_peaks %>% dplyr::rename(L2FC = Fold, gene_id = geneId)
-    df_genes_metadata_1 = df_genes_metadata[, c('gene_id', 'gene_name')]
-    res %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
-
-    pdf(paste0(COMP, '__ATAC_volcano.pdf'))
-      plot_volcano_custom(res, sig_level = fdr_threshold, 
-          label_column = 'gene_name', title = paste(COMP, 'ATAC'),
-          top_n_labels = top_n_labels)
-    dev.off()
-
-
-    ##### PCA plots
-
-    # Handling unnanotated peaks and peaks missing from the dba.report function
-    v_gene_names = res$gene_name[match(1:nrow(dbo$binding), res$peak_id)]
-    v_gene_names[is.na(v_gene_names)] = 'no_gene'
-    v_gene_names %<>% make.unique(sep = '_')
-    sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
-      print(dbo$peaks[[1]][grep('no_gene', v_gene_names),])
-    sink()
-    
-    # doing and plotting the PCA
-    prcomp1 <- DiffBind__pv_pcmask__custom(dbo, nrow(res)+1, cor = F, bLog = T)$pc
-    
-    mat = dbo$binding %>% .[, 4:ncol(.)] %>% set_rownames(v_gene_names)
-    mat[mat <= 1] = 1
-    mat %<>% log2
-    prcomp1 = prcomp(mat)
-    
-    lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'ATAC'))
-    lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'ATAC'))
-    
-    pdf(paste0(COMP, '__ATAC_PCA_1_2.pdf'))
-      make_4_plots(lp_1_2)
-    dev.off()
-    
-    pdf(paste0(COMP, '__ATAC_PCA_3_4.pdf'))
-      make_4_plots(lp_3_4)
-    dev.off()
-    
-
-    ##### other plots
-
-    pdf(paste0(COMP, '__ATAC_other_plots.pdf'))
-        dba.plotMA(dbo, bNormalized = T)
-        dba.plotHeatmap(dbo, main = 'all reads')
-        first_2_replicates = sort(c(which(dbo$masks$Replicate.1), 
-          which(dbo$masks$Replicate.2)))
-        dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
-    dev.off()
-
-    '''
-}
-
-Merging_pdfs_channel = Merging_pdfs_channel
-  .mix(ATAC_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel
-  .mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel
-  .mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
-Merging_pdfs_channel = Merging_pdfs_channel
-  .mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
-
-// pv_pcmask__custom was adapted from DiffBind::pv.pcmask. 
-// This little hacking is necessary because DiffBind functions plots PCA but 
-// do not return the object.
-// alternatively, the PCA could be made from scratch as done here: 
-// https://support.bioconductor.org/p/76346/
-
-
 
 process DA_ATAC__saving_detailed_results_tables {
   tag "${COMP}"
@@ -2754,12 +2624,14 @@ process DA_ATAC__saving_detailed_results_tables {
     do_atac
 
   input:
-    set COMP, file(annotated_peaks) \
+    set COMP, file(annotated_peaks), file(diffbind_object) \
       from Annotated_diffbind_peaks_for_saving_tables
 
   output:
     set val('ATAC_detailed'), val('2_Differential_Abundance'), file('*.rds') \
       into ATAC_detailed_tables_for_formatting_table
+    set COMP, file("*.rds"), file(diffbind_object) \
+      into Annotated_diffbind_peaks_for_plotting
     set COMP, file("*.rds") into ATAC_detailed_tables_for_splitting_in_subsets
 
   shell:
@@ -2864,6 +2736,154 @@ process DA_ATAC__saving_detailed_results_tables {
 
 Formatting_csv_tables_channel = Formatting_csv_tables_channel
   .mix(ATAC_detailed_tables_for_formatting_table)
+
+
+
+process DA_ATAC__plotting_differential_abundance_results {
+  tag "${COMP}"
+
+  label "diffbind"
+  // label "differential_abundance"
+
+  publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
+    saveAs: {
+      if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
+      else if (it.indexOf("_PCA_1_2.pdf") > 0) "ATAC__PCA_1_2/${it}"
+      else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
+      else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
+      else if (it.indexOf("_FDR_by_PA.pdf") > 0) "ATAC__FDR_by_PA/${it}"
+    }
+
+  publishDir path: "${out_processed}/${out_path}/ATAC__non_annotated_peaks", 
+             pattern: "*__ATAC_non_annotated_peaks.txt", mode: "${pub_mode}"
+
+  input:
+    val out_path from Channel.value('2_Differential_Abundance')
+    set COMP, file(res_detailed_atac), file(diffbind_object) \
+      from Annotated_diffbind_peaks_for_plotting
+
+  output:
+    set val("ATAC__volcano"), out_path, file('*__ATAC_volcano.pdf') \
+      into ATAC_Volcano_for_merging_pdfs
+    set val("ATAC__PCA_1_2"), out_path, file('*__ATAC_PCA_1_2.pdf') \
+      into ATAC_PCA_1_2_for_merging_pdfs
+    set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') \
+      into ATAC_PCA_3_4_for_merging_pdfs
+    set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') \
+      into ATAC_Other_plot_for_merging_pdfs
+    set val("ATAC__FDR_by_PA"), out_path, file('*__ATAC_FDR_by_PA.pdf') \
+      into ATAC_FDR_by_PA_for_merging_pdfs
+    file("*__ATAC_non_annotated_peaks.txt")
+
+  shell:
+    '''
+    #!/usr/bin/env Rscript
+
+
+    ##### loading data and libraries
+
+    library(ggplot2)
+    library(magrittr)
+    library(grid)
+    library(DiffBind)
+
+    source('!{projectDir}/bin/functions_plot_volcano_PCA.R')
+
+    COMP = '!{COMP}'
+
+    dbo = readRDS('!{diffbind_object}')
+    res_detailed_atac = readRDS('!{res_detailed_atac}')
+    fdr_threshold = !{params.diffbind_plots__fdr_threshold}
+    top_n_labels = !{params.diffbind_plots__top_n_labels}
+    dbo$config$th = fdr_threshold
+
+    
+    ##### setting up variables
+    
+    title  = paste(COMP, 'ATAC')
+    prefix = paste0(COMP, '__ATAC_')
+    res    = res_detailed_atac
+
+
+    ##### volcano plots
+
+    pdf(paste0(prefix, 'volcano.pdf'))
+      plot_volcano_custom(res, sig_level = fdr_threshold, 
+          label_column = 'gene_name', title = title,
+          top_n_labels = top_n_labels)
+    dev.off()
+
+
+    ##### PCA plots
+
+    # Handling unnanotated peaks and peaks missing from the dba.report function
+    v_gene_names = res$gene_name[match(1:nrow(dbo$binding), res$peak_id)]
+    v_gene_names[is.na(v_gene_names)] = 'no_gene'
+    v_gene_names %<>% make.unique(sep = '_')
+    sink(paste0(COMP, '__ATAC_non_annotated_peaks.txt'))
+      print(dbo$peaks[[1]][grep('no_gene', v_gene_names),])
+    sink()
+    
+    # doing and plotting the PCA
+    prcomp1 <- 
+      DiffBind__pv_pcmask__custom(dbo, nrow(res) + 1, cor = F, bLog = T)$pc
+    mat = dbo$binding %>% .[, 4:ncol(.)] %>% set_rownames(v_gene_names)
+    mat[mat <= 1] = 1
+    mat %<>% log2
+    prcomp1 = prcomp(mat)
+    
+    lp_1_2 = get_lp(prcomp1, 1, 2, title)
+    lp_3_4 = get_lp(prcomp1, 3, 4, title)
+    
+    pdf(paste0(prefix, 'PCA_1_2.pdf'))
+      make_4_plots(lp_1_2)
+    dev.off()
+    
+    pdf(paste0(prefix, 'PCA_3_4.pdf'))
+      make_4_plots(lp_3_4)
+    dev.off()
+    
+
+    ##### other plots
+
+    pdf(paste0(prefix, 'other_plots.pdf'))
+        dba.plotMA(dbo, bNormalized = T)
+        dba.plotHeatmap(dbo, main = 'all reads')
+        first_2_replicates = sort(c(which(dbo$masks$Replicate.1), 
+          which(dbo$masks$Replicate.2)))
+        dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
+    dev.off()
+    
+    
+    ##### FDR by PA filters plots
+    
+    p1 = plot_FDR_by_PA_filters(res, title)
+    
+    pdf(paste0(prefix, 'FDR_by_PA.pdf'))
+      print(p1)
+    dev.off()
+    
+
+    '''
+}
+
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_Volcano_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_PCA_1_2_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_PCA_3_4_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_Other_plot_for_merging_pdfs.groupTuple(by: [0, 1]))
+Merging_pdfs_channel = Merging_pdfs_channel
+  .mix(ATAC_FDR_by_PA_for_merging_pdfs.groupTuple(by: [0, 1]))
+
+
+// DiffBind__pv_pcmask__custom was adapted from DiffBind::pv.pcmask. 
+// This little hacking is necessary because DiffBind functions plots PCA but 
+// do not return the object.
+// alternatively, the PCA could be made from scratch as done here: 
+// https://support.bioconductor.org/p/76346/
 
 
 
@@ -3060,6 +3080,12 @@ process DA_mRNA__plotting_differential_abundance_results {
     fdr_threshold = !{params.sleuth_plots__fdr_threshold}
     top_n_labels  = !{params.sleuth_plots__top_n_labels}
 
+    
+    ##### setting up variables
+    
+    title = paste(COMP, 'mRNA')
+    prefix = paste0(COMP, '__mRNA_')
+
 
     ##### volcano plots
 
@@ -3069,14 +3095,14 @@ process DA_mRNA__plotting_differential_abundance_results {
     res_volcano %<>% dplyr::inner_join(df_genes_metadata_1, by = 'gene_id')
     res_volcano %<>% dplyr::mutate(padj = p.adjust(pval, method = 'BH'))
 
-    pdf(paste0(COMP, '__mRNA_volcano.pdf'))
+    pdf(paste0(prefix, 'volcano.pdf'))
       plot_volcano_custom(res_volcano, sig_level = fdr_threshold, 
-        label_column = 'gene_name', title = paste(COMP, 'mRNA'),
+        label_column = 'gene_name', title = title,
         top_n_labels = top_n_labels
         )
     dev.off()
 
-
+    
     ##### PCA plots
 
     # the pca is computed using the default parameters in the sleuth functions 
@@ -3088,30 +3114,27 @@ process DA_mRNA__plotting_differential_abundance_results {
       setNames(., df_genes_metadata_1$gene_id)
     rownames(prcomp1$x) %<>% v_gene_id_name[.]
 
-    lp_1_2 = get_lp(prcomp1, 1, 2, paste(COMP, ' ', 'mRNA'))
-    lp_3_4 = get_lp(prcomp1, 3, 4, paste(COMP, ' ', 'mRNA'))
+    lp_1_2 = get_lp(prcomp1, 1, 2, title)
+    lp_3_4 = get_lp(prcomp1, 3, 4, title)
 
-    pdf(paste0(COMP, '__mRNA_PCA_1_2.pdf'))
+    pdf(paste0(prefix, 'PCA_1_2.pdf'))
       make_4_plots(lp_1_2)
     dev.off()
 
-    pdf(paste0(COMP, '__mRNA_PCA_3_4.pdf'))
+    pdf(paste0(prefix, 'PCA_3_4.pdf'))
       make_4_plots(lp_3_4)
     dev.off()
 
 
     ##### other plots
 
-    pdf(paste0(COMP, '__mRNA_other_plots.pdf'))
+    pdf(paste0(prefix, 'other_plots.pdf'))
       plot_ma(sleo, test = test_cond, sig_level = fdr_threshold) + 
         ggtitle(paste('MA:', COMP))
       plot_group_density(sleo, use_filtered = TRUE, 
         units = "scaled_reads_per_base", trans = "log", 
         grouping = setdiff(colnames(sleo$sample_to_covariates), "sample"), 
         offset = 1) + ggtitle(paste('Estimated counts density:', COMP))
-      # plot_scatter(sleo) + ggtitle(paste('Scatter:', COMP))
-      # plot_fld(sleo, 1) + ggtitle(paste('Fragment Length Distribution:', 
-      # COMP))
     dev.off()
 
     '''
