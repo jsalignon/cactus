@@ -239,6 +239,7 @@ Figures:
 ## 3. Enrichment: Figures
 
 - **_params.padj_breaks_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
+- **_params.common_padj_breaks_**: This parameter allows to set all the *params.padj_breaks* parameters (see previous parameter) to the same values. Default: null.
 
 - **_params.barplots_params_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the barplots. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', F, 50, 30 )". The options are in order:
   - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.

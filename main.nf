@@ -107,6 +107,15 @@ if(params.do_only_self_enrichment){
   params.do_motif_enrichment       = false
 }
 
+if(params.common_padj_breaks != null){
+  params.padj_breaks__genes_self   = params.common_padj_breaks
+  params.padj_breaks__peaks_self   = params.common_padj_breaks
+  params.padj_breaks__func_anno    = params.common_padj_breaks
+  params.padj_breaks__chrom_states = params.common_padj_breaks
+  params.padj_breaks__CHIP         = params.common_padj_breaks
+  params.padj_breaks__motifs       = params.common_padj_breaks
+}
+
 
 //// Creating empty channels
 
