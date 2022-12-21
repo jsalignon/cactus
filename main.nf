@@ -2750,8 +2750,8 @@ process DA_ATAC__plotting_differential_abundance_results {
       if (it.indexOf("_volcano.pdf") > 0) "ATAC__volcano/${it}"
       else if (it.indexOf("_PCA_1_2.pdf") > 0) "ATAC__PCA_1_2/${it}"
       else if (it.indexOf("_PCA_3_4.pdf") > 0) "ATAC__PCA_3_4/${it}"
-      else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
       else if (it.indexOf("_FDR_by_PA.pdf") > 0) "ATAC__FDR_by_PA/${it}"
+      else if (it.indexOf("_other_plots.pdf") > 0) "ATAC__other_plots/${it}"
     }
 
   publishDir path: "${out_processed}/${out_path}/ATAC__non_annotated_peaks", 
@@ -2769,10 +2769,10 @@ process DA_ATAC__plotting_differential_abundance_results {
       into ATAC_PCA_1_2_for_merging_pdfs
     set val("ATAC__PCA_3_4"), out_path, file('*__ATAC_PCA_3_4.pdf') \
       into ATAC_PCA_3_4_for_merging_pdfs
-    set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') \
-      into ATAC_Other_plot_for_merging_pdfs
     set val("ATAC__FDR_by_PA"), out_path, file('*__ATAC_FDR_by_PA.pdf') \
       into ATAC_FDR_by_PA_for_merging_pdfs
+    set val("ATAC__other_plots"), out_path, file('*__ATAC_other_plots.pdf') \
+      into ATAC_Other_plot_for_merging_pdfs
     file("*__ATAC_non_annotated_peaks.txt")
 
   shell:
@@ -2810,9 +2810,9 @@ process DA_ATAC__plotting_differential_abundance_results {
     pdf(paste0(prefix, 'volcano.pdf'))
       plot_volcano_custom(res, sig_level = fdr_threshold, 
           label_column = 'gene_name', title = title,
-          top_n_labels = top_n_labels)
+        top_n_labels = top_n_labels)
     dev.off()
-
+    
 
     ##### PCA plots
 
@@ -2843,6 +2843,15 @@ process DA_ATAC__plotting_differential_abundance_results {
       make_4_plots(lp_3_4)
     dev.off()
     
+    
+    ##### FDR by PA filters plots
+    
+    p1 = plot_FDR_by_PA_filters(res, title)
+    
+    pdf(paste0(prefix, 'FDR_by_PA.pdf'))
+      print(p1)
+    dev.off()
+    
 
     ##### other plots
 
@@ -2852,15 +2861,6 @@ process DA_ATAC__plotting_differential_abundance_results {
         first_2_replicates = sort(c(which(dbo$masks$Replicate.1), 
           which(dbo$masks$Replicate.2)))
         dba.plotVenn(dbo, mask = first_2_replicates, main = 'all reads')
-    dev.off()
-    
-    
-    ##### FDR by PA filters plots
-    
-    p1 = plot_FDR_by_PA_filters(res, title)
-    
-    pdf(paste0(prefix, 'FDR_by_PA.pdf'))
-      print(p1)
     dev.off()
     
 

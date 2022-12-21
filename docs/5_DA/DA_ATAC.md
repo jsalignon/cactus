@@ -104,6 +104,11 @@ This process makes standardized (i.e. similar types of plots are produced for mR
     - Same as above but for principal components 3 and 4.
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_PCA_3_4.png" width="400" />  
 
+- **FDR by PA filters plots**: 
+  - `Figures_Individual/2_Differential_Abundance/ATAC_FDR_by_PA/${comparison}__ATAC_FDR_by_PA.pdf`
+  - `Figures_Merged/2_Differential_Abundance/ATAC_FDR_by_PA.pdf`.
+  <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_FDR_by_PA.png" width="400" />  
+
 - **Other plots**; 
   - `Figures_Individual/2_Differential_Abundance/ATAC__other_plots/${comparison}__ATAC_other_plots.pdf`
   - `Figures_Merged/2_Differential_Abundance/ATAC__other_plots.pdf`
