@@ -220,6 +220,7 @@ Figures:
 ## 3. Enrichment: Enrichment
 
 - **_params.disable_all_enrichments_**: If true all enrichment analysis are disabled. Default: false.
+- **_params.do_only_self_enrichment_**: If true all enrichment analysis are disabled. Default: false.
 - **_params.do_genes_self_enrichment_**: Enable or disable genes self enrichment analysis. Default: true.
 - **_params.do_peaks_self_enrichment_**: Enable or disable peaks self enrichment analysis. Default: true.
 - **_params.do_func_anno_enrichment_**: Enable or disable gene set enrichment analysis. Default: true.

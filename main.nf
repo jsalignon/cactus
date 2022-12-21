@@ -98,7 +98,14 @@ do_mRNA = params.experiment_types in ['mRNA', 'both']
 
 params.do_any_enrichment = !params.disable_all_enrichments
 
-
+if(params.do_only_self_enrichment){
+  params.do_genes_self_enrichment  = true
+  params.do_peaks_self_enrichment  = true
+  params.do_func_anno_enrichment   = false
+  params.do_chrom_state_enrichment = false
+  params.do_chip_enrichment        = false
+  params.do_motif_enrichment       = false
+}
 
 
 //// Creating empty channels
