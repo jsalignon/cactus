@@ -130,16 +130,16 @@ params_heatmaps_params = update_common_params(params.common__heatmaps_params, pa
 params_heatmaps_ggplot = update_common_params(params.common__heatmaps_ggplot, params.heatmaps_ggplot)
 params_heatmaps_ggplot = update_common_params(params.common__heatmaps_ggplot, params.heatmaps_filter)
 
-if(params.common_heatmaps_filter == null){
+if(params.common__heatmaps_filter == null){
   params_heatmaps_filter = params.heatmaps_filter
 } else {
   params_heatmaps_filter = [
     genes_self:   "NULL",
     peaks_self:   "NULL",
-    func_anno:    params.common_heatmaps_filter,
+    func_anno:    params.common__heatmaps_filter,
     chrom_states: "NULL",
-    CHIP:         params.common_heatmaps_filter,
-    motifs:       params.common_heatmaps_filter
+    CHIP:         params.common__heatmaps_filter,
+    motifs:       params.common__heatmaps_filter
   ]
 }
 
@@ -4395,7 +4395,8 @@ Enrichment_results_for_plotting
   .map{ [ it[0], it[1], it[3], it[5], params_padj_bin_breaks[it[2]], 
                                       params_heatmaps_params[it[2]], 
                                       params_heatmaps_ggplot[it[2]], 
-                                      params_heatmaps_filter[it[2]] ] }
+                                      params_heatmaps_filter[it[2]]
+                                      ] }
   // format: key, DT, comp_order, rds_files, padj_breaks, plot_params, ggplot_params, filters
   .dump(tag:'heatmap')
   .set{ Enrichment_results_for_plotting_heatmaps }
@@ -4411,9 +4412,10 @@ Enrichment_results_for_plotting_barplots_1
   .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|BP|CC|MF)', ''), it[2] ]  }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, DT_short, rds_file
   .dump(tag: 'barplot')
-  .map{ [ it[0], it[1], it[3]], params_padj_bin_breaks[it[2]], 
+  .map{ [ it[0], it[1], it[3], params_padj_bin_breaks[it[2]], 
                                 params_barplots_params[it[2]], 
-                                params_barplots_ggplot[it[2]]}
+                                params_barplots_ggplot[it[2]]
+                                ] }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file, padj_breaks, plot_params, ggplot_params
   .set{ Enrichment_results_for_plotting_barplots_2 }
 
@@ -4429,7 +4431,7 @@ process Figures__making_enrichment_barplots {
              
   publishDir path: "${out_processed}/3_Enrichment/Barplots__${data_type}", 
              mode: "${pub_mode}", pattern = "*.rds", 
-             enabled = params.save_enrichment_rds
+             enabled: params.save_enrichment_rds
 
   input:
     set key, data_type, file(res_gene_set_enrichment_rds), 
@@ -4546,7 +4548,7 @@ process Figures__making_enrichment_heatmap {
              
   publishDir path: "${out_processed}/3_Enrichment/Heatmaps__${data_type}", 
              mode: "${pub_mode}", pattern = "*.rds", 
-             enabled = params.save_enrichment_rds
+             enabled: params.save_enrichment_rds
 
   input:
     set key, data_type, comp_order, file('*'), 
