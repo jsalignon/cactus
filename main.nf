@@ -128,21 +128,10 @@ params_barplots_params = update_common_params(params.common__barplots_params, pa
 params_barplots_ggplot = update_common_params(params.common__barplots_ggplot, params.barplots_ggplot)
 params_heatmaps_params = update_common_params(params.common__heatmaps_params, params.heatmaps_params)
 params_heatmaps_ggplot = update_common_params(params.common__heatmaps_ggplot, params.heatmaps_ggplot)
-params_heatmaps_ggplot = update_common_params(params.common__heatmaps_ggplot, params.heatmaps_filter)
-
-if(params.common__heatmaps_filter == null){
-  params_heatmaps_filter = params.heatmaps_filter
-} else {
-  params_heatmaps_filter = [
-    genes_self:   "NULL",
-    peaks_self:   "NULL",
-    func_anno:    params.common__heatmaps_filter,
-    chrom_states: "NULL",
-    CHIP:         params.common__heatmaps_filter,
-    motifs:       params.common__heatmaps_filter
-  ]
-}
-
+params_heatmaps_filter = update_common_params(params.common__heatmaps_filter, params.heatmaps_filter)
+params_heatmaps_filter.genes_self   = "NULL"
+params_heatmaps_filter.peaks_self   = "NULL"
+params_heatmaps_filter.chrom_states = "NULL"
 
 
 //// Creating empty channels
@@ -4392,12 +4381,14 @@ Enrichment_results_for_plotting
   .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|BP|CC|MF)', ''), 
           it[2], it[3], it[4] ]  }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, DT_short, comp_order, TV, rds_files
-  .map{ [ it[0], it[1], it[3], it[5], params_padj_bin_breaks[it[2]], 
+  .map{ [ 
+          it[0], it[1], it[3], it[5], params_padj_bin_breaks[it[2]], 
                                       params_heatmaps_params[it[2]], 
                                       params_heatmaps_ggplot[it[2]], 
                                       params_heatmaps_filter[it[2]]
-                                      ] }
-  // format: key, DT, comp_order, rds_files, padj_breaks, plot_params, ggplot_params, filters
+        ]
+      }
+  // format: key, DT, comp_order, rds_files, padj_breaks, plot_params, ggplot_params, filter_params
   .dump(tag:'heatmap')
   .set{ Enrichment_results_for_plotting_heatmaps }
 
@@ -4412,10 +4403,12 @@ Enrichment_results_for_plotting_barplots_1
   .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|BP|CC|MF)', ''), it[2] ]  }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, DT_short, rds_file
   .dump(tag: 'barplot')
-  .map{ [ it[0], it[1], it[3], params_padj_bin_breaks[it[2]], 
-                                params_barplots_params[it[2]], 
-                                params_barplots_ggplot[it[2]]
-                                ] }
+  .map{ [ 
+          it[0], it[1], it[3], params_padj_bin_breaks[it[2]], 
+                               params_barplots_params[it[2]], 
+                               params_barplots_ggplot[it[2]]
+        ]
+      }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file, padj_breaks, plot_params, ggplot_params
   .set{ Enrichment_results_for_plotting_barplots_2 }
 
@@ -4552,8 +4545,8 @@ process Figures__making_enrichment_heatmap {
 
   input:
     set key, data_type, comp_order, file('*'), 
-        padj_breaks, plot_params, ggplot_params, \
-        filters from Enrichment_results_for_plotting_heatmaps
+        padj_breaks, plot_params, ggplot_params,
+        filter_params from Enrichment_results_for_plotting_heatmaps
 
   output:
     set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") \
@@ -4579,8 +4572,8 @@ process Figures__making_enrichment_heatmap {
     data_type     = '!{data_type}'
     padj_breaks   = !{padj_breaks}
     plot_params   = !{plot_params}
-    filters       = !{filters}
     ggplot_params = !{ggplot_params}
+    filter_params = !{filter_params}
     seed          = '!{params.heatmaps__seed}'
 
 
@@ -4599,13 +4592,13 @@ process Figures__making_enrichment_heatmap {
     legend_text_size = ggplot_params[3] %>% as.integer
 
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
-      n_total              = filters[1] %>% as.integer
-      n_shared             = filters[2] %>% as.integer
-      n_unique             = filters[3] %>% as.integer
-      remove_similar       = filters[4] %>% as.logical
-      remove_similar_n     = filters[5] %>% as.integer
-      agglomeration_method = filters[6] %>% as.character
-      select_enriched      = filters[7] %>% as.logical
+      n_total              = filter_params[1] %>% as.integer
+      n_shared             = filter_params[2] %>% as.integer
+      n_unique             = filter_params[3] %>% as.integer
+      remove_similar       = filter_params[4] %>% as.logical
+      remove_similar_n     = filter_params[5] %>% as.integer
+      agglomeration_method = filter_params[6] %>% as.character
+      select_enriched      = filter_params[7] %>% as.logical
     }
 
     # loading, merging and processing data
