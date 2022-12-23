@@ -238,16 +238,24 @@ Figures:
 
 ## 3. Enrichment: Figures
 
-- **_params.padj_breaks_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
-- **_params.common_padj_breaks_**: This parameter allows to set all the *params.padj_breaks* parameters (see previous parameter) to the same values. Default: null.
+- **_params.save_enrichment_rds_**: Should figures be saved as rds object or not. Default: false.
+- **_params.common_**__**_{padj_bin_breaks,barplots_params,barplots_ggplot,heatmaps_params,heatmaps_ggplot,heatmaps_filter}_**: These parameters allow to set the same parameters to each enrichment categorie. There is one parameter for each enrichment category (e.g., params.common__barplots_params). If null this parameter is disabled, otherwise the value is used as the value to set up each parameter to. Default: null.
 
+- **_params.padj_bin_breaks_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
+- 
 - **_params.barplots_params_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the barplots. There is one parameter for each enrichment category. Default: "c( 0.05, T, 'none', F, 50, 30 )". The options are in order:
-  - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
-  - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
-  - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
-  - **_add_number_**: Write the number count on the plots.
-  - **_max_characters_**: The length limit of terms names.
-  - **_max_terms_**: Number of terms to display.
+- **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
+- **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).  
+- **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).  
+- **_add_number_**: Write the number count on the plots.
+- **_max_characters_**: The length limit of terms names.
+- **_max_terms_**: Number of terms to display.
+
+- **_params.barplots_ggplot_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the appearance of the barplots by tweaking ggplot2 parameters. There is one parameter for each enrichment category. Default: "c( 11, 10, 7 )". The options are in order:
+  - **_axis_text_size_**: Axis text size.
+	- **_title_text_size_**: Title text size.
+  - **_legend_text_size_**: Legend text size.
+
 
 - **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
 
@@ -258,6 +266,11 @@ Figures:
   - **_add_number_**: Write the number count on the plots.
   - **_max_characters_**: The limit of target names length. Longer targt names are cut.
   - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
+
+- **_params.heatmaps_ggplot_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the appearance of the heatmaps by tweaking ggplot2 parameters. There is one parameter for each enrichment category. Default: "c( 11, 10, 7 )". The options are in order:
+  - **_axis_text_size_**: Axis text size.
+	- **_title_text_size_**: Title text size.
+  - **_legend_text_size_**: Legend text size.
 
 - **_params.heatmaps_filter_**__**_{func_anno,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the selection of terms for the heatmaps. Such filtering parameters are only available for the `func_anno`, `CHIP` and `motifs` enrichment categories. Default for `func_anno`: "c( 26, 18, 8, F, 2, 'ward.D', F)". Default for `CHIP` and `motifs`: "c( 40, 30, 10, T, 2, 'ward.D', F)". The options are in order:
   - **_n_total_**: Total number of terms to select. This number should be higher than or equal to `n_shared + n_unique`. If the former is true, then remaining slots are taken by conditions with the lowest pvalues accross all `COMP_FC` (with ties sorted randomly).

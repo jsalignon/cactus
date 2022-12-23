@@ -106,16 +106,40 @@ do_chrom_state =  params.do_chrom_state_enrichment && !do_OSE  && !di_ALL
 do_chip        =  params.do_chip_enrichment        && !do_OSE  && !di_ALL
 do_motif       =  params.do_motif_enrichment       && !do_OSE  && !di_ALL
 
-if(params.common_padj_breaks == null){
-  padj_breaks_final = params.padj_breaks
+
+def update_common_params(common_params, current_params) {
+  if(common_params == null){
+    new_params = current_params
+  } else {
+    new_params = [
+      genes_self:   common_params,
+      peaks_self:   common_params,
+      func_anno:    common_params,
+      chrom_states: common_params,
+      CHIP:         common_params,
+      motifs:       common_params
+    ]
+  }
+  return(new_params)
+}
+
+params_padj_bin_breaks = update_common_params(params.common__padj_bin_breaks, params.padj_bin_breaks)
+params_barplots_params = update_common_params(params.common__barplots_params, params.barplots_params)
+params_barplots_ggplot = update_common_params(params.common__barplots_ggplot, params.barplots_ggplot)
+params_heatmaps_params = update_common_params(params.common__heatmaps_params, params.heatmaps_params)
+params_heatmaps_ggplot = update_common_params(params.common__heatmaps_ggplot, params.heatmaps_ggplot)
+params_heatmaps_ggplot = update_common_params(params.common__heatmaps_ggplot, params.heatmaps_filter)
+
+if(params.common_heatmaps_filter == null){
+  params_heatmaps_filter = params.heatmaps_filter
 } else {
-  padj_breaks_final = [
-    genes_self:   params.common_padj_breaks,
-    peaks_self:   params.common_padj_breaks,
-    func_anno:    params.common_padj_breaks,
-    chrom_states: params.common_padj_breaks,
-    CHIP:         params.common_padj_breaks,
-    motifs:       params.common_padj_breaks
+  params_heatmaps_filter = [
+    genes_self:   "NULL",
+    peaks_self:   "NULL",
+    func_anno:    params.common_heatmaps_filter,
+    chrom_states: "NULL",
+    CHIP:         params.common_heatmaps_filter,
+    motifs:       params.common_heatmaps_filter
   ]
 }
 
@@ -4368,10 +4392,11 @@ Enrichment_results_for_plotting
   .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|BP|CC|MF)', ''), 
           it[2], it[3], it[4] ]  }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, DT_short, comp_order, TV, rds_files
-  .map{ [ it[0], it[1], params.heatmaps_params[it[2]], 
-            padj_breaks_final[it[2]], params.heatmaps_filter[it[2]], 
-            it[3], it[4], it[5] ] }
-  // format: key, DT, plots_params, padj_breaks, filters, comp_order, TV, rds_files
+  .map{ [ it[0], it[1], it[3], it[5], params_padj_bin_breaks[it[2]], 
+                                      params_heatmaps_params[it[2]], 
+                                      params_heatmaps_ggplot[it[2]], 
+                                      params_heatmaps_filter[it[2]] ] }
+  // format: key, DT, comp_order, rds_files, padj_breaks, plot_params, ggplot_params, filters
   .dump(tag:'heatmap')
   .set{ Enrichment_results_for_plotting_heatmaps }
 
@@ -4386,8 +4411,10 @@ Enrichment_results_for_plotting_barplots_1
   .map{ [ it[0], it[1], it[1].replaceAll('_(KEGG|BP|CC|MF)', ''), it[2] ]  }
   // format: key (ET__PA__FC__TV__COMP__DT), DT, DT_short, rds_file
   .dump(tag: 'barplot')
-  .map{ [ it[0], it[1], params.barplots_params[it[2]], padj_breaks_final[it[2]], it[3]]}
-  // format: key (ET__PA__FC__TV__COMP__DT), DT, plots_params, padj_breaks, rds_file
+  .map{ [ it[0], it[1], it[3]], params_padj_bin_breaks[it[2]], 
+                                params_barplots_params[it[2]], 
+                                params_barplots_ggplot[it[2]]}
+  // format: key (ET__PA__FC__TV__COMP__DT), DT, rds_file, padj_breaks, plot_params, ggplot_params
   .set{ Enrichment_results_for_plotting_barplots_2 }
 
 
@@ -4398,12 +4425,16 @@ process Figures__making_enrichment_barplots {
   label "figures"
 
   publishDir path: "${out_fig_indiv}/3_Enrichment/Barplots__${data_type}", 
-             mode: "${pub_mode}"
+             mode: "${pub_mode}", pattern = "*.pdf"
+             
+  publishDir path: "${out_processed}/3_Enrichment/Barplots__${data_type}", 
+             mode: "${pub_mode}", pattern = "*.rds", 
+             enabled = params.save_enrichment_rds
 
   input:
-    set key, data_type, plots_params, padj_breaks, 
-      file(res_gene_set_enrichment_rds) \
-      from Enrichment_results_for_plotting_barplots_2
+    set key, data_type, file(res_gene_set_enrichment_rds), 
+        padj_breaks, plot_params, ggplot_params \
+        from Enrichment_results_for_plotting_barplots_2
 
   output:
     set val("Barplots__${data_type}"), val("3_Enrichment"), file("*.pdf") \
@@ -4425,22 +4456,28 @@ process Figures__making_enrichment_barplots {
     source('!{projectDir}/bin/get_new_name_by_unique_character.R')
     source('!{projectDir}/bin/functions_pvalue_plots.R')
     
-    key         = '!{key}'
-    data_type   = '!{data_type}'
-    df1         = readRDS('!{res_gene_set_enrichment_rds}')
-    padj_breaks = !{padj_breaks}
-    plot_params = !{plots_params}
+    key           = '!{key}'
+    data_type     = '!{data_type}'
+    df1           = readRDS('!{res_gene_set_enrichment_rds}')
+    padj_breaks   = !{padj_breaks}
+    plot_params   = !{plot_params}
+    ggplot_params = !{ggplot_params}
     
 
     # getting parameters
     if(grepl('func_anno', data_type)) data_type = 'func_anno'
     df             = df1
+    
     padj_threshold = plot_params[1] %>% as.numeric
     signed_padj    = plot_params[2] %>% as.logical
     add_var        = plot_params[3] %>% as.character
     add_number     = plot_params[4] %>% as.logical
     max_characters = plot_params[5] %>% as.integer
     max_terms      = plot_params[6] %>% as.integer
+    
+    axis_text_size   = ggplot_params[1] %>% as.integer
+    title_text_size  = ggplot_params[2] %>% as.integer
+    legend_text_size = ggplot_params[3] %>% as.integer
 
 
     # quitting if there are no significant results to show
@@ -4471,9 +4508,9 @@ process Figures__making_enrichment_barplots {
     p1 = ggplot(df, aes(x = yaxis_terms, y = ov_da)) + coord_flip() + 
       geom_bar(stat = 'identity') + ggtitle(key) + theme_bw() + 
       theme(axis.title.y = element_blank(), 
-        axis.text = element_text(size = 11, color = 'black'), 
-        plot.title = element_text(hjust = 0.9, size = 10), 
-        legend.text = element_text(size = 7)
+        axis.text = element_text(size = axis_text_size, color = 'black'), 
+        plot.title = element_text(hjust = 0.9, size = title_text_size), 
+        legend.text = element_text(size = legend_text_size)
        ) + ylab(xlab)
 
     point_size = scales::rescale(c(nrow(df), seq(0, 30, len = 5)), c(6, 3))[1]
@@ -4484,6 +4521,8 @@ process Figures__making_enrichment_barplots {
     pdf(paste0(key, '__barplot.pdf'), paper = 'a4r')
       print(p_binned)
     dev.off()
+    
+    saveRDS(p_binned, paste0(key, '__barplot.rds'))
 
     '''
 }
@@ -4503,11 +4542,16 @@ process Figures__making_enrichment_heatmap {
   maxRetries 3
 
   publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", 
-             mode: "${pub_mode}"
+             mode: "${pub_mode}", pattern = "*.pdf"
+             
+  publishDir path: "${out_processed}/3_Enrichment/Heatmaps__${data_type}", 
+             mode: "${pub_mode}", pattern = "*.rds", 
+             enabled = params.save_enrichment_rds
 
   input:
-    set key, data_type, plots_params, padj_breaks, filters, comp_order, 
-      tv, file('*') from Enrichment_results_for_plotting_heatmaps
+    set key, data_type, comp_order, file('*'), 
+        padj_breaks, plot_params, ggplot_params, \
+        filters from Enrichment_results_for_plotting_heatmaps
 
   output:
     set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") \
@@ -4528,13 +4572,14 @@ process Figures__making_enrichment_heatmap {
     source('!{projectDir}/bin/functions_pvalue_plots.R')
     source('!{projectDir}/bin/functions_grouped_plot.R')
 
-    key         = '!{key}'
-    comp_order  = '!{comp_order}'
-    data_type   = '!{data_type}'
-    padj_breaks = !{padj_breaks}
-    plot_params = !{plots_params}
-    filters     = !{filters}
-    seed        = '!{params.heatmaps__seed}'
+    key           = '!{key}'
+    comp_order    = '!{comp_order}'
+    data_type     = '!{data_type}'
+    padj_breaks   = !{padj_breaks}
+    plot_params   = !{plot_params}
+    filters       = !{filters}
+    ggplot_params = !{ggplot_params}
+    seed          = '!{params.heatmaps__seed}'
 
 
     # getting parameters
@@ -4547,6 +4592,10 @@ process Figures__making_enrichment_heatmap {
     max_characters  = plot_params[5] %>% as.integer
     up_down_pattern = plot_params[6] %>% as.character
     
+    axis_text_size   = ggplot_params[1] %>% as.integer
+    title_text_size  = ggplot_params[2] %>% as.integer
+    legend_text_size = ggplot_params[3] %>% as.integer
+
     if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
       n_total              = filters[1] %>% as.integer
       n_shared             = filters[2] %>% as.integer
@@ -4651,7 +4700,8 @@ process Figures__making_enrichment_heatmap {
 
     # making and saving plots
     p1 = getting_heatmap_base(df_final, nrows, ncols, title = key, 
-      cur_mat = mat_final)
+      cur_mat = mat_final, axis_text_size = axis_text_size, 
+      title_text_size = title_text_size, legend_text_size = legend_text_size)
     point_size = scales::rescale(c(nrows, seq(0, 40, len = 5)), c(3, 0.8))[1]
     p_binned = get_plot_binned(p1, signed_padj = signed_padj, add_var, 
       add_number, point_size = point_size)
@@ -4660,7 +4710,8 @@ process Figures__making_enrichment_heatmap {
       print(p_binned)
     dev.off()
 
-
+    saveRDS(p_binned, paste0(key, '__heatmap.rds'))
+    
     '''
 }
 

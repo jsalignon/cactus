@@ -149,8 +149,8 @@ add_matrix_indexes_to_df <- function(cur_mat, cur_df, rows, cols, signed_loglog 
 ################################################
 ## Plotting the heatmap
 
-getting_heatmap_base <- function(cur_df, rows, cols, title, cur_mat){
-  p1 = ggplot(data = cur_df, aes(x = colInd - 0.5, y = rowInd - 0.5, xmin = colInd - 1, xmax = colInd, ymin = rowInd - 1, ymax = rowInd)) + geom_rect() + theme_bw() + scale_x_continuous(breaks = (1:cols) - 0.5, labels = colnames(cur_mat), expand = c(0, 0)) + scale_y_continuous(breaks = (1:rows) - 0.5, labels = rownames(cur_mat), expand = c(0, 0)) + coord_fixed(1) + theme(axis.title = element_blank(), axis.text.y = element_text(size = 7), axis.text.x = element_text(size = 7, angle = 90, hjust = 1, vjust = 0.5), axis.line = element_line(colour = "black"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), plot.title = element_text(hjust = 0.5, size = 8)) + ggtitle(title)
+getting_heatmap_base <- function(cur_df, rows, cols, title, cur_mat, axis_text_size = 7, title_text_size = 8, legend_text_size = 7){
+  p1 = ggplot(data = cur_df, aes(x = colInd - 0.5, y = rowInd - 0.5, xmin = colInd - 1, xmax = colInd, ymin = rowInd - 1, ymax = rowInd)) + geom_rect() + theme_bw() + scale_x_continuous(breaks = (1:cols) - 0.5, labels = colnames(cur_mat), expand = c(0, 0)) + scale_y_continuous(breaks = (1:rows) - 0.5, labels = rownames(cur_mat), expand = c(0, 0)) + coord_fixed(1) + theme(axis.title = element_blank(), axis.text.y = element_text(size = axis_text_size), axis.text.x = element_text(size = axis_text_size, angle = 90, hjust = 1, vjust = 0.5), axis.line = element_line(colour = "black"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), plot.title = element_text(hjust = 0.5, size = title_text_size), legend.text = element_text(size = legend_text_size)) + ggtitle(title)
   return(p1)
 }
 
