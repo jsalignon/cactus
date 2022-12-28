@@ -4141,7 +4141,7 @@ process Enrichment__computing_motifs_overlaps {
   label "homer"
   cpus params.homer__nb_threads
 
-  publishDir path: "${out_processed}/3_Enrichment_Analysis/${data_type}/${key}", 
+  publishDir path: "${out_processed}/3_Enrichment_Analysis/Enrichment__motifs__raw/${key}", 
              mode: "${pub_mode}"
 
   when: 
@@ -4420,11 +4420,11 @@ process Figures__making_enrichment_barplots {
   label "figures"
 
   publishDir path: "${out_fig_indiv}/3_Enrichment_Analysis/Barplots__${data_type}", 
-             mode: "${pub_mode}", pattern = "*.pdf"
+             mode: "${pub_mode}", pattern: "*.pdf"
              
   publishDir path: "${out_processed}/3_Enrichment_Analysis/Barplots__${data_type}", 
-             mode: "${pub_mode}", pattern = "*.rds", 
-             enabled: params.save_enrichment_rds
+             mode: "${pub_mode}", pattern: "*.rds", 
+             enabled: params.save_barplots_rds
 
   input:
     set key, data_type, file(res_gene_set_enrichment_rds), 
@@ -4434,6 +4434,7 @@ process Figures__making_enrichment_barplots {
   output:
     set val("Barplots__${data_type}"), val("3_Enrichment_Analysis"), file("*.pdf") \
       optional true into Barplots_for_merging_pdfs
+    file("*.rds") optional true
 
   shell:
     
@@ -4537,11 +4538,11 @@ process Figures__making_enrichment_heatmap {
   maxRetries 3
 
   publishDir path: "${out_fig_indiv}/3_Enrichment_Analysis/Heatmaps__${data_type}", 
-             mode: "${pub_mode}", pattern = "*.pdf"
+             mode: "${pub_mode}", pattern: "*.pdf"
              
   publishDir path: "${out_processed}/3_Enrichment_Analysis/Heatmaps__${data_type}", 
-             mode: "${pub_mode}", pattern = "*.rds", 
-             enabled: params.save_enrichment_rds
+             mode: "${pub_mode}", pattern: "*.rds", 
+             enabled: params.save_heatmaps_rds
 
   input:
     set key, data_type, comp_order, file('*'), 
@@ -4551,6 +4552,7 @@ process Figures__making_enrichment_heatmap {
   output:
     set val("Heatmaps__${data_type}"), val("3_Enrichment_Analysis"), file("*.pdf") \
       optional true into Heatmaps_for_merging_pdfs
+    file("*.rds") optional true
 
   shell:
     '''

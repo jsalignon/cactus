@@ -238,7 +238,8 @@ Figures:
 
 ## 3. Enrichment: Figures
 
-- **_params.save_enrichment_rds_**: Should figures be saved as rds object or not. Default: false.
+- **_params.save_barplots_rds_**: Should barplots be saved as rds object or not. Default: false.
+- **_params.save_heatmaps_rds_**: Should heatmaps be saved as rds object or not. Default: false.
 - **_params.common_**__**_{padj_bin_breaks,barplots_params,barplots_ggplot,heatmaps_params,heatmaps_ggplot,heatmaps_filter}_**: These parameters allow to set the same parameters to each enrichment categorie. There is one parameter for each enrichment category (e.g., params.common__barplots_params). If null this parameter is disabled, otherwise the value is used as the value to set up each parameter to. Default: null.
 
 - **_params.padj_bin_breaks_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".

@@ -30,7 +30,7 @@ Adjusted p-values are signed with positive values for enrichment and negative va
 Finally, it is possible to add additional colored point to the top of the bars that represent different values (*params.barplots__add_var*) and to write the overlap count (*params.barplots__add_number*).
 
 ### Parameters
-- **_params.save_enrichment_rds_**: Should figures be saved as rds object or not. Default: false.
+- **_params.save_barplots_rds_**: Should barplots be saved as rds object or not. Default: false.
 - **_params.common_**__**_{padj_bin_breaks,barplots_params,barplots_ggplot}_**: These parameters allow to set the same parameters to each enrichment categorie. There is one parameter for each enrichment category (e.g., params.common__barplots_params). If null this parameter is disabled, otherwise the value is used as the value to set up each parameter to. Default: null.
 - **_params.padj_bin_breaks_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing the 5 adjusted p-value bins cutoff. There is one parameter for each enrichment category. Default: "c( 0.2, 0.05, 1e-5, 1e-20, 1e-100 )".
 
@@ -101,7 +101,7 @@ Cells are colored with signed and binned adjusted pvalues as described in the [p
 >**_Note_:** The genes-self and peaks-self heatmaps are not always symmetrical. This is because the heatmaps shows the enrichment of entries from the left side into the entries on the bottom side, and thus the target (set to overlap with) and background (NDA: Entries Not in the Differential Analysis subset) are different (obs. one can look at results tables for examples on these calculations).
 
 ### Parameters
-- **_params.save_enrichment_rds_**: Should figures be saved as rds object or not. Default: false.
+- **_params.save_heatmaps_rds_**: Should heatmaps be saved as rds object or not. Default: false.
 - **_params.common_**__**_{padj_bin_breaks,heatmaps_params,heatmaps_ggplot,heatmaps_filter}_**: These parameters allow to set the same parameters to each enrichment categorie. There is one parameter for each enrichment category (e.g., params.common__barplots_params). If null this parameter is disabled, otherwise the value is used as the value to set up each parameter to. Default: null.
 - **_params.padj_bin_breaks_**: same argument as in the [previous process](/docs/6_Enrich/Figures.md#Figures__making_enrichment_barplots).
 - **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.

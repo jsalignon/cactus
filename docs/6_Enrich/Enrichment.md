@@ -106,7 +106,7 @@ This process uses [HOMER](https://doi.org/10.1016/j.molcel.2010.05.004) to compu
 - **_params.homer__nb_threads_**: number of threads used by Bowtie2. Default: 6.
 
 ### Outputs
-- **Homer output folder**: `Processed_Data/3_Enrichment_Analysis/${EC}/${key}/${key}__homer_results.txt`
+- **Homer output folder**: `Processed_Data/3_Enrichment_Analysis/motifs__raw/${key}`
 
 
 ## Enrichment__reformatting_motifs_results
