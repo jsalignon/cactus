@@ -58,25 +58,25 @@ Finally, it is possible to add additional colored point to the top of the bars t
 
 ### Examples
 - **Genes self**:  
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__genes_self__barplot.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__down__200__hmg4_vs_ctl__genes_self__barplot.png" width="700" />  
 
 - **Peaks self**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__peaks_self__barplot.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__down__200__hmg4_vs_ctl__peaks_self__barplot.png" width="700" />  
 
 - **Functional annotations GO-BP**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__barplot.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__down__200__hmg4_vs_ctl__func_anno_BP__barplot.png" width="700" />  
 
 - **Functional annotations KEGG**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_KEGG__barplot.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__down__200__hmg4_vs_ctl__func_anno_KEGG__barplot.png" width="700" />  
 
 - **Chromatin states**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__chrom_states__barplot.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__down__200__hmg4_vs_ctl__chrom_states__barplot.png" width="700" />  
 
 - **CHIP**:   
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__CHIP__barplot.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__down__200__hmg4_vs_ctl__CHIP__barplot.png" width="700" />  
 
 - **Motifs**:  
-<img src="/docs/examples/png/ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.png" width="700" />  
+<img src="/docs/examples/png/ATAC__all__down__200__hmg4_vs_spt16__motifs__barplot.png" width="700" />  
 
 
 
@@ -135,25 +135,25 @@ Cells are colored with signed and binned adjusted pvalues as described in the [p
 
 ### Examples
 - **Genes self**:  
-<img src="/docs/examples/png/ATAC__all__1000__all__genes_self__heatmap.png" width="550" />  
+<img src="/docs/examples/png/ATAC__all__200__all__genes_self__heatmap.png" width="550" />  
 
 - **Peaks self**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__peaks_self__heatmap.png" width="550" />  
+<img src="/docs/examples/png/ATAC__all__200__all__peaks_self__heatmap.png" width="550" />  
 
 - **Functional annotations GO-BP**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__func_anno_BP__heatmap.png" width="550" />  
+<img src="/docs/examples/png/ATAC__all__200__all__func_anno_BP__heatmap.png" width="550" />  
 
 - **Functional annotations KEGG**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__func_anno_KEGG__heatmap.png" width="550" />  
+<img src="/docs/examples/png/ATAC__all__200__all__func_anno_KEGG__heatmap.png" width="550" />  
 
 - **Chromatin states**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__chrom_states__heatmap.png" width="550" />  
+<img src="/docs/examples/png/ATAC__all__200__all__chrom_states__heatmap.png" width="550" />  
 
 - **CHIP**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__CHIP__heatmap.png" width="550" />  
+<img src="/docs/examples/png/ATAC__all__200__all__CHIP__heatmap.png" width="550" />  
 
 - **Motifs**:   
-<img src="/docs/examples/png/ATAC__all__1000__all__motifs__heatmap.png" width="550" />  
+<img src="/docs/examples/png/ATAC__all__200__all__motifs__heatmap.png" width="550" />  
 
 
 ## Figures__merging_pdfs
