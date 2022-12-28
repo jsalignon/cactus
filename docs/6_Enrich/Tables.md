@@ -5,7 +5,7 @@
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/Data.md), [Design](/docs/3_Inputs/Design.md), [Parameters](/docs/3_Inputs/Parameters.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
-* [2. Differential Abundance](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
+* [2. Differential Analysis](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
 * [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Enrichment](/docs/6_Enrich/Enrichment.md), [Figures](/docs/6_Enrich/Figures.md), [Tables](/docs/6_Enrich/Tables.md)
 
 [](END_OF_MENU)
@@ -48,7 +48,7 @@ This process merge csv tables in R and format them (sorting by descending FDR an
 
 ### Description
 This process format tables in Excel with these steps:
- - Homogeneous coloring: coloring cells by column types: with the subset keys in red, the target in green, pvalue columns in orange, L2OR and L2FC in purple, DA (Differential Abundance) columns in gold, NDA (non-DA) columns in blue, and total entry in target (tot_tgt) in grey. Headers are colored with a darker color than other cells (body) in the column.
+ - Homogeneous coloring: coloring cells by column types: with the subset keys in red, the target in green, pvalue columns in orange, L2OR and L2FC in purple, DA (Differential Analysis subsets) columns in gold, NDA (non-DA) columns in blue, and total entry in target (tot_tgt) in grey. Headers are colored with a darker color than other cells (body) in the column.
  - Conditional coloring for the body of: 
    - adjusted pvalues: gradient from light orange (highest pvalues) to dark orange (lowest pvalues).
    - L2OR and L2FC: gradient from red (highest values) to white (zero) to blue (lowest values). Infinite values are assigned a value of +/-e99 and given the same value as the highest/lowest non-infinite value for coloring.

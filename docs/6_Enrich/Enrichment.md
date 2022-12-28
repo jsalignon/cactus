@@ -5,7 +5,7 @@
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/Data.md), [Design](/docs/3_Inputs/Design.md), [Parameters](/docs/3_Inputs/Parameters.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
-* [2. Differential Abundance](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
+* [2. Differential Analysis](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
 * [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Enrichment](/docs/6_Enrich/Enrichment.md), [Figures](/docs/6_Enrich/Figures.md), [Tables](/docs/6_Enrich/Tables.md)
 
 [](END_OF_MENU)
@@ -24,23 +24,22 @@
 
 # Introduction
 
-In this section, the gene lists and genomic regions from the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_abundance_results_in_subsets) are overlapped with various databases.
+In this section, the gene lists and genomic regions from the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_analysis_results_in_subsets) are overlapped with various databases.
 Five standardized columns are made for each database:
  - `tgt`: the target against which the overlap is computed
  - `tot_tgt`: total number of target entries
- - `tot_da`: total number of differentially abundant entries
- - `ov_da`: overlap of differentially abundant entries with the target
- - `tot_nda`: total number of non differentially abundant entries
- - `ov_nda`: overlap of non differentially abundant entries with the target.  
+ - `tot_da`: total number of entries in the DAS (Differential Analysis Subset)
+ - `ov_da`: overlap of entries from the DAS and the target
+ - `tot_nda`: total number of entries not in the DAS
+ - `ov_nda`: overlap of entries not in the DAS and with entries in the target
 
-
->**_Note_:** Here the words "differentially abundant" just refer to the genes or peaks that are in the subset, while the "non differentially abundant" refers to all other genes or detected regions (macs2 peaks or promoter) detected in the assay.
+>**_Note_:** Entries not in the DAS refers to all genes or detected regions (macs2 peaks or promoter) detected in the assay that are not present in the DAS.
 
 These standardized columns are then used in subsequent process [to compute pvalues](#Enrichment__computing_enrichment_pvalues) and making [figures](/docs/6_Enrich/Figures.md) and [tables](/docs/6_Enrich/Tables.md#Tables__formatting_csv_tables).
 The columns that are unique to a particular analysis are described in the corresponding process.
 
 The keys of each subset are then augmented by adding the EC (Enrichment Category) variable. Thus the key becomes: `${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}`.  
-With, as defined in the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_abundance_results_in_subsets), the variables: 
+With, as defined in the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_analysis_results_in_subsets), the variables: 
  - ET: Experiment Type
  - PA: Peak Annotation
  - FC: Fold Change
@@ -60,7 +59,7 @@ And EC can be any of these:
 
 >**_Note_:** Please see the [References section](/docs/2_Install/References.md) for details on how the external databases were downloaded and preprocessed, as well as details on the labels of the targets used in the figures and tables.
 
-For all genomic regions enrichment analysis, the non-differentially abundant (DA) regions are used as a background for computing the significance of the overlaps. While for genes enrichment analysis and option is provided (*params.use_nda_as_bg_for_func_anno*) to either non DA genes as a background or all genes in the database.
+For all genomic regions enrichment analysis, the regions not in the DAS are used as a background for computing the significance of the overlaps. While for genes enrichment analysis and option is provided (*params.use_nda_as_bg_for_func_anno*) to either non DAS genes as a background or all genes in the database.
 
 
 ## Enrichment__computing_functional_annotations_overlaps
@@ -80,13 +79,13 @@ Overlap of gene lists with functional annotation databases is performed using [c
 ## Enrichment__computing_genes_self_overlaps
 
 ### Description
-In this process, all genes sets from subsets of the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_abundance_results_in_subsets) are overlapped with each other.
+In this process, all genes sets from subsets of the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_analysis_results_in_subsets) are overlapped with each other.
 
 
 ## Enrichment__computing_peaks_overlaps
 
 ### Description
-This process takes as input genomic regions (bed files) from various sources and overlap them with genomic regions (bed files) of subsets from the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_abundance_results_in_subsets).  
+This process takes as input genomic regions (bed files) from various sources and overlap them with genomic regions (bed files) of subsets from the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_analysis_results_in_subsets).  
 The input genomic regions are:
  - CHIP
  - Chromatin states (hiHMM or ChromHMM) 
@@ -125,7 +124,7 @@ Hypergeometric minimum-likelihood two-sided p-values (`pval`) are obtained with 
 Log2 odd ratios (L2OR) is the log2 of the test's estimate.
 Pvalues are then adjusted (`padj`) using Benjamini and Hochberg's [False Discovery Rate](https://doi.org/10.1093/bioinformatics/btl633).
 
-The `pt_da` and `pt_nda` columns are added which indicate the percentage of overlap of the target with the Differential Abundant (DA) (`pt_da`) or non DA (`pt_nda`) results.  
+The `pt_da` and `pt_nda` columns are added to indicate the percentage of overlap of the target with the Differential Analysis subset (DA) (`pt_da`) or non-DA (`pt_nda`) entries.  
 A gene enrichment type column is added for functional annotation enrichment, to specify the gene database used.  
 Results are sorted by adjusted pvalues (`padj`, descending order) and overlap of DA results (`ov_da`, ascending order).  
 

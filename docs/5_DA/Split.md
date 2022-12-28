@@ -13,11 +13,11 @@
 
 # List of processes
 
-  - [DA_split__splitting_differential_abundance_results_in_subsets](#DA_split__splitting_differential_abundance_results_in_subsets)
+  - [DA_split__splitting_differential_analysis_results_in_subsets](#DA_split__splitting_differential_analysis_results_in_subsets)
   - [DA_split__plotting_venn_diagrams](#DA_split__plotting_venn_diagrams)
 
 
-## DA_split__splitting_differential_abundance_results_in_subsets
+## DA_split__splitting_differential_analysis_results_in_subsets
 
 <a href="url"> <img src="/docs/images/splitting_filters.png" width="400" /> </a>  
 Diagrams showing all filters used to split peaks into subsets.  
@@ -27,11 +27,10 @@ Dotted black and grey arrows indicate respectively potential additional filters 
 Diagrams illustrating the Experiment type filter.  
 
 ### Description
-This process splits Differential abundance results into subsets in order to do enrichment analysis on many different angles and extract the most information out of the data.  
+This process splits Differential Analysis results into subsets (i.e., DAS - Differential Analysis Subsets) in order to do enrichment analysis on many different angles and extract the most information out of the data.  
 4 filters are used to split:
   - ET: Experiment Type. Can be either 'ATAC', 'mRNA', 'both', 'both_ATAC', or 'both_mRNA'.  
-  - PA: Peak Annotation. Can be any combination of 'all', 'PA_3kb', 'PA_8kb', 'PA_2u1d', 'PA_TSS', 'PA_genProm', 'PA_genic', 'PA_prom', 'PA_distNC'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included). <!-- this is named Peak Annotation (PA) in main.nf for now; need to change that -->
-  PA_{3,8}kb: absolute distance of less than 3kb (kilo bases) or 8kb from the TSS
+  - PA: Peak Assignment. Can be any combination of 'all', 'PA_gene', 'PA_interG', 'PA_prom', 'PA_5pUTR', 'PA_3pUTR', 'PA_exon', 'PA_intron', 'PA_downst', 'PA_distIn', 'PA_UTR', 'PA_TSS', 'PA_genPro', 'PA_distNC', 'PA_3kb', 'PA_8kb', 'PA_30kb'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included).
   - FC: Fold Change. To split up and down-regulated results.
   - TV: Theshold Value(s). To split results by significance thresholds. 
 
@@ -53,16 +52,16 @@ In additions, two types of tables are produced: res_simple and res_filter. These
 - **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all' ].
 
 ### Outputs
-- **Gene lists**: `Processed_Data/2_Differential_Abundance/DA_split__genes_rds/${key}__genes.rds`
-- **Bed files**: `Processed_Data/2_Differential_Abundance/DA_split__bed_regions/${key}__regions.bed`
+- **Gene lists**: `Processed_Data/2_Differential_Analysis/DA_split__genes_rds/${key}__genes.rds`
+- **Bed files**: `Processed_Data/2_Differential_Analysis/DA_split__bed_regions/${key}__regions.bed`
 - **Res simple**: 
-  - `Tables_Individual/2_Differential_Abundance/res_simple/${comparison}__res_simple.{csv,xlsx}`
-  - `Tables_Merged/2_Differential_Abundance/res_simple.{csv,xlsx}`
+  - `Tables_Individual/2_Differential_Analysis/res_simple/${comparison}__res_simple.{csv,xlsx}`
+  - `Tables_Merged/2_Differential_Analysis/res_simple.{csv,xlsx}`
 <a href="url"> <img src="/docs/examples/xlsx_png/res_simple.png" width="800" /> </a>  
 
 - **Res filter**: 
-  - `Tables_Individual/2_Differential_Abundance/res_filter/${comparison}__res_filter.{csv,xlsx}`
-  - `Tables_Merged/2_Differential_Abundance/res_filter.{csv,xlsx}`
+  - `Tables_Individual/2_Differential_Analysis/res_filter/${comparison}__res_filter.{csv,xlsx}`
+  - `Tables_Merged/2_Differential_Analysis/res_filter.{csv,xlsx}`
 <a href="url"> <img src="/docs/examples/xlsx_png/res_filter.png" width="800" /> </a>  
 
       
@@ -78,11 +77,11 @@ In these plots, mRNA-Seq data has an orange filling, ATAC-Seq data has a blue fi
 
 ### Outputs
 - **Two-ways venn diagrams**: 
-  - `Figures_Individual/2_Differential_Abundance/Venn_diagrams__two_ways/${key}__venn_up_or_down.pdf`
-  - `Figures_Merged/2_Differential_Abundance/Venn_diagrams__two_ways.pdf`
+  - `Figures_Individual/2_Differential_Analysis/Venn_diagrams__two_ways/${key}__venn_up_or_down.pdf`
+  - `Figures_Merged/2_Differential_Analysis/Venn_diagrams__two_ways.pdf`
 <img src="/docs/examples/png/all__down__1000__hmg4_vs_ctl__venn_up_or_down.png" width="400" />  
 
 - **Four-ways venn diagrams**: 
-  - `Figures_Individual/2_Differential_Abundance/Venn_diagrams__four_ways/${key}__venn_up_and_down.pdf`
-  - `Figures_Merged/2_Differential_Abundance/Venn_diagrams__four_ways.pdf`
+  - `Figures_Individual/2_Differential_Analysis/Venn_diagrams__four_ways/${key}__venn_up_and_down.pdf`
+  - `Figures_Merged/2_Differential_Analysis/Venn_diagrams__four_ways.pdf`
 <img src="/docs/examples/png/all__1000__hmg4_vs_ctl__venn_up_and_down.png" width="400" />  

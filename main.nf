@@ -42,16 +42,16 @@
 // MRNA_QC__running_fastqc
 // MRNA_QC__running_MultiQC
 
-// DA_ATAC__doing_differential_abundance_analysis
+// DA_ATAC__doing_differential_analysis
 // DA_ATAC__annotating_diffbind_peaks
-// DA_ATAC__plotting_differential_abundance_results
+// DA_ATAC__plotting_differential_analysis_results
 // DA_ATAC__saving_detailed_results_tables
 
-// DA_mRNA__doing_differential_abundance_analysis
-// DA_mRNA__plotting_differential_abundance_results
+// DA_mRNA__doing_differential_analysis
+// DA_mRNA__plotting_differential_analysis_results
 // DA_mRNA__saving_detailed_results_tables
 
-// DA_split__splitting_differential_abundance_results_in_subsets
+// DA_split__splitting_differential_analysis_results_in_subsets
 // DA_split__plotting_venn_diagrams
 
 // Enrichment__computing_functional_annotations_overlaps
@@ -63,11 +63,11 @@
 
 // Figures__making_enrichment_barplots
 // Figures__making_enrichment_heatmap
-// Figures__merging_pdfs
 
 // Tables__formatting_csv_tables
 // Tables__merging_csv_tables
 // Tables__saving_excel_tables
+// Figures__merging_pdfs
 
 
 
@@ -2306,14 +2306,14 @@ Kallisto_results_for_sleuth_2
 
 
 
-process DA_ATAC__doing_differential_abundance_analysis {
+process DA_ATAC__doing_differential_analysis {
   tag "${COMP}"
 
   label "diffbind"
-  // label "differential_abundance"
+  // label "differential_analysis"
   // Error in loadNamespace(x) : there is no package called ‘edgeR’
 
-  publishDir path: "${out_processed}/2_Differential_Abundance", 
+  publishDir path: "${out_processed}/2_Differential_Analysis", 
     mode: "${pub_mode}", saveAs: {
      if (it.indexOf("__all_peaks.bed") > 0) "ATAC__all_peaks__bed/${it}"
      else if (it.indexOf("__diffbind_peaks_dbo.rds") > 0) 
@@ -2577,7 +2577,7 @@ process DA_ATAC__annotating_diffbind_peaks {
 
   label "bioconductor"
 
-  publishDir path: "${out_processed}/2_Differential_Abundance", 
+  publishDir path: "${out_processed}/2_Differential_Analysis", 
     mode: "${pub_mode}", saveAs: {
      if (it.indexOf("_df.rds") > 0) "ATAC__all_peaks__dataframe/${it}"
      else if (it.indexOf("_cs.rds") > 0) "ATAC__all_peaks__ChIPseeker/${it}"
@@ -2661,7 +2661,7 @@ process DA_ATAC__saving_detailed_results_tables {
       from Annotated_diffbind_peaks_for_saving_tables
 
   output:
-    set val('ATAC_detailed'), val('2_Differential_Abundance'), file('*.rds') \
+    set val('ATAC_detailed'), val('2_Differential_Analysis'), file('*.rds') \
       into ATAC_detailed_tables_for_formatting_table
     set COMP, file("*.rds"), file(diffbind_object) \
       into Annotated_diffbind_peaks_for_plotting
@@ -2772,11 +2772,11 @@ Formatting_csv_tables_channel = Formatting_csv_tables_channel
 
 
 
-process DA_ATAC__plotting_differential_abundance_results {
+process DA_ATAC__plotting_differential_analysis_results {
   tag "${COMP}"
 
   label "diffbind"
-  // label "differential_abundance"
+  // label "differential_analysis"
 
   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
     saveAs: {
@@ -2791,7 +2791,7 @@ process DA_ATAC__plotting_differential_abundance_results {
              pattern: "*__ATAC_non_annotated_peaks.txt", mode: "${pub_mode}"
 
   input:
-    val out_path from Channel.value('2_Differential_Abundance')
+    val out_path from Channel.value('2_Differential_Analysis')
     set COMP, file(res_detailed_atac), file(diffbind_object) \
       from Annotated_diffbind_peaks_for_plotting
 
@@ -2926,12 +2926,12 @@ Merging_pdfs_channel = Merging_pdfs_channel
 params.design__genes_to_remove_1 = workflow.launchDir.toString() + '/' +
                                    params.design__genes_to_remove
 
-process DA_mRNA__doing_differential_abundance_analysis {
+process DA_mRNA__doing_differential_analysis {
   tag "${COMP}"
 
   label "sleuth"
 
-  publishDir path: "${out_processed}/2_Differential_Abundance", 
+  publishDir path: "${out_processed}/2_Differential_Analysis", 
     mode: "${pub_mode}", saveAs: {
        if (it.indexOf("__mRNA_DEG_rsleuth.rds") > 0) 
           "mRNA__all_genes__rsleuth/${it}"
@@ -3063,7 +3063,7 @@ process DA_mRNA__doing_differential_abundance_analysis {
 
 
 
-process DA_mRNA__plotting_differential_abundance_results {
+process DA_mRNA__plotting_differential_analysis_results {
   tag "${COMP}"
 
   publishDir path: "${out_fig_indiv}/${out_path}", mode: "${pub_mode}", 
@@ -3078,7 +3078,7 @@ process DA_mRNA__plotting_differential_abundance_results {
   label "sleuth"
 
   input:
-    val out_path from Channel.value('2_Differential_Abundance')
+    val out_path from Channel.value('2_Differential_Analysis')
     set COMP, file(mRNA_DEG_rsleuth_rds) from Sleuth_results_for_plotting
 
   output:
@@ -3193,7 +3193,7 @@ process DA_mRNA__saving_detailed_results_tables {
 
   label "r_basic"
 
-  publishDir path: "${out_tab_indiv}/2_Differential_Abundance/mRNA", 
+  publishDir path: "${out_tab_indiv}/2_Differential_Analysis/mRNA", 
     mode: pub_mode, enabled: params.tables__save_csv
 
   when: 
@@ -3203,7 +3203,7 @@ process DA_mRNA__saving_detailed_results_tables {
     set COMP, file(mRNA_DEG_df) from Sleuth_results_for_saving_tables
 
   output:
-    set val('mRNA_detailed'), val('2_Differential_Abundance'), file('*.rds') \
+    set val('mRNA_detailed'), val('2_Differential_Analysis'), file('*.rds') \
       into MRNA_detailed_tables_for_formatting_table
     set COMP, file('*.rds') into MRNA_detailed_tables_for_splitting_in_subsets
 
@@ -3243,12 +3243,12 @@ Formatting_csv_tables_channel = Formatting_csv_tables_channel
 
 if(!do_atac & do_mRNA){
   MRNA_detailed_tables_for_splitting_in_subsets
-  .set{ Differational_abundance_results_for_splitting_in_subsets }
+  .set{ Differential_analysis_results_for_splitting_in_subsets }
 }
 
 if(do_atac & !do_mRNA){
   ATAC_detailed_tables_for_splitting_in_subsets
-  .set{ Differational_abundance_results_for_splitting_in_subsets }
+  .set{ Differential_analysis_results_for_splitting_in_subsets }
 }
 
 if(do_atac & do_mRNA){
@@ -3263,19 +3263,19 @@ if(do_atac & do_mRNA){
     ( do_atac &&  do_mRNA  && res_files.size() == 2)
   }
   .dump(tag: 'both_data')
-  .set{ Differational_abundance_results_for_splitting_in_subsets }
+  .set{ Differential_analysis_results_for_splitting_in_subsets }
 }
 
 do_mRNA_lgl = do_mRNA.toString().toUpperCase()
 do_atac_lgl = do_atac.toString().toUpperCase()
 
 
-process DA_split__splitting_differential_abundance_results_in_subsets {
+process DA_split__splitting_differential_analysis_results_in_subsets {
   tag "${COMP}"
 
   label "r_basic"
 
-  publishDir path: "${out_processed}/2_Differential_Abundance", 
+  publishDir path: "${out_processed}/2_Differential_Analysis", 
   mode: "${pub_mode}", saveAs: {
     if (it.indexOf("__genes.rds") > 0) "DA_split__genes_rds/${it}"
     else if   (it.indexOf(".bed") > 0) "DA_split__bed_regions/${it}"
@@ -3283,13 +3283,13 @@ process DA_split__splitting_differential_abundance_results_in_subsets {
 
   input:
     set COMP, file(res_detailed) \
-      from Differational_abundance_results_for_splitting_in_subsets
+      from Differential_analysis_results_for_splitting_in_subsets
 
   output:
-    set val('res_simple'), val('2_Differential_Abundance'), 
+    set val('res_simple'), val('2_Differential_Analysis'), 
       file("*__res_simple.rds") \
       into Res_simple_table_for_formatting_table optional true
-    set val('res_filter'), val('2_Differential_Abundance'), 
+    set val('res_filter'), val('2_Differential_Analysis'), 
       file("*__res_filter.rds") \
       into Res_filter_table_for_formatting_table optional true
     set COMP, file("*__genes.rds") \
@@ -3637,7 +3637,7 @@ process DA_split__plotting_venn_diagrams {
 
   label "venndiagram"
 
-  publishDir path: "${out_fig_indiv}/2_Differential_Abundance", 
+  publishDir path: "${out_fig_indiv}/2_Differential_Analysis", 
     mode: "${pub_mode}", saveAs: {
       if (it.indexOf("__venn_up_or_down.pdf") > 0) 
         "Venn_diagrams__two_ways/${it}"
@@ -3649,10 +3649,10 @@ process DA_split__plotting_venn_diagrams {
     set COMP, file('*') from DA_genes_for_plotting_venn_diagrams
 
   output:
-    set val("Venn_diagrams__two_ways"), val("2_Differential_Abundance"), 
+    set val("Venn_diagrams__two_ways"), val("2_Differential_Analysis"), 
       file('*__venn_up_or_down.pdf') \
       into Venn_up_or_down_for_merging_pdfs optional true
-    set val("Venn_diagrams__four_ways"), val("2_Differential_Abundance"), 
+    set val("Venn_diagrams__four_ways"), val("2_Differential_Analysis"), 
       file('*__venn_up_and_down.pdf') \
       into Venn_up_and_down_for_merging_pdfs optional true
 
@@ -4872,7 +4872,7 @@ process Tables__saving_excel_tables {
   // failed. Please make sure Rtools is installed or a zip application is 
   // available to R.
 
-  label "differential_abundance"
+  label "differential_analysis"
 
   publishDir path: "${res_dir}/${out_path}", mode: "${pub_mode}" 
 

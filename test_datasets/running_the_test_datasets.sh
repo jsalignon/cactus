@@ -30,3 +30,28 @@ for species in worm fly human mouse
   done
 done
 
+
+## resources needed for the analysis with these parameters:
+# cpu_nb=47
+# memory_size='300G'
+
+## Worm analysis 
+# Duration    : 10m 43s
+# CPU hours   : 4.2
+# Succeeded   : 874
+
+## Fly analysis 
+# Duration    : 21m 36s
+# CPU hours   : 9.8
+# Succeeded   : 1'496
+
+## Mouse analysis 
+# Duration    : 2h 11m 40s
+# CPU hours   : 51.5
+# Succeeded   : 981
+
+## Human analysis 
+# Duration    : 3h 27m 19s
+# CPU hours   : 77.5
+# Succeeded   : 801
+

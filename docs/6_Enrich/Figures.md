@@ -5,7 +5,7 @@
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/Data.md), [Design](/docs/3_Inputs/Design.md), [Parameters](/docs/3_Inputs/Parameters.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
-* [2. Differential Abundance](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
+* [2. Differential Analysis](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
 * [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Enrichment](/docs/6_Enrich/Enrichment.md), [Figures](/docs/6_Enrich/Figures.md), [Tables](/docs/6_Enrich/Tables.md)
 
 [](END_OF_MENU)
@@ -98,7 +98,7 @@ Briefly, this function first remove terms with similar names. Next, it selects t
 
 Cells are colored with signed and binned adjusted pvalues as described in the [previous process](/docs/6_Enrich/Figures.md#Figures__making_enrichment_barplots) and several options are available in both processes through the *heatmaps_params* parameter.  
 
->**_Note_:** The genes-self and peaks-self heatmaps are not always symmetrical. This is because the heatmaps shows the enrichment of entries from the left side into the entries on the bottom side, and thus the target (set to overlap with) and background (NDA: Not Differentially Abundant entries) are different (obs. one can look at results tables for examples on these calculations).
+>**_Note_:** The genes-self and peaks-self heatmaps are not always symmetrical. This is because the heatmaps shows the enrichment of entries from the left side into the entries on the bottom side, and thus the target (set to overlap with) and background (NDA: Entries Not in the Differential Analysis subset) are different (obs. one can look at results tables for examples on these calculations).
 
 ### Parameters
 - **_params.save_enrichment_rds_**: Should figures be saved as rds object or not. Default: false.

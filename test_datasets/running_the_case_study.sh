@@ -1,7 +1,7 @@
 
 ## notes
 # chromatin state: ENCFF321DGG -> foreskin fibroblast male newborn from donor(s)
-# chromatin states: HiHMM GM12878 -> lymphoblastoid cell line produced from the blood of a female donor with northern and western European ancestry by EBV transformation
+# chromatin states: GM12878 (iHMM.M1K16.human_GM) -> lymphoblastoid cell line produced from the blood of a female donor with northern and western European ancestry by EBV transformation
 
 ## creating the case study datasets
 # homedir=~
@@ -20,7 +20,7 @@ cactus_dir=$homedir/workspace/cactus
 test_ds_dir=$cactus_dir/test_datasets
 case_study_dir=$test_ds_dir/application_note
 
-## setting up variables
+## setting up variabless
 # cactus_version=0.9.0 ; latest_flag=""
 # cactus_version=main ; latest_flag="-latest"
 cactus_version=57a2e7f516d9ac7114f389c0f226ca01ae63db7a ; latest_flag=""

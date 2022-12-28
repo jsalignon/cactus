@@ -5,7 +5,7 @@
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/Data.md), [Design](/docs/3_Inputs/Design.md), [Parameters](/docs/3_Inputs/Parameters.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
-* [2. Differential Abundance](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
+* [2. Differential Analysis](/docs/5_DA/5_DA.md): [ATAC](/docs/5_DA/DA_ATAC.md), [mRNA](/docs/5_DA/DA_mRNA.md), [Split](/docs/5_DA/Split.md)
 * [3. Enrichment](/docs/6_Enrich/6_Enrich.md): [Enrichment](/docs/6_Enrich/Enrichment.md), [Figures](/docs/6_Enrich/Figures.md), [Tables](/docs/6_Enrich/Tables.md)
 
 [](END_OF_MENU)
@@ -13,13 +13,13 @@
 
 # List of processes
 
-  - [DA_ATAC__doing_differential_abundance_analysis](#DA_ATAC__doing_differential_abundance_analysis)
+  - [DA_ATAC__doing_differential_analysis](#DA_ATAC__doing_differential_analysis)
   - [DA_ATAC__annotating_diffbind_peaks](#DA_ATAC__annotating_diffbind_peaks)
-  - [DA_ATAC__plotting_differential_abundance_results](#DA_ATAC__plotting_differential_abundance_results)
+  - [DA_ATAC__plotting_differential_analysis_results](#DA_ATAC__plotting_differential_analysis_results)
   - [DA_ATAC__saving_detailed_results_tables](#DA_ATAC__saving_detailed_results_tables)
 
 
-## DA_ATAC__doing_differential_abundance_analysis
+## DA_ATAC__doing_differential_analysis
 
 ### Description
 This process takes as input final filtered peaks and (1 base pair) reads.  
@@ -52,9 +52,9 @@ See the function links for details and possible options. Details on the choice o
   - **_params.diffbind__design_**: Should contrasts be specified with a formula or not. Default: 'TRUE'.
 
 ### Outputs
-- **Consensus peaks**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__bed/${comparison}__diffbind_peaks_gr.bed`.
-- **Diffbind object**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__DiffBind/${comparison}__diffbind_peaks_dbo.rds`.
-- **Read counts by replicate (GRange object)**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__gRange/${comparison}__all_peaks.rds`.
+- **Consensus peaks**: `Processed_Data/2_Differential_Analysis/ATAC__all_peaks__bed/${comparison}__diffbind_peaks_gr.bed`.
+- **Diffbind object**: `Processed_Data/2_Differential_Analysis/ATAC__all_peaks__DiffBind/${comparison}__diffbind_peaks_dbo.rds`.
+- **Read counts by replicate (GRange object)**: `Processed_Data/2_Differential_Analysis/ATAC__all_peaks__gRange/${comparison}__all_peaks.rds`.
 
 
 ## DA_ATAC__annotating_diffbind_peaks
@@ -71,11 +71,11 @@ Parameters of the [annotatePeak](https://rdrr.io/bioc/ChIPseeker/man/annotatePea
 - **_params.chipseeker__annotation_priority_**: This parameter controls the order of priorities when there are overlaping features that overlap with the peak for assigning a genomic region for the "annotation" column. Default: "c('Promoter', '5UTR', '3UTR', 'Exon', 'Intron', 'Downstream', 'Intergenic')".
 
 ### Outputs
-- **Annotated peaks (data.frame object)**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__dataframe/${comparison}__diffb_anno_peaks_df.rds`.
-- **Annotated peaks (ChIPseeker object)**: `Processed_Data/2_Differential_Abundance/ATAC__all_peaks__ChIPseeker/${comparison}__diffb_anno_peaks_cs.rds`.
+- **Annotated peaks (data.frame object)**: `Processed_Data/2_Differential_Analysis/ATAC__all_peaks__dataframe/${comparison}__diffb_anno_peaks_df.rds`.
+- **Annotated peaks (ChIPseeker object)**: `Processed_Data/2_Differential_Analysis/ATAC__all_peaks__ChIPseeker/${comparison}__diffb_anno_peaks_cs.rds`.
 
 
-## DA_ATAC__plotting_differential_abundance_results
+## DA_ATAC__plotting_differential_analysis_results
 
 ### Description
 This process makes standardized (i.e. similar types of plots are produced for mRNA-Seq data) PCA and volcano plots, and some other plots produced directly by DiffBind. 
@@ -86,32 +86,32 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 
 ### Outputs
 - **Volcano plots**: 
-  - `Figures_Individual/2_Differential_Abundance/ATAC__volcano/${comparison}__ATAC_volcano.pdf`
-  - `Figures_Merged/2_Differential_Abundance/ATAC__volcano.pdf`.
+  - `Figures_Individual/2_Differential_Analysis/ATAC__volcano/${comparison}__ATAC_volcano.pdf`
+  - `Figures_Merged/2_Differential_Analysis/ATAC__volcano.pdf`.
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_volcano.png" width="400" />  
 
 - **PCA plots (PC 1 and 2)**: 
-  - `Figures_Individual/2_Differential_Abundance/ATAC__PCA_1_2/${comparison}__ATAC_PCA_1_2.pdf`.
-  - `Figures_Merged/2_Differential_Abundance/ATAC__PCA_1_2.pdf`.
+  - `Figures_Individual/2_Differential_Analysis/ATAC__PCA_1_2/${comparison}__ATAC_PCA_1_2.pdf`.
+  - `Figures_Merged/2_Differential_Analysis/ATAC__PCA_1_2.pdf`.
     - top left panel: percentage of variance explained by the top 5 first principal components
     - top right panel: PCA plot for principal components 1 and 2
     - bottom panels: genes annotated to peaks that contribute the most to principal components 1 (left) and 2 (right). Color code: red or -1 indicates that the peak is a positive contributor. Blue or +1 indicates that the peak is a negative contributor. 
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_PCA_1_2.png" width="400" />      
 
 - **PCA plots (PC 3 and 4)**: 
-  - `Figures_Individual/2_Differential_Abundance/ATAC__PCA_3_4/${comparison}__ATAC_PCA_3_4.pdf`.
-  - `Figures_Merged/2_Differential_Abundance/ATAC__PCA_3_4.pdf`.
+  - `Figures_Individual/2_Differential_Analysis/ATAC__PCA_3_4/${comparison}__ATAC_PCA_3_4.pdf`.
+  - `Figures_Merged/2_Differential_Analysis/ATAC__PCA_3_4.pdf`.
     - Same as above but for principal components 3 and 4.
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_PCA_3_4.png" width="400" />  
 
 - **FDR by PA filters plots**: 
-  - `Figures_Individual/2_Differential_Abundance/ATAC_FDR_by_PA/${comparison}__ATAC_FDR_by_PA.pdf`
-  - `Figures_Merged/2_Differential_Abundance/ATAC_FDR_by_PA.pdf`.
+  - `Figures_Individual/2_Differential_Analysis/ATAC_FDR_by_PA/${comparison}__ATAC_FDR_by_PA.pdf`
+  - `Figures_Merged/2_Differential_Analysis/ATAC_FDR_by_PA.pdf`.
   <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_FDR_by_PA.png" width="400" />  
 
 - **Other plots**; 
-  - `Figures_Individual/2_Differential_Abundance/ATAC__other_plots/${comparison}__ATAC_other_plots.pdf`
-  - `Figures_Merged/2_Differential_Abundance/ATAC__other_plots.pdf`
+  - `Figures_Individual/2_Differential_Analysis/ATAC__other_plots/${comparison}__ATAC_other_plots.pdf`
+  - `Figures_Merged/2_Differential_Analysis/ATAC__other_plots.pdf`
     - [MA plot](https://rdrr.io/bioc/DiffBind/man/dba.plotMA.html): MA and scatter plots of differential binding analysis results; using normalization factors.  
 <a href="url"> <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-1.png" width="400" /> </a>  
 
@@ -123,7 +123,7 @@ This process makes standardized (i.e. similar types of plots are produced for mR
 
     
 - **Peaks without annotations**: 
-  - `Processed_Data/2_Differential_Abundance/ATAC__non_annotated_peaks/${comparison}__ATAC_non_annotated_peaks.txt`.
+  - `Processed_Data/2_Differential_Analysis/ATAC__non_annotated_peaks/${comparison}__ATAC_non_annotated_peaks.txt`.
     - Should not be many, but if there are this file can help to inspect these peaks.
 
 
@@ -155,8 +155,8 @@ These columns can all be used in the cactus configuration files to filter for pe
 
 ### Outputs
 - **Table**: 
-  - `Tables_Individual/2_Differential_Abundance/ATAC_detailed/${comparison}__res_detailed_atac.{csv,xlsx}`
-  - `Tables_Merged/2_Differential_Abundance/ATAC_detailed.{csv,xlsx}`.
+  - `Tables_Individual/2_Differential_Analysis/ATAC_detailed/${comparison}__res_detailed_atac.{csv,xlsx}`
+  - `Tables_Merged/2_Differential_Analysis/ATAC_detailed.{csv,xlsx}`.
 <img src="/docs/examples/xlsx_png/ATAC_detailled_1.png" width="800" />  
 <img src="/docs/examples/xlsx_png/ATAC_detailled_2.png" width="800" />  
 <img src="/docs/examples/xlsx_png/ATAC_detailled_3.png" width="800" />  
