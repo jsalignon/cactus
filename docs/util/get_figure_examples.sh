@@ -79,8 +79,8 @@ cd $examples_dir_pdf
 
 # for FILE in $(ls ATAC__all__down__200__hmg4_vs_spt16__motifs__barplot.pdf) 
 # for FILE in $(ls mRNA_volcano*.pdf) 
-for FILE in $(ls ATAC__all__200__all__*.pdf) 
-# for FILE in $(ls *.pdf) 
+# for FILE in $(ls ATAC__all__200__all__*.pdf) 
+for FILE in $(ls *.pdf) 
 do
   echo $FILE
   file_name=$(basename $FILE .pdf)
