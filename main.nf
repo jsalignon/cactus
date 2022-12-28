@@ -4141,7 +4141,7 @@ process Enrichment__computing_motifs_overlaps {
   label "homer"
   cpus params.homer__nb_threads
 
-  publishDir path: "${out_processed}/3_Enrichment/${data_type}/${key}", 
+  publishDir path: "${out_processed}/3_Enrichment_Analysis/${data_type}/${key}", 
              mode: "${pub_mode}"
 
   when: 
@@ -4251,7 +4251,7 @@ process Enrichment__computing_enrichment_pvalues {
 
   label "r_basic"
   
-  publishDir path: "${out_processed}/3_Enrichment/Enrichment__${data_type}", 
+  publishDir path: "${out_processed}/3_Enrichment_Analysis/Enrichment__${data_type}", 
              mode: "${pub_mode}", enabled: params.enrichment__save_df
 
   input:
@@ -4259,7 +4259,7 @@ process Enrichment__computing_enrichment_pvalues {
 
   output:
     file("*.rds") into Enrichment_results_for_plotting optional true
-    set data_type, val("3_Enrichment"), file("*.rds") \
+    set data_type, val("3_Enrichment_Analysis"), file("*.rds") \
       into Enrichment_results_for_formatting_table optional true
 
   shell:
@@ -4419,10 +4419,10 @@ process Figures__making_enrichment_barplots {
 
   label "figures"
 
-  publishDir path: "${out_fig_indiv}/3_Enrichment/Barplots__${data_type}", 
+  publishDir path: "${out_fig_indiv}/3_Enrichment_Analysis/Barplots__${data_type}", 
              mode: "${pub_mode}", pattern = "*.pdf"
              
-  publishDir path: "${out_processed}/3_Enrichment/Barplots__${data_type}", 
+  publishDir path: "${out_processed}/3_Enrichment_Analysis/Barplots__${data_type}", 
              mode: "${pub_mode}", pattern = "*.rds", 
              enabled: params.save_enrichment_rds
 
@@ -4432,7 +4432,7 @@ process Figures__making_enrichment_barplots {
         from Enrichment_results_for_plotting_barplots_2
 
   output:
-    set val("Barplots__${data_type}"), val("3_Enrichment"), file("*.pdf") \
+    set val("Barplots__${data_type}"), val("3_Enrichment_Analysis"), file("*.pdf") \
       optional true into Barplots_for_merging_pdfs
 
   shell:
@@ -4536,10 +4536,10 @@ process Figures__making_enrichment_heatmap {
   errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
   maxRetries 3
 
-  publishDir path: "${out_fig_indiv}/3_Enrichment/Heatmaps__${data_type}", 
+  publishDir path: "${out_fig_indiv}/3_Enrichment_Analysis/Heatmaps__${data_type}", 
              mode: "${pub_mode}", pattern = "*.pdf"
              
-  publishDir path: "${out_processed}/3_Enrichment/Heatmaps__${data_type}", 
+  publishDir path: "${out_processed}/3_Enrichment_Analysis/Heatmaps__${data_type}", 
              mode: "${pub_mode}", pattern = "*.rds", 
              enabled: params.save_enrichment_rds
 
@@ -4549,7 +4549,7 @@ process Figures__making_enrichment_heatmap {
         filter_params from Enrichment_results_for_plotting_heatmaps
 
   output:
-    set val("Heatmaps__${data_type}"), val("3_Enrichment"), file("*.pdf") \
+    set val("Heatmaps__${data_type}"), val("3_Enrichment_Analysis"), file("*.pdf") \
       optional true into Heatmaps_for_merging_pdfs
 
   shell:

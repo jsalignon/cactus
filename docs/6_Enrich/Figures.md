@@ -50,8 +50,8 @@ Finally, it is possible to add additional colored point to the top of the bars t
 
 ### Outputs
 - **Barplots**: 
-  - `Figures_Individual/3_Enrichment/Barplots__${EC}/${key}__barplot.pdf` 
-  - `Figures_Merged/3_Enrichment/Barplots__${EC}.pdf`.
+  - `Figures_Individual/3_Enrichment_Analysis/Barplots__${EC}/${key}__barplot.pdf` 
+  - `Figures_Merged/3_Enrichment_Analysis/Barplots__${EC}.pdf`.
 
 >**_Note_:** The key for this process is `${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}`.
 
@@ -128,8 +128,8 @@ Cells are colored with signed and binned adjusted pvalues as described in the [p
   - **_select_enriched_**: Boolean indicating if only the most enriched terms should be selected (if TRUE/T) or the most enriched or depleted terms (if FALSE/F).
 
 ### Outputs
-- `Figures_Individual/3_Enrichment/Heatmaps__${EC}/${key}__heatmap.pdf` 
-- `Figures_Merged/3_Enrichment/Heatmaps__${EC}.pdf`.
+- `Figures_Individual/3_Enrichment_Analysis/Heatmaps__${EC}/${key}__heatmap.pdf` 
+- `Figures_Merged/3_Enrichment_Analysis/Heatmaps__${EC}.pdf`.
 
 >**_Note_:** The key for this process is `${ET}__${PA}__${TV}__${GRP}__{EC}`, `${GRP}` being the current group of comparisons.
 
