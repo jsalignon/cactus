@@ -57,20 +57,18 @@ cp $run_fly_wt_gtr_dir/2_Differential_Analysis/mRNA__volcano/b170_vs_n301b170__m
 
 # Other plots
 find $run_worm_figure_dir -name "*ctl_1*.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_worm_figure_dir -name "*hmg4_vs_ctl_*_volcano.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_worm_figure_dir -name "*hmg4_vs_ctl_*_PCA_*.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_worm_figure_dir -name "*hmg4_vs_ctl_*other_plots.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_worm_figure_dir/2_Differential_Analysis -name "*hmg4_vs_ctl*.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_worm_figure_dir/1_Preprocessing/ATAC__peaks__grouped_plots -exec cp "{}" $examples_dir_pdf \;
 find $run_worm_figure_dir -name "spearman_correlation_heatmap_without_outliers_without_control_cor.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_worm_figure_dir -name "ATAC__peaks__grouped__annotation_barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_worm_figure_dir -name "ATAC__peaks__grouped__average_profile.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_worm_figure_dir -name "ATAC__peaks__grouped__distance_to_TSS.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_worm_figure_dir -name "pca_top5000_without_control_pca.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_worm_figure_dir -name "ATAC__multiQC.html" -exec cp "{}" $examples_dir_html \;
-find $run_worm_figure_dir -name "mRNA__multiQC.html" -exec cp "{}" $examples_dir_html \;
-find $run_worm_figure_dir -name "all__down__200__hmg4_vs_ctl__venn_up_or_down.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_worm_figure_dir -name "all__200__hmg4_vs_ctl__venn_up_and_down.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_worm_figure_dir -regex ".*\(ATAC\|mRNA\)__multiQC.html" -exec cp "{}" $examples_dir_html \;
+ 
+
+# barplots
 find $run_worm_figure_dir -name "ATAC__all__down__200__hmg4_vs_ctl__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_worm_figure_dir -name "ATAC__all__down__200__hmg4_vs_spt16__motifs__barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
+
+# heatmaps
 find $run_worm_figure_dir -name "ATAC__all__200__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 
 
