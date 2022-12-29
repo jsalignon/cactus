@@ -31,10 +31,10 @@ cactus_dir="$homedir/workspace/cactus"
 cd $cactus_dir
 
 ## path where examples are stored
-examples_dir_pdf="docs/examples/pdf"
-examples_dir_png="docs/examples/png"
-examples_dir_html="docs/examples/html"
-examples_dir_xlsx="docs/examples/xlsx"
+examples_dir_pdf="$cactus_dir/docs/examples/pdf"
+examples_dir_png="$cactus_dir/docs/examples/png"
+examples_dir_html="$cactus_dir/docs/examples/html"
+examples_dir_xlsx="$cactus_dir/docs/examples/xlsx"
 # rm $examples_dir_png/* ; rm $examples_dir_pdf/* ; rm $examples_dir_html/* ; rm $examples_dir_xlsx/*
 
 ## paths where examples are copied from
@@ -69,7 +69,7 @@ find $run_worm_figure_dir -name "ATAC__all__down__1000__hmg4_vs_ctl__*.pdf" -exe
 find $run_worm_figure_dir -name "ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
 
 # heatmaps
-find $run_worm_figure_dir -name "ATAC__all__200__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_worm_figure_dir -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 
 
 
@@ -77,8 +77,8 @@ cd $examples_dir_pdf
 
 # for FILE in $(ls ATAC__all__down__200__hmg4_vs_spt16__motifs__barplot.pdf) 
 # for FILE in $(ls mRNA_volcano*.pdf) 
-# for FILE in $(ls ATAC__all__200__all__*.pdf) 
-for FILE in $(ls *.pdf) 
+for FILE in $(ls *heatmap.pdf) 
+# for FILE in $(ls *.pdf) 
 do
   echo $FILE
   file_name=$(basename $FILE .pdf)
@@ -86,7 +86,7 @@ do
 done
 
 mv *.png ../png
-cd ../../..
+cd $cactus_dir
 
 
 
