@@ -52,6 +52,7 @@ run_fly_no_gtr_dir="$res_fly_dir/no_enrich__no_gtr/Figures_Individual"
 
 # Volcano plots
 cp $run_worm_no_rtr_dir/2_Differential_Analysis/ATAC__volcano/hmg4_vs_spt16__ATAC_volcano.pdf $examples_dir_pdf/hmg4_vs_spt16__ATAC_volcano__no_rtr.pdf
+find $run_worm_figure_dir/2_Differential_Analysis -name "hmg4_vs_spt16__ATAC_volcano.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_worm_tables_dir -name "*.xlsx" -exec cp "{}" $examples_dir_xlsx \;
 cp $run_fly_no_gtr_dir/2_Differential_Analysis/mRNA__volcano/b170_vs_n301b170__mRNA_volcano.pdf $examples_dir_pdf/mRNA_volcano__no_gtr.pdf
 cp $run_fly_wt_gtr_dir/2_Differential_Analysis/mRNA__volcano/b170_vs_n301b170__mRNA_volcano.pdf $examples_dir_pdf/mRNA_volcano__with_gtr.pdf
@@ -83,7 +84,7 @@ cd $examples_dir_pdf
 
 # for FILE in $(ls ATAC__all__down__200__hmg4_vs_spt16__motifs__barplot.pdf) 
 # for FILE in $(ls mRNA_volcano*.pdf) 
-for FILE in $(ls *venn*.pdf) 
+for FILE in $(ls hmg4_vs_spt16__ATAC_volcano.pdf) 
 # for FILE in $(ls *.pdf) 
 do
   echo $FILE
