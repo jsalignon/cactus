@@ -55,7 +55,7 @@ And EC can be any of these:
  - peaks_self: Genomic regions subsets from the current experiment
  - genes_self: Gene list subsets from the current experiment.
 
-*e.g.: key = ATAC__all__down__200__hmg4_vs_ctl__func_anno_BP__enrich.*
+*e.g.: key = ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__enrich.*
 
 >**_Note_:** Please see the [References section](/docs/2_Install/References.md) for details on how the external databases were downloaded and preprocessed, as well as details on the labels of the targets used in the figures and tables.
 
