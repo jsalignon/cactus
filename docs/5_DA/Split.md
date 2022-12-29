@@ -79,9 +79,9 @@ In these plots, mRNA-Seq data has an orange filling, ATAC-Seq data has a blue fi
 - **Two-ways venn diagrams**: 
   - `Figures_Individual/2_Differential_Analysis/Venn_diagrams__two_ways/${key}__venn_up_or_down.pdf`
   - `Figures_Merged/2_Differential_Analysis/Venn_diagrams__two_ways.pdf`
-<img src="/docs/examples/png/all__down__200__hmg4_vs_ctl__venn_up_or_down.png" width="400" />  
+<img src="/docs/examples/png/all__down__1000__hmg4_vs_ctl__venn_up_or_down.png" width="400" />  
 
 - **Four-ways venn diagrams**: 
   - `Figures_Individual/2_Differential_Analysis/Venn_diagrams__four_ways/${key}__venn_up_and_down.pdf`
   - `Figures_Merged/2_Differential_Analysis/Venn_diagrams__four_ways.pdf`
-<img src="/docs/examples/png/all__200__hmg4_vs_ctl__venn_up_and_down.png" width="400" />  
+<img src="/docs/examples/png/all__1000__hmg4_vs_ctl__venn_up_and_down.png" width="400" />  

@@ -30,14 +30,14 @@ cactus_dir="$homedir/workspace/cactus"
 
 cd $cactus_dir
 
-## path where examples are stored
+## Paths where examples are stored
 examples_dir_pdf="$cactus_dir/docs/examples/pdf"
 examples_dir_png="$cactus_dir/docs/examples/png"
 examples_dir_html="$cactus_dir/docs/examples/html"
 examples_dir_xlsx="$cactus_dir/docs/examples/xlsx"
 # rm $examples_dir_png/* ; rm $examples_dir_pdf/* ; rm $examples_dir_html/* ; rm $examples_dir_xlsx/*
 
-## paths where examples are copied from
+## Paths where examples are copied from
 test_dir_2="$cactus_dir/$testing_dir_name/singularity"
 res_worm_dir="$test_dir_2/worm/results/"
 res_fly_dir="$test_dir_2/fly/results/"
@@ -56,6 +56,17 @@ find $run_worm_tables_dir -name "*.xlsx" -exec cp "{}" $examples_dir_xlsx \;
 cp $run_fly_no_gtr_dir/2_Differential_Analysis/mRNA__volcano/b170_vs_n301b170__mRNA_volcano.pdf $examples_dir_pdf/mRNA_volcano__no_gtr.pdf
 cp $run_fly_wt_gtr_dir/2_Differential_Analysis/mRNA__volcano/b170_vs_n301b170__mRNA_volcano.pdf $examples_dir_pdf/mRNA_volcano__with_gtr.pdf
 
+# Venn diagrams
+find $run_worm_figure_dir -name "all__down__1000__hmg4_vs_ctl__venn_up_or_down.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_worm_figure_dir -name "all__1000__hmg4_vs_ctl__venn_up_and_down.pdf" -exec cp "{}" $examples_dir_pdf \;
+
+# Barplots
+find $run_worm_figure_dir -name "ATAC__all__down__1000__hmg4_vs_ctl__*.pdf" -exec cp "{}" $examples_dir_pdf \;
+find $run_worm_figure_dir -name "ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
+
+# Heatmaps
+find $run_worm_figure_dir -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
+
 # Other plots
 find $run_worm_figure_dir -name "*ctl_1*.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_worm_figure_dir/2_Differential_Analysis -name "*hmg4_vs_ctl*.pdf" -exec cp "{}" $examples_dir_pdf \;
@@ -64,32 +75,26 @@ find $run_worm_figure_dir -name "spearman_correlation_heatmap_without_outliers_w
 find $run_worm_figure_dir -name "pca_top5000_without_control_pca.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_worm_figure_dir -regex ".*\(ATAC\|mRNA\)__multiQC.html" -exec cp "{}" $examples_dir_html \;
 
-# barplots
-find $run_worm_figure_dir -name "ATAC__all__down__1000__hmg4_vs_ctl__*.pdf" -exec cp "{}" $examples_dir_pdf \;
-find $run_worm_figure_dir -name "ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.pdf" -exec cp "{}" $examples_dir_pdf \;
-
-# heatmaps
-find $run_worm_figure_dir -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 
 
-## making png images from PDF
+
+## Making png images from PDF
 cd $examples_dir_pdf
 
 # for FILE in $(ls ATAC__all__down__200__hmg4_vs_spt16__motifs__barplot.pdf) 
 # for FILE in $(ls mRNA_volcano*.pdf) 
-for FILE in $(ls *heatmap.pdf) 
+for FILE in $(ls *venn*.pdf) 
 # for FILE in $(ls *.pdf) 
 do
   echo $FILE
   file_name=$(basename $FILE .pdf)
-  pdftoppm -png -rx 300 -ry 300 $FILE > ${file_name}.png
+  pdftoppm -png -rx 300 -ry 300 $FILE > $examples_dir_png/${file_name}.png
 done
 
-mv *.png ../png
 cd $cactus_dir
 
 
-## same but splitting the pages in the files *__{ATAC,mRNA}_other_plots.pdf in multiple png images
+## Same but splitting the pages in the files *__{ATAC,mRNA}_other_plots.pdf in multiple png images
 
 cd $examples_dir_pdf
 
