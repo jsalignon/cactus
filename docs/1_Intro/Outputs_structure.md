@@ -16,7 +16,10 @@ homedir=~
 eval homedir=$homedir
 cactus_dir=$homedir/workspace/cactus
 
+res_dir=$cactus_dir/testing2/singularity/worm/results/
+
 tree -I Run_Info -d -L 3 $cactus_dir/test_datasets/human/results/full_test
+tree -I Run_Info -d -L 3 $cactus_dir/testing2/singularity/worm/results/almost_full_test
 
 -->
 
@@ -28,8 +31,12 @@ tree -I Run_Info -d -L 3 $cactus_dir/test_datasets/human/results/full_test
 │   │   ├── ATAC__peaks__coverage
 │   │   ├── ATAC__peaks__grouped_plots
 │   │   ├── ATAC__peaks__saturation_curve
-│   │   └── ATAC__reads__insert_size
-│   ├── 2_Differential_Abundance
+│   │   ├── ATAC__reads__correlations
+│   │   ├── ATAC__reads__coverage
+│   │   ├── ATAC__reads__insert_size
+│   │   └── ATAC__reads__PCA
+│   ├── 2_Differential_Analysis
+│   │   ├── ATAC__FDR_by_PA
 │   │   ├── ATAC__other_plots
 │   │   ├── ATAC__PCA_1_2
 │   │   ├── ATAC__PCA_3_4
@@ -40,7 +47,7 @@ tree -I Run_Info -d -L 3 $cactus_dir/test_datasets/human/results/full_test
 │   │   ├── mRNA__volcano
 │   │   ├── Venn_diagrams__four_ways
 │   │   └── Venn_diagrams__two_ways
-│   └── 3_Enrichment
+│   └── 3_Enrichment_Analysis
 │       ├── Barplots__CHIP
 │       ├── Barplots__chrom_states
 │       ├── Barplots__func_anno_BP
@@ -57,43 +64,61 @@ tree -I Run_Info -d -L 3 $cactus_dir/test_datasets/human/results/full_test
 │       └── Heatmaps__peaks_self
 ├── Figures_Merged
 │   ├── 1_Preprocessing
-│   ├── 2_Differential_Abundance
-│   └── 3_Enrichment
+│   ├── 2_Differential_Analysis
+│   └── 3_Enrichment_Analysis
 ├── Processed_Data
 │   ├── 1_Preprocessing
 │   │   ├── ATAC__peaks__annotated_rds
-│   │   ├── ATAC__peaks__raw
-│   │   ├── ATAC__peaks__split
-│   │   ├── ATAC__peaks__split__no_BL
-│   │   ├── ATAC__peaks__split__no_BL_input_control
 │   │   ├── ATAC__peaks__split__no_BL_input_RNAi
-│   │   ├── ATAC__reads__bam_asBed_atacShift_extendedBed
+│   │   ├── ATAC__reads__bam
+│   │   ├── ATAC__reads__bam_no_lowQ
+│   │   ├── ATAC__reads__bam_no_lowQ_dupli
 │   │   ├── ATAC__reads__bam_no_lowQ_dupli_mito
-│   │   ├── ATAC__reads__fastqc_raw
-│   │   ├── ATAC__reads__fastqc_trimmed
-│   │   ├── ATAC__reads__multiQC
+│   │   ├── ATAC__reads__fastq_trimmed
 │   │   ├── mRNA__fastqc
-│   │   ├── mRNA__kallisto_output
-│   │   └── mRNA__multiQC
-│   ├── 2_Differential_Abundance
+│   │   └── mRNA__kallisto_output
+│   ├── 2_Differential_Analysis
 │   │   ├── ATAC__all_peaks__bed
 │   │   ├── ATAC__all_peaks__ChIPseeker
 │   │   ├── ATAC__all_peaks__dataframe
 │   │   ├── ATAC__all_peaks__DiffBind
 │   │   ├── ATAC__all_peaks__gRange
+│   │   ├── ATAC__non_annotated_peaks
 │   │   ├── DA_split__bed_regions
 │   │   ├── DA_split__genes_rds
 │   │   ├── mRNA__all_genes__bed_promoters
-│   │   ├── mRNA__all_genes__dataframe
 │   │   └── mRNA__all_genes__rsleuth
-│   ├── 3_Enrichment
-│   │   └── motifs
-│   └── ATAC__reads__bigwig_raw
+│   └── 3_Enrichment_Analysis
+│       ├── Barplots__CHIP
+│       ├── Barplots__chrom_states
+│       ├── Barplots__func_anno_BP
+│       ├── Barplots__func_anno_KEGG
+│       ├── Barplots__genes_self
+│       ├── Barplots__motifs
+│       ├── Barplots__peaks_self
+│       ├── Enrichment__CHIP
+│       ├── Enrichment__chrom_states
+│       ├── Enrichment__func_anno_BP
+│       ├── Enrichment__func_anno_KEGG
+│       ├── Enrichment__genes_self
+│       ├── Enrichment__motifs
+│       ├── Enrichment__motifs__raw
+│       ├── Enrichment__peaks_self
+│       ├── Heatmaps__CHIP
+│       ├── Heatmaps__chrom_states
+│       ├── Heatmaps__func_anno_BP
+│       ├── Heatmaps__func_anno_KEGG
+│       ├── Heatmaps__genes_self
+│       ├── Heatmaps__motifs
+│       └── Heatmaps__peaks_self
 ├── Tables_Individual
 │   ├── 1_Preprocessing
-│   ├── 2_Differential_Abundance
-│   │   └── ATAC_detailed
-│   └── 3_Enrichment
+│   ├── 2_Differential_Analysis
+│   │   ├── ATAC_detailed
+│   │   ├── mRNA_detailed
+│   │   ├── res_filter
+│   │   └── res_simple
+│   └── 3_Enrichment_Analysis
 │       ├── CHIP
 │       ├── chrom_states
 │       ├── func_anno_BP
@@ -103,8 +128,9 @@ tree -I Run_Info -d -L 3 $cactus_dir/test_datasets/human/results/full_test
 │       └── peaks_self
 └── Tables_Merged
     ├── 1_Preprocessing
-    ├── 2_Differential_Abundance
-    └── 3_Enrichment
+    ├── 2_Differential_Analysis
+    └── 3_Enrichment_Analysis
+
 ```
 
 
