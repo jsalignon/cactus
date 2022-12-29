@@ -58,7 +58,7 @@ nextflow run jsalignon/cactus -r main -latest -params-file parameters/full_test.
 
 # Additional details
 
-It is recommended to use the [Nextflow Tower tool](https://tower.nf/) to easily monitor pipelines progress.
+It is recommended to use [Nextflow Tower](https://tower.nf/) to easily monitor pipelines progress.
 
 Nextflow handles job submissions on SLURM or other environments, and supervises running the jobs. Thus the Nextflow process must run until the pipeline is finished. We recommend that you put the process running in the background through screen / tmux or similar tool. Alternatively you can run nextflow within a cluster job submitted your job scheduler.
 
@@ -83,7 +83,7 @@ nextflow run jsalignon/cactus -r release_tag -profile {singulariy,docker,conda,m
 ```
 For instance:
 ```
-nextflow run jsalignon/cactus -r 0.9.0 -profile singularity -params-file parameters/full_test.yml
+nextflow run jsalignon/cactus -r 0.8.0 -profile singularity -params-file parameters/full_test.yml
 ```
 
 # Troubleshooting

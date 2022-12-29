@@ -78,7 +78,7 @@ Parameters of the [annotatePeak](https://rdrr.io/bioc/ChIPseeker/man/annotatePea
 ## DA_ATAC__plotting_differential_analysis_results
 
 ### Description
-This process makes standardized (i.e. similar types of plots are produced for mRNA-Seq data) PCA and volcano plots, and some other plots produced directly by DiffBind. 
+This process makes standardized (i.e. similar types of plots are produced for mRNA-Seq data) PCA and volcano plots, boxplots of FDR by PA (Peak Assignment), and some other plots produced directly by DiffBind. 
 
 ### Parameters
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.

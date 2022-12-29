@@ -21,7 +21,7 @@ Here is an example of input files at the run directory folder:
 <!-- tree -I "results|work"  (worm folder; then editing the output manually)-->
 ```
 .
-├── options
+├── parameters
 │   └── run.yml
 ├── data
 │   ├── atac
