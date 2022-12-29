@@ -72,7 +72,7 @@ find $run_worm_figure_dir -name "ATAC__all__down__1000__hmg4_vs_spt16__motifs__b
 find $run_worm_figure_dir -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 
 
-
+## making png images from PDF
 cd $examples_dir_pdf
 
 # for FILE in $(ls ATAC__all__down__200__hmg4_vs_spt16__motifs__barplot.pdf) 
@@ -89,8 +89,7 @@ mv *.png ../png
 cd $cactus_dir
 
 
-
-## multiple files
+## same but splitting the pages in the files *__{ATAC,mRNA}_other_plots.pdf in multiple png images
 
 cd $examples_dir_pdf
 
@@ -103,11 +102,12 @@ do
 done
 
 mv *.png ../png
-cd ../../..
+cd $cactus_dir
 
 
-FILE="ctl_1__reads_coverage.pdf"
-file_name=$(basename $FILE .pdf)
-pdftoppm -png -rx 300 -ry 300 $FILE > ${file_name}.png
 
-mv *.png ../png
+# FILE="ctl_1__reads_coverage.pdf"
+# file_name=$(basename $FILE .pdf)
+# pdftoppm -png -rx 300 -ry 300 $FILE > ${file_name}.png
+# 
+# mv *.png ../png
