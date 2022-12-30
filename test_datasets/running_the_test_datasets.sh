@@ -10,7 +10,7 @@ test_dir=$cactus_dir/testing
 cpu_nb=47
 memory_size='300G'
 cactus_version=v0.8.0 ; latest_flag=''
-# cactus_version=f094c623dc0b4e6ef36b556a7f4995bd5b49ef19 ; latest_flag=''
+# cactus_version=7e5f50da1945e4c2543b559b127f6417d7201e38 ; latest_flag=''
 # cactus_version=main ; latest_flag='-latest'
 
 ## running Cactus on all tests datasets and with all tools manager 
