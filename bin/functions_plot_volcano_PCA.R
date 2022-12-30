@@ -38,7 +38,11 @@ plot_FDR_by_PA_filters <- function(res, title, outlier_size = 0.8, outlier_strok
   res1$min_log10_FDR = -log10(res1$padj + epsilon)
   
   PA_filters = grep('PA_', names(res), value = T) %>% setNames(., gsub('PA_', '', .))
-  df1 = purrr::map_dfr(PA_filters, function(cur_PA) res1[which(res1[[cur_PA]]), c('min_log10_FDR', 'L2FC'), drop = F], .id = 'PA')
+  df1 = lapply(seq_len(length(PA_filters)), function(c1) {
+    df0 = res1[which(res1[[PA_filters[[c1]]]]), c('min_log10_FDR', 'L2FC'), drop = F]
+    df0$PA = names(PA_filters)[c1]
+    return(df0)
+  }) %>% do.call(rbind, .)
   df1 %<>% dplyr::mutate(PA = factor(PA, levels = names(PA_filters)))
   
   p1 = ggplot(df1, aes(x = PA, y = min_log10_FDR, colour = L2FC)) + 
@@ -50,6 +54,8 @@ plot_FDR_by_PA_filters <- function(res, title, outlier_size = 0.8, outlier_strok
   return(p1)
   
 }
+# df1 = purrr::map_dfr(PA_filters, function(cur_PA) res1[which(res1[[cur_PA]]), c('min_log10_FDR', 'L2FC'), drop = F], .id = 'PA') # => much simpler creation of df1 if purrr was in the conda virtual environment
+
 
 
 
