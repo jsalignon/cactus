@@ -40,6 +40,7 @@ plot_FDR_by_PA_filters <- function(res, title, outlier_size = 0.8, outlier_strok
   PA_filters = grep('PA_', names(res), value = T) %>% setNames(., gsub('PA_', '', .))
   df1 = lapply(seq_len(length(PA_filters)), function(c1) {
     df0 = res1[which(res1[[PA_filters[[c1]]]]), c('min_log10_FDR', 'L2FC'), drop = F]
+    if(nrow(df0) == 0) return(NULL)
     df0$PA = names(PA_filters)[c1]
     return(df0)
   }) %>% do.call(rbind, .)
