@@ -21,10 +21,10 @@ Then, the *-profile* argument should be used to specicify which tools manager to
 
 The first step is to create the global configuration file *.cactus.config* located in the home folder. This file must indicate the path where to download the references and the singularity containers. Here is an example of a *.cactus.config* file when using Singularity with a Tower token to monitor the pipeline runs on [Nextflow Tower](https://cloud.tower.nf/):
 ```
-params.references_dir         = "${HOME}/workspace/cactus/references"
-params.singularity_images_dir = "${HOME}/workspace/singularity_containers"
-params.tower_token            = "*"
-params.enable_tower           = true
+params.references_dir        = "${HOME}/workspace/cactus/references"
+params.singularity_cache_dir = "${HOME}/workspace/singularity_containers"
+params.tower_token           = "*"
+params.enable_tower          = true
 ```
 
 Downloading references and test datasets:
@@ -32,7 +32,10 @@ Downloading references and test datasets:
 nextflow run jsalignon/cactus/scripts/download/download.nf -r main -latest --test_datasets --references -profile singularity --species worm
 ```
 
+This command should download the references and downloading tools in the directories specified by the corresponding parameters, and it should download 3 folders: parameters, design and data, in the current folder for the chosen test dataset.
+
 >**_Note_:** Test datasets are also available for the species fly, human and mouse. They can be tested by changing the *--species* argument.  
+>**_Note_:** On some platforms, Nextflow should be called with a './' before (i.e., *./nextflow run...*).
 
 Running Cactus (and downloading containers):
 ```
