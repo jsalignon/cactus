@@ -20,12 +20,12 @@
 ## DA_split__splitting_differential_analysis_results_in_subsets
 
 <a href="url"> <img src="/docs/images/splitting_filters.png" width="400" /> </a>  
-Sub-workflow showing the creation of DASs. 
-Dotted arrows indicate optional additional filters. Abbreviations: FDR - False Discovery Rate, prom - promoter, distNC - distal non-coding region.
+***Sub-workflow showing the creation of DASs.***  
+*Dotted arrows indicate optional additional filters. Abbreviations: FDR - False Discovery Rate, prom - promoter, distNC - distal non-coding region.*
 
 <a href="url"> <img src="/docs/images/splitting.png" width="650" /> </a>  
-Diagrams showing how differential analysis results are split by experiment type and by fold change.
-In all panels, “peak” indicate a differentially accessible region. Panel a shows the color code used in all panels with blue circles representing genomic regions (either differentially accessible regions or promoters of differentially expressed genes) and black circles representing gene sets (either the closest genes of differentially accessible regions or differentially express genes). Panel b-g show all possible split of differential analysis results for the experiment type and fold change splitting filters, with either increase (b) or decrease (c) in chromatin accessibility, increase (d) or decrease (e) in gene expression, and increase (f) or decrease (g) in both chromatin accessibility and gene expression. Small blue circles with black diagonals represent nucleosomes on DNA, and orange wave-like lines represent mRNA molecules. Experiment type filters are: ATAC (turquoise), mRNA (orange) or both for gene sets, both_ATAC for peaks and both_RNA for promoters (purple). Fold change filters are up (yellow) or down (green).
+***Diagrams showing how differential analysis results are split by experiment type and by fold change.***  
+*In all panels, “peak” indicate a differentially accessible region. Panel a shows the color code used in all panels with blue circles representing genomic regions (either differentially accessible regions or promoters of differentially expressed genes) and black circles representing gene sets (either the closest genes of differentially accessible regions or differentially express genes). Panel b-g show all possible split of differential analysis results for the experiment type and fold change splitting filters, with either increase (b) or decrease (c) in chromatin accessibility, increase (d) or decrease (e) in gene expression, and increase (f) or decrease (g) in both chromatin accessibility and gene expression. Small blue circles with black diagonals represent nucleosomes on DNA, and orange wave-like lines represent mRNA molecules. Experiment type filters are: ATAC (turquoise), mRNA (orange) or both for gene sets, both_ATAC for peaks and both_RNA for promoters (purple). Fold change filters are up (yellow) or down (green).*
 
 ### Description
 This process splits Differential Analysis results into subsets (i.e., DAS - Differential Analysis Subsets) in order to do enrichment analysis on many different angles and extract the most information out of the data.  
