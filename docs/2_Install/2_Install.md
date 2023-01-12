@@ -12,8 +12,8 @@
 
 
 
-This section covers the Installation of Cactus, with:
-  - the installation of the two [dependencies](/docs/2_Install/Dependencies.md): Nextflow and a tools manager (containers: Docker or Singularity, virtual environments: conda or Mamba)
-  - the [containers / virtual environments](/docs/2_Install/Containers.md) used by Cactus, their origin and their size
-  - the species-specific [references](/docs/2_Install/References.md) used by Cactus, their size, how these files were created and details on the CHIP-Seq datasets
-  - the [test datasets](/docs/2_Install/Test_datasets.md) that can optionally be downloaded to test cactus in each of the 4 supported species, their sizes, details on their origin and on the samples used
+This section covers the Installation of Cactus, including:
+  - The installation of the two [dependencies](/docs/2_Install/Dependencies.md): Nextflow and a tools manager (Docker or Singularity containers or conda or Mamba virtual environments)
+  - The [containers / virtual environments](/docs/2_Install/Containers.md) used by Cactus, their origins and their sizes
+  - The species-specific [references](/docs/2_Install/References.md) used by Cactus, their sizes, how these files were created and details on the CHIP-Seq datasets
+  - The [test datasets](/docs/2_Install/Test_datasets.md) that can optionally be downloaded to test Cactus in each of the 4 supported species, their sizes, details on their origins and on the samples
