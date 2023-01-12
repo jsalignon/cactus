@@ -120,7 +120,7 @@ Homver results tables are formatted in R to add the standardized columns necessa
 ### Description
 This process takes all overlap processes, estimates significance and format tables.  
 
-Hypergeometric minimum-likelihood two-sided p-values (`pval`) are obtained with a Fischer test in R. Two-sided Fischer tests are recommended for GO enrichment anlaysis since in most cases both enrichment and depletion can be biologically meaningful (see [reference](https://doi.org/10.1093/bioinformatics/btl633)).  
+Hypergeometric minimum-likelihood two-sided p-values (`pval`) are obtained with a two-sided Fisher's Exact Test in R. Two-sided tests are recommended for GO enrichment anlaysis since in most cases both enrichment and depletion can be biologically meaningful (see [reference](https://doi.org/10.1093/bioinformatics/btl633)).  
 Log2 odd ratios (L2OR) is the log2 of the test's estimate.
 Pvalues are then adjusted (`padj`) using Benjamini and Hochberg's [False Discovery Rate](https://doi.org/10.1093/bioinformatics/btl633).
 
@@ -131,7 +131,7 @@ Results are sorted by adjusted pvalues (`padj`, descending order) and overlap of
 Finally, each elements of the key (`ET`, `PA`, `FC`, `TV`, `COMP`) are split in a separate column in the table as well as the target (`tgt`).
 
 ### Parameters
-- **_params.motifs_test_type_**: The test to use for motif inputs. If 'Binomial' a two-sided binomial test is performed instead of the two-sided Fischer test. Options: 'binomial' or 'fischer' (any value). Default: 'binomial'.
+- **_params.motifs_test_type_**: The test to use for motif inputs. If 'Binomial' a two-sided binomial test is performed instead of the two-sided Fisher's Exact Test. Options: 'binomial' or 'fischer' (any value). Default: 'binomial'.
 
 ### Outputs
 - **Overlap tables**:

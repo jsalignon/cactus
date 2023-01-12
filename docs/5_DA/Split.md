@@ -23,7 +23,7 @@
 Diagrams showing all filters used to split peaks into subsets.  
 Dotted black and grey arrows indicate respectively potential additional filters and not-showed filters. Abbreviations: FDR - False Discovery Rate, prom – promoter, distNC – distal non-coding.  
 
-<a href="url"> <img src="/docs/images/splitting_experiment_type.png" width="650" /> </a>  
+<a href="url"> <img src="/docs/images/splitting.png" width="650" /> </a>  
 Diagrams illustrating the Experiment type filter.  
 
 ### Description
