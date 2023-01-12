@@ -260,13 +260,14 @@ Figures:
 
 - **_params.heatmaps__seed_**: random seed for the selection of terms. Default: 38.
 
-- **_params.heatmaps_params_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the heatmaps. There is one parameter for each enrichment category. Default for `genes_self` and `peaks_self`: "c( 0.05, T, 'none', T, 50, 'UUDD' )". Default for `func_anno`, `chrom_states`, `CHIP` and `motifs`: "c( 0.05, T, 'none', F, 50, 'UUDD' )". The options are in order:
+- **_params.heatmaps_params_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the heatmaps. There is one parameter for each enrichment category. Default for `genes_self` and `peaks_self`: "c( 0.05, T, 'none', T, 50, 'UUDD', 0 )". Default for `func_anno`, `chrom_states`, `CHIP` and `motifs`: "c( 0.05, T, 'none', F, 50, 'UUDD', 0 )". The options are in order:
   - **_padj_threshold_**: If no adjusted pvalue is above this threshold the process is stopped and no figure is made.
   - **_signed_padj_**: Should enrichment and depletion be shown (T) or enrichment only (F).
   - **_add_var_**: Add a variable to the plots as a small dot. Options: 'none' (nothing added; default), 'L2OR' (log2 odd ratio), 'ov_da' (overlap of DA entries with target; i.e. counts), 'padj_loglog' (pvalues in a log scale (higher values equals lower pvalues). formula: `log10(-log10(pval) + 1)`).
-  - **_add_number_**: Write the number count on the plots.
+  - **_add_number_**: Write the overlap count on the cells.
   - **_max_characters_**: The limit of target names length. Longer targt names are cut.
   - **_up_down_pattern_**: The pattern of how Fold Changes are displayed. Options: "UDUD" (up, down, up, down...) or "UUDD" (up, up, ..., down, down ...).  
+	- **_cell_text_size_**: Allows to control text size in the cells of the heatmap if the *add_number* parameter is set to true. If set to zero, the text size will be determined automatically by Cactus according to the number of comparisons on the heatmap.  
 
 - **_params.heatmaps_ggplot_**__**_{genes_self,peaks_self,func_anno,chrom_states,CHIP,motifs}_**: A string converted to a vector in R containing options to customize the appearance of the heatmaps by tweaking ggplot2 parameters. There is one parameter for each enrichment category. Default: "c( 11, 10, 7 )". The options are in order:
   - **_axis_text_size_**: Axis text size.

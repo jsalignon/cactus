@@ -4588,6 +4588,7 @@ process Figures__making_enrichment_heatmap {
     add_number      = plot_params[4] %>% as.logical
     max_characters  = plot_params[5] %>% as.integer
     up_down_pattern = plot_params[6] %>% as.character
+    cell_text_size  = plot_params[7] %>% as.numeric
     
     axis_text_size   = ggplot_params[1] %>% as.integer
     title_text_size  = ggplot_params[2] %>% as.integer
@@ -4701,7 +4702,7 @@ process Figures__making_enrichment_heatmap {
       title_text_size = title_text_size, legend_text_size = legend_text_size)
     point_size = scales::rescale(c(nrows, seq(0, 40, len = 5)), c(3, 0.8))[1]
     p_binned = get_plot_binned(p1, signed_padj = signed_padj, add_var, 
-      add_number, point_size = point_size)
+      add_number, point_size = point_size, cell_text_size = cell_text_size)
 
     pdf(paste0(key, '__heatmap.pdf'))
       print(p_binned)

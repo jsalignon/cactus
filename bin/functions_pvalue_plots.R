@@ -21,7 +21,7 @@
 ## getting plot binned and loglog
 # add_var_to_plot can take these arguments: none, L2OR, padj_loglog or ov_da
 
-get_plot_binned <- function(p1, signed_padj = F, add_var_to_plot = 'none', add_number = F, point_size = 2, add_number_column = 'ov_da'){
+get_plot_binned <- function(p1, signed_padj = F, add_var_to_plot = 'none', add_number = F, point_size = 2, add_number_column = 'ov_da', cell_text_size = 0){
   
   col_bars = rev(RColorBrewer::brewer.pal(11, 'PRGn'))
   col_bars_enriched = col_bars[1:6]
@@ -59,10 +59,12 @@ get_plot_binned <- function(p1, signed_padj = F, add_var_to_plot = 'none', add_n
   }
   
   if(add_number) {
-    nb_cond = length(unique(p1$data$comp_FC))
-    rescale_vec = c(nb_cond, seq(0, 20, len = 5))
-    overlap_text_size = scales::rescale(rescale_vec, c(6, 3))[1]
-    p_binned = p_binned + geom_text(aes_string(label = add_number_column), size = overlap_text_size)
+    if(cell_text_size == 0) {
+      nb_cond = length(unique(p1$data$comp_FC))
+      rescale_vec = c(nb_cond, seq(0, 20, len = 5))
+      cell_text_size = scales::rescale(rescale_vec, c(6, 3))[1]
+    }
+    p_binned = p_binned + geom_text(aes_string(label = add_number_column), size = cell_text_size)
   }
   
   return(p_binned)
