@@ -85,7 +85,7 @@ Finally, it is possible to add additional colored point to the top of the bars t
 ### Description
 This process takes as input all enrichment results for comparisons of a given group (as specified in the [comparisons.tsv file](/docs/3_Inputs/Design.md#comparisons.tsv), `${GRP}` key) and that share the same keys for `${ET}` (Experiment type), `${PA}` (Peak assignment), `${TV}` (Threshold value) and `${EC}` (Enrichment category), filters the most relevant terms, and produces a heatmap.  
 
-The heatmap shows the selected terms on the y-axis and the comparisons with fold change type (`COMP_FC`) on the x-axis with this format: `${condition_1}_${condition_2}_${FC}`.  
+The heatmap shows the selected terms on the y-axis and the comparisons with fold change type (`COMP_FC`) on the x-axis with this format: `${condition_1} > ${condition_2}` when `${FC}` is `up` and `${condition_1} < ${condition_2}` when `${FC}` is `down`.  
 
 The order of the `COMP_FC` entries on the x-axis, and on the y-axis for the `peaks_self`, `genes_self` enrichment categories is defined by *comparison.tsv* input file as well as the *up_down_pattern* parameter that can be set up within the *params.heatmaps_params* parameter (see next subsection below).  
 
