@@ -4696,6 +4696,14 @@ process Figures__making_enrichment_heatmap {
     # creating a data.frame with row and column indexes for plotting
     df_final = add_matrix_indexes_to_df(mat_final, df, nrows, ncols)
 
+    # changing labels
+    colnames(mat_final) %<>% strsplit('_') %>% 
+     sapply(function(x) paste0(x[1], ifelse(x[3] == 'up', ' > ', ' < '), x[2]))
+    if(data_type %in% c('peaks_self', 'genes_self')) {
+      rownames(mat_final) %<>% strsplit('_') %>% 
+        sapply(function(x) paste0(x[1], ifelse(x[3] == 'up', ' > ', ' < '), x[2]))
+    }
+
     # making and saving plots
     p1 = getting_heatmap_base(df_final, nrows, ncols, title = key, 
       cur_mat = mat_final, axis_text_size = axis_text_size, 
