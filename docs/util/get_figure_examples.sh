@@ -13,12 +13,13 @@ figshare_version=v4
 tools_manager=singularity
 
 species=worm ; cd $test_dir/$tools_manager/$species
-nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/full_test.yml --split__threshold_values [1000] --res_dir 'results/almost_full_test'
-nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich__no_rtr.yml
+nextflow run  jsalignon/cactus -r hotfix/0.8.1  -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/full_test.yml --split__threshold_values [1000] --res_dir 'results/almost_full_test'
+# nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/full_test.yml --split__threshold_values [1000] --res_dir 'results/almost_full_test'
+# nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich__no_rtr.yml
 
-species=fly ; cd $test_dir/$tools_manager/$species
-nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich.yml
-nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich__no_gtr.yml
+# species=fly ; cd $test_dir/$tools_manager/$species
+# nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich.yml
+# nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich__no_gtr.yml
 
 
 
@@ -84,7 +85,8 @@ cd $examples_dir_pdf
 
 # for FILE in $(ls ATAC__all__down__200__hmg4_vs_spt16__motifs__barplot.pdf) 
 # for FILE in $(ls mRNA_volcano*.pdf) 
-for FILE in $(ls hmg4_vs_spt16__ATAC_volcano.pdf) 
+for FILE in $(ls *heatmap*.pdf) 
+# for FILE in $(ls hmg4_vs_spt16__ATAC_volcano.pdf) 
 # for FILE in $(ls *.pdf) 
 do
   echo $FILE

@@ -21,9 +21,10 @@ test_ds_dir=$cactus_dir/test_datasets
 case_study_dir=$test_ds_dir/application_note
 
 ## setting up variabless
-# cactus_version=0.9.0 ; latest_flag=""
+cactus_version=hotfix/0.8.1 ; latest_flag=''
+# cactus_version=v0.8.0 ; latest_flag=''
 # cactus_version=main ; latest_flag="-latest"
-cactus_version=57a2e7f516d9ac7114f389c0f226ca01ae63db7a ; latest_flag=""
+# cactus_version=57a2e7f516d9ac7114f389c0f226ca01ae63db7a ; latest_flag=""
 cpu_nb=47
 memory_size='250G'
 figshare_version=v4
