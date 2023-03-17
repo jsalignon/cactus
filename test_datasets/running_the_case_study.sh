@@ -44,10 +44,10 @@ species=worm ; cd $case_study_dir/$species
 nextflow run jsalignon/cactus --res_dir 'results/2022_12_21__run_1' --chromatin_state 'iHMM.M1K16.worm_L3' --chip_ontology 'all' \
 --species $species -profile singularity -r $cactus_version $latest_flag -resume --references_dir $references_dir --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --heatmaps_filter__CHIP "$heatmaps_filters_chip" --heatmaps_filter__motifs "$heatmaps_filters_motifs" --common_padj_breaks "$padj_breaks" --common__heatmaps_ggplot "$heatmaps_ggplot"
 
-# worm run 2: peak-self enrichment only; FDR cutoff 10^-4
-species=worm ; cd $case_study_dir/$species
-nextflow run jsalignon/cactus --res_dir 'results/2022_12_21__run_2' --chromatin_state 'iHMM.M1K16.worm_L3' --split__threshold_values [4] --do_genes_self_enrichment false --do_chip_enrichment false --do_motif_enrichment false --do_chrom_state_enrichment false --do_func_anno_enrichment false \
---species $species -profile singularity -r $cactus_version $latest_flag -resume --references_dir $references_dir --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --heatmaps_filter__CHIP "$heatmaps_filters_chip" --heatmaps_filter__motifs "$heatmaps_filters_motifs" --common_padj_breaks "$padj_breaks" --common__heatmaps_ggplot "$heatmaps_ggplot"
+# # worm run 2: peak-self enrichment only; FDR cutoff 10^-4
+# species=worm ; cd $case_study_dir/$species
+# nextflow run jsalignon/cactus --res_dir 'results/2022_12_21__run_2' --chromatin_state 'iHMM.M1K16.worm_L3' --split__threshold_values [4] --do_genes_self_enrichment false --do_chip_enrichment false --do_motif_enrichment false --do_chrom_state_enrichment false --do_func_anno_enrichment false \
+# --species $species -profile singularity -r $cactus_version $latest_flag -resume --references_dir $references_dir --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --heatmaps_filter__CHIP "$heatmaps_filters_chip" --heatmaps_filter__motifs "$heatmaps_filters_motifs" --common_padj_breaks "$padj_breaks" --common__heatmaps_ggplot "$heatmaps_ggplot"
 
 # human run 1: full analysis
 species=human ; cd $case_study_dir/$species
@@ -59,10 +59,10 @@ species=human ; cd $case_study_dir/$species
 nextflow run jsalignon/cactus --res_dir 'results/2022_12_21__run_2' --chromatin_state 'iHMM.M1K16.human_GM' --chip_ontology 'cell_type.fibroblast' \
 --species $species -profile singularity -r $cactus_version $latest_flag -resume --references_dir $references_dir --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --heatmaps_filter__CHIP "$heatmaps_filters_chip" --heatmaps_filter__motifs "$heatmaps_filters_motifs" --common_padj_breaks "$padj_breaks" --common__heatmaps_ggplot "$heatmaps_ggplot"
 
-# human run 3: peak-self enrichment only; FDR cutoff 10^-4
-species=human ; cd $case_study_dir/$species
-nextflow run jsalignon/cactus --res_dir 'results/2022_12_21__run_3' --chromatin_state 'iHMM.M1K16.human_GM' --split__threshold_values [4] --do_genes_self_enrichment false --do_chip_enrichment false --do_motif_enrichment false --do_chrom_state_enrichment false --do_func_anno_enrichment false \
---species $species -profile singularity -r $cactus_version $latest_flag -resume --references_dir $references_dir --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --heatmaps_filter__CHIP "$heatmaps_filters_chip" --heatmaps_filter__motifs "$heatmaps_filters_motifs" --common_padj_breaks "$padj_breaks" --common__heatmaps_ggplot "$heatmaps_ggplot"
+# # human run 3: peak-self enrichment only; FDR cutoff 10^-4
+# species=human ; cd $case_study_dir/$species
+# nextflow run jsalignon/cactus --res_dir 'results/2022_12_21__run_3' --chromatin_state 'iHMM.M1K16.human_GM' --split__threshold_values [4] --do_genes_self_enrichment false --do_chip_enrichment false --do_motif_enrichment false --do_chrom_state_enrichment false --do_func_anno_enrichment false \
+# --species $species -profile singularity -r $cactus_version $latest_flag -resume --references_dir $references_dir --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --heatmaps_filter__CHIP "$heatmaps_filters_chip" --heatmaps_filter__motifs "$heatmaps_filters_motifs" --common_padj_breaks "$padj_breaks" --common__heatmaps_ggplot "$heatmaps_ggplot"
 
 
 
