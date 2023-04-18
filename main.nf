@@ -4580,7 +4580,8 @@ process Figures__making_enrichment_heatmap {
 
 
     # getting parameters
-    if(grepl('func_anno', data_type)) data_type = 'func_anno'
+    data_type_1 = data_type
+    if(grepl('func_anno', data_type_1)) data_type_1 = 'func_anno'
     
     padj_threshold  = plot_params[1] %>% as.numeric
     signed_padj     = plot_params[2] %>% as.logical
@@ -4594,7 +4595,7 @@ process Figures__making_enrichment_heatmap {
     title_text_size  = ggplot_params[2] %>% as.integer
     legend_text_size = ggplot_params[3] %>% as.integer
 
-    if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
+    if(data_type_1 %in% c('CHIP', 'motifs', 'func_anno')){
       n_total              = filter_params[1] %>% as.integer
       n_shared             = filter_params[2] %>% as.integer
       n_unique             = filter_params[3] %>% as.integer
@@ -4610,7 +4611,7 @@ process Figures__making_enrichment_heatmap {
     df = do.call(rbind, ldf)
 
     # filtering table
-    if(data_type %in% c('genes_self', 'peaks_self')){
+    if(data_type_1 %in% c('genes_self', 'peaks_self')){
       key1 = paste(df[1, c('ET', 'PA', 'TV')], collapse = '__')
       df$tgt_key = sapply(strsplit(df$tgt, '__'), 
                           function(x) paste(x[c(1,2,4)], collapse = '__'))
@@ -4620,6 +4621,9 @@ process Figures__making_enrichment_heatmap {
 
     ## quitting if there are no significant results to show
     if(all(df$padj > padj_threshold)) quit(save = 'no')
+
+    # shortening the long terms names while keeping them unique
+    df$tgt %<>% get_shorter_names(max_characters)
 
     # adding the comp_FC
     df$comp_FC = apply(df[, c('COMP', 'FC')], 1, paste, collapse = '_') %>% 
@@ -4639,7 +4643,7 @@ process Figures__making_enrichment_heatmap {
                       as.character
 
     # if plotting self overlap keeping only targets in the group
-    if(data_type %in% c('genes_self', 'peaks_self')) {
+    if(data_type_1 %in% c('genes_self', 'peaks_self')) {
       terms_levels = rev(comp_order1)
       strs = strsplit(df$tgt, '__')
       tgt_ET   = purrr__map_chr(strs, 1)
@@ -4663,7 +4667,11 @@ process Figures__making_enrichment_heatmap {
     mat = as.matrix(mat_dt[,-1]) %>% set_rownames(mat_dt$yaxis_terms)
 
     # selecting and ordering the y-axis terms
-    if(data_type %in% c('CHIP', 'motifs', 'func_anno')){
+    if(data_type_1 %in% c('CHIP', 'motifs', 'func_anno')){
+
+      # removing entries for which all comparisons don't pass the threshold
+      mat = mat[!apply(mat, 1, 
+        function(x) all(abs(x) < get_pval_loglog(padj_threshold))), ]
 
       sel_rows = which(rowSums(abs(mat)) != 0)
       sel_cols = which(colSums(abs(mat)) != 0)
@@ -4679,7 +4687,7 @@ process Figures__making_enrichment_heatmap {
 
     }
 
-    if(data_type == 'chrom_states') {
+    if(data_type_1 == 'chrom_states') {
       vec = unique(df$tgt)
       vec_order = vec %>% gsub('.', '', ., fixed = T) %>% gsub(' .*', '', .) %>% 
                   as.integer %>% order
@@ -4690,16 +4698,13 @@ process Figures__making_enrichment_heatmap {
     mat_final = mat[terms_levels, comp_order1]
     nrows = nrow(mat_final) ; ncols = ncol(mat_final)
 
-    # shortening the long terms names while keeping them unique
-    rownames(mat_final) %<>% get_shorter_names(max_characters)
-
     # creating a data.frame with row and column indexes for plotting
     df_final = add_matrix_indexes_to_df(mat_final, df, nrows, ncols)
 
     # changing labels
     colnames(mat_final) %<>% strsplit('_') %>% 
      sapply(function(x) paste0(x[1], ifelse(x[3] == 'up', ' > ', ' < '), x[2]))
-    if(data_type %in% c('peaks_self', 'genes_self')) {
+    if(data_type_1 %in% c('peaks_self', 'genes_self')) {
       rownames(mat_final) %<>% strsplit('_') %>% 
         sapply(function(x) paste0(x[1], ifelse(x[3] == 'up', ' > ', ' < '), x[2]))
     }

@@ -117,17 +117,30 @@ getting_padj_loglog_and_binned <- function(df, signed_padj, padj_breaks){
 
 
 
+
 get_padj_binned <- function(padj, L2OR, signed_padj, padj_breaks){
   dt = data.table(padj = padj, L2OR = L2OR)
-  dt[, padj1 := padj * sign(L2OR)]
-  dt[padj == 0, padj1 := L2OR]
-  breaks_1 = -log10(c(0, padj_breaks))
-  if(signed_padj) breaks_1 = sort(unique(c(-breaks_1, breaks_1)))
+ 
   dt[, padj1 := -log10(padj) * sign(L2OR)]
+
+  if(!signed_padj) {
+    dt[sign(L2OR) < 0, padj1 := 0]
+  }
+
+  breaks_1 = -log10(c(0, padj_breaks))
+  if(signed_padj) {
+      breaks_1 = sort(unique(c(-breaks_1, breaks_1)))
+    } else {
+      breaks_1 = c(0, breaks_1) 
+    }
+
   dt[, padj_binned := cut(padj1, breaks = breaks_1, include.lowest = T, right = T)]
+
   dt[, padj_binned := factor(padj_binned, levels = rev(levels(padj_binned)))]
   return(dt$padj_binned)
 }
+
+
 
 
 

@@ -86,6 +86,8 @@ memory_size='300G'
 cactus_version=hotfix/0.8.1 ; latest_flag=''
 # cactus_version=1fd6d2054839fa4978d8c8e2f765c90611f36b02 ; latest_flag=''
 # cactus_version=main ; latest_flag='-latest'
+# tools_manager=singularity
+# species=worm
 
 cd $test_dir 
 # rm -r *
@@ -97,7 +99,11 @@ for species in worm
     cd $test_dir
     mkdir -p $tools_manager/$species
     cd $test_dir/$tools_manager/$species
-    nextflow run jsalignon/cactus -r $cactus_version $latest_flag -params-file parameters/full_test.yml -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [1000]
+    nextflow run jsalignon/cactus -r $cactus_version $latest_flag \
+      -params-file parameters/full_test.yml -profile $tools_manager \
+      --executor_local_cpus $cpu_nb --executor_local_memory $memory_size \
+      --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] \
+      --split__threshold_values [1000]
   done
 done
 
