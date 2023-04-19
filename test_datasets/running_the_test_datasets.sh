@@ -72,6 +72,8 @@ done
 # Note: runs for the example figures on the docs are made in this scritp: 
 # docs/util/get_figure_examples.sh
 
+# nextflow drop jsalignon/cactus
+
 ## setting up paths
 homedir=~
 eval homedir=$homedir

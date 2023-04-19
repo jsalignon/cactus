@@ -4606,7 +4606,7 @@ process Figures__making_enrichment_heatmap {
     }
 
     # loading, merging and processing data
-    rds_files = list.files(pattern = '*.rds')
+    rds_files = list.files(pattern = '*__enrich.rds')
     ldf = lapply(rds_files, readRDS)
     df = do.call(rbind, ldf)
 
