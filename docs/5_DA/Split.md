@@ -21,7 +21,7 @@
 
 <a href="url"> <img src="/docs/images/splitting_filters.png" width="400" /> </a>  
 ***Sub-workflow showing the creation of DASs.***  
-*Dotted arrows indicate optional additional filters. Abbreviations: FDR - False Discovery Rate, prom - promoter, distNC - distal non-coding region.*
+*Dotted arrows indicate optional additional filters. Abbreviations: FDR - False Discovery Rate, DAR - differentially accessible region, prom - promoter, distNC - distal non-coding region.*
 
 <a href="url"> <img src="/docs/images/splitting.png" width="650" /> </a>  
 ***Diagrams showing how differential analysis results are split by experiment type and fold change filters.***  
