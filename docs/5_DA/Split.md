@@ -70,7 +70,7 @@ In additions, two types of tables are produced: res_simple and res_filter. These
 ## DA_split__plotting_venn_diagrams
 
 ### Description
-This process takes as input all gene lists made by the previous process for a given comparison and generates venn diagrams for gene lists that share these keys: PA (Peak Annotation), FC (Fold Change) and TV (Theshold Value).  
+This process takes as input all gene lists made by the previous process for a given comparison and generates venn diagrams for gene lists that share these keys: PA (DARs Peak Annotation), FC (Fold Change type) and TV (Theshold Value).  
 Two types of plots are made:
 - proportional two ways venn diagrams:  ATAC-Seq vs mRNA-Seq with FC either up or down
 - fixed-size four-ways venn diagrams: ATAC-Seq vs mRNA-Seq with FC up and down.
