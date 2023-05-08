@@ -48,7 +48,7 @@ This process merge csv tables in R and format them (sorting by descending FDR an
 
 ### Description
 This process format tables in Excel with these steps:
- - Homogeneous coloring: coloring cells by column types: with the subset keys in red, the target in green, pvalue columns in orange, L2OR and L2FC in purple, DA (Differential Analysis subsets) columns in gold, NDA (non-DA) columns in blue, and total entry in target (tot_tgt) in grey. Headers are colored with a darker color than other cells (body) in the column.
+ - Homogeneous coloring: coloring cells by column types: with the DAS keys in red, the target in green, pvalue columns in orange, L2OR and L2FC in purple, DA (Differential Analysis subsets) columns in gold, NDA (non-DA) columns in blue, and total entry in target (tot_tgt) in grey. Headers are colored with a darker color than other cells (body) in the column.
  - Conditional coloring for the body of: 
    - adjusted pvalues: gradient from light orange (highest pvalues) to dark orange (lowest pvalues).
    - L2OR and L2FC: gradient from red (highest values) to white (zero) to blue (lowest values). Infinite values are assigned a value of +/-e99 and given the same value as the highest/lowest non-infinite value for coloring.
