@@ -31,8 +31,8 @@
 This process splits Differential Analysis results into subsets (i.e., DAS - Differential Analysis Subsets) in order to do enrichment analysis on many different angles and extract the most information out of the data.  
 4 filters are used to split:
   - ET: Experiment Type. Can be either 'ATAC', 'mRNA', 'both', 'both_ATAC', or 'both_mRNA'.  
-  - PA: Peak Assignment. Can be any combination of 'all', 'PA_gene', 'PA_interG', 'PA_prom', 'PA_5pUTR', 'PA_3pUTR', 'PA_exon', 'PA_intron', 'PA_downst', 'PA_distIn', 'PA_UTR', 'PA_TSS', 'PA_genPro', 'PA_distNC', 'PA_3kb', 'PA_8kb', 'PA_30kb'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included).
-  - FC: Fold Change. To split up and down-regulated results.
+  - PA: DAR Peak Annotation. Can be any combination of 'all', 'PA_gene', 'PA_interG', 'PA_prom', 'PA_5pUTR', 'PA_3pUTR', 'PA_exon', 'PA_intron', 'PA_downst', 'PA_distIn', 'PA_UTR', 'PA_TSS', 'PA_genPro', 'PA_distNC', 'PA_3kb', 'PA_8kb', 'PA_30kb'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included).
+  - FC: Fold Change type. To split up and down-regulated results.
   - TV: Theshold Value(s). To split results by significance thresholds. 
 
 > **_NOTE:_** The 'both*' entries indicates that the results pass the filters in both ATAC-Seq and mRNA-Seq. 'both' is used for gene lists (i.e. to find enriched ontologies), while 'both_ATAC' and 'both_mRNA' are used for genomic regions (i.e. to find enriched motifs/CHIP). 'both_ATAC' are ATAC-Seq peaks assigned to genes that are passing the filters in mRNA-Seq data as well. 'both_mRNA' are gene promoters of genes that pass the filters in mRNA-Seq and for which there are nearby ATAC-Seq peaks assigned to the same gene and that pass the filters.  
@@ -70,7 +70,7 @@ In additions, two types of tables are produced: res_simple and res_filter. These
 ## DA_split__plotting_venn_diagrams
 
 ### Description
-This process takes as input all gene lists made by the previous process for a given comparison and generates venn diagrams for gene lists that share these keys: PA (DARs Peak Annotation), FC (Fold Change type) and TV (Theshold Value).  
+This process takes as input all gene lists made by the previous process for a given comparison and generates venn diagrams for gene lists that share these keys: PA (DAR Peak Annotation), FC (Fold Change type) and TV (Theshold Value).  
 Two types of plots are made:
 - proportional two ways venn diagrams:  ATAC-Seq vs mRNA-Seq with FC either up or down
 - fixed-size four-ways venn diagrams: ATAC-Seq vs mRNA-Seq with FC up and down.

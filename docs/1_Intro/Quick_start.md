@@ -86,7 +86,7 @@ nextflow run jsalignon/cactus -r release_tag -profile {singulariy,docker,conda,m
 ```
 For instance:
 ```
-nextflow run jsalignon/cactus -r v0.8.0 -profile singularity -params-file parameters/full_test.yml
+nextflow run jsalignon/cactus -r v0.8.1 -profile singularity -params-file parameters/full_test.yml
 ```
 
 # Troubleshooting

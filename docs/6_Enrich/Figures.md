@@ -83,7 +83,7 @@ Finally, it is possible to add additional colored point to the top of the bars t
 ## Figures__making_enrichment_heatmap
 
 ### Description
-This process takes as input all enrichment results for comparisons of a given group (as specified in the [comparisons.tsv file](/docs/3_Inputs/Design.md#comparisons.tsv), `${GRP}` key) and that share the same keys for `${ET}` (Experiment type), `${PA}` (Peak assignment), `${TV}` (Threshold value) and `${EC}` (Enrichment category), filters the most relevant terms, and produces a heatmap.  
+This process takes as input all enrichment results for comparisons of a given group (as specified in the [comparisons.tsv file](/docs/3_Inputs/Design.md#comparisons.tsv), `${GRP}` key) and that share the same keys for `${ET}` (Experiment Type), `${PA}` (DAR Peak Annotation), `${TV}` (Threshold Value) and `${EC}` (Enrichment Category), filters the most relevant terms, and produces a heatmap.  
 
 The heatmap shows the selected terms on the y-axis and the comparisons with fold change type (`COMP_FC`) on the x-axis with this format: `${condition_1} > ${condition_2}` when `${FC}` is `up` and `${condition_1} < ${condition_2}` when `${FC}` is `down`.  
 
