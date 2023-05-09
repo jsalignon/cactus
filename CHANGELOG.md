@@ -26,7 +26,26 @@ Types of changes
     Security in case of vulnerabilities. -->
 
 
-## [0.8.1](https://github.com/jsalignon/cactus/releases/tag/v0.8.1) - Cephalocereus 
+## [0.8.2](https://github.com/jsalignon/cactus/releases/tag/v0.8.2) - Mammilloydia, 09-05-2023
+
+### Added
+
+- [#6](https://github.com/nf-core/sarek/pull/6) - Added options to keep unique DA and NDA genes or not
+
+### Changed
+
+- [#5](https://github.com/nf-core/sarek/pull/5) - Updating the docs
+
+### Fixed
+
+### Deprecated
+
+### Removed
+
+### Dependencies
+
+
+## [0.8.1](https://github.com/jsalignon/cactus/releases/tag/v0.8.1) - Cephalocereus, 19-04-2023
 
 ### Added
 
@@ -53,6 +72,9 @@ Types of changes
 
 
 
+## [0.8.0](https://github.com/jsalignon/cactus/releases/tag/v0.8.0) - Lophophora, 30-12-2022
+
+First release.
 
 <!-- ## [2021.11.16](https://github.com/nf-core/sarek/releases/tag/2.7.1) - Pårtejekna
 
