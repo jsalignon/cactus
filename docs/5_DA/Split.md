@@ -44,13 +44,14 @@ Finally, a key is made, of the form `${ET}__${PA}__${FC}__${TV}__${COMP}`, with 
   - R files that contain gene sets (i.e. to find enriched ontologies, for Venn diagrams plots).
 
 In additions, two types of tables are produced: res_simple and res_filter. These two tables contain the same columns: the 5 key components (ET, PA, FC, TV and COMP), a peak_id column (Null for mRNA-Seq results), chromosome, gene name and id, pvalue and adjusted p-value and log2 fold changes. These two tables differ in their format: 
-  - res_simple: each result is reported with the filters that it passes that are combined with "|" (i.e PA: 'all|prom'). This allows to quickly browse all results.
-  - res_filter: only results passing filters are reported and each passed filter is on a different line (so 'all' and 'prom' would be on two different lines in the previous example). This file should be smaller as it exclude all the non-significant results.
+  - res_simple: each result is reported with the filters that it passes that are combined with "|" (i.e PA: 'all|prom'). This allows to quickly browse all results. Please note that *ET = 'both'* entries are not shown in this file.
+  - res_filter: only results passing filters are reported and each passed filter is on a different line (so 'all' and 'prom' would be on two different lines in the previous example). This file should be smaller as it exclude all the non-significant results. This file includes the entries significant in both ATAC-Seq and mRNA-Seq, with *ET = 'both_ATAC'* showing the ATAC-Seq results, and *ET = 'both_mRNA'* showing the mRNA-Seq results.
 
 ### Parameters
 - **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Options: 'FDR', 'rank'. Default: 'FDR'. 
 - **_params.split__threshold_values_**: Groovy list defining the threshold cuttoff value(s). If *params.split__threshold_type = 'rank'* all entries ranked below this value will be kept (with entries ranked from lowest (rank = 1) to highest adjusted pvalues). If *params.split__threshold_type = 'FDR'* all entries with a -log10(adjusted p-value) below this threshold will be kept. e.g., *params.split__threshold_values = [ 1.3 ]* will keep all entries with an adjusted pvalue below 0.05 (i.e., -log10(0.05) = 1.30103). Multiple thresholds can be added but from the same type (FDR or rank). Default: [ 1.3 ].
 - **_params.split__peak_assignment_**: Defines the peak assignment filters to use. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for options. Default: [ 'all' ].
+- **_params.split__keep_unique_genes_**: Should only unique DA and NDA genes be kept for downstream analysis. Default: 'TRUE'.
 
 ### Outputs
 - **Gene lists**: `Processed_Data/2_Differential_Analysis/DA_split__genes_rds/${key}__genes.rds`
