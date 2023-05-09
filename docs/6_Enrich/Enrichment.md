@@ -38,11 +38,11 @@ Five standardized columns are made for each database:
 These standardized columns are then used in subsequent process [to compute pvalues](#Enrichment__computing_enrichment_pvalues) and making [figures](/docs/6_Enrich/Figures.md) and [tables](/docs/6_Enrich/Tables.md#Tables__formatting_csv_tables).
 The columns that are unique to a particular analysis are described in the corresponding process.
 
-The keys of each subset are then augmented by adding the EC (Enrichment Category) variable. Thus the key becomes: `${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}`.  
+The key of each DAS is then augmented by adding the EC (Enrichment Category) variable. Thus the key becomes: `${ET}__${PA}__${FC}__${TV}__${COMP}__{EC}`.  
 With, as defined in the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_analysis_results_in_subsets), the variables: 
  - ET: Experiment Type
- - PA: Peak Annotation
- - FC: Fold Change
+ - PA: DAR Peak Annotation
+ - FC: Fold Change type
  - TV: Theshold Value(s)
  - COMP: Comparison
  - EC: Enrichment Category
@@ -52,8 +52,8 @@ And EC can be any of these:
  - CHIP: Transcription factor CHIP-Seq profiles
  - chrom_states: Chromatin states from the specified chromatin state file
  - motifs: Transcription factors motifs sequences
- - peaks_self: Genomic regions subsets from the current experiment
- - genes_self: Gene list subsets from the current experiment.
+ - peaks_self: Genomic regions DASs from the current experiment
+ - genes_self: Gene list DASs from the current experiment.
 
 *e.g.: key = ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__enrich.*
 
@@ -79,17 +79,17 @@ Overlap of gene lists with functional annotation databases is performed using [c
 ## Enrichment__computing_genes_self_overlaps
 
 ### Description
-In this process, all genes sets from subsets of the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_analysis_results_in_subsets) are overlapped with each other.
+In this process, all genes sets from DASs of the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_analysis_results_in_subsets) are overlapped with each other.
 
 
 ## Enrichment__computing_peaks_overlaps
 
 ### Description
-This process takes as input genomic regions (bed files) from various sources and overlap them with genomic regions (bed files) of subsets from the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_analysis_results_in_subsets).  
+This process takes as input genomic regions (bed files) from various sources and overlap them with genomic regions (bed files) of DASs from the [splitting process](/docs/5_DA/Split.md#DA_split__splitting_differential_analysis_results_in_subsets).  
 The input genomic regions are:
  - CHIP
  - Chromatin states (hiHMM or ChromHMM) 
- - genomic regions of subsets from the splitting process -> for computing self overlap of genomic regions subsets within the experiment.
+ - genomic regions of DASs from the splitting process -> for computing self overlap of genomic regions DASs within the experiment.
 
 ### Parameters
 - **_params.chromatin_state_1_**: Chromatin state to use. Options are listed in the `references/${specie}/encode_chromatin_states_metadata.csv` file. Mandatory. No default.
@@ -99,7 +99,7 @@ The input genomic regions are:
 ## Enrichment__computing_motifs_overlaps
 
 ### Description
-This process uses [HOMER](https://doi.org/10.1016/j.molcel.2010.05.004) to compute the overlap of genomic regions of subsets in [CIS-BP motifs](https://doi.org/10.1016/j.cell.2014.08.009).
+This process uses [HOMER](https://doi.org/10.1016/j.molcel.2010.05.004) to compute the overlap of genomic regions of DASs in [CIS-BP motifs](https://doi.org/10.1016/j.cell.2014.08.009).
 
 ### Parameters
 - **_params.do_motif_enrichment_**: enable or disable this process. Default: true.

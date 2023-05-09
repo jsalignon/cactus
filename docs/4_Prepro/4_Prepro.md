@@ -14,7 +14,7 @@
 
 This section covers standard preprocessing analysis. This corresponds to peak calling for ATAC-Seq and to transcripts abundance quantification for mRNA-Seq, as well as quality control analysis.
 
-The pipeline was originally developed to analyze ATAC-Seq data and therefore more quality controls are being performed for ATAC-Seq data. An important difference between ATAC-Seq and mRNA-Seq data preprocessing is that reads are aligned for ATAC-Seq data analysis, while an alignment-free method is used for mRNA-Seq. For this reason the preprocessing is much faster for mRNA-Seq data. This also means that less quality controls can be made for mRNA-Seq data. More quality controls for mRNA-Seq data may be added if needed in future versions of cactus.
+The pipeline was originally developed to analyze ATAC-Seq data and therefore more quality controls are being performed for ATAC-Seq data. An important difference between ATAC-Seq and mRNA-Seq data preprocessing is that reads are aligned for ATAC-Seq data analysis, while an alignment-free method is used for mRNA-Seq. For this reason the preprocessing is much faster for mRNA-Seq data. This also means that less quality controls can be made for mRNA-Seq data. More quality controls options for mRNA-Seq data may be added if needed in future versions of Cactus.
 
 For mRNA-Seq data, transcripts abundances are quantifyied with [kallisto](https://doi.org/10.1038/nbt.3519) and quality controls are made with [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) and [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/).
 

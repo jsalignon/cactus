@@ -3331,6 +3331,7 @@ process DA_split__splitting_differential_analysis_results_in_subsets {
       '!{params.split__fold_changes}')
     PA_split = read_from_nextflow(
       '!{params.split__peak_assignment}')
+    keep_unique_genes = '!{params.split__keep_unique_genes}'
 
 
     ################################
@@ -3470,16 +3471,28 @@ process DA_split__splitting_differential_analysis_results_in_subsets {
     df_split1 = res_filter %>% dplyr::select(ET:TV) %>% .[!duplicated(.),]
 
     for(c1 in 1:nrow(df_split1)){
-      ET1  = df_split1$ET[c1]
-      PA1  = df_split1$PA[c1]
-      FC1  = df_split1$FC[c1]
+      ET1 = df_split1$ET[c1]
+      PA1 = df_split1$PA[c1]
+      FC1 = df_split1$FC[c1]
       TV1 = df_split1$TV[c1]
 
       df = subset(res_filter, ET == ET1 & PA == PA1 & FC == FC1 & TV == TV1)
+
       DA_genes = unique(df$gene_id)
-      NDA_genes = subset(res_simple, ET == ET1 & !gene_id %in% DA_genes, 
-        'gene_id')$gene_id
-      lgenes = list(DA = DA_genes, NDA = NDA_genes)
+
+      ET1_bis = gsub('both_', '', ET1)
+      if(ET1_bis == 'ATAC'){
+        NDA_genes = res_simple_atac %>% .[!.$peak_id %in% df$peak_id, 'gene_id']
+      } else if(ET1_bis == 'mRNA'){
+        NDA_genes = res_simple_mRNA %>% .[!.$gene_id %in% df$gene_id, 'gene_id']
+      }
+      
+      if(keep_unique_genes) {
+        DA_genes  %<>% unique
+        NDA_genes %<>% unique
+      }
+
+      l_genes = list(DA = DA_genes, NDA = NDA_genes)
 
       key = paste(ET1, PA1, FC1, TV1, COMP, sep = '__')
 
@@ -3497,7 +3510,7 @@ process DA_split__splitting_differential_analysis_results_in_subsets {
 
       # exporting gene list
       key %<>% gsub('both_....', 'both', .) # renaming both_{ATAC,mRNA} as both
-      saveRDS(lgenes, paste0(key, '__genes.rds'))
+      saveRDS(l_genes, paste0(key, '__genes.rds'))
 
     }
 
