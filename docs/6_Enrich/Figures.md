@@ -20,10 +20,10 @@
 ## Figures__making_enrichment_barplots
 
 ### Description
-This process produces a barplot showing the most significant results for the input subset.  
+This process produces a barplot showing the most significant results for the input DAS.  
 
 Target names are shortened and duplicate entries are removed. The top n most significant entries are kept. 
-The figure made shows on the x-axis the size of the overlap and the term name on the y axis. Entries are sorted by adjusted pvalues (descending order) and overlap of DA results (ascending order). The x-axis title indicates the total number of entries in the subset (all DA entries), and for the genomic regions subsets (i.e. from bed files) the number of entries in the background (all NDA entries).  
+The figure made shows on the x-axis the size of the overlap and the term name on the y axis. Entries are sorted by adjusted pvalues (descending order) and overlap of DA results (ascending order). The x-axis title indicates the total number of entries in the DAS (all DA entries), and for genomic regions DASs (i.e. from bed files) the number of entries in the background (all NDA entries).  
 
 Adjusted p-values are signed with positive values for enrichment and negative values for depletion. The signed and binned adjusted p-values are cut into 11 bins by using 5 adjusted p-values cuttoff and their signed negative values in a log10 scale. On figures, enrichments are depicted in green and deplections are in purple.  
 
@@ -83,7 +83,7 @@ Finally, it is possible to add additional colored point to the top of the bars t
 ## Figures__making_enrichment_heatmap
 
 ### Description
-This process takes as input all enrichment results for comparisons of a given group (as specified in the [comparisons.tsv file](/docs/3_Inputs/Design.md#comparisons.tsv), `${GRP}` key) and that share the same keys for `${ET}` (Experiment type), `${PA}` (Peak assignment), `${TV}` (Threshold value) and `${EC}` (Enrichment category), filters the most relevant terms, and produces a heatmap.  
+This process takes as input all enrichment results for comparisons of a given group (as specified in the [comparisons.tsv file](/docs/3_Inputs/Design.md#comparisons.tsv), `${GRP}` key) and that share the same keys for `${ET}` (Experiment Type), `${PA}` (DAR Peak Annotation), `${TV}` (Threshold Value) and `${EC}` (Enrichment Category), filters the most relevant terms, and produces a heatmap.  
 
 The heatmap shows the selected terms on the y-axis and the comparisons with fold change type (`COMP_FC`) on the x-axis with this format: `${condition_1} > ${condition_2}` when `${FC}` is `up` and `${condition_1} < ${condition_2}` when `${FC}` is `down`.  
 
