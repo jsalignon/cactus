@@ -214,8 +214,8 @@ Figures:
 - **_params.split__threshold_type_**: Defines if the threshold cuttoff is based on FDR (adjusted p-value) or rank. Options: 'FDR', 'rank'. Default: 'FDR'. 
 - **_params.split__threshold_values_**: Groovy list defining the threshold cuttoff value(s). If *params.split__threshold_type = 'rank'* all entries ranked below this value will be kept (with entries ranked from lowest (rank = 1) to highest adjusted pvalues). If *params.split__threshold_type = 'FDR'* all entries with a -log10(adjusted p-value) below this threshold will be kept. e.g., *params.split__threshold_values = [ 1.3 ]* will keep all entries with an adjusted pvalue below 0.05 (i.e., -log10(0.05) = 1.30103). Multiple thresholds can be added but from the same type (FDR or rank). Default: [ 1.3 ].
 - **_params.split__peak_assignment_**: Groovy list defining the peak assignment filters to use. Options are 'all' for including all peaks, or any PA filter from the [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) process written without the initial prefix 'PA_' (e.g., 'prom', 'distNC'...). Default: [ 'all' ].
+- **_params.split__keep_unique_genes_**: Should only unique DA and NDA genes be kept for downstream analysis. Default: 'TRUE'.
 - **_params.min_entries_DA_bed_**: Subsets with fewer entries than that will be filtered out from enrichment analysis. Default: 2. 
-
 
 ## 3. Enrichment: Enrichment
 
