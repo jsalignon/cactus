@@ -19,10 +19,10 @@ process download_files {
   label "gnu_wget"
 
   input:
-    set file_type, figshare_file, true_md5sum from Files_to_download_1
+    set val(file_type), figshare_file, val(true_md5sum) from Files_to_download_1
 
   output:
-    set file_type, "${params.species}_${file_type}_checked.tar.gz" into Files_to_extract
+    set val(file_type), "${params.species}_${file_type}_checked.tar.gz" into Files_to_extract
     
   script:
     def figshare_path = "https://ndownloader.figshare.com/files"
@@ -48,11 +48,16 @@ process extract_files {
 
   label "skewer_pigz"
 
-  publishDir path: "${launchDir}", mode: params.pub_mode, enabled: "${file_type}" == "test_dataset"
-  publishDir path: "${params.references_dir}", mode: params.pub_mode, enabled: "${file_type}" == "references"
+  // publishDir path: "${launchDir}", mode: params.pub_mode, enabled: file_type == "test_dataset"
+  // publishDir path: "${params.references_dir}", mode: params.pub_mode, enabled: file_type == "references"
+  
+  publishDir path: "/", mode: params.pub_mode, saveAs: {
+           if (file_type == 'test_dataset')     "${launchDir}/${it}"
+      else if (file_type == 'references') "${params.references_dir}/${it}"
+    }
 
   input:
-    set file_type, downloaded_file from Files_to_extract
+    set val(file_type), downloaded_file from Files_to_extract
 
   output:
       set file('data/'), file('parameters/'), file('design/'), 
