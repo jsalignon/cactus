@@ -48,7 +48,8 @@ process extract_files {
 
   label "skewer_pigz"
 
-  publishDir path: "${launchDir}", mode: params.pub_mode
+  publishDir path: "${launchDir}", mode: params.pub_mode, enabled: file_type == 'test_dataset'
+  publishDir path: "${params.references_dir}", mode: params.pub_mode, enabled: file_type == 'references'
 
   input:
     set file_type, downloaded_file from Files_to_extract
