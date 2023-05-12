@@ -38,7 +38,7 @@ Types of changes
 
 ### Fixed
 
-- [#5](https://github.com/jsalignon/cactus/pull/8) - Fixed a bug in the script to download test datasets and references
+- [#8](https://github.com/jsalignon/cactus/pull/8) - Fixed a bug in the script to download test datasets and references
 
 ### Deprecated
 
