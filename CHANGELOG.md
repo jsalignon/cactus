@@ -30,13 +30,15 @@ Types of changes
 
 ### Added
 
-- [#6](https://github.com/nf-core/sarek/pull/6) - Added options to keep unique DA and NDA genes or not
+- [#6](https://github.com/jsalignon/cactus/pull/6) - Added options to keep unique DA and NDA genes or not in the splitting process
 
 ### Changed
 
-- [#5](https://github.com/nf-core/sarek/pull/5) - Updating the docs
+- [#5](https://github.com/jsalignon/cactus/pull/5) - Changed the docs
 
 ### Fixed
+
+- [#5](https://github.com/jsalignon/cactus/pull/8) - Fixed a bug in the script to download test datasets and references
 
 ### Deprecated
 
