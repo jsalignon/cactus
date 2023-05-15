@@ -4684,7 +4684,7 @@ process Figures__making_enrichment_heatmap {
 
       # removing entries for which all comparisons don't pass the threshold
       mat = mat[!apply(mat, 1, 
-        function(x) all(abs(x) < get_pval_loglog(padj_threshold))), ]
+        function(x) all(abs(x) < get_pval_loglog(padj_threshold))), , drop = F]
 
       sel_rows = which(rowSums(abs(mat)) != 0)
       sel_cols = which(colSums(abs(mat)) != 0)
