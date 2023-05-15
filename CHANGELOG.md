@@ -26,7 +26,28 @@ Types of changes
     Security in case of vulnerabilities. -->
 
 
-## [0.8.2](https://github.com/jsalignon/cactus/releases/tag/v0.8.2) - Mammilloydia, 09-05-2023
+
+## [v0.8.3](https://github.com/jsalignon/cactus/releases/tag/v0.8.2) - Espostoopsis, 15-05-2023
+
+### Added
+
+### Changed
+
+- Changed the README.md file to add a link to the preprint and to the LICENCE: [1](https://github.com/jsalignon/cactus/commit/c6cae1efa6a1d6d94a8fe31d4f1a3c73a8046b26), [2](https://github.com/jsalignon/cactus/commit/b4ae5c359f6aea80ab236c5064372742e76ff34e)
+
+### Fixed
+
+- [#11](https://github.com/jsalignon/cactus/pull/11) - Fixed a bug in the heatmap process that made the fly test dataset fail.
+
+### Deprecated
+
+### Removed
+
+### Dependencies
+
+
+
+## [v0.8.2](https://github.com/jsalignon/cactus/releases/tag/v0.8.2) - Mammilloydia, 12-05-2023
 
 ### Added
 
@@ -47,7 +68,7 @@ Types of changes
 ### Dependencies
 
 
-## [0.8.1](https://github.com/jsalignon/cactus/releases/tag/v0.8.1) - Cephalocereus, 19-04-2023
+## [v0.8.1](https://github.com/jsalignon/cactus/releases/tag/v0.8.1) - Cephalocereus, 19-04-2023
 
 ### Added
 
@@ -74,7 +95,7 @@ Types of changes
 
 
 
-## [0.8.0](https://github.com/jsalignon/cactus/releases/tag/v0.8.0) - Lophophora, 30-12-2022
+## [v0.8.0](https://github.com/jsalignon/cactus/releases/tag/v0.8.0) - Lophophora, 30-12-2022
 
 First release.
 
