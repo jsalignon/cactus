@@ -14,13 +14,13 @@
 
 ![Cactus all steps](/docs/images/cactus_all_steps.png "Cactus all steps")
 
- - **Preprocessing**:
+ 1. **Preprocessing**:
    - **ATAC-Seq**: Reads are merged, trimmed and aligned to the genome with [bowtie2]. Aligned reads are filtered (low quality, duplicates, mitochondrial, small contigs) and shifted (to account for the [9 bp offset of the transposase](https://doi.org/10.1038/nmeth.2688)). Narrow peaks are then called using [MACS2]. These are further split, filtered (blacklist, gDNA) and annotated with [ChIPseeker]. 
    - **mRNA-Seq**: Transcripts are quantified using [Kallisto].
  
- - **Differential Abundance (DA) analysis**: DA refers to both Differentially Accessibility Analysis done with [DiffBind] and to Differential Gene Expression Analysis done with [Sleuth]. Standardized plots (Volcano and PCA) and tables are produced. DA results are then filtered (significance/rank threshold) and split in subsets (experiment type (ATAC, mRNA or both), peak annotation type (promoter, gene body, distal non coding, ...), fold change type (up or down)). Tables and Venn Diagrams are made for each subset. For both ATAC-Seq and mRNA-Seq: genes (DA peaks’ closest gene and DA genes) and genomic regions (DA peaks and DA genes’ promoter) are exported. 
+ 2. **Differential Analysis (DA)**: DA refers to both differentially accessibility analysis done with [DiffBind] and to differential gene expression analysis done with [Sleuth]. Standardized plots (Volcano and PCA) and tables are produced. DA results are then split in subsets (which are called DASs for Differential Analysis Subsets) by experiment type (ATAC, mRNA or both), significance/rank threshold, direction of fold change (up or down), and DAR (Differentially Accessible Region) peak annotation (such as promoter, gene body, distal non coding, ...). Tables and Venn Diagrams are made for each subset. For both ATAC-Seq and mRNA-Seq: genes (DARs' closest genes and DA genes) and genomic regions (DARs and DA genes’ promoters) are exported. 
  
- - **Enrichment analysis**: Genes are used for ontologies and pathway enrichment analysis. Genomic regions are used for chromatin state, motifs and CHIP enrichment analysis. Additionally, self-overlap enrichment analysis of genes and peaks is performed. Results are saved as tables, and displayed as Barplots and Heatmaps.
+ 3. **Enrichment analysis**: Genes are used for ontologies and pathway enrichment analysis. Genomic regions are used for chromatin state, motifs and CHIP enrichment analysis. Additionally, enrichment of internal entries (i.e., between DASs) is performed. Results are saved as tables, and displayed as barplots and heatmaps.
 
 
 [Bowtie2]: https://www.nature.com/articles/nmeth.1923
