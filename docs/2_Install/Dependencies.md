@@ -11,7 +11,18 @@
 [](END_OF_MENU)
 
 
-Cactus was built with the goal to make the installation as pain-free as possible. This was achieved by using only tools within containers or virtual environments for all analysis. Installation of most tools is done automatically the first time the pipeline is run. However, two key dependencies should still be installed. These are the workflow language [Nextflow](https://doi.org/10.1038/nbt.3820) ([Install](https://www.nextflow.io/docs/latest/getstarted.html#installation)) and a tools manager that can be any of:
+Cactus was built with the goal to make the installation as pain-free as possible. This was achieved by using only tools within containers or virtual environments for all analysis. Installation of most tools is done automatically the first time the pipeline is run. However, two key dependencies should still be installed. These are:
+
+1. The workflow language [Nextflow](https://doi.org/10.1038/nbt.3820) ([Install](https://www.nextflow.io/docs/latest/getstarted.html#installation)).
+Note that Cactus is currently written in DSL1, which is not supported by the latest default versions of Nextflow. Cactus users should use Nextflow version 22.10.X or earlier, such as v22.10.8 released on April 15 2023. This can be achieved with these commands:
+
+```
+wget -qO- https://github.com/nextflow-io/nextflow/releases/download/v22.10.8/nextflow-22.10.8-all | bash
+chmod +x nextflow
+sudo mv nextflow /usr/local/bin
+```
+
+2. A tools manager that can be any of:
  - [SingularityCE](https://doi.org/10.1371/journal.pone.0177459) ([Install](https://docs.sylabs.io/guides/latest/admin-guide/installation.html))
  - [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241) ([Install](https://docs.docker.com/get-docker/))
  - [conda](https://docs.anaconda.com/anaconda/reference/release-notes/) ([Install](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html))
