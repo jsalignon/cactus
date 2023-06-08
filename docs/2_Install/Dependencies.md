@@ -36,13 +36,14 @@ conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
-During Cactus development, Mamba was installed with this command: `conda install mamba -n base -c conda-forge`
 
-In case of issue with the pipeline and/or for reproducibility purposes, it might be useful to try to run Cactus with the version of these tools that were used when developing the current Cactus release. These are:  
-  - Nextflow: 22.09.2-edge.5765
+The current stable release of Cactus (v0.8.4) was tested using these versions of the dependencies:
+  - Nextflow: 22.10.8.5859
   
-  - SingularityCE: 3.10.0+91-g13f189977
-  - Conda: 22.9.0
-  - Mamba 0.27.0 (conda 22.9.0)
+  - SingularityCE: 3.11.3-focal
+  - Conda: 23.3.1
+  - Mamba 1.1.0 (conda 23.3.1)
+  - Docker: 20.10.21-0ubuntu1~20.04.2
 
-Docker version 18.06.1-ce, build e68fc7a
+In case of issues with running Cactus, please make sure you are using the same version of the dependencies.
+

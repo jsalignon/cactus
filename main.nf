@@ -4758,7 +4758,7 @@ Merging_pdfs_channel = Merging_pdfs_channel.dump(tag: 'merging_pdf')
 process Figures__merging_pdfs {
   tag "${file_name}"
 
-  label "pdftools"
+  label "pypdf2"
 
   publishDir path: "${out_fig_merge}/${out_path}", mode: "${pub_mode}"
 
@@ -4770,8 +4770,16 @@ process Figures__merging_pdfs {
 
   script:
     """
+    #!/usr/bin/env python
 
-    pdfunite `ls *pdf | sort` ${file_name}.pdf
+    from glob import glob
+    from PyPDF2 import PdfMerger
+
+    merger = PdfMerger()
+    allpdfs = [a for a in glob("*.pdf")]
+    [merger.append(pdf) for pdf in allpdfs]
+    with open("${file_name}.pdf", "wb") as new_file:
+      merger.write(new_file)
 
     """
 }
