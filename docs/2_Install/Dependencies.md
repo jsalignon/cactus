@@ -11,7 +11,7 @@
 [](END_OF_MENU)
 
 
-Cactus was built with the goal to make the installation as pain-free as possible. This was achieved by using only tools within containers or virtual environments for all analysis. Installation of most tools is done automatically the first time the pipeline is run. However, two key dependencies should still be installed: [Nextflow](https://doi.org/10.1038/nbt.3820), and a package manager; one of these tools: [SingularityCE](https://doi.org/10.1371/journal.pone.0177459), [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241), [conda](https://docs.anaconda.com/anaconda/reference/release-notes/) and [Mamba](https://medium.com/@QuantStack/open-software-packaging-for-science-61cecee7fc23). Among these, Singularity is the recommended package manager to use if possible.
+Cactus was built with the goal to make the installation as pain-free as possible. This was achieved by using only tools within containers or virtual environments for all analysis. Installation of most tools is done automatically the first time the pipeline is run (see the [Quick Start](/docs/1_Intro/Quick_start.md) section). However, two key dependencies should still be installed: [Nextflow](https://doi.org/10.1038/nbt.3820), and a package manager; one of these tools: [SingularityCE](https://doi.org/10.1371/journal.pone.0177459), [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241), [conda](https://docs.anaconda.com/anaconda/reference/release-notes/) and [Mamba](https://medium.com/@QuantStack/open-software-packaging-for-science-61cecee7fc23). Among these, Singularity is the recommended package manager to use if possible.
 
 The current stable release of Cactus (v0.8.4) was developed and tested using these versions of the dependencies:
  - Nextflow: 22.10.8.5859
@@ -29,3 +29,5 @@ wget -qO- https://github.com/nextflow-io/nextflow/releases/download/v22.10.8/nex
 chmod +x nextflow
 sudo mv nextflow /usr/local/bin
 ```
+
+Please check out the [Quick Start](/docs/1_Intro/Quick_start.md) section to learn how to run Cactus once the dependencies are installed.
