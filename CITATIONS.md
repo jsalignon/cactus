@@ -25,7 +25,9 @@
 
 ## jsalignon/cactus
 
-> Manuscript under preparation
+- [Cactus](https://doi.org/10.1101/2023.05.11.540110)
+
+> Salignon J, Millan-Ariño L, Garcia M, Riedel C G. Cactus: a user-friendly and reproducible ATAC-Seq and mRNA-Seq analysis pipeline for data preprocessing, differential analysis, and enrichment analysis. doi: 10.1101/2023.05.11.540110.
 
 
 ## Languages

@@ -27,6 +27,31 @@ Types of changes
 
 
 
+## [v0.8.4](https://github.com/jsalignon/cactus/releases/tag/v0.8.4) - Matucana, 09-06-2023
+
+### Added
+
+### Changed
+
+- Changed the code to make Cactus work with the latest versions of Nextflow, Singularity and Docker. [commit](https://github.com/jsalignon/cactus/commit/ce2b6dd3d8ca8beee5479e85a4d24e4c4b022641)
+- Changed the documentation to clarify the dependencies. [commit](https://github.com/jsalignon/cactus/commit/0f45173c61a78dd8ce742ff6413c90d1c699575e)
+- Changed the CITATIONS.md and the README.md to add a link to Cactus preprint. [commit](https://github.com/jsalignon/cactus/commit/0e7b6ba4cb4269708897f8ad27adc57048dc9229)
+
+### Fixed
+
+- Fixed a bug happening in conda/Mamba when users have a .Renviron or a .Rprofile file. [commit](https://github.com/jsalignon/cactus/commit/a188dbb31dfe34547aaab427175dde28237ac36a)
+- Fixed a bug with conda/Mamba for merging pdf. [commit](https://github.com/jsalignon/cactus/commit/a188dbb31dfe34547aaab427175dde28237ac36a)
+
+### Deprecated
+
+- Deprecated the use of conda and Mamba temporarily until a bug in conda is resolved. [commit](https://github.com/jsalignon/cactus/commit/0f45173c61a78dd8ce742ff6413c90d1c699575e)
+
+### Removed
+
+### Dependencies
+
+
+
 ## [v0.8.3](https://github.com/jsalignon/cactus/releases/tag/v0.8.3) - Espostoopsis, 15-05-2023
 
 ### Added
