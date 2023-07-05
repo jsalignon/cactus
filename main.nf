@@ -202,7 +202,10 @@ Channel
 
 ATAC_inputs_for_splitting
   .map{ [ it[0], it[1] ]}
-  .into{ ATAC_inputs_for_splitting_1; ATAC_inputs_for_splitting_2 }
+  .unique()
+  .dump(tag:'debug') {"Debug: ${it}"}
+  .into{ ATAC_inputs_for_bigwigs_correlations; 
+         ATAC_inputs_for_input_control_removal }
 
 
 //// Let's start!
@@ -759,7 +762,7 @@ Bigwigs_for_correlation_1
 
 Bigwigs_without_input_control_1
   // .flatten()
-  .combine(ATAC_inputs_for_splitting_1, by: 0)
+  .combine(ATAC_inputs_for_bigwigs_correlations, by: 0)
   .filter{ id, bw_files, input_type -> input_type != 'input'}
   .map{ id, bw_files, input_type -> bw_files }
   .collect()
@@ -1602,9 +1605,9 @@ process ATAC_peaks__removing_blacklisted_regions {
 
 // println "params.diffbind__make_greylist: ${params.diffbind__make_greylist}"
 
-// ATAC_inputs_for_splitting_2
+// ATAC_inputs_for_input_control_removal
 
-// .combine(ATAC_inputs_for_splitting_1, by: 0)
+// .combine(ATAC_inputs_for_bigwigs_correlations, by: 0)
 
   // .filter{ id, bw_files, input_type -> input_type != 'input'}
 
@@ -1612,7 +1615,7 @@ process ATAC_peaks__removing_blacklisted_regions {
 
 
 Peaks_without_blacklist_1
-  .combine(ATAC_inputs_for_splitting_2, by: 0)
+  .combine(ATAC_inputs_for_input_control_removal, by: 0)
   .branch { id, bed_file, input_type ->
     input_peaks: input_type == 'input'
     sample_peaks: true
