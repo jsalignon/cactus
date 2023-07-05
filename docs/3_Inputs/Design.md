@@ -23,13 +23,25 @@ In this section, we describe how users can define the design of their experiment
 **Description:** fastq files for ATAC-Seq.
 
 **Fields:**
- - *sample_id*: The sample_id is a combination of a condition_id and a replicate_number, united with an underscore. Note that condition_ids can only contain alphanumerical characters (A-Z, a-z and 0-9), and cannot contain special characters (such as underscore). 
+ - *sample_id*: The sample_id is a combination of a condition_id and a replicate_number, united with an underscore. Note that condition_ids can only contain alphanumerical characters (A-Z, a-z and 0-9), and cannot contain special characters (such as underscore).
+ - *input_type*: The input type field indicates if a sample is an input control (value = "input'), if the sample should not be normalized using an input control (value = "no_input"), or if the sample should be normalized using an input control, in which case the value is the name of the input control to use.
  - *fastq_file_path*: can be either an absolute path or a relative path (recommended) from the directory where Cactus is run. In case of paired-end data, only the path of the R1 file should be indicated.
 
 >**_Note_:** If two files have the same sample_id, they will be considered to be different sequencing runs of the same sample and will be merged by Cactus. 
 
 **Example:**
 ```
+gDNAn2  input   data/atac/sample_200K_reads_atac_SRX2333004_SRR5000684_R1.fastq.gz
+ctl_1   gDNAn2  data/atac/sample_200K_reads_atac_SRX3029124_SRR5860424_R1.fastq.gz
+ctl_2   gDNAn2  data/atac/sample_200K_reads_atac_SRX3029125_SRR5860425_R1.fastq.gz
+ctl_3   gDNAn2  data/atac/sample_200K_reads_atac_SRX3029126_SRR5860426_R1.fastq.gz
+spt16_1 gDNAn2  data/atac/sample_200K_reads_atac_SRX3029130_SRR5860430_R1.fastq.gz
+spt16_2 gDNAn2  data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
+spt16_3 gDNAn2  data/atac/sample_200K_reads_atac_SRX3029132_SRR5860432_R1.fastq.gz
+hmg4_1  no_input    data/atac/sample_200K_reads_atac_SRX3029133_SRR5860433_R1.fastq.gz
+hmg4_2  no_input    data/atac/sample_200K_reads_atac_SRX3029134_SRR5860434_R1.fastq.gz
+hmg4_3  no_input    data/atac/sample_200K_reads_atac_SRX3029135_SRR5860435_R1.fastq.gz
+
 ctl_1 data/atac/sample_200K_reads_atac_SRX3029124_SRR5860424_R1.fastq.gz
 ctl_2 data/atac/sample_200K_reads_atac_SRX3029125_SRR5860425_R1.fastq.gz
 ctl_2 data/atac/sample_200K_reads_atac_SRX3029125_SRR5860426_R1.fastq.gz

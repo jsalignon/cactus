@@ -179,6 +179,8 @@ fastq_files = file(params.design__atac_fastq)
 Channel
   .from(fastq_files.readLines())
   .map{ it.split() }
+  .tap{ ATAC_inputs_for_splitting }
+  .map{ [ it[0], it[2] ]}
   .map{ [ it[0], it[1..-1] ] }
   .transpose()
   .map{ [ it[0], file(it[1]), file(it[1].replace("_R1", "_R2")) ] }
@@ -197,6 +199,10 @@ Channel
   // more it means there are different runs so we merge them, if less it is not 
   // an option since we need paired end reads
 
+
+ATAC_inputs_for_splitting
+  .map{ [ it[0], it[1] ]}
+  .into{ ATAC_inputs_for_splitting_1; ATAC_inputs_for_splitting_2 }
 
 
 //// Let's start!
@@ -716,7 +722,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
   output:
     set val("ATAC__reads__coverage"), val('1_Preprocessing'), file("*.pdf") \
       into ATAC_reads_coverage_plots_for_merging_pdfs
-    file("*.bw") into Bigwigs_for_correlation_1 optional true
+    set id, file("*.bw") into Bigwigs_for_correlation_1 optional true
 
   script:
     def key = id + "__reads_coverage"
@@ -747,24 +753,25 @@ Merging_pdfs_channel = Merging_pdfs_channel
   .mix(ATAC_reads_coverage_plots_for_merging_pdfs.groupTuple(by: [0, 1]))
 
 
-
-
 Bigwigs_for_correlation_1
-  .collect()
-  .into{ Bigwigs_with_input_control; Bigwigs_without_input_control_1 }
+  // .collect()
+  .into{ Bigwigs_without_input_control_1 ; Bigwigs_with_input_control }
 
 Bigwigs_without_input_control_1
-  .flatten()
-  .filter{ !(it =~ /input/) }
+  // .flatten()
+  .combine(ATAC_inputs_for_splitting_1, by: 0)
+  .filter{ id, bw_files, input_type -> input_type != 'input'}
+  .map{ id, bw_files, input_type -> bw_files }
   .collect()
   .map{ [ 'without_control', it ] }
-  .set{ Bigwigs_without_input_control_1 }
+  .set{ Bigwigs_without_input_control_2 }
 
 Bigwigs_with_input_control
+  .collect()
   .map{ [ 'with_control', it ] }
-  .concat(Bigwigs_without_input_control_1)
+  .concat(Bigwigs_without_input_control_2)
   .dump(tag:'bigwigs') {"bigwigs for cor and PCA: ${it}"}
-  .set{ Bigwigs_for_correlation_2 }
+  .set{ Bigwigs_for_correlation_3 }
 
 
 process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
@@ -784,7 +791,7 @@ process ATAC_QC_reads__computing_and_plotting_bigwig_tracks_correlations {
 
   input:
     val out_path from Channel.value('1_Preprocessing') 
-    set input_control_present, file("*") from Bigwigs_for_correlation_2
+    set input_control_present, file("*") from Bigwigs_for_correlation_3
 
   output:
     set val("ATAC__reads__PCA"),          out_path, file("*_pca.pdf") \
@@ -1593,38 +1600,45 @@ process ATAC_peaks__removing_blacklisted_regions {
 // the peaks are then sent for input control removal before DiffBind analysis
 
 
-// println "params.use_input_control: ${params.use_input_control}"
+// println "params.diffbind__make_greylist: ${params.diffbind__make_greylist}"
+
+// ATAC_inputs_for_splitting_2
+
+// .combine(ATAC_inputs_for_splitting_1, by: 0)
+
+  // .filter{ id, bw_files, input_type -> input_type != 'input'}
+
+  // .map{ id, bw_files, input_type -> bw_files }
+
 
 Peaks_without_blacklist_1
-  .dump(tag:'peaks_wo_bl') {"Peaks without blacklisted regions: ${it}"}
-  .branch {
-    with_input_control: params.use_input_control
-    without_input_control: true
+  .combine(ATAC_inputs_for_splitting_2, by: 0)
+  .branch { id, bed_file, input_type ->
+    input_peaks: input_type == 'input'
+    sample_peaks: true
   }
   .set { Peaks_without_blacklist_2 }
 
-// this command redirects the channel items to: 
-// Peaks_without_blacklist_2.with_input_control   
-//     if params.use_input_control = true
-// Peaks_without_blacklist_2.without_input_control 
-//    if params.use_input_control = false
 
-
-Peaks_without_blacklist_2.with_input_control
-  .dump(tag:'peaks_wo_bl_w_ic')
-  .branch { it ->
-    // control: it[0].split("_")[0]== 'input'
-    control: it[0] == 'input'
-    treatment: true
+Peaks_without_blacklist_2.sample_peaks
+  .branch { id, bed_file, input_type ->
+    without_input_control: input_type == 'no_input'
+    with_input_control: true
   }
   .set { Peaks_without_blacklist_3 }
 
 
-Peaks_without_blacklist_3.treatment
-  .combine(Peaks_without_blacklist_3.control)
-  .dump(tag:'peaks_input') {"Peaks with input_control controls: ${it}"}
-  .map { it[0, 1, 3] }
+Peaks_without_blacklist_3.without_input_control
+  .map{ id, bed_file, input_type -> [ id, bed_file ]}
+  .set{ Peaks_without_input_control_removal }
+
+Peaks_without_blacklist_3.with_input_control
+  .map{ id, bed_file, input_type -> [ input_type, id, bed_file ]}
+  .combine(Peaks_without_blacklist_2.input_peaks, by: 0)
+  .map{ input_id, id, bed_file, input_bed_file, input_type -> [ id, bed_file, input_bed_file ]}
   .set { Peaks_treatment_with_control }
+
+
 
 
 process ATAC_peaks__removing_input_control_peaks {
@@ -1673,7 +1687,7 @@ process ATAC_peaks__removing_input_control_peaks {
 //          - In other words, just report the fact >=1 hit was found. 
 //          - Overlaps restricted by -f and -r.
 
-Peaks_without_blacklist_2.without_input_control
+Peaks_without_input_control_removal
   .concat(Peaks_for_removing_specific_regions_1)
   .set{   Peaks_for_removing_specific_regions_2 }
 
@@ -1805,39 +1819,61 @@ process ATAC_peaks__removing_specific_regions {
 // peak in the daf-16RNAi condition, it will be included in the final analysis.
 
 
+//// old code draft for diffbind greylists
 
-Reads_input_control
-  // .filter{ id, bam_files -> id.split('_')[0] == 'input'}
-  .filter{ id, bam_files -> id == 'input'} 
-  // only 1 replicate is allowed for now and it IC should have the name "input"
-  .set{ Reads_input_control_1 }
+// Reads_input_control
+//   .combine(ATAC_inputs_for_splitting_3, by: 0)
+//   .filter{ comp_id, bam_files, input_type -> input_type == 'input' }
+//   .set{ Reads_input_control_1 }
+
+
+// Reads_in_bam_files_for_diffbind_1
+//   .map { it[0,2] }
+//   .join(Peaks_for_diffbind)
+//   .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
+//   .branch {
+//     with_input_control: params.diffbind__make_greylist
+//     without_input_control: true
+//   }
+//   .set { Reads_and_peaks_for_diffbind_1 }
+
+
+//   // .map{ id, bed_file, input_type -> [ input_type, id, bed_file ]}
+//   // .combine(Peaks_without_blacklist_2.input_peaks, by: 0)
+//   // .map{ input_id, id, bed_file, input_bed_file, input_type -> [ id, bed_file, input_bed_file ]}
+
+
+// Reads_and_peaks_for_diffbind_1.with_input_control
+//   .dump(tag:'reads_peaks_w_ic')
+//   .combine(ATAC_inputs_for_splitting_4, by: 0)
+//   .map{ comp_id, bam_files, bed_files, input_type -> 
+//     [ input_type, comp_id, bam_files, bed_files ] }
+//   .combine(Reads_input_control_1, by: 0)
+//   .dump(tag:'debug') {"Debug: ${it}"}
+
+  // .map{ input_type, comp_id, bam_files, bed_files -> 
+
+  //   [ input_type, comp_id, bam_files, bed_files ] }
+
+//   .map{ 
+//           comp_id, bam_files, bed_files, input_id, imput_bam -> 
+//         [ comp_id, bed_files, [bam_files, imput_bam].flatten() ]
+//       }
+//   // .map{ it -> [ it[0], it[1], [it[2,4].flatten()]] }
+//   .set{ Reads_and_peaks_with_input_control }
+
+// Reads_and_peaks_for_diffbind_1.without_input_control
+//   .concat(Reads_and_peaks_with_input_control)
+//   .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
+//   .set{ Reads_and_peaks_for_diffbind_2 }
+
+
 
 Reads_in_bam_files_for_diffbind_1
-  .map { it[0,2] }
+  .map { it[0, 2] }
   .join(Peaks_for_diffbind)
   .dump(tag:'bam_bai') {"bam and bai files: ${it}"}
-  .branch {
-    with_input_control: params.use_input_control
-    without_input_control: true
-  }
-  .set { Reads_and_peaks_for_diffbind_1 }
-
-Reads_and_peaks_for_diffbind_1.with_input_control
-  .dump(tag:'reads_peaks_w_ic')
-  .combine(Reads_input_control_1)
-  .map{ 
-          comp_id, bam_files, bed_files, input_id, imput_bam -> 
-        [ comp_id, bed_files, [bam_files, imput_bam].flatten() ]
-      }
-  // .map{ it -> [ it[0], it[1], [it[2,4].flatten()]] }
-  .set{ Reads_and_peaks_with_input_control }
-
-Reads_and_peaks_for_diffbind_1.without_input_control
-  .concat(Reads_and_peaks_with_input_control)
-  .dump(tag:'input_diffbind') {"reads and peaks for diffbind: ${it}"}
-  .set{ Reads_and_peaks_for_diffbind_2 }
-
-
+  .set { Reads_and_peaks_for_diffbind_2 }
 
 
 
@@ -2348,12 +2384,9 @@ process DA_ATAC__doing_differential_analysis {
     source('!{projectDir}/bin/export_df_to_bed.R')
     cur_seqinfo = readRDS('!{params.cur_seqinfo}')
 
-    COMP              = '!{COMP}'
-    use_input_control = '!{params.use_input_control}'
-    
+    COMP              = '!{COMP}'    
     analysis_method   = !{params.diffbind__analysis_method}
     edger_tagwise     = !{params.diffbind__edger_tagwise}
-    make_grey_list    = !{params.diffbind__make_grey_list}
     min_overlap       = !{params.diffbind__min_overlap}
     score             = !{params.diffbind__score}
     sub_control       = !{params.diffbind__sub_control}
@@ -2369,10 +2402,7 @@ process DA_ATAC__doing_differential_analysis {
     conditions = strsplit(COMP, '_vs_')[[1]]
     cond1 = conditions[1]
     cond2 = conditions[2]
-    use_input_control %<>% toupper %>% as.logical
 
-    if(make_grey_list & !use_input_control) stop('Grey lists cannot be created without an input control')
-    
 
     ##### Preparing the metadata table
     bed_bam_files = list.files(pattern = '*.bam$|*_removal.bed$')
@@ -2382,7 +2412,6 @@ process DA_ATAC__doing_differential_analysis {
     df$condition = sapply(cursplit, '[[', 1)
     df$replicate = sapply(cursplit, '[[', 2)
     df$id = paste0(df$condition, '_', df$replicate)
-    df$id[df$condition == 'input'] = 'input'
     df$type = sapply(df$path, function(c1) {
                 ifelse(
                   length(grep('reads', c1)) == 1, 'reads', ifelse(
@@ -2408,16 +2437,8 @@ process DA_ATAC__doing_differential_analysis {
       df1$bamReads[c1]   = df$path[sel_reads]
       df1$Peaks[c1]      = df$path[sel_peaks]
       df1$PeakCaller[c1] = 'bed'
-
-      if(use_input_control){
-        sel_input_control_reads = 
-            which(df$condition == 'input' & df$type == 'reads')
-        df1$ControlID[c1] = df$id[sel_input_control_reads]
-        df1$bamControl[c1] = df$path[sel_input_control_reads]
-      } else {
-        df1$ControlID <- NULL
-        df1$bamControl <- NULL
-      }
+      df1$ControlID <- NULL
+      df1$bamControl <- NULL
     }
 
     empty_peaks = which(sapply(df1$Peaks, file.size) == 0)
@@ -2436,9 +2457,6 @@ process DA_ATAC__doing_differential_analysis {
         dbo <- dba(sampleSheet = df1, config = config)
 
         dbo$config$edgeR$bTagwise = edger_tagwise
-
-        if(make_grey_list) dbo <- dba.blacklist(dbo, blacklist = F, 
-          greylist = cur_seqinfo)
 
         dbo <- dba.count(dbo, bRemoveDuplicates = F, bUseSummarizeOverlaps = F,
                 fragmentSize = 1, minOverlap = min_overlap, score = score, 

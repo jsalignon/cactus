@@ -33,9 +33,6 @@ See the function links for details and possible options. Details on the choice o
   - **_params.diffbind__analysis_method_**: Option to use DESeq2 or edgeR for the analysis. Default: 'DBA_EDGER'.
 - For edgeR analysis method:
   - **_params.diffbind__edger_tagwise_**: If using *diffbind__analysis_method = 'edgeR'* should tag-wise dispersion estimates be computed or not. See [here](https://rdrr.io/bioc/DiffBind/src/R/DBA.R) and [here](https://www.rdocumentation.org/packages/edgeR/versions/3.14.0/topics/estimateTagwiseDisp) for details. Default: 'TRUE'.
-- For the [dba.blacklist](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) function:
-  - **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. Default: false.
-  - **_params.diffbind__make_grey_list_**: Should a grey list be created or not. This option can be set to 'TRUE' only if *params.use_input_control* is also *'TRUE'*. If 'TRUE', a grey list region will be created from the input control to hide hotspot regions. Default: 'FALSE'.
 - For the [dba.count](https://rdrr.io/bioc/DiffBind/man/dba.count.html) function:
   - **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. Default: 1.
   - **_params.diffbind__score_**: Score to use in the binding affinity matrix. Raw read counts are used for analysis. This parameter only influence the counts shown in the detailled_ATAC results tables (for each individual replicates). Default: 'DBA_SCORE_NORMALIZED'.

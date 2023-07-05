@@ -79,7 +79,6 @@ In addition, it is recommended to set up a [NextFlow Tower token](https://www.ne
 - **_params.design__regions_to_remove_**: path to the [regions to remove design file](/docs/3_Inputs/Design.md#Regions-to-remove). Default: 'design/regions_to_remove.tsv'.
 - **_params.design__genes_to_remove_**: path to the [genes to remove design file](/docs/3_Inputs/Design.md#Genes-to-remove). Default: 'design/genes_to_remove.tsv'.
 - **_params.design__groups_**: path to the [groups design file](/docs/3_Inputs/Design.md#Groups). Default: 'design/groups.tsv'.
-- **_params.use_input_control_**: Should a gDNA input control be used for ATAC-Seq analysis to remove [greylist regions](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) with DiffBind, and for some quality control analysis steps. Note that the input control cannot have replicates and should have the id "input" in the *params.design__atac_fastq* file (see example [here](/test_datasets/worm/design/atac_fastq__with_input.tsv)). . Default: false. <!-- default set in conf/version.config -->
 
 
 # Ressources   
@@ -179,8 +178,6 @@ See the function links for details and possible options. Details on the choice o
 - For edgeR analysis method:
   - **_params.diffbind__edger_tagwise_**: If using *diffbind__analysis_method = 'edgeR'* should tag-wise dispersion estimates be computed or not. See [here](https://rdrr.io/bioc/DiffBind/src/R/DBA.R) and [here](https://www.rdocumentation.org/packages/edgeR/versions/3.14.0/topics/estimateTagwiseDisp) for details. Default: 'TRUE'.
 - For the [dba.blacklist](https://rdrr.io/bioc/DiffBind/man/dba.blacklist.html) function:
-  - **_params.use_input_control_**: If an input control is used, grey list regions (region of high-signal in the input) will be by estimated by DiffBind via the [GreyListChIP package](10.18129/B9.bioc.GreyListChIP) and excluded from analysis. Default: false.
-  - **_params.diffbind__make_grey_list_**: Should a grey list be created or not. This option can be set to 'TRUE' only if *params.use_input_control* is also *'TRUE'*. If 'TRUE', a grey list region will be created from the input control to hide hotspot regions. Default: 'FALSE'.
 - For the [dba.count](https://rdrr.io/bioc/DiffBind/man/dba.count.html) function:
   - **_params.diffbind__min_overlap_**: Only include peaks in at least this many peaksets when generating consensus peakset. The default behavior of cactus is to include any peak from any replicate into the consensus peak set (i.e. th = 1). Non robust signal should anyway have low p-value and be filtered away in downstream analysis. Default: 1.
   - **_params.diffbind__score_**: Score to use in the binding affinity matrix. Raw read counts are used for analysis. This parameter only influence the counts shown in the detailled_ATAC results tables (for each individual replicates). Default: 'DBA_SCORE_NORMALIZED'.
