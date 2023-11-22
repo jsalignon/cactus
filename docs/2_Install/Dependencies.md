@@ -16,25 +16,27 @@ Cactus was built with the goal to make the installation as pain-free as possible
 The current stable release of Cactus (v0.8.4) was developed and tested using these versions of the dependencies:
  - Nextflow: 22.10.8.5859
  - SingularityCE: 3.11.3-focal
- - Docker: 20.10.21-0ubuntu1~20.04.2
- - conda/Mamba: currently, running Cactus using conda or Mamba is not possible due to a [conda bug](https://github.com/conda/conda/issues/12786). 
+ - Docker: 24.0.5, build 24.0.5-0ubuntu1~20.04.1
+ - conda: 23.3.1 
+ - Mamba: 1.4.2
 
 In case of issues with running Cactus, please make sure you are using the same version of the dependencies.
 
 You can find here installation links for: [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation), [SingularityCE](https://docs.sylabs.io/guides/latest/admin-guide/installation.html), [Docker](https://docs.docker.com/get-docker/), [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) and [Mamba](https://mamba.readthedocs.io/en/latest/installation.html).
 
 Please, note that Cactus is currently written in DSL1, which is [not supported anymore](https://nextflow.io/podcast/2023/ep9_end_of_dsl1_chatting_to_bots.html) by the latest default versions of Nextflow. An update of Cactus to DSL2 is under way.
-In the meantime, Cactus users should use Nextflow version 22.10.X or earlier, such as v22.10.8 released on April 15 2023. This can be achieved simply by either using a recent nextflow version and exporting the NXF_VER variable like this:
+In the meantime, Cactus users should use a Nextflow version higher or equal to 22.04.0 (released in April 2022) and lower or equal to 22.10.8 (released in April 2023). This can be achieved simply by either using a recent Nextflow version and exporting the NXF_VER variable like this:
 ```
 export NXF_VER=22.10.8
 ```
+Note that this command can be added to the ~/.bashrc file if needed to ensure this version of nextflow is always used.
 
-Or adding it before the Cactus call:
+Or adding the nextflow version can be specified during the Cactus call like this:
 ```
 NXF_VER=22.10.8 nextflow run jsalignon/cactus [...]
 ```
 
-Or by installing a DSL1 compatible nextflow version like this:
+Alternatively a DSL1-compatible version of nextflow can be installed like that:
 ```
 wget -qO- https://github.com/nextflow-io/nextflow/releases/download/v22.10.8/nextflow-22.10.8-all | bash
 chmod +x nextflow
