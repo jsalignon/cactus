@@ -29,6 +29,11 @@ In the meantime, Cactus users should use Nextflow version 22.10.X or earlier, su
 export NXF_VER=22.10.8
 ```
 
+Or adding it before the Cactus call:
+```
+NXF_VER=22.10.8 nextflow run jsalignon/cactus [...]
+```
+
 Or by installing a DSL1 compatible nextflow version like this:
 ```
 wget -qO- https://github.com/nextflow-io/nextflow/releases/download/v22.10.8/nextflow-22.10.8-all | bash
