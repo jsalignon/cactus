@@ -1,6 +1,5 @@
 
 
-
 Files_to_download = Channel
   .from(  
     [  
@@ -23,7 +22,7 @@ process downloading_files {
 
   output:
     set val(file_type), "${params.species}_${file_type}_checked.tar.gz" into Files_to_extract
-    
+
   script:
     def figshare_path = "https://ndownloader.figshare.com/files"
     def local_file    = "${params.species}_${file_type}.tar.gz"
@@ -39,7 +38,6 @@ process downloading_files {
       echo "md5sum is wrong for file ${local_file}"
     fi
     """
-
 }
 
 
@@ -50,6 +48,7 @@ Files_to_extract
   }
   .set{ Files_to_extract_1 }
 
+
 process extracting_reference_files {
   tag "${params.species} ${params.figshare_version}"
 
@@ -58,7 +57,7 @@ process extracting_reference_files {
   publishDir path: "${params.references_dir}", mode: params.pub_mode
 
   input:
-    set val(file_type), downloaded_file from Files_to_extract_1.references
+    set val(file_type), file(downloaded_file) from Files_to_extract_1.references
 
   output:
     file(params.species)
@@ -68,10 +67,11 @@ process extracting_reference_files {
     pigz --decompress --keep --recursive --stdout \
       --processes ${params.threads} ${downloaded_file} | tar -xvf -
     """
-
 }
 
+
 process extracting_test_dataset_files {
+
   tag "${params.species} ${params.figshare_version}"
 
   label "skewer_pigz"
@@ -79,7 +79,7 @@ process extracting_test_dataset_files {
   publishDir path: "${launchDir}", mode: params.pub_mode
 
   input:
-    set val(file_type), downloaded_file from Files_to_extract_1.test_datasets
+    set val(file_type), file(downloaded_file) from Files_to_extract_1.test_datasets
 
   output:
     set file('data/'), file('parameters/'), file('design/')
