@@ -1,0 +1,59 @@
+
+## setting up paths
+homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus # to change if needed
+# case_study_dir=$cactus_dir/case_study/data
+case_study_dir=$cactus_dir/test_datasets/application_note
+case_study_copy_dir=$cactus_dir/case_study/figures/panels
+mkdir -p $case_study_copy_dir
+
+
+case_study_dir_human_1=$case_study_dir/human/results/2022_12_21__run_1
+case_study_dir_human_2=$case_study_dir/human/results/2022_12_21__run_2
+case_study_dir_worm=$case_study_dir/worm/results/2022_12_21__run_1
+
+case_study_dir_worm_fig=$case_study_dir_worm/Figures_Individual
+case_study_dir_worm_fig_2=$case_study_dir_worm_fig/2_Differential_Analysis
+case_study_dir_worm_fig_3=$case_study_dir_worm_fig/3_Enrichment_Analysis
+
+case_study_dir_human_1_fig=$case_study_dir_human_1/Figures_Individual
+case_study_dir_human_1_fig_1=$case_study_dir_human_1_fig/1_Preprocessing
+case_study_dir_human_1_fig_2=$case_study_dir_human_1_fig/2_Differential_Analysis
+case_study_dir_human_1_fig_3=$case_study_dir_human_1_fig/3_Enrichment_Analysis
+
+case_study_dir_human_2_fig=$case_study_dir_human_2/Figures_Individual
+case_study_dir_human_2_fig_3=$case_study_dir_human_2_fig/3_Enrichment_Analysis
+
+
+# Fig 1: examples of saturation curve, volcano, venns, and PA by filter
+cp $case_study_dir_human_1_fig_1/ATAC__peaks__saturation_curve/ctl_1__saturation_curve.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_2/ATAC__volcano/ssrp1_vs_ctl__ATAC_volcano.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_2/Venn_diagrams__four_ways/all__1.3__ssrp1_vs_ctl__venn_up_and_down.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_2/Venn_diagrams__two_ways/all__up__1.3__ssrp1_vs_ctl__venn_up_or_down.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_2/ATAC__FDR_by_PA/ssrp1_vs_ctl__ATAC_FDR_by_PA.pdf $case_study_copy_dir
+
+# Fig 2: examples of table, barplot and heatmaps
+cp $case_study_dir_human_1_fig_3/Barplots__func_anno_KEGG/ATAC__all__down__1.3__ssrp1_vs_ctl__func_anno_KEGG__barplot.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_3/Heatmaps__peaks_self/ATAC__all__1.3__all__peaks_self__heatmap.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_3/Heatmaps__peaks_self/ATAC__all__1.3__supt16h__peaks_self__heatmap.pdf $case_study_copy_dir
+
+# Fig 3: peak_self heatmaps
+cp $case_study_dir_human_1_fig_3/Heatmaps__peaks_self/mRNA__Null__1.3__ctl__peaks_self__heatmap.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_3/Heatmaps__peaks_self/ATAC__all__1.3__ctl__peaks_self__heatmap.pdf $case_study_copy_dir
+
+# Fig 4: CHIP and motifs heatmaps
+cp $case_study_dir_worm_fig_3/Heatmaps__motifs/ATAC__all__1.3__ctl__motifs__heatmap.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_3/Heatmaps__motifs/ATAC__all__1.3__ctl__motifs__heatmap.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_3/Heatmaps__CHIP/ATAC__all__1.3__ctl__CHIP__heatmap.pdf $case_study_copy_dir
+cp $case_study_dir_worm_fig_3/Heatmaps__CHIP/ATAC__all__1.3__ctl__CHIP__heatmap.pdf $case_study_copy_dir
+
+# Fig 5: CHIP both_atac and both_mrna heatmaps
+cp $case_study_dir_human_1_fig_3/Heatmaps__CHIP/both_ATAC__all__1.3__ctl__CHIP__heatmap.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_3/Heatmaps__CHIP/both_mRNA__all__1.3__ctl__CHIP__heatmap.pdf $case_study_copy_dir
+
+# Fig 6: chrom states heatmaps
+cp $case_study_dir_worm_fig_3/Heatmaps__chrom_states/ATAC__all__1.3__ctl__chrom_states__heatmap.pdf $case_study_copy_dir
+cp $case_study_dir_human_1_fig_3/Heatmaps__chrom_states/ATAC__all__1.3__ctl__chrom_states__heatmap.pdf $case_study_copy_dir
+cp $case_study_dir_human_2_fig_3/Heatmaps__chrom_states/ATAC__all__1.3__ctl__chrom_states__heatmap.pdf $case_study_copy_dir
+

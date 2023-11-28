@@ -31,11 +31,11 @@ cactus_version=updating_the_bioconductor_container ; latest_flag=''
 
 # cd $test_dir ; rm -r *  # if needed
 
-for species in fly
+for species in worm
 do 
   for tools_manager in conda singularity docker mamba 
   do
-    # species=fly         # if needed
+    # species=worm        # if needed
     # tools_manager=mamba # if needed
 
     cd $test_dir

@@ -17,7 +17,7 @@ testing2/
 nf_log.txt
 docs/examples/pdf/*
 docs/examples/xlsx/*
-case_study/
+case_study/figures
 run_test_datasets.sh
 notes.plain
 
