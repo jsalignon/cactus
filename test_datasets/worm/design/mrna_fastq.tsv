@@ -1,9 +1,0 @@
-ctl_1	data/mrna/sample_50K_reads_mrna_SRX3029112_SRR5860412.fastq.gz
-ctl_2	data/mrna/sample_50K_reads_mrna_SRX3029113_SRR5860413.fastq.gz
-ctl_3	data/mrna/sample_50K_reads_mrna_SRX3029114_SRR5860414.fastq.gz
-hmg4_1	data/mrna/sample_50K_reads_mrna_SRX3029115_SRR5860415.fastq.gz
-hmg4_2	data/mrna/sample_50K_reads_mrna_SRX3029116_SRR5860416.fastq.gz
-hmg4_3	data/mrna/sample_50K_reads_mrna_SRX3029117_SRR5860417.fastq.gz
-spt16_1	data/mrna/sample_50K_reads_mrna_SRX3029118_SRR5860418.fastq.gz
-spt16_2	data/mrna/sample_50K_reads_mrna_SRX3029119_SRR5860419.fastq.gz
-spt16_3	data/mrna/sample_50K_reads_mrna_SRX3029120_SRR5860420.fastq.gz

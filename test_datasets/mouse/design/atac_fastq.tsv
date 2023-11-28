@@ -1,8 +1,0 @@
-Wt_1	data/atac/sample_6000K_reads_atac_SRX13654174_SRR17483668_R1.fastq.gz
-Wt_2	data/atac/sample_6000K_reads_atac_SRX13654175_SRR17483667_R1.fastq.gz
-WtStarv_1	data/atac/sample_6000K_reads_atac_SRX13654176_SRR17483666_R1.fastq.gz
-WtStarv_2	data/atac/sample_6000K_reads_atac_SRX13654177_SRR17483665_R1.fastq.gz
-Phf_1	data/atac/sample_6000K_reads_atac_SRX13654178_SRR17483664_R1.fastq.gz
-Phf_2	data/atac/sample_6000K_reads_atac_SRX13654179_SRR17483663_R1.fastq.gz
-PhfStarv_1	data/atac/sample_6000K_reads_atac_SRX13654180_SRR17483662_R1.fastq.gz
-PhfStarv_2	data/atac/sample_6000K_reads_atac_SRX13654181_SRR17483661_R1.fastq.gz

@@ -1,7 +1,0 @@
-res_dir                   : 'results/no_enrich'
-species                    : 'human'
-chromatin_state           : 'ENCFF941SVR'
-chip_ontology             : 'cell_type.fibroblast'
-split__threshold_type     : 'rank' 
-split__threshold_values   : [ 200, 1000 ]
-disable_all_enrichments   : true

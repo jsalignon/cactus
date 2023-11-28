@@ -1,8 +1,0 @@
-Wt_1	data/mrna/sample_150K_reads_mrna_SRX13705091_SRR17535397_R1.fastq.gz
-Wt_2	data/mrna/sample_150K_reads_mrna_SRX13705092_SRR17535396_R1.fastq.gz
-WtStarv_1	data/mrna/sample_150K_reads_mrna_SRX13705093_SRR17535395_R1.fastq.gz
-WtStarv_2	data/mrna/sample_150K_reads_mrna_SRX13705094_SRR17535394_R1.fastq.gz
-Phf_1	data/mrna/sample_150K_reads_mrna_SRX13705095_SRR17535392_R1.fastq.gz
-Phf_2	data/mrna/sample_150K_reads_mrna_SRX13705096_SRR17535391_R1.fastq.gz
-PhfStarv_1	data/mrna/sample_150K_reads_mrna_SRX13705097_SRR17535390_R1.fastq.gz
-PhfStarv_2	data/mrna/sample_150K_reads_mrna_SRX13705098_SRR17535393_R1.fastq.gz

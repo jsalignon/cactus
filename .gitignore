@@ -11,7 +11,7 @@ data/
 figshare/files_to_upload
 figshare/old_files
 figshare/reports
-references/
+references/data
 testing/
 testing2/
 nf_log.txt
@@ -24,3 +24,7 @@ notes.plain
 /test_datasets/*/*
 !/test_datasets/*/parameters
 !/test_datasets/*/design
+!/test_datasets/creating_the_test_datasets/*
+!/test_datasets/running_the_test_datasets.sh
+
+/references
