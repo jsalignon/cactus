@@ -21,17 +21,17 @@ Here is the detail of the Singularity containers used and their size:
 
 |          name          |  size|id                                                                                            |
 |:----------------------:|-----:|:---------------------------------------------------------------------------------------------|
+|      pypdf2:2.11.1     |  479M|
 |    bowtie2_samtools    |  463M|mulled-v2-c742dccc9d8fabfcff2af0d8d6799dbc711366cf:b6524911af823c7c52518f6c886b86916d062940-0 |
 |        figures         |  450M|mulled-v2-e0e17c59e64598cdb16a01c347c673dd021f778a:0dd10d4b12b50eec83ccd1f7b7740a08f2703bdf-0 |
 |         homer          |  434M|homer:4.9.1--pl5.22.0_5                                                                       |
-| differential_abundance |  309M|mulled-v2-abcadfb509d8692abe35c0bd02689ab7756d85f8:1b35d287a7c9c53a258be40306bdca167e2e078a-0 |
+| differential_analysis  |  309M|mulled-v2-abcadfb509d8692abe35c0bd02689ab7756d85f8:1b35d287a7c9c53a258be40306bdca167e2e078a-0 |
 |      venndiagram       |  306M|pegi3s/r_venn-diagram:1.7.0                                                                   |
 |         bbmap          |  293M|bbmap:38.96--h5c4e2a8_0                                                                       |
 |        r_basic         |  292M|mulled-v2-b21cd52f0c50bbd777eaed41c0b8228b84cff4bd:b09be1d801d248a5a61257583e629f17052d8181-0 |
 |      skewer_pigz       |  291M|mulled-v2-734ede4cc65b3b212388567aac99f6182e023a8f:26fbad413ebdf8aee65d8aa554d52a4f69548508-0 |
 |         fastqc         |  261M|fastqc:0.11.7--4                                                                              |
-|         pdftk          |  173M|mnuessler/pdftk                                                                               |
-|      bioconductor      |  167M|mulled-v2-0161037c6d8979d1ff5de7e591f5adfb3ffe38b8:e1ff5a8d5dbc70e1e5e403fb8caf20aa575b132b-0 |
+|      bioconductor      |  167M|mulled-v2-0161037c6d8979d1ff5de7e591f5adfb3ffe38b8:2b97ca0a3f4f5409852afe863ef8068a83779815-0 |
 |         picard         |  165M|picard:2.26.9--hdfd78af_0                                                                     |
 |        diffbind        |  145M|mulled-v2-9ec5efd66a9a09ea4f9ad9bad5485675f031aeb4:cf736786cecad89eca5fea6d119a837e4bad7c08-0 |
 |       deeptools        |  107M|deeptools:3.4.3--py_0                                                                         |
@@ -50,26 +50,27 @@ Here are more details on the tools in each mulled container:
   - **r_basic**: r-base=4.1.3, r-magrittr=2.0.3, r-dplyr=1.0.9, r-purrr=0.3.4, r-ggplot2=3.3.5, r-data.table=1.14.2
   - **samtools_bedtools_perl**: samtools=1.15.1, bedtools=2.30.0, perl=5.32.1
   - **skewer_pigz**: skewer=0.2.2, pigz=2.6
-  - **bioconductor**: r-base=4.1.3, bioconductor-chipseeker=1.30.0, r-magrittr=2.0.3, bioconductor-genomicfeatures=1.46.1, bioconductor-clusterprofiler=4.2.0, bioconductor-annotationdbi=1.56.1, r-purrr=0.3.4, r-ggplot2=3.3.5
+  - **bioconductor**: r-base=4.3, bioconductor-chipseeker=1.36.0, r-magrittr=2.0.3, bioconductor-genomicfeatures=1.52.1, bioconductor-clusterprofiler=4.8.1, bioconductor-annotationdbi=1.62.2, r-purrr=1.0.2, r-ggplot2=3.4.4
   - **diffbind**: bioconductor-diffbind=3.4.0, bioconductor-csaw=1.28.0, bioconductor-edger=3.36.0, r-optparse=1.7.1
-  - **figures**: r-base=4.1.3, r-ggplot2=3.3.5, r-magrittr=2.0.3, r-gridextra=2.3, r-rcolorbrewer=1.1_3, r-data.table=1.14.2
+  - **figures**: r-base=4.3, r-ggplot2=3.4.4, r-magrittr=2.0.3, r-gridextra=2.3, r-rcolorbrewer=1.1_3, r-data.table=1.14.8
   - **differential_abundance**: r-base=4.1.3, bioconductor-diffbind=3.4.11, r-sleuth=0.30.0, r-ggplot2=3.3.5, r-magrittr=2.0.3, r-openxlsx=4.2.5
-
 
 <!--
 
 workspace=/home/jersal/workspace
-software=$workspace/cactus/software/
-containers_dir=$workspace/singularity_containers/
-containers_file=$software/conf/containers.config
-containers_info_dir=$software/docs/util/containers
+homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus
+singularity_dir=$workspace/singularity_containers/
+containers_file=$cactus_dir/conf/containers.config
+containers_info_dir=$cactus_dir/docs/util/containers
 containers_info=$containers_info_dir/containers_info.tsv
 galaxy_info=$containers_info_dir/containers_info_galaxy.tsv
 not_galaxy_info=$containers_info_dir/containers_info_not_galaxy.tsv
 containers_info_size=$containers_info_dir/containers_info_size.tsv
 containers_info_size_1=$containers_info_dir/containers_info_size_1.tsv
 
-grep params $containers_file | grep -v "//" | awk  -v path="$containers_dir" '{
+grep params $containers_file | grep -v "//" | awk  -v path="$singularity_dir" '{
   name=$1
   gsub("\"", "", $2)
   full_id=id=$2
