@@ -27,6 +27,31 @@ Types of changes
 
 
 
+## [v0.8.5](https://github.com/jsalignon/cactus/releases/tag/v0.8.5) - Harrisia, 28-11-2023
+
+### Added
+
+### Changed
+
+- Changed the code to make Cactus work with the latest versions of Singularity, Docker, conda and Mamba. [commit](https://github.com/jsalignon/cactus/commit/c8757995185317b0a828f61375bdb7605ce111e4)
+- Changed the documentation of the Quickstart and dependencies. [567e048](https://github.com/jsalignon/cactus/commit/567e048a75e83ee062c9ec32996693ce24b165e8) [f8b2027](https://github.com/jsalignon/cactus/commit/f8b2027b105f823ef7a460a17677e190388f056c)
+- Changed the documentation of the new containers. [e89cb32](https://github.com/jsalignon/cactus/commit/e89cb32f42d833a0352cb1a570778b7729aee461)
+- Changed the Nextflow version manifest to give an error message if a wrong version is used. [51981f3](https://github.com/jsalignon/cactus/commit/51981f39e3db3050c8a2958767cd89269dc578b5)
+
+### Fixed
+
+- Fixed the conda and mamba bugs from the previous release by creating new mulled containers. [c875799](https://github.com/jsalignon/cactus/commit/c8757995185317b0a828f61375bdb7605ce111e4) [6cfcf16](https://github.com/jsalignon/cactus/commit/6cfcf167a820bfc5f2e21b69fbdf81156b95c4db)
+- Fixed bugs to run the main.nf and the download.nf scripts with Docker. [716adc2](https://github.com/jsalignon/cactus/commit/716adc222acad0a9587f194461410f8943a678c7) [c947936](https://github.com/jsalignon/cactus/commit/c94793649e82172b1d3fcfcc4a067b7cc748d3c9)
+
+### Deprecated
+
+### Removed
+
+### Dependencies
+ - upgraded dependencies: Docker 24.0.5, build 24.0.5-0ubuntu1~20.04., conda: 23.7.4, Mamba: 1.4.2. [567e048](https://github.com/jsalignon/cactus/commit/567e048a75e83ee062c9ec32996693ce24b165e8)
+
+
+
 ## [v0.8.4](https://github.com/jsalignon/cactus/releases/tag/v0.8.4) - Matucana, 09-06-2023
 
 ### Added

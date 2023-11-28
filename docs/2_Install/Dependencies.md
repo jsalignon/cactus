@@ -15,10 +15,10 @@ Cactus was built with the goal to make the installation as pain-free as possible
 
 The current stable release of Cactus (v0.8.5) was developed and tested using these versions of the dependencies:
  - Nextflow: 22.10.8.5859
- - SingularityCE: 3.11.3-focal
- - Docker: 24.0.5, build 24.0.5-0ubuntu1~20.04.1
- - conda: 23.3.1 
- - Mamba: 1.4.2
+ - Singularity: 3.11.3-focal
+ - Docker: 24.0.7, build afdd53b
+ - conda: 23.7.4 
+ - Mamba: 1.5.1
 
 In case of issues with running Cactus, please make sure you are using the same version of the dependencies.
 
