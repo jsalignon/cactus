@@ -13,13 +13,13 @@
 
 # Dependencies and profiles
 
-Cactus needs two software to be installed in order to run: Nextflow and one of SingularityCE, Docker, conda or Mamba.
+Cactus needs two software to be installed in order to run: Nextflow and one of SingularityCE, Docker, conda or Mamba. Please read the [Dependencies](/docs/2_Install/Dependencies.md) section for details on versions and installation of these software.
 Then, the *-profile* argument should be used to specicify which tools manager to use. In general, it is recommended to use SingularityCE on HPC systems since Singularity containers can be [run without sudo](https://blogs.oregonstate.edu/learningbydoing/2022/01/04/docker-and-singularity-containers-which-one-is-better/) and Singularity images are [immutable](https://singularity-docs.readthedocs.io/en/latest/) which ensures a high level of reproducibility and verification of images (see also [here](https://spiediedocs.binghamton.edu/docs/conda_singularity_modules.html)). Users should see with their administrator which of these 4 options are available and recommended.
 
 
 # Install and run
 
-The first step is to create the global configuration file *.cactus.config* located in the home folder. This file must indicate the path where to download the references and the singularity containers. Here is an example of a *.cactus.config* file when using Singularity with a Tower token to monitor the pipeline runs on [Nextflow Tower](https://cloud.tower.nf/):
+The first step is to create the global configuration file *.cactus.config* located in the user's home folder. This file must indicate the path where to download the references and the singularity containers. Here is an example of a *.cactus.config* file when using Singularity with a Tower token to monitor the pipeline runs on [Nextflow Tower](https://cloud.tower.nf/) (which is highly recommended):
 ```
 params.references_dir        = "${HOME}/workspace/cactus/references"
 params.singularity_cache_dir = "${HOME}/workspace/singularity_containers"
@@ -27,19 +27,19 @@ params.tower_token           = "*"
 params.enable_tower          = true
 ```
 
-Downloading references and test datasets:
+One can then download references and test datasets for *C. elegans* with this command:
 ```
-nextflow run jsalignon/cactus/scripts/download/download.nf -r main -latest --test_datasets --references -profile singularity --species worm
+NXF_VER=22.10.8 nextflow run jsalignon/cactus/scripts/download/download.nf -r main -latest --test_datasets --references -profile singularity --species worm
 ```
 
-This command should download the references and downloading tools in the directories specified by the corresponding parameters, and it should download 3 folders: parameters, design and data, in the current folder for the chosen test dataset.
+This should download the references and the containers/virtual environments in user-specified parameters (i.e., params.references_dir for reference and params.singularity_cache_dir for singularity images), and it should download the test dataset in the current folder which takes the form of 3 folders: parameters, design and data. Please read the [Inputs](/docs/3_Inputs/3_Inputs.md) section for details on what the folders contain.
 
->**_Note_:** Test datasets are also available for the species fly, human and mouse. They can be tested by changing the *--species* argument.  
+>**_Note_:** Test datasets are also available for the species *d. melanogaster* (fly), *m. musculus* (mouse), and *h. sapiens* (human). They can be tested by changing the *--species* argument.  
 >**_Note_:** On some platforms, Nextflow should be called with a './' before (i.e., *./nextflow run...*).
 
-Running Cactus (and downloading containers):
+Then, one can run Cactus and download all container images/virtual environments using this command:
 ```
-nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r main -latest
+NXF_VER=22.10.8 nextflow run jsalignon/cactus -profile singularity -params-file parameters/full_test.yml -r main -latest
 ```
 
 One can update the pipeline using this command:
@@ -51,7 +51,7 @@ Results are stored in the folder `results/Cactus_v${cactus_version}` (this path 
 
 It is recommended to use either the worm or the fly test datasets when testing Cactus on a laptop to reduce runtime. With 8 cores and 16Gb RAM the worm and fly test dataset can be run in respectively ~27 and ~56 minutes using this command:
 ```
-nextflow run jsalignon/cactus -r main -latest -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 8 --executor_local_memory '16G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
+NXF_VER=22.10.8 nextflow run jsalignon/cactus -r main -latest -params-file parameters/full_test.yml -profile singularity --executor_local_cpus 8 --executor_local_memory '16G' --res_dir 'results/almost_full_test'  --split__peak_assignment ['all'] --split__threshold_values [200]
 ```
 
 >**_Note_:** The run parameters can be set up in a *.yml* file or in the command line (as shown just above). The latter taking priority on the former. When setting parameters on the command line, one dash indicates [Nextflow's internal parameters](https://www.nextflow.io/docs/latest/cli.html#run) (e.g. -profile) and two dashes indicate [Cactus' own parameters](/docs/3_Inputs/Parameters.md) (e.g. res_dir). 
@@ -82,11 +82,11 @@ Analysis parameters can be changed in the yml input file. See the [Parameters](/
 
 It's a good idea to specify a [release version](https://github.com/jsalignon/cactus/releases) when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since. One can specify the version of the pipeline using the *-r* argument this way:
 ```
-nextflow run jsalignon/cactus -r release_tag -profile {singulariy,docker,conda,mamba} -params-file parameter_file
+NXF_VER=22.10.8 nextflow run jsalignon/cactus -r release_tag -profile {singulariy,docker,conda,mamba} -params-file parameter_file
 ```
 For instance:
 ```
-nextflow run jsalignon/cactus -r v0.8.4 -profile singularity -params-file parameters/full_test.yml
+NXF_VER=22.10.8 nextflow run jsalignon/cactus -r v0.8.4 -profile singularity -params-file parameters/full_test.yml
 ```
 
 # Troubleshooting
@@ -97,7 +97,7 @@ The general process to resolve a crashing pipeline is to go to the folder indica
 
 The *-bg* argument can be used to run cactus in the background like this:
 ```
-nextflow run jsalignon/cactus -r main -latest -profile singularity -params-file parameters/full_test.yml -bg > nf_log.txt
+NXF_VER=22.10.8 nextflow run jsalignon/cactus -r main -latest -profile singularity -params-file parameters/full_test.yml -bg > nf_log.txt
 ```
 
 This creates a .nextflow.pid file that contains the master PID to kill to stop the run in the background. However, this does not always work. A workaround to kill all running processed from the current run folder is to use this function:
@@ -124,5 +124,5 @@ Then each command can be run to try to find the error or to inspect the code.
 
 >**_Note_:** The first row of the *.command.sh* file indicates if the script should be run in bash or in R.
 
-If none of these work, an issue can be created on the the cactus github page to report the problem.
+If none of these work, an issue can be created on the the cactus GitHub page to report the problem.
 
