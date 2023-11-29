@@ -9,17 +9,22 @@ eval homedir=$homedir
 cactus_dir=$homedir/workspace/cactus # to change if needed
 test_dir=$cactus_dir/test_datasets   # to change if needed
 case_study_dir=$test_ds_dir/case_study/data
+case_study_dir=$test_ds_dir/application_note
 
 ## setting up variables
 cpu_nb=30
 memory_size='300G'
-cactus_version=v0.8.5 ; latest_flag=''
+cactus_version="v0.8.5" ; latest_flag=''
+cactus_version=updating_the_bioconductor_container ; latest_flag=''
+
 # nextflow drop jsalignon/cactus # if needed
 figshare_version=v4
 references_dir=$cactus_dir/references/$figshare_version
 padj_breaks="c( 0.2, 1e-5, 1e-50, 1e-100, 1e-200 )"
 heatmaps_filters_chip="c( 30, 20, 10, T, 2, 'ward.D', T )"
 heatmaps_filters_motifs="c( 30, 20, 10, T, 2, 'ward.D', F )"
+heatmaps_params__peaks_self="c( 0.05, T, 'none', T, 50, 'UUDD', 2.5 )"
+heatmaps_ggplot__chrom_states="c( 8, 10, 7 )"
 heatmaps_ggplot="c( 12, 12, 12 )" 
 res_prefix="results/2023_11_26__"
 
@@ -44,7 +49,9 @@ nextflow run jsalignon/cactus \
 	--common_padj_breaks "$padj_breaks" \
 	--heatmaps_filter__CHIP "$heatmaps_filters_chip" \
 	--heatmaps_filter__motifs "$heatmaps_filters_motifs" \
+	--heatmaps_params__peaks_self  "$heatmaps_params__peaks_self" \
 	--common__heatmaps_ggplot "$heatmaps_ggplot" \
+	--heatmaps_ggplot__chrom_states "$heatmaps_ggplot__chrom_states" \
 	--species $species \
 	--chromatin_state 'iHMM.M1K16.worm_L3' \
 	--chip_ontology 'all'
@@ -61,7 +68,9 @@ nextflow run jsalignon/cactus \
 	--common_padj_breaks "$padj_breaks" \
 	--heatmaps_filter__CHIP "$heatmaps_filters_chip" \
 	--heatmaps_filter__motifs "$heatmaps_filters_motifs" \
+	--heatmaps_params__peaks_self  "$heatmaps_params__peaks_self" \
 	--common__heatmaps_ggplot "$heatmaps_ggplot" \
+	--heatmaps_ggplot__chrom_states "$heatmaps_ggplot__chrom_states" \
 	--species $species \
 	--chromatin_state 'ENCFF321DGG' \
 	--chip_ontology 'all'
@@ -81,7 +90,9 @@ nextflow run jsalignon/cactus \
 	--common_padj_breaks "$padj_breaks" \
 	--heatmaps_filter__CHIP "$heatmaps_filters_chip" \
 	--heatmaps_filter__motifs "$heatmaps_filters_motifs" \
+	--heatmaps_params__peaks_self  "$heatmaps_params__peaks_self" \
 	--common__heatmaps_ggplot "$heatmaps_ggplot" \
+	--heatmaps_ggplot__chrom_states "$heatmaps_ggplot__chrom_states" \
 	--species $species \
 	--chromatin_state 'iHMM.M1K16.human_GM' \
 	--chip_ontology 'cell_type.fibroblast'
