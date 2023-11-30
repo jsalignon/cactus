@@ -31,7 +31,7 @@ Types of changes
 
 ### Added
 
- - Added the code for the case study.
+ - [#18](https://github.com/jsalignon/cactus/pull/18) - Added the code for the case study.
 
 ### Changed
 
