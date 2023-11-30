@@ -27,6 +27,23 @@ Types of changes
 
 
 
+## [v0.8.6](https://github.com/jsalignon/cactus/releases/tag/v0.8.6) - Harrisia, 30-11-2023
+
+### Added
+
+ - Added the code for the case study.
+
+### Changed
+
+### Fixed
+
+### Deprecated
+
+### Removed
+
+### Dependencies
+
+
 ## [v0.8.5](https://github.com/jsalignon/cactus/releases/tag/v0.8.5) - Harrisia, 28-11-2023
 
 ### Added
