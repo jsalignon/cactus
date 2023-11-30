@@ -24,8 +24,8 @@ padj_breaks="c( 0.2, 1e-5, 1e-50, 1e-100, 1e-200 )"
 heatmaps_filters_chip="c( 30, 20, 10, T, 2, 'ward.D', T )"
 heatmaps_filters_motifs="c( 30, 20, 10, T, 2, 'ward.D', F )"
 heatmaps_params__peaks_self="c( 0.05, T, 'none', T, 50, 'UUDD', 2.5 )"
+common__heatmaps_ggplot="c( 12, 12, 12 )" 
 heatmaps_ggplot__chrom_states="c( 8, 10, 7 )"
-heatmaps_ggplot="c( 12, 12, 12 )" 
 res_prefix="results/2023_11_26__"
 
 ## Initialization
@@ -50,7 +50,7 @@ nextflow run jsalignon/cactus \
 	--heatmaps_filter__CHIP "$heatmaps_filters_chip" \
 	--heatmaps_filter__motifs "$heatmaps_filters_motifs" \
 	--heatmaps_params__peaks_self  "$heatmaps_params__peaks_self" \
-	--common__heatmaps_ggplot "$heatmaps_ggplot" \
+	--common__heatmaps_ggplot "$common__heatmaps_ggplot" \
 	--heatmaps_ggplot__chrom_states "$heatmaps_ggplot__chrom_states" \
 	--species $species \
 	--chromatin_state 'iHMM.M1K16.worm_L3' \
@@ -69,9 +69,12 @@ nextflow run jsalignon/cactus \
 	--heatmaps_filter__CHIP "$heatmaps_filters_chip" \
 	--heatmaps_filter__motifs "$heatmaps_filters_motifs" \
 	--heatmaps_params__peaks_self  "$heatmaps_params__peaks_self" \
-	--common__heatmaps_ggplot "$heatmaps_ggplot" \
+	--common__heatmaps_ggplot "$common__heatmaps_ggplot" \
 	--heatmaps_ggplot__chrom_states "$heatmaps_ggplot__chrom_states" \
 	--species $species \
+	--barplots_ggplot__func_anno "c( 16, 16, 16 )" \
+	--barplots_params__func_anno "c( 0.05, T, 'none', F, 50, 10 )" \
+	--padj_bin_breaks__func_anno "c( 1e-2, 1e-3, 1e-4, 1e-5, 1e-10 )" \
 	--chromatin_state 'ENCFF321DGG' \
 	--chip_ontology 'all'
 
@@ -91,7 +94,7 @@ nextflow run jsalignon/cactus \
 	--heatmaps_filter__CHIP "$heatmaps_filters_chip" \
 	--heatmaps_filter__motifs "$heatmaps_filters_motifs" \
 	--heatmaps_params__peaks_self  "$heatmaps_params__peaks_self" \
-	--common__heatmaps_ggplot "$heatmaps_ggplot" \
+	--common__heatmaps_ggplot "$common__heatmaps_ggplot" \
 	--heatmaps_ggplot__chrom_states "$heatmaps_ggplot__chrom_states" \
 	--species $species \
 	--chromatin_state 'iHMM.M1K16.human_GM' \
