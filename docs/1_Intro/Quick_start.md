@@ -86,7 +86,7 @@ NXF_VER=22.10.8 nextflow run jsalignon/cactus -r release_tag -profile {singulari
 ```
 For instance:
 ```
-NXF_VER=22.10.8 nextflow run jsalignon/cactus -r v0.8.5 -profile singularity -params-file parameters/full_test.yml
+NXF_VER=22.10.8 nextflow run jsalignon/cactus -r v0.8.6 -profile singularity -params-file parameters/full_test.yml
 ```
 
 # Troubleshooting
