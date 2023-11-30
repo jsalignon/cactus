@@ -27,7 +27,7 @@ Types of changes
 
 
 
-## [v0.8.6](https://github.com/jsalignon/cactus/releases/tag/v0.8.6) - Harrisia, 30-11-2023
+## [v0.8.6](https://github.com/jsalignon/cactus/releases/tag/v0.8.6) - Pygmaeocereus, 30-11-2023
 
 ### Added
 
