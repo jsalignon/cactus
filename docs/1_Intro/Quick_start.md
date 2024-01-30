@@ -11,6 +11,11 @@
 [](END_OF_MENU)
 
 
+# Quickstart script
+
+A [script](/docs/1_Intro/quickstart_script.sh) is available to help users to get started quickly with using Cactus. This script contains code to install the dependencies (which are potentially not up to date) as well as the code present in this section. It is nonetheless recommended to read this section to understand better the different command lines used in this script.
+
+
 # Dependencies and profiles
 
 Cactus needs two software to be installed in order to run: Nextflow and one of SingularityCE, Docker, conda or Mamba. Please read the [Dependencies](/docs/2_Install/Dependencies.md) section for details on versions and installation of these software.
