@@ -86,14 +86,23 @@ mamba --version # check version
 #########################
 ## Running a test dataset
 
+# note that these commands are for singularity but can easily be adjusted
+# to other dependencies. For instance, to use conda one would only need
+# to set the CONDA_CACHE_DIR variable and to update the PROFILE variable
+
+# please note that this sc
+
 # Variables to modify. Please udate the variables needed.
 REFERENCES_DIR="${HOME}/workspace/cactus/references"
 SINGULARITY_CACHE_DIR="${HOME}/workspace/singularity_containers"
-mkdir -p $SINGULARITY_CACHE_DIR
 TOWER_TOKEN="*"
 ENABLE_TOWER="false" # set to true if a tower token is provided
 TEST_DS_DIR="${HOME}/workspace/cactus/tests" ; mkdir -p $TEST_DS_DIR
 SPECIES="worm"
+PROFILE="singularity"
+
+# creating the singularity cache directory
+mkdir -p $SINGULARITY_CACHE_DIR
 
 # setting up the general cactus parameters
 cat <<EOT >> ${HOME}/.cactus.config
@@ -103,25 +112,25 @@ params.tower_token           = "$TOWER_TOKEN"
 params.enable_tower          = $ENABLE_TOWER
 EOT
 
-# updating variables in the bashrc file
-echo "export NXF_VER=22.10.8" >> ${HOME}/.bashrc 
-export NXF_OPTS='-Xms1g -Xmx4g' >> ${HOME}/.bashrc 
+# exporting Nextflow variables to set the Nextflow version and the java runtime
+export NXF_VER=22.10.8
+export NXF_OPTS="-Xms1g -Xmx4g"
 
 # going to the test datasets directory
 cd $TEST_DS_DIR
 
 # downloading a given test dataset and its associated references
 nextflow run jsalignon/cactus/scripts/download/download.nf -r main -latest \
-	--test_datasets --references -profile singularity --species $SPECIES
+	--test_datasets --references -profile $PROFILE --species $SPECIES
 
-# running the test dataset using singularity
-nextflow run jsalignon/cactus -profile singularity \
+# running the test dataset
+nextflow run jsalignon/cactus -profile $PROFILE \
 	-params-file parameters/full_test.yml -r main -latest
 
 # same command but this time specifying that we use 8 cores, 16 gb of memory 
 # and we restrict the peak assignments filters to "all" peaks and we keep the 
 #  top 200 results for each differential analysis results.
-nextflow run jsalignon/cactus -profile singularity \
+nextflow run jsalignon/cactus -profile $PROFILE \
 	-params-file parameters/full_test.yml -r main -latest \
 	--executor_local_cpus 8 --executor_local_memory '16G' \
 	--res_dir 'results/almost_full_test'  \
@@ -129,8 +138,8 @@ nextflow run jsalignon/cactus -profile singularity \
 	--split__threshold_values [200] \
 	--split__threshold_type "rank"
 
-# running the test dataset using conda and specifiying the Cactus version 0.8.6
-nextflow run jsalignon/cactus -r v0.8.6 -profile conda \
+# running the test dataset using Cactus version 0.8.6
+nextflow run jsalignon/cactus -r v0.8.6 -profile $PROFILE \
 	-params-file parameters/full_test.yml
 
 ## Running a test dataset
@@ -147,7 +156,7 @@ kill_nextflow_processes() {
 kill_nextflow_processes
 
 # loading a singularity container
-WORK_DIR_WITH_BUG=work/59/8a6fb9elkfl39j # to adjust
+WORK_DIR_WITH_BUG=work/59/8a6fb9elkfl39j # set path to the failing directory
 load_singularity_container() {
   container=$(grep SINGULARITY .command.run | sed 's/.*\/dev\/shm //g' | \
   	sed 's/.img.*/.img/g')
