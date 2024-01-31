@@ -28,12 +28,20 @@ SINGULARITY_VERSION="3.11.3-focal"
 # file).
 
 cd $NEXTFLOW_DIR
+
 wget -qO- https://github.com/nextflow-io/nextflow/releases/download/v22.10.8/nextflow-22.10.8-all | bash
 chmod +x nextflow
 sudo mv nextflow /usr/local/bin
 
-# Installing Singularity
+## Installing Nextflow
+######################
+
+
+#########################
+## Installing Singularity
+
 cd $SINGULARITY_DIR
+
 sudo apt-get update
 sudo apt-get install -y \
    autoconf \
@@ -53,13 +61,6 @@ sudo apt-get install -y \
    uidmap \
    wget \
    zlib1g-dev
-
-## Installing Nextflow
-######################
-
-
-#########################
-## Installing Singularity
 
 export VERSION=1.21.6 OS=linux ARCH=amd64 && \
     wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz && \
@@ -83,6 +84,7 @@ export VERSION=$SINGULARITY_VERSION &&  \
 ## Installing Docker 
 
 cd $DOCKER_DIR
+
 sudo apt-get update
 sudo apt-get install ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -111,6 +113,7 @@ docker run hello-world
 ## Installing conda and Mamba
 
 cd $CONDA_DIR
+
 curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 bash Miniforge3-$(uname)-$(uname -m).sh
 yes
