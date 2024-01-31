@@ -24,6 +24,8 @@ In case of issues with running Cactus, please make sure you are using the same v
 
 You can find here installation links for: [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation), [SingularityCE](https://docs.sylabs.io/guides/latest/admin-guide/installation.html), [Docker](https://docs.docker.com/get-docker/), [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) and [Mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html).
 
+A [script](/docs/1_Intro/installing_dependencies.sh) is available to help intalling the dependencies. Please observe that this script is provided for convenience, but the commands may not be up to date; and it is recommended to follow the installation guidelines from the respective tools (links are provided in the [dependencies section](/docs/2_Install/Dependencies.md) of the Cactus documentation).
+
 Please, note that Cactus is currently written in DSL1, which is [not supported anymore](https://nextflow.io/podcast/2023/ep9_end_of_dsl1_chatting_to_bots.html) by the latest default versions of Nextflow. An update of Cactus to DSL2 is under way.
 In the meantime, Cactus users should use a Nextflow version higher or equal to 22.04.0 (released in April 2022) and lower or equal to 22.10.8 (released in April 2023). This can be achieved simply by either using a recent Nextflow version and exporting the NXF_VER variable like this:
 ```
