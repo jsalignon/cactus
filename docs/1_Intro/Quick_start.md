@@ -11,7 +11,9 @@
 [](END_OF_MENU)
 
 
-# Quickstart script
+# Quickstart scripts
+
+Scripts are available to [install the dependencies](/docs/1_Intro/installing_dependencies.sh), [runinng the test datasets](/docs/1_Intro/running_the_test_datasets.sh) and [troubleshooting](/docs/1_Intro/troubleshooting.sh). Please observe that the script to install dependencies is provided for convenience, but the commands may not be up to date; and it is recommended to follow the installation guidelines from the respective tools (links are provided in the [dependencies section](/docs/2_Install/Dependencies.md) of the Cactus documentation).
 
 A [script](/docs/1_Intro/quickstart_script.sh) is available to help users to get started quickly with using Cactus. This script contains code to install the dependencies (which are potentially not up to date) as well as the code present in this section. It is nonetheless recommended to read this section to understand better the different command lines used in this script.
 
