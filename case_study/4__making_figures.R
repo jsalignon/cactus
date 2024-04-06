@@ -120,3 +120,86 @@ dt_dw = dt_dw[order(-L2FC), c('COMP', 'gene_name', 'gene_id', 'pval', 'padj', 'L
 
 openxlsx::write.xlsx(list(up = dt_up, down = dt_dw), 'Table_S1.xlsx')
 
+
+
+homedir=~
+eval homedir=$homedir
+cactus_dir=$homedir/workspace/cactus
+cd $cactus_dir/case_study/figures
+
+# ~/workspace/cactus/docs/examples/png
+# /raid/jersal/workspace/cactus/docs/examples/png
+
+library(ggplot2)
+
+png_to_gg <- function(png_file, margin = 20) {
+	ggplot2::ggplot() + ggplot2::annotation_custom(
+		grid::rasterGrob(png::readPNG(png_file), 
+			width = ggplot2::unit(1,"npc"), 
+			height = ggplot2::unit(1,"npc")), 
+		-Inf, Inf, -Inf, Inf) + theme(plot.margin = 
+    margin(t = margin, r = margin, b = margin, l = margin, unit = "pt"))
+}
+
+plot_by_chunk <- function(lp, nrow, ncol){
+	nplots = length(lp)
+	npages = ceiling(nplots / (nrow * ncol))
+	lp1 = vector('list', length = npages)
+
+	for(page in 1:npages){
+		cur_panel = 1 + (page - 1) * 12
+		v_panels = cur_panel:min(cur_panel + 11, nplots)
+		p1 = ggpubr::ggarrange(plotlist = lp[v_panels], nrow = 4, ncol = 3, 
+			labels = v_panels)
+		lp1[[page]] = p1
+	}
+
+	return(lp1)
+}
+
+
+v_files = list.files('../../docs/examples/png', full.names = T)
+
+v_files_1 = c(
+	grep('\\/ctl_1__', v_files, value = T),
+	grep('without_control_pca', v_files, value = T),
+	grep('spearman_correlation_heatmap', v_files, value = T),
+	grep('ATAC__peaks__grouped', v_files, value = T),
+	grep('hmg4_vs_ctl__ATAC_', v_files, value = T),
+	grep('hmg4_vs_ctl__mRNA_', v_files, value = T),
+	# grep('mRNA_volcano__', v_files, value = T),
+	grep('venn_up', v_files, value = T),
+	grep('__barplot', v_files, value = T),
+	grep('__heatmap\\.', v_files, value = T)
+	)
+v_files %>% .[!. %in% v_files_1]
+# [1] "../../docs/examples/png/hmg4_vs_spt16__ATAC_volcano__no_rtr.png"
+# [2] "../../docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png"
+# [3] "../../docs/examples/png/mRNA_volcano__no_gtr.png"
+# [4] "../../docs/examples/png/mRNA_volcano__with_gtr.png"
+
+v_files_1 %>% .[which(duplicated(.))] # character(0)
+
+v_files_1 %<>% .[. != '../../docs/examples/png/hmg4_vs_ctl__ATAC_other_plots.png']
+v_files_1 %<>% .[. != '../../docs/examples/png/hmg4_vs_ctl__mRNA_other_plots.png']
+
+lp = lapply(v_files_1, png_to_gg)
+
+lp1 = plot_by_chunk(lp, 4, 3)
+
+pdf('Sup_fig_test.pdf', width = 7, height = 10)
+	print(lp1)
+dev.off()
+
+
+
+
+
+# lp = lapply(v_files_1, png_to_gg)
+# p1 = ggpubr::ggarrange(plotlist = lp, nrow = 4, ncol = 3, 
+# 	labels = 'auto')
+
+# pdf('Sup_fig_test.pdf', width = 7, height = 10)
+# 	print(p1)
+# dev.off()
+
