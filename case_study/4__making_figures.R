@@ -158,7 +158,139 @@ plot_by_chunk <- function(lp, nrow, ncol){
 }
 
 
+grep1 <- function(x) grep(x, v_files, value = T)
+
+
+
+
+rep('__barplot', v_files, value = T),
+	grep('__heatmap\\.'
+
+v_files_1_DA_mrna_ = grep1('\\/hmg4_vs_ctl__mRNA')
+
+plot_4_by_3 <- function(v_files_1){
+	lp = lapply(v_files_1, png_to_gg)
+	p1 = ggpubr::ggarrange(plotlist = lp, nrow = 4, ncol = 3, 
+			labels = 'auto')
+	return(p1)
+}
+
+
+
+ = ggpubr::ggarrange(plotlist = lp[v_panels], nrow = 4, ncol = 3, 
+	labels = v_panels)
+
+
+v_files_1_1_QC_reads = grep1('\\/(pca|spearman|ctl_1__(average|reads|insert))')
+v_files_1_1_QC_peaks = grep1('(\\/(ctl_1__peaks|ATAC__peaks)|saturation_curve)')
+v_files_1_1_QC       = c(v_files_1_1_QC_reads, v_files_1_1_QC_peaks)
+v_files_1_2_DA       = grep1('\\/hmg4_vs_ctl__') %>%
+	grep('mRNA_(PCA|volcano)', ., invert = T, value = T) %>% c(grep1('venn'))
+v_files_1_3_EN       = grep1('__(barplot|heatmap)\\.')
+
+v_files_1_2_DA %>% length
+v_files_1_3_EN %>% length
+
+
+p1 = plot_4_by_3(v_files_1_1_QC)
+p2 = plot_4_by_3(v_files_1_2_DA)
+p3 = plot_4_by_3(v_files_1_3_EN)
+
+
+
+grep('mRNA_(PCA|volcano)', grep1('\\/hmg4_vs_ctl__'), invert = T, value = T)
+
+
+v_files_1_1_QC = c(v_files_1_1_QC_reads, v_files_1_1_QC_peaks)
+
+
+_1
+
+grep1('__(barplot|heatmap)\\.')
+
+
+v_files_2 = c(v_files_1_1_QC_reads, v_files_1_1_QC_peaks, v_files_1_2_DA, v_files_1_3_enrich)
+
+v_files %>% .[!. %in% v_files_2]
+
+> v_files %>% .[!. %in% v_files_2]
+[1] "../../docs/examples/png/all__1000__hmg4_vs_ctl__venn_up_and_down.png"
+[2] "../../docs/examples/png/all__down__1000__hmg4_vs_ctl__venn_up_or_down.png"
+[3] "../../docs/examples/png/all__up__1000__hmg4_vs_ctl__venn_up_or_down.png"
+[4] "../../docs/examples/png/ctl_1__saturation_curve.png"
+[5] "../../docs/examples/png/hmg4_vs_spt16__ATAC_volcano__no_rtr.png"
+[6] "../../docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png"
+[7] "../../docs/examples/png/mRNA_volcano__no_gtr.png"
+[8] "../../docs/examples/png/mRNA_volcano__with_gtr.png"
+>
+
+
+	pca|spearman|ctl_1__reads)')
+
+
+
+grep1('(pca|spearman|\\/ctl_1__(average|reads|insert))')
+
+v_files_1_QC_reads = grep('(pca|spearman|\\/ctl_1__(average|reads|insert))', 
+	v_files, value = T),
+
+
+ [2] "../../docs/examples/png/ctl_1__reads_coverage.png"
+ [3] "../../docs/examples/png/ctl_1__peaks_coverage.png"
+ [4] "../../docs/examples/png/ctl_1__reads_coverage.png"
+ [5] "../../docs/examples/png/ctl_1__saturation_curve.png"
+ [6] "../../docs/examples/png/pca_top5000_without_control_pca.png"
+ [7] "../../docs/examples/png/spearman_correlation_heatmap_without_outliers_without_control_cor.png"
+ [8] "../../docs/examples/png/ATAC__peaks__grouped__annotation_barplot.png"
+ [9] "../../docs/examples/png/ATAC__peaks__grouped__average_profile.png"
+[10] "../../docs/examples/png/ATAC__peaks__grouped__distance_to_TSS.png"
+[11] "../../docs/examples/png/hmg4_vs_ctl__ATAC_FDR_by_PA.png"
+[12] "../../docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-1.png"
+[13] "../../docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-2.png"
+[14] "../../docs/examples/png/hmg4_vs_ctl__ATAC_other_plots-3.png"
+[15] "../../docs/examples/png/hmg4_vs_ctl__ATAC_PCA_1_2.png"
+[16] "../../docs/examples/png/hmg4_vs_ctl__ATAC_PCA_3_4.png"
+[17] "../../docs/examples/png/hmg4_vs_ctl__ATAC_volcano.png"
+[18] "../../docs/examples/png/hmg4_vs_ctl__mRNA_other_plots-1.png"
+[19] "../../docs/examples/png/hmg4_vs_ctl__mRNA_other_plots-2.png"
+[20] "../../docs/examples/png/hmg4_vs_ctl__mRNA_PCA_1_2.png"
+[21] "../../docs/examples/png/hmg4_vs_ctl__mRNA_PCA_3_4.png"
+[22] "../../docs/examples/png/hmg4_vs_ctl__mRNA_volcano.png"
+[23] "../../docs/examples/png/all__1000__hmg4_vs_ctl__venn_up_and_down.png"
+[24] "../../docs/examples/png/all__down__1000__hmg4_vs_ctl__venn_up_or_down.png"
+[25] "../../docs/examples/png/all__up__1000__hmg4_vs_ctl__venn_up_or_down.png"
+[26] "../../docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__CHIP__barplot.png"
+[27] "../../docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__chrom_states__barplot.png"
+[28] "../../docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_BP__barplot.png"
+[29] "../../docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__func_anno_KEGG__barplot.png"
+[30] "../../docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__genes_self__barplot.png"
+[31] "../../docs/examples/png/ATAC__all__down__1000__hmg4_vs_ctl__peaks_self__barplot.png"
+[32] "../../docs/examples/png/ATAC__all__down__1000__hmg4_vs_spt16__motifs__barplot.png"
+[33] "../../docs/examples/png/ATAC__all__1000__all__CHIP__heatmap.png"
+[34] "../../docs/examples/png/ATAC__all__1000__all__chrom_states__heatmap.png"
+[35] "../../docs/examples/png/ATAC__all__1000__all__func_anno_BP__heatmap.png"
+[36] "../../docs/examples/png/ATAC__all__1000__all__func_anno_KEGG__heatmap.png"
+[37] "../../docs/examples/png/ATAC__all__1000__all__genes_self__heatmap.png"
+[38] "../../docs/examples/png/ATAC__all__1000__all__motifs__heatmap.png"
+[39] "../../docs/examples/png/ATAC__all__1000__all__peaks_self__heatmap.png"
+>'
+
+
+
+v_files = 
+
+list.files('../../docs/examples/png', full.names = T)
+list.files('../../docs/examples/png', full.names = T)
+
+
+
 v_files = list.files('../../docs/examples/png', full.names = T)
+
+v_files_QC_reads = c(
+	grep('\\/ctl_1__', v_files, value = T),
+	grep('without_control_pca', v_files, value = T),
+	grep('spearman_correlation_heatmap', v_files, value = T)
+)
 
 v_files_1 = c(
 	grep('\\/ctl_1__', v_files, value = T),
