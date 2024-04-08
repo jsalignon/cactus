@@ -141,6 +141,151 @@ png_to_gg <- function(png_file, margin = 20) {
     margin(t = margin, r = margin, b = margin, l = margin, unit = "pt"))
 }
 
+grep1 <- function(x) grep(x, v_png_files, value = T)
+
+v_png_files = c(list.files('../../docs/examples/png', full.names = T), 
+				list.files('../../docs/examples/xlsx_png', full.names = T))
+
+v_files_1_QC_reads = grep1('\\/(pca|spearman|ctl_1__(average|reads|insert))')
+v_files_1_QC_peaks = grep1('(\\/(ctl_1__peaks|ATAC__peaks)|saturation_curve)')
+v_files_1_QC       = c(v_files_1_QC_reads, v_files_1_QC_peaks)
+v_files_2_DA_fig   = grep1('\\/hmg4_vs_ctl__') %>% c(grep1('venn'))
+# v_files_2_DA_fig   = grep1('\\/hmg4_vs_ctl__') %>%
+# 	grep('mRNA_(PCA|volcano)', ., invert = T, value = T) %>% c(grep1('venn'))
+v_files_2_DA_tab   = c(grep1('xlsx_png\\/ATAC'), grep1('xlsx_png\\/mRNA'), 
+	grep1('xlsx_png\\/res'))
+v_files_2_DA       = c(v_files_2_DA_fig, v_files_2_DA_tab)
+v_files_3_EN_fig   = c(grep1('__barplot\\.'), grep1('__heatmap\\.'))
+v_files_3_EN_tab   = grep1('xlsx_png\\/(CHIP|motifs|func|peaks|genes|chrom)')
+v_files_3_EN       = c(v_files_3_EN_fig, v_files_3_EN_tab)
+
+length(v_files_1_QC_reads)
+length(v_files_1_QC_peaks)
+length(v_files_1_QC) 
+length(v_files_2_DA_fig)
+length(v_files_2_DA_tab)
+length(v_files_3_EN_fig)
+length(v_files_3_EN_tab)
+
+plot_nrow_by_ncol <- function(v_files, nrow = 4, ncol = 3, v_labels = 'auto'){
+	lp = lapply(v_files, png_to_gg)
+	p1 = ggpubr::ggarrange(plotlist = lp, nrow = nrow, ncol = ncol, 
+			labels = v_labels)
+	return(p1)
+}
+
+plot_figures <- function(v_files, nrow = 4, ncol = 3, v_labels = 'auto'){
+	plot_nrow_by_ncol(v_files, nrow = nrow, ncol = ncol, v_labels = v_labels)
+}
+
+plot_tables <- function(v_files, nrow = 6, ncol = 2, v_labels = v_labels){
+	plot_nrow_by_ncol(v_files, nrow = nrow, ncol = ncol, v_labels = v_labels)
+}
+
+# plot_1_by_3 <- function(v_files_tab, v_files_fig, nrow = 5, ncol = 1){
+# 	len      = length(v_files_2_DA_fig)
+# 	v_labels = letters[len:(len + length(v_files_2_DA_tab))]
+# 	plot_nrow_by_ncol(v_files_tab, nrow = nrow, ncol = ncol, 
+# 		v_labels = v_labels)
+# }
+
+p_QC = plot_4_by_3(v_files_1_QC)
+pdf('Figure_S3.pdf', width = 7, height = 10)
+	print(p_QC)
+dev.off()
+
+length(v_files_2_DA_fig) # 17
+length(v_files_2_DA_fig) - 12 # 5
+length(v_files_2_DA_tab) #  7
+p_DA_1   = plot_figures(v_files_2_DA_fig[1:12])
+p_DA_2_1 = plot_figures(v_files_2_DA_fig[13:17], nrow = 2,
+	v_labels = letters[12 + (1:6)])
+p_DA_2_2 = plot_tables(v_files_2_DA_tab, v_labels = letters[12 + (6:13)], 
+	nrow = 4)
+p_DA_2 = ggpubr::ggarrange(p_DA_2_1, p_DA_2_2, nrow = 2, ncol = 1)
+pdf('Figure_S4.pdf', width = 7, height = 10)
+	print(p_DA_1)
+	print(p_DA_2)
+dev.off()
+
+
+length(v_files_3_EN_fig) # 14
+length(v_files_3_EN_fig) - 12 # 2
+length(v_files_3_EN_tab) #  7
+p_EN_1   = plot_figures(v_files_3_EN_fig[1:12])
+p_EN_2_1 = plot_figures(v_files_3_EN_fig[13:14], nrow = 1,
+	v_labels = letters[12 + (1:2)])
+p_EN_2_2 = plot_tables(v_files_3_EN_tab, 
+	v_labels = letters[12 + (3:10)], nrow = 5)
+p_EN_2 = ggpubr::ggarrange(p_EN_2_1, p_EN_2_2, nrow = 2, ncol = 1, 
+	heights = c(0.25, 0.75) )
+pdf('Figure_S5.pdf', width = 7, height = 10)
+	print(p_EN_1)
+	print(p_EN_2)
+dev.off()
+
+
+
+v_files_3_EN_fig
+v_files_3_EN_tab
+plot_4_by_3(v_files_1_QC)
+
+
+
+plot_1_by_3 <- function(v_files_tab, v_labels, nrow = 1, ncol = 3){
+
+
+plot_1_by_3 <- function(v_files_tab, v_labels, nrow = 1, ncol = 3){
+	lp = lapply(v_files_tab, png_to_gg)
+	p1 = ggpubr::ggarrange(plotlist = lp, nrow = nrow, ncol = ncol, 
+		labels = v_labels)
+	return(p1)
+}
+
+p1 = plot_4_by_3(v_files_1_1_QC)
+p2 = plot_4_by_3(v_files_1_1_QC)
+
+
+v_files_1_2_DA %>% length
+v_files_1_3_EN %>% length
+
+
+p1 = plot_4_by_3(v_files_1_1_QC)
+p2 = plot_4_by_3(v_files_1_2_DA)
+p3 = plot_4_by_3(v_files_1_3_EN)
+
+
+
+list.files('../../docs/examples/png')
+list.files('../../docs/examples/')
+
+
+v_files_1 = c(
+	grep('\\/ctl_1__', v_files, value = T),
+	grep('without_control_pca', v_files, value = T),
+	grep('spearman_correlation_heatmap', v_files, value = T),
+	grep('ATAC__peaks__grouped', v_files, value = T),
+	grep('hmg4_vs_ctl__ATAC_', v_files, value = T),
+	grep('hmg4_vs_ctl__mRNA_', v_files, value = T),
+	# grep('mRNA_volcano__', v_files, value = T),
+	grep('venn_up', v_files, value = T),
+	grep('__barplot', v_files, value = T),
+	grep('__heatmap\\.', v_files, value = T)
+	)
+
+
+
+v_files_1_DA_mrna_ = grep1('\\/hmg4_vs_ctl__mRNA')
+
+plot_4_by_3 <- function(v_files_1){
+	lp = lapply(v_files_1, png_to_gg)
+	p1 = ggpubr::ggarrange(plotlist = lp, nrow = 4, ncol = 3, 
+			labels = 'auto')
+	return(p1)
+}
+
+
+
 plot_by_chunk <- function(lp, nrow, ncol){
 	nplots = length(lp)
 	npages = ceiling(nplots / (nrow * ncol))
@@ -158,7 +303,6 @@ plot_by_chunk <- function(lp, nrow, ncol){
 }
 
 
-grep1 <- function(x) grep(x, v_files, value = T)
 
 
 
@@ -180,21 +324,6 @@ plot_4_by_3 <- function(v_files_1){
  = ggpubr::ggarrange(plotlist = lp[v_panels], nrow = 4, ncol = 3, 
 	labels = v_panels)
 
-
-v_files_1_1_QC_reads = grep1('\\/(pca|spearman|ctl_1__(average|reads|insert))')
-v_files_1_1_QC_peaks = grep1('(\\/(ctl_1__peaks|ATAC__peaks)|saturation_curve)')
-v_files_1_1_QC       = c(v_files_1_1_QC_reads, v_files_1_1_QC_peaks)
-v_files_1_2_DA       = grep1('\\/hmg4_vs_ctl__') %>%
-	grep('mRNA_(PCA|volcano)', ., invert = T, value = T) %>% c(grep1('venn'))
-v_files_1_3_EN       = grep1('__(barplot|heatmap)\\.')
-
-v_files_1_2_DA %>% length
-v_files_1_3_EN %>% length
-
-
-p1 = plot_4_by_3(v_files_1_1_QC)
-p2 = plot_4_by_3(v_files_1_2_DA)
-p3 = plot_4_by_3(v_files_1_3_EN)
 
 
 
