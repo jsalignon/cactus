@@ -702,7 +702,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
     if (it.indexOf(".pdf") > 0) 
         "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
-    else if (it.indexOf("_raw.bw") > 0) 
+    else if (it.indexOf(".bw") > 0) 
         "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
   }
 

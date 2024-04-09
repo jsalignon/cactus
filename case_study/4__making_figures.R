@@ -126,8 +126,6 @@ openxlsx::write.xlsx(list(up = dt_up, down = dt_dw), 'Table_S1.xlsx')
 
 
 
-
-
 # Supplementary Figures showing all outputs from Cactus
 
 png_to_gg <- function(png_file, margin = 20) {
@@ -141,22 +139,9 @@ png_to_gg <- function(png_file, margin = 20) {
 
 grep1 <- function(x) grep(x, v_png_files, value = T)
 
-v_png_files = c(list.files('../../docs/examples/png', full.names = T), 
-				list.files('../../docs/examples/xlsx_png', full.names = T))
-
-v_files_1_QC_reads = grep1('\\/(pca|spearman|ctl_1__(average|reads|insert))')
-v_files_1_QC_peaks = grep1('(\\/(ctl_1__peaks|ATAC__peaks)|saturation_curve)')
-v_files_1_QC       = c(v_files_1_QC_reads, v_files_1_QC_peaks)
-v_files_2_DA_fig   = grep1('\\/hmg4_vs_ctl__') %>% c(grep1('venn'))
-v_files_2_DA_tab   = c(grep1('xlsx_png\\/ATAC'), grep1('xlsx_png\\/mRNA'), 
-	grep1('xlsx_png\\/res'))
-v_files_2_DA       = c(v_files_2_DA_fig, v_files_2_DA_tab)
-v_files_3_EN_fig   = c(grep1('__barplot\\.'), grep1('__heatmap\\.'))
-v_files_3_EN_tab   = grep1('xlsx_png\\/(CHIP|motifs|func|peaks|genes|chrom)')
-v_files_3_EN       = c(v_files_3_EN_fig, v_files_3_EN_tab)
-
-plot_nrow_by_ncol <- function(v_files, nrow = 4, ncol = 3, v_labels = 'auto'){
-	lp = lapply(v_files, png_to_gg)
+plot_nrow_by_ncol <- function(v_files, nrow = 4, ncol = 3, v_labels = 'auto',
+	margin = 10){
+	lp = lapply(v_files, png_to_gg, margin = margin)
 	p1 = ggpubr::ggarrange(plotlist = lp, nrow = nrow, ncol = ncol, 
 			labels = v_labels)
 	return(p1)
@@ -166,29 +151,49 @@ plot_figures <- function(v_files, nrow = 4, ncol = 3, v_labels = 'auto'){
 	plot_nrow_by_ncol(v_files, nrow = nrow, ncol = ncol, v_labels = v_labels)
 }
 
-plot_tables <- function(v_files, nrow = 6, ncol = 2, v_labels = v_labels){
-	plot_nrow_by_ncol(v_files, nrow = nrow, ncol = ncol, v_labels = v_labels)
+plot_tables <- function(v_files, nrow = 6, ncol = 2, v_labels = v_labels,
+	margin = 15){
+	plot_nrow_by_ncol(v_files, nrow = nrow, ncol = ncol, v_labels = v_labels,
+		margin = margin)
 }
 
-p_QC = plot_4_by_3(v_files_1_QC)
-pdf('Figure_S3.pdf', width = 7, height = 10)
+v_png_files = c(list.files('../../docs/examples/png', full.names = T), 
+				list.files('../../docs/examples/xlsx_png', full.names = T))
+
+v_files_1_QC_reads = grep1('\\/(pca|spearman|ctl_1__(reads|insert))')
+v_files_1_QC_peaks = grep1('(\\/(ctl_1__(peaks|average)|ATAC__peaks)|saturation_curve)')
+v_files_1_QC       = c(v_files_1_QC_reads, v_files_1_QC_peaks)
+p_QC = plot_figures(v_files_1_QC)
+pdf('Figure_S2.pdf', width = 7, height = 10)
 	print(p_QC)
 dev.off()
 
-length(v_files_2_DA_fig) # 17
-length(v_files_2_DA_fig) - 12 # 5
+
+v_files_2_DA_fig   = grep1('\\/hmg4_vs_ctl__') %>% c(grep1('venn'))
+v_files_2_DA_fig %<>% .[. != '../../docs/examples/png/hmg4_vs_ctl__ATAC_other_plots.png']
+v_files_2_DA_fig %<>% .[. != '../../docs/examples/png/hmg4_vs_ctl__mRNA_other_plots.png']
+v_files_2_DA_fig %<>% sort %>% rev
+v_files_2_DA_tab   = c(grep1('xlsx_png\\/ATAC'), grep1('xlsx_png\\/mRNA'), 
+	grep1('xlsx_png\\/res'))
+length(v_files_2_DA_fig) # 15
+length(v_files_2_DA_fig) - 12 # 3
 length(v_files_2_DA_tab) #  7
+length(v_files_2_DA_tab) + length(v_files_2_DA_fig) - 12 #  10
 p_DA_1   = plot_figures(v_files_2_DA_fig[1:12])
-p_DA_2_1 = plot_figures(v_files_2_DA_fig[13:17], nrow = 2,
-	v_labels = letters[12 + (1:6)])
-p_DA_2_2 = plot_tables(v_files_2_DA_tab, v_labels = letters[12 + (6:13)], 
-	nrow = 4)
-p_DA_2 = ggpubr::ggarrange(p_DA_2_1, p_DA_2_2, nrow = 2, ncol = 1)
-pdf('Figure_S4.pdf', width = 7, height = 10)
+p_DA_2_1 = plot_figures(v_files_2_DA_fig[13:15], nrow = 1,
+	v_labels = letters[12 + (1:3)])
+p_DA_2_2 = plot_tables(v_files_2_DA_tab, v_labels = letters[12 + (4:10)], 
+	nrow = 5)
+p_DA_2 = ggpubr::ggarrange(p_DA_2_1, p_DA_2_2, nrow = 2, ncol = 1, 
+	heights = c(0.25, 0.75) )
+pdf('Figure_S3.pdf', width = 7, height = 10)
 	print(p_DA_1)
 	print(p_DA_2)
 dev.off()
 
+
+v_files_3_EN_fig   = c(grep1('__barplot\\.'), grep1('__heatmap\\.'))
+v_files_3_EN_tab   = grep1('xlsx_png\\/(CHIP|motifs|func|peaks|genes|chrom)')
 length(v_files_3_EN_fig) # 14
 length(v_files_3_EN_fig) - 12 # 2
 length(v_files_3_EN_tab) #  7
@@ -199,10 +204,20 @@ p_EN_2_2 = plot_tables(v_files_3_EN_tab,
 	v_labels = letters[12 + (3:10)], nrow = 5)
 p_EN_2 = ggpubr::ggarrange(p_EN_2_1, p_EN_2_2, nrow = 2, ncol = 1, 
 	heights = c(0.25, 0.75) )
-pdf('Figure_S5.pdf', width = 7, height = 10)
+pdf('Figure_S4.pdf', width = 7, height = 10)
 	print(p_EN_1)
 	print(p_EN_2)
 dev.off()
 
 
 
+#
+remotes::install_github(repo = "poisonalien/trackplot")
+library(trackplot)
+
+#Path to bigWig files
+bigWigs = c("H1_Oct4.bw", "H1_Nanog.bw", "H1_k4me3.bw", 
+            "H1_k4me1.bw", "H1_k27ac.bw", "H1_H2az.bw", "H1_Ctcf.bw")
+
+#Make a table of bigWigs along with ref genome build
+bigWigs = read_coldata(bws = bigWigs, build = "hg19")
