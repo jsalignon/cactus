@@ -703,7 +703,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
     if (it.indexOf(".pdf") > 0) 
         "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
     else if (it.indexOf(".bw") > 0) 
-        "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
+        "Processed_Data/1_Preprocessing/ATAC__reads__bigwig/${it}"
   }
 
   when: 
@@ -731,6 +731,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
       --blackListFileName   ${params.blacklisted_regions} \
       --effectiveGenomeSize ${params.effective_genome_size} \
       --outFileName ${id}.bw
+
 
     plotCoverage \
       --bam ${bam} \

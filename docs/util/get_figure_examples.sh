@@ -19,12 +19,21 @@ nextflow run  jsalignon/cactus -r v0.8.6  -profile $tools_manager \
   --references_dir $cactus_dir/references/$figshare_version \
   -params-file parameters/full_test.yml --split__threshold_values [1000] \
   --res_dir 'results/v0.8.6'
+
+nextflow run  jsalignon/cactus -r origin/revisions  -profile $tools_manager \
+  --executor_local_cpus $cpu_nb --executor_local_memory $memory_size \
+  --references_dir $cactus_dir/references/$figshare_version \
+  -params-file parameters/full_test.yml --split__threshold_values [1000] \
+  --res_dir 'results/v0.8.6_revisions'
+
 # nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/full_test.yml --split__threshold_values [1000] --res_dir 'results/almost_full_test'
 # nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich__no_rtr.yml
 
 # species=fly ; cd $test_dir/$tools_manager/$species
 # nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich.yml
 # nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich__no_gtr.yml
+
+
 
 
 
