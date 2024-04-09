@@ -8,14 +8,15 @@
 homedir=~
 eval homedir=$homedir
 cactus_dir=$homedir/workspace/cactus
-test_dir=$cactus_dir/test_datasets  
+test_ds_dir=$cactus_dir/test_datasets  
 # case_study_dir=$test_ds_dir/case_study/data
 case_study_dir=$test_ds_dir/application_note
 
 ## setting up variables
 cpu_nb=30
 memory_size='300G'
-cactus_version="v0.8.6" ; latest_flag=''
+# cactus_version="v0.8.6" ; latest_flag=''
+cactus_version="revisions" ; latest_flag=''
 
 # nextflow drop jsalignon/cactus # if needed
 figshare_version=v4
@@ -26,7 +27,8 @@ heatmaps_filters_motifs="c( 30, 20, 10, T, 2, 'ward.D', F )"
 heatmaps_params__peaks_self="c( 0.05, T, 'none', T, 50, 'UUDD', 2.5 )"
 common__heatmaps_ggplot="c( 12, 12, 12 )" 
 heatmaps_ggplot__chrom_states="c( 8, 10, 7 )"
-res_prefix="results/2023_11_26__"
+# res_prefix="results/2023_11_26__"
+res_prefix="results/2024_04_09__"
 
 ## Initialization
 #################

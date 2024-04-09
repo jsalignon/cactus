@@ -20,7 +20,7 @@ nextflow run  jsalignon/cactus -r v0.8.6  -profile $tools_manager \
   -params-file parameters/full_test.yml --split__threshold_values [1000] \
   --res_dir 'results/v0.8.6'
 
-nextflow run  jsalignon/cactus -r origin/revisions  -profile $tools_manager \
+nextflow run  jsalignon/cactus -r revisions  -profile $tools_manager \
   --executor_local_cpus $cpu_nb --executor_local_memory $memory_size \
   --references_dir $cactus_dir/references/$figshare_version \
   -params-file parameters/full_test.yml --split__threshold_values [1000] \
@@ -58,7 +58,7 @@ res_worm_dir="$test_dir_2/worm/results/"
 res_fly_dir="$test_dir_2/fly/results/"
 
 # run_worm_dir="$res_worm_dir/almost_full_test"
-run_worm_dir="$res_worm_dir/v0.8.6"
+run_worm_dir="$res_worm_dir/v0.8.6_revisions"
 run_worm_figure_dir="$run_worm_dir/Figures_Individual"
 run_worm_tables_dir="$run_worm_dir/Tables_Merged"
 
@@ -93,9 +93,6 @@ find $run_worm_figure_dir -name "pca_top5000_without_control_pca.pdf" -exec cp "
 find $run_worm_figure_dir -regex ".*\(ATAC\|mRNA\)__multiQC.html" -exec cp "{}" $examples_dir_html \;
 
 
-find $run_worm_figure_dir -name "hmg4_*.bw"
-
-find $run_worm_figure_dir -name "ATAC__all__1000__all__*.pdf" -exec cp "{}" $examples_dir_pdf \;
 
 
 ## Making png images from PDF
