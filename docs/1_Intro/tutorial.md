@@ -139,8 +139,8 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--res_dir results/tutorial              \
 	--species worms                         \
 	--chromatin_state iHMM.M1K16.worm_L3    \
-	--disable_all_enrichments               \
-	--design__regions_to_remove design/regions_to_remove_empty.tsv
+	--design__regions_to_remove design/regions_to_remove_empty.tsv \
+	--disable_all_enrichments               
 ```
 With: 
  - `--res_dir`: the output folder
@@ -173,8 +173,8 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--res_dir results/tutorial              \
 	--species worms                         \
 	--chromatin_state iHMM.M1K16.worm_L3    \
-	--disable_all_enrichments               \
-	--design__regions_to_remove design/regions_to_remove.tsv
+	--design__regions_to_remove design/regions_to_remove.tsv \
+	--disable_all_enrichments               
 ```
 Looking at the volcano plot, we can see that articial signals at the hmg-4 and spt-16 locuses have been removed:
 <img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png" width="350" />      
@@ -229,7 +229,9 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--res_dir results/tutorial              \
 	--species worms                         \
 	--chromatin_state iHMM.M1K16.worm_L3    \
-	--design__regions_to_remove design/regions_to_remove.tsv
+	--design__regions_to_remove design/regions_to_remove.tsv \
+	--split__threshold_type     rank        \
+	--split__threshold_values [ 200, 1000 ]
 ```
 
 Please, note that the pipeline can currently break if the heatmap filtering parameters reduce certain DAS to 1 entry or less. If such crash occur, one can modify the `--heatmaps_filter__func_anno`, `--heatmaps_filter__CHIP`, and the `--heatmaps_filter__motifs` filters.
