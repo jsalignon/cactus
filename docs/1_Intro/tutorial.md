@@ -1,7 +1,7 @@
 
 <img src="/docs/images/logo_cactus.png" width="400" />
 
-* [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Tutorial](/docs/1_Intro/tutorial.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
+* [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/Data.md), [Design](/docs/3_Inputs/Design.md), [Parameters](/docs/3_Inputs/Parameters.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
@@ -109,12 +109,18 @@ ctl     hmg4_vs_ctl     spt16_vs_ctl
 spt16   spt16_vs_ctl    hmg4_vs_spt16
 ```
 
+Finally, we should set up two global parameters for the enrichment analysis part: 
+
+ - The mandatory `--params.chromatin_state` parameter defines the file that will be used to do enrichment of chromatin states. The options can be found in the file `$reference_dir_folder/encode_chromatin_states_metadata.csv` for ChromHMM-derived files and on this [website](https://compbio.med.harvard.edu/modencode/webpage/hihmm/) (or using the command `ls $reference_dir_folder/chromatin_states/`) for HiHMM-derived states. See the [References section](https://github.com/jsalignon/cactus/blob/main/docs/2_Install/References.md#Pipeline-to-get-references) for details on the origin of these files.
+
+ - The optional `--chip_ontology` parameter define the ontology term that will be used to filter the ENCODE ChIP-Seq profiles on which to conduct enrichment analysis. The options can be found in the [References section](https://github.com/jsalignon/cactus/blob/main/docs/2_Install/References.md#CHIP-Seq) (or using the command  `cat $reference_dir_folder/chip_ontology_groups_sizes.txt`).
+Information about the details of the ChIP-Seq profiles abbreviations can be found in the file `$reference_dir_folder/encode_chip_metadata.csv`.
+
+
 
 # Running Cactus without enrichment analysis
 
-We will not remove any genes and regions at first, and use the empty files `design/regions_to_remove_empty.tsv` and `design/genes_to_remove_empty.tsv`.
-
-We can now run Cactus. This can be done using the parameter file, such as the `parameters/full_test.yml` file, which contains:
+We can now run Cactus. This can be done for instance by adding this argument `-params-file parameters/full_test.yml` to the Cactus call, which will set all of the parameters indicated in the YML file. Here is the content of the `parameters/full_test.yml` file:
 ```
 res_dir                   : 'results/full_test'
 species                    : 'worm'
@@ -123,6 +129,7 @@ split__threshold_type     : 'rank'
 split__threshold_values   : [ 200, 1000 ]
 ```
 However, for this tutorial, we will set up the parameters directly in the command line for better clarity. Nextflow parameters are set up with a single hyphen (i.e., "-profile"), while Cactus parameters are set up with double hyphens (i.e., "--res_dir").
+
 
 It is a good idea to run Cactus sequentially, to make sure the different steps of analysis are correct, and to avoid the need to re-run the whole pipeline again. Since Cactus is built with the Nextflow language, caching is efficiently implemented. Therefore, changing one paramter or one sample will only affect the specific process or sample that was changed. 
 
@@ -137,13 +144,12 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 ```
 With: 
  - `--res_dir`: the output folder
- - `--species`: pecies under study (mandatory)
- - --chromatin_state: chromatin state file to use (mandatory)
- - --split__threshold_type: using rank(-log10(FDR)) cutoff instead of the default -log10(FDR) cutoff
- - --split__threshold_values: selecting the top 200 and 1000 most significant results
+ - `--species`: species under study (mandatory)
+ - `--chromatin_state`: chromatin state file to use for the chromatin enrichment analysis (mandatory)
  - `--disable_all_enrichments`: stopping analyses after step 2 (differential analysis)
+ - `--design__regions_to_remove`: using an a files that do not contain any regions to remove from ATAC-Seq analyses.
 
-Note, that creation of bigWig files, as well as the saturation curve analysis can both be computationally intensive and therefore there are parameters to disable these steps if needed (`params.do_bigwig` and `params.do_saturation_curve`).
+Note also, that creation of bigWig files, as well as the saturation curve analysis can both be computationally intensive and therefore there are parameters to disable these steps if needed (`params.do_bigwig` and `params.do_saturation_curve`).
 
 
 # Checking quality controls and removing artifical signal
@@ -170,7 +176,6 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--disable_all_enrichments               \
 	--design__regions_to_remove design/regions_to_remove.tsv
 ```
-
 Looking at the volcano plot, we can see that articial signals at the hmg-4 and spt-16 locuses have been removed:
 <img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png" width="350" />      
 
@@ -200,10 +205,10 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--do_motif_enrichment       false
 ```
 With: 
- - --split__threshold_type: using rank(-log10(FDR)) cutoff instead of the default -log10(FDR) cutoff
- - --split__threshold_values: selecting the top 200 and 1000 most significant results
- - --do_func_anno_enrichment: disabling functional annotation enrichment analysis.
- - --do_motif_enrichment:     disabling motifs enrichment analysis.
+ - `--split__threshold_type`: using rank(-log10(FDR)) cutoff instead of the default -log10(FDR) cutoff
+ - `--split__threshold_values`: selecting the top 200 and 1000 most significant results
+ - `--do_func_anno_enrichment`: disabling functional annotation enrichment analysis.
+ - `--do_motif_enrichment`:     disabling motifs enrichment analysis.
 
 
 # Looking at correlation between comparisons for different experiment types
