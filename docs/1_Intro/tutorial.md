@@ -25,7 +25,8 @@
 # Introduction
 
 This tutorial will highlight some use case of Cactus using the worm test dataset.
-The full script for this tutoral can be found here[TO DO].
+The full script for this tutoral can be found [here](/docs/1_Intro/tutorial.sh).
+
 We will use Singularity for this tutorial (see the [dependencies section](/docs/2_Install/Dependencies.md) if needed).
 
 
