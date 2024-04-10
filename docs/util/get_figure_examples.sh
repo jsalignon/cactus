@@ -92,15 +92,15 @@ find $run_worm_figure_dir -name "spearman_correlation_heatmap_without_outliers_w
 find $run_worm_figure_dir -name "pca_top5000_without_control_pca.pdf" -exec cp "{}" $examples_dir_pdf \;
 find $run_worm_figure_dir -regex ".*\(ATAC\|mRNA\)__multiQC.html" -exec cp "{}" $examples_dir_html \;
 
-
-
+# Panels for tutorial
+find $run_worm_figure_dir -regex ".*ctl__genes_self__heatmap.pdf" -exec cp "{}" $examples_dir_pdf \;
 
 ## Making png images from PDF
 cd $examples_dir_pdf
 
 # for FILE in $(ls ATAC__all__down__200__hmg4_vs_spt16__motifs__barplot.pdf) 
 # for FILE in $(ls mRNA_volcano*.pdf) 
-for FILE in $(ls *heatmap*.pdf) 
+for FILE in $(ls *ctl__genes_self__heatmap.pdf) 
 # for FILE in $(ls hmg4_vs_spt16__ATAC_volcano.pdf) 
 # for FILE in $(ls *.pdf) 
 do
