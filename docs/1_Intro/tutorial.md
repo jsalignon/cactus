@@ -107,20 +107,60 @@ It is a good idea to run Cactus sequentially, to make sure the different steps o
 We therefore run Cactus by using the `--params.disable_all_enrichments` parameter to stop the analysis after the second step (differential analysis) with the following command:
 ```bash
 nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
-	--res_dir results/tutorial              \ # the output folder
-	--species worms                         \ # species under study (mandatory)
-	--chromatin_state iHMM.M1K16.worm_L3    \ # chromatin state file to use (mandatory)
-	--split__threshold_type rank            \ # using rank(-log10(FDR)) cuttoff
-	--split__threshold_values [ 200, 1000 ] \ # selecting the top 200 or 1000 most significant results
-	--disable_all_enrichments               \ # disabling all enrichment analysis
-
+	--res_dir results/tutorial              \
+	--species worms                         \
+	--chromatin_state iHMM.M1K16.worm_L3    \
+	--split__threshold_type rank            \
+	--split__threshold_values [ 200, 1000 ] \
+	--disable_all_enrichments               \
+	--design__regions_to_remove design/regions_to_remove_empty.tsv
 ```
+With: 
+ - `--res_dir`: the output folder
+ - `--species`: pecies under study (mandatory)
+ - --chromatin_state: chromatin state file to use (mandatory)
+ - --split__threshold_type: using rank(-log10(FDR)) cutoff instead of the default -log10(FDR) cutoff
+ - --split__threshold_values: selecting the top 200 and 1000 most significant results
+ - `--disable_all_enrichments`: stopping analyses after step 2 (differential analysis)
 
 Note, that creation of bigWig files, as well as the saturation curve analysis can both be computationally intensive and therefore there are parameters to disable these steps if needed (`params.do_bigwig` and `params.do_saturation_curve`).
 
-After this step, we can look at the results from the preprocessing and quality control analyses to ensure all samples are of good enough quality. This can be assessed for both ATAC-Seq and mRNA-Seq samples by looking at the MultiQC report files, present in the folder `results/tutorial/Figures_Merged/1_Preprocessing`. Many additional quality control figures are available for ATAC-Seq in the same folder, including reads and peaks coverage, reads insert size, PCA and correlation matrix. The saturation curve analysis helps to determine if one should resequence or not. This can be assessed by looking at the shape of the curve. For instance, if the curve is still steeply increasing, then it might be needed to sequence the samples further.
+After this step, we can look at the results from the preprocessing and quality control analyses to ensure all samples are of good enough quality. This can be assessed for both ATAC-Seq and mRNA-Seq samples by looking at the MultiQC report files, present in the folder `results/tutorial/Figures_Merged/1_Preprocessing`. Many additional quality control figures are available for ATAC-Seq in the same folder, including reads and peaks coverage, reads insert size, PCA and correlation matrix. The saturation curve analysis helps to determine if one should resequence or not. This can be assessed by looking at the shape of the curve. For instance, if the curve is still steeply increasing, then it might be needed to sequence the samples further. Since this a test datasets with few randomly sampled reads, the saturation curve has a weird shape, and does not seem to have reached a clear plateau, indicating a need for more sequencing:
+<img src="/docs/examples/png/ctl_1__saturation_curve.png" width="400" />
+
+Looking at the ATAC-Seq volcano plot for the hgm-4 vs stp-16 comparison, we can notice large peaks for spt-16 and hmg-4:
+<img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano__no_rtr.png" width="350" /> 
+This is due to RNA interference which induce a very strong sequencing signal at the repressed locus.
+
+Therefore, we repeat our analysis by excluding the regions of the targeted gene for ATAC-Seq samples, using the file `design/regions_to_remove.tsv` which contains:
+```
+hmg4    Hmg4->chrIII:7,379,143-7,381,596
+spt16   Spt16->chrI:10,789,130-10,793,152
+```
+
+At this stage, we can also look carefully at which DAS (Differential Analysis Subset) filters could make sense to investigate. Here are the volcano
+PA...
+
+After checking quality controls and excluding regions with artificial signal, we can launch a new analysis that includes enrichment analysis. This step can be done very quickly when excluding functional enrichment and motifs enrichment analysis. Indeed, enrichment of genomic regions, like ChIP-Seq, or comparisons between DASs can be done very rapidly as it is based on bed-files overlap using bedtools. We therefore now use this command to do a quick enrichment analysis:
+
+```bash
+nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
+	--res_dir results/tutorial              \
+	--species worms                         \
+	--chromatin_state iHMM.M1K16.worm_L3    \
+	--split__threshold_type rank            \
+	--split__threshold_values [ 200, 1000 ] \
+	--disable_all_enrichments               \
+	--design__regions_to_remove design/regions_to_remove_empty.tsv
+```
 
 
+As gene enrichment, and m
+
+A quick analysis can be done by doing 
+
+
+<img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png" width="350" />      
 
 
 -params-file parameters/full_test.yml -r main -latest
