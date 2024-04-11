@@ -42,12 +42,12 @@ params.enable_tower          = false
 EOL
 ```
 
-We can export the nextflow version to make sure we use the correct:
+We can export the nextflow version to make sure we use a compatible version:
 ```bash
 export NXF_VER=22.10.8
 ```
 
-For reproducibility purposes, it is useful to specify a version of Cactus whenever running an analysis. We will use the latest version (v0.9.0) for this tutorial.
+For reproducibility purposes, it is useful to specify a version of Cactus whenever running an analysis. We will use the latest available version (v0.9.0) for this tutorial:
 ```bash
 cactus_version=0.9.0
 ```
@@ -59,9 +59,9 @@ nextflow run jsalignon/cactus/scripts/download/download.nf -r $cactus_version --
 
 This command will download the references to the `params.references_dir` folder set up in the global Cactus configuration file, as well as the worm test dataset in the current folder.
 
-The worm test dataset comes from the Koluntzic et al manuscript (see the [Test datasets](/docs/2_Install/Test_datasets.md) section), and contains ATAC-Seq and RNA-Seq samples of C. elegans worms exposed to RNA interference (RNAi) on two FACT subunits; hmg-4, spt-16, as well as Renilla luciferase (Rluc) which served as a control (abbreviated "ctl").
+The worm test dataset comes from the Koluntzic et al manuscript (see the [Test datasets](/docs/2_Install/Test_datasets.md) section), and contains ATAC-Seq and RNA-Seq samples of *Caenorhabditis elegans* worms exposed to RNA interference (RNAi) on two FACT subunits; hmg-4, spt-16, as well as Renilla luciferase (Rluc) which served as a control (abbreviated "ctl").
 
-We can go to the worm test dataset folder and check the pre-made experimental design with these commands:
+We can go to the freshly downloaded worm test dataset folder and check the pre-made experimental design with these commands:
 ```bash
 cd worm
 printf "\n\nATAC-Seq fastq files\n"
@@ -70,7 +70,7 @@ printf "\n\nmRNA-Seq fastq files\n"
 cat design/mrna_fastq.tsv
 printf "\n\nComparisons to be made\n"
 cat design/comparisons.tsv
-printf "\n\nGroups of comparisons to be plot together in heatmaps\n"
+printf "\n\nGroups of comparisons to be plotted together in heatmaps\n"
 cat design/groups.tsv
 ```
 
@@ -121,18 +121,19 @@ Information about the details of the ChIP-Seq profiles abbreviations can be foun
 
 # Running Cactus without enrichment analysis
 
-We can now run Cactus. This can be done for instance by adding this argument `-params-file parameters/full_test.yml` to the Cactus call, which will set all of the parameters indicated in the YML file. Here is the content of the `parameters/full_test.yml` file:
+We can now run Cactus. This can be done for instance by adding this argument `-params-file parameters/full_test.yml` to the Cactus call, which will set all of the parameters indicated in the provided YML file. Here is the content of the `parameters/full_test.yml` file:
 ```
 res_dir                   : 'results/full_test'
-species                    : 'worm'
+species                   : 'worm'
 chromatin_state           : 'iHMM.M1K16.worm_L3'
 split__threshold_type     : 'rank'
 split__threshold_values   : [ 200, 1000 ]
 ```
-However, for this tutorial, we will set up the parameters directly in the command line for better clarity. Nextflow parameters are set up with a single hyphen (i.e., "-profile"), while Cactus parameters are set up with double hyphens (i.e., "--res_dir").
+
+For this tutorial, we will set up all the parameters directly in the command line. Nextflow parameters are set up with a single hyphen (i.e., "-profile"), while Cactus parameters are set up with double hyphens (i.e., "--res_dir").
 
 
-It is a good idea to run Cactus sequentially, to make sure the different steps of analysis are correct, and to avoid the need to re-run the whole pipeline again. Since Cactus is built with the Nextflow language, caching is efficiently implemented. Therefore, changing one parameter or one sample will only affect the specific processes that were affected. 
+It is a good idea to run Cactus sequentially, to make sure the different steps of analysis are correct, and to avoid the need to re-run the whole pipeline again. Since Cactus is built with the Nextflow language, caching is efficiently implemented. Therefore, changing one parameter or one sample will only affect the parts of the analysis that are affected by the change.
 
 We therefore run Cactus and stop the analysis after the second step (differential analysis) with the following command:
 ```bash
@@ -147,7 +148,7 @@ With:
  - `--res_dir`: the output folder
  - `--species`: species under study (mandatory)
  - `--chromatin_state`: chromatin state file to use for the chromatin enrichment analysis (mandatory)
- - `--design__regions_to_remove`: using an an empty file that do not contain any regions to remove from ATAC-Seq analyses.
+ - `--design__regions_to_remove`: using an an empty file that do not contain any regions to remove from ATAC-Seq analyses (more on that below).
  - `--disable_all_enrichments`: disabling all enrichment analyses
 
 Note also, that creation of bigWig files, as well as the saturation curve analysis can both be computationally intensive and therefore there are parameters to disable these steps if needed (`params.do_bigwig` and `params.do_saturation_curve`).
@@ -157,14 +158,14 @@ Note also, that creation of bigWig files, as well as the saturation curve analys
 
 After this step, we can look at the results from the preprocessing and quality control analyses to ensure all samples are of good enough quality. This can be assessed for both ATAC-Seq and mRNA-Seq samples by looking at the MultiQC report files, present in the folder `results/tutorial/Figures_Merged/1_Preprocessing`. Many additional quality control figures are available for ATAC-Seq in the same folder, including reads and peaks coverage, reads insert size, PCA and correlation matrix. 
 
-The saturation curve analysis helps to determine if one should resequence or not. This can be assessed by looking at the shape of the curve. For instance, if the curve is still steeply increasing, then it might be needed to sequence the samples further. Here is the saturation curve for an hmg-4 RNAi sample:
+The saturation curve analysis helps to determine if one should resequence or not. This can be assessed by looking at the shape of the curve. For instance, if the curve is still steeply increasing, then it would likely be useful to sequence the samples further. Here is the saturation curve for an hmg-4 RNAi sample:
 
 <img src="/docs/examples/png/hmg4_3__saturation_curve.png" width="300" />
 
 Since this a test datasets with few randomly sampled reads, 
 We can see that the saturation curve is still steeply increasing (even though we notice a strange break in the curve). Since a clear plateau has not been reached, this figure indicates that sequencing deeper could be helpful to identify more ATAC-Seq peaks. This is expected as this test datasets contains few randomly sampled reads.
 
-Looking at the ATAC-Seq volcano plot for the hgm-4 vs stp-16 comparison, we can notice large peaks for spt-16 and hmg-4:
+Looking at the ATAC-Seq volcano plot for the hgm-4 vs stp-16 comparison, we can notice highly significant peaks nearby the spt-16 and hmg-4 genes:
 
 <img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano__no_rtr.png" width="300" /> 
 
@@ -192,21 +193,23 @@ Looking at the volcano plot, we can see that articial signals at the hmg-4 and s
 
 # Selecting Differential Analysis Subset filters
 
-At this stage, we can also look at which DAS (Differential Analysis Subset) filters could make sense to investigate. For instance, we can look at the volcano plots for ATAC-Seq (left image) and mRNA-Seq (right image:
+At this stage, we can also look at which DAS (Differential Analysis Subset) filters could make sense to use for splitting the Differential Analysis (DA) results into subsets. For instance, we can look at the volcano plots for ATAC-Seq (left image) and mRNA-Seq (right image:
 
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_volcano.png" width="300" /> <img src="/docs/examples/png/hmg4_vs_ctl__mRNA_volcano.png" width="300" />
 
 We can see that the p-values are much smaller for mRNA-Seq than for ATAC-Seq. Indeed, only two peaks are significant opened, while many genes are differentially expressed. 
-From these plots, one could run the analysis by using different -log10(FDR) cutoffs using these parameters: `--split__threshold_type FDR` and `--split__threshold_values [ 1.3, 3, 10 ]` (please observe that -log10(1.3) ~= 0.05). This would allow to dissect enrichment of differentially expressed genes at various significance cutoffs. 
+
+From these plots, one could run the analysis by using different -log10(FDR) cutoffs using these parameters: `--split__threshold_type FDR` and `--split__threshold_values [ 1.3, 3, 10 ]` (please observe that -log10(1.3) ~= 0.05). This would allow to dissect the enrichment of differentially expressed genes at various significance cutoffs. This can be helpful as different strengh of induction of Transcription Factors can lead to different significance of association of their target genes. 
+
 Alternatively, one could try to check if there is consistency between the ATAC-Seq and mRNA-Seq results by selecting the top N most significant DAS, using these parameters: `--split__threshold_type rank` and `--split__threshold_values [ N ]`. 
 
 One can also check if certain Peak Annotation (PA) filters would be interesting to investigate by looking at the FDR by PA plot:
 
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_FDR_by_PA.png" width="300" />
 
-In this case, no PA filter seem to be espcially enriched in significant peaks, therefore we can keep the default parameter: `--split__peak_assignment ['all']`.
+In this case, no PA filter seem to be especially enriched in significant peaks, therefore we can keep the default parameter: `--split__peak_assignment ['all']`.
 
-After having identified the PA filters to use, we can launch a new analysis run that conducts enrichment analysis this time. This step can be done very quickly when excluding functional enrichment and motifs enrichment analysis, as these are more computationally intensive (by default, all enrichment analysis steps are conducted). Indeed, enrichment of genomic regions, like ChIP-Seq, or comparisons between DASs can be done very rapidly as it is based on bed-files overlap using bedtools. We can now use this command to do a quick enrichment analysis:
+After having identified the PA filters to use, we can launch a new analysis run that conducts enrichment analysis this time. This step can be done very quickly when excluding functional enrichment and motifs enrichment analysis (i.e., by default, all enrichment analysis steps are conducted), as these are more computationally intensive. Indeed, enrichment of genomic regions, like ChIP-Seq, chromatin states, or DASs can be done very rapidly as it is based on overlaping bed files using bedtools. We can now use this command to do a quick enrichment analysis:
 ```bash
 nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--res_dir results/tutorial              \
