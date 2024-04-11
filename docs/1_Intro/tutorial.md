@@ -268,9 +268,10 @@ We can see that genes associated with DARs are enriched in few pathways.
 At the transcriptional level, we can see a up-regulation of many metabolism pathways upon loss of FACT subunits.
 
 Finally, HA-HE genes upon knockdown of spt-16 are also enriched in metabolism pathways, while LA-LE genes upon knockdown of both FACT subunit are enriched in protein export and phagosome.
+
 Of course, the biological interpretation of these results are very limited as the test datasets analysed contains few reads.
 
-To have more details on the enrichment results, one can look at the detailed Excel (or csv) tables in the `results/tutorial/Tables_Merged/3_Enrichment_Analysis` folder. Filtering the KEGG table for `Experiment Type (ET) = "both"` (which keeps only HA-HE and LA-LE gene sets), we obtain:
+To have more details on the enrichment results, one can look at the associated Excel (or csv) results table in the `results/tutorial/Tables_Merged/3_Enrichment_Analysis` folder. Filtering the KEGG table for `Experiment Type (ET) = "both"` (which keeps only HA-HE and LA-LE gene sets), we obtain:
 
 <img src="/docs/examples/xlsx_png/both__all__1000__ctl__KEGG__table.png" width="700" />
 

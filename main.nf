@@ -1941,7 +1941,9 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
     overlap             = '!{params.chipseeker__overlap}'
     ignore_overlap      = !{params.chipseeker__ignore_overlap}
     annotation_priority = !{params.chipseeker__annotation_priority}
-
+    ignore_upstream     = !{params.chipseeker__ignore_upstream}
+    ignore_downstream   = !{params.chipseeker__ignore_downstream}
+ 
     check_upstream_and_downstream_1 <- function (upstream, downstream){
         if (class(upstream) != class(downstream)) {
             stop("the type of upstream and downstream should be the same...")
@@ -1978,7 +1980,9 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
     annotated_peaks = annotatePeak(peaks, TxDb = tx_db, level = 'gene',
                             tssRegion = c(-upstream, downstream), 
                             overlap = overlap, ignoreOverlap = ignore_overlap,
-                            genomicAnnotationPriority = annotation_priority)
+                            genomicAnnotationPriority = annotation_priority,
+                            ignoreUpstream = ignore_upstream,
+                            ignoreDownstream = ignore_downstream)
 
     genes = as.data.frame(annotated_peaks)$geneId
 
@@ -2613,13 +2617,17 @@ process DA_ATAC__annotating_diffbind_peaks {
     overlap             = '!{params.chipseeker__overlap}'
     ignore_overlap      = !{params.chipseeker__ignore_overlap}
     annotation_priority = !{params.chipseeker__annotation_priority}
-
+    ignore_upstream     = !{params.chipseeker__ignore_upstream}
+    ignore_downstream   = !{params.chipseeker__ignore_downstream}
+ 
 
     ##### annotating peaks
     anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, level = 'gene',
                             tssRegion = c(-upstream, downstream), 
                             overlap = overlap, ignoreOverlap = ignore_overlap,
-                            genomicAnnotationPriority = annotation_priority)
+                            genomicAnnotationPriority = annotation_priority,
+                            ignoreUpstream = ignore_upstream,
+                            ignoreDownstream = ignore_downstream)
 
     ##### creating the data frame object
     anno_peak_gr = anno_peak_cs@anno
