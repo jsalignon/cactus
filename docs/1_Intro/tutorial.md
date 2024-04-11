@@ -155,11 +155,18 @@ Note also, that creation of bigWig files, as well as the saturation curve analys
 
 # Checking quality controls and removing artifical signals
 
-After this step, we can look at the results from the preprocessing and quality control analyses to ensure all samples are of good enough quality. This can be assessed for both ATAC-Seq and mRNA-Seq samples by looking at the MultiQC report files, present in the folder `results/tutorial/Figures_Merged/1_Preprocessing`. Many additional quality control figures are available for ATAC-Seq in the same folder, including reads and peaks coverage, reads insert size, PCA and correlation matrix. The saturation curve analysis helps to determine if one should resequence or not. This can be assessed by looking at the shape of the curve. For instance, if the curve is still steeply increasing, then it might be needed to sequence the samples further. Since this a test datasets with few randomly sampled reads, the saturation curve has a weird shape, and does not seem to have reached a clear plateau, indicating a need for more sequencing:
-<img src="/docs/examples/png/ctl_1__saturation_curve.png" width="400" />
+After this step, we can look at the results from the preprocessing and quality control analyses to ensure all samples are of good enough quality. This can be assessed for both ATAC-Seq and mRNA-Seq samples by looking at the MultiQC report files, present in the folder `results/tutorial/Figures_Merged/1_Preprocessing`. Many additional quality control figures are available for ATAC-Seq in the same folder, including reads and peaks coverage, reads insert size, PCA and correlation matrix. 
+
+The saturation curve analysis helps to determine if one should resequence or not. This can be assessed by looking at the shape of the curve. For instance, if the curve is still steeply increasing, then it might be needed to sequence the samples further. Here is the saturation curve for an hmg-4 RNAi sample:
+
+<img src="/docs/examples/png/hmg4_3__saturation_curve.png" width="300" />
+
+Since this a test datasets with few randomly sampled reads, 
+We can see that the saturation curve is still steeply increasing (even though we notice a strange break in the curve). Since a clear plateau has not been reached, this figure indicates that sequencing deeper could be helpful to identify more ATAC-Seq peaks. This is expected as this test datasets contains few randomly sampled reads.
 
 Looking at the ATAC-Seq volcano plot for the hgm-4 vs stp-16 comparison, we can notice large peaks for spt-16 and hmg-4:
-<img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano__no_rtr.png" width="350" /> 
+
+<img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano__no_rtr.png" width="300" /> 
 
 This is due to RNA interference which induce a very strong sequencing signal at the repressed locus.
 
@@ -179,12 +186,14 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--disable_all_enrichments               
 ```
 Looking at the volcano plot, we can see that articial signals at the hmg-4 and spt-16 locuses have been removed:
-<img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png" width="300" />      
+<
+img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png" width="300" />      
 
 
 # Selecting Differential Analysis Subset filters
 
 At this stage, we can also look at which DAS (Differential Analysis Subset) filters could make sense to investigate. For instance, we can look at the volcano plots for ATAC-Seq (left image) and mRNA-Seq (right image:
+
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_volcano.png" width="300" /> <img src="/docs/examples/png/hmg4_vs_ctl__mRNA_volcano.png" width="300" />
 
 We can see that the p-values are much smaller for mRNA-Seq than for ATAC-Seq. Indeed, only two peaks are significant opened, while many genes are differentially expressed. 
@@ -192,6 +201,7 @@ From these plots, one could run the analysis by using different -log10(FDR) cuto
 Alternatively, one could try to check if there is consistency between the ATAC-Seq and mRNA-Seq results by selecting the top N most significant DAS, using these parameters: `--split__threshold_type rank` and `--split__threshold_values [ N ]`. 
 
 One can also check if certain Peak Annotation (PA) filters would be interesting to investigate by looking at the FDR by PA plot:
+
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_FDR_by_PA.png" width="300" />
 
 In this case, no PA filter seem to be espcially enriched in significant peaks, therefore we can keep the default parameter: `--split__peak_assignment ['all']`.
@@ -239,13 +249,16 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 ```
 
 Here are the KEGG enrichment results for ATAC-Seq, mRNA-Seq and both (from the `Figures_Merged/3_Enrichment_Analysis` folder):
+
 <img src="/docs/examples/png/ATAC__all__1000__ctl__func_anno_KEGG__heatmap.png" width="233" /> <img src="/docs/examples/png/mRNA__Null__1000__ctl__func_anno_KEGG__heatmap.png" width="233" /> <img src="/docs/examples/png/both__all__1000__ctl__func_anno_KEGG__heatmap.png" width="233" />
+
 We can see that genes associated with DARs are enriched in few pathways. 
 At the transcriptional level, we can see a large up-regulation of various metabolism pathways upon loss of FACT subunits.
 Finally, High Accessibility-High Expression (HA-HE) genes upon knockdown of spt-16 are also enriched in metabolisms pathways, while Low Accessibility-Low Expression (LA-LE) upon knockdown of both FACT subunit loss are enriched in protein export and phagosome.
 Of course, the biological interpretation of these results should be careful as this test datasets contains very few reads.
 
 To have more details on the enrichment results, one can look at the detailed Excel (or csv) tables in the `Tables_Merged/3_Enrichment_Analysis` folder. Filtering the KEGG table for "both" (which keep only HA-HE and LA-LE gene sets) we obtain:
+
 <img src="/docs/examples/xlsx_png/both__all__1000__ctl__KEGG__table.png" width="700" />
 
 In this table, we can see that 3 out of 11 HA-HE genes upon hmg-4 knockdown are enriched in the "Phagosome" KEGG pathway (and these genes are indicated in the "genes_id" column). Therefore ~30 percent of HA-HE genes are members of this pathway, in contrast to only 2% of the background genes. This result in a p-value of 0.0015, an adjusted p-value of 0.026, and a Log2 Odd Ratio of 4.11. Please note that only 11 HA-HE genes, while there are 29 HA-HE genes for the hmg-4 vs control comparison, as shown in the figure above (the heatmap of the correlation between comparisons). This is because only genes that are present in the KEGG database are being considered for this analysis.
