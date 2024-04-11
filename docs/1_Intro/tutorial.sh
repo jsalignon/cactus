@@ -10,7 +10,7 @@ EOL
 # Selecting the Nextflow version
 export NXF_VER=22.10.8
 
-# Selecting the Cactus version 
+# Selecting the Cactus version
 cactus_version=0.9.0
 
 # Downloading the worm references and test dataset

@@ -132,13 +132,13 @@ split__threshold_values   : [ 200, 1000 ]
 However, for this tutorial, we will set up the parameters directly in the command line for better clarity. Nextflow parameters are set up with a single hyphen (i.e., "-profile"), while Cactus parameters are set up with double hyphens (i.e., "--res_dir").
 
 
-It is a good idea to run Cactus sequentially, to make sure the different steps of analysis are correct, and to avoid the need to re-run the whole pipeline again. Since Cactus is built with the Nextflow language, caching is efficiently implemented. Therefore, changing one paramter or one sample will only affect the specific process or sample that was changed. 
+It is a good idea to run Cactus sequentially, to make sure the different steps of analysis are correct, and to avoid the need to re-run the whole pipeline again. Since Cactus is built with the Nextflow language, caching is efficiently implemented. Therefore, changing one parameter or one sample will only affect the specific processes that were affected. 
 
-We therefore run Cactus by using the `--params.disable_all_enrichments` parameter to stop the analysis after the second step (differential analysis) with the following command:
+We therefore run Cactus and stop the analysis after the second step (differential analysis) with the following command:
 ```bash
 nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--res_dir results/tutorial              \
-	--species worms                         \
+	--species worm                          \
 	--chromatin_state iHMM.M1K16.worm_L3    \
 	--design__regions_to_remove design/regions_to_remove_empty.tsv \
 	--disable_all_enrichments               
@@ -147,19 +147,20 @@ With:
  - `--res_dir`: the output folder
  - `--species`: species under study (mandatory)
  - `--chromatin_state`: chromatin state file to use for the chromatin enrichment analysis (mandatory)
- - `--disable_all_enrichments`: stopping analyses after step 2 (differential analysis)
- - `--design__regions_to_remove`: using an a files that do not contain any regions to remove from ATAC-Seq analyses.
+ - `--design__regions_to_remove`: using an an empty file that do not contain any regions to remove from ATAC-Seq analyses.
+ - `--disable_all_enrichments`: disabling all enrichment analyses
 
 Note also, that creation of bigWig files, as well as the saturation curve analysis can both be computationally intensive and therefore there are parameters to disable these steps if needed (`params.do_bigwig` and `params.do_saturation_curve`).
 
 
-# Checking quality controls and removing artifical signal
+# Checking quality controls and removing artifical signals
 
 After this step, we can look at the results from the preprocessing and quality control analyses to ensure all samples are of good enough quality. This can be assessed for both ATAC-Seq and mRNA-Seq samples by looking at the MultiQC report files, present in the folder `results/tutorial/Figures_Merged/1_Preprocessing`. Many additional quality control figures are available for ATAC-Seq in the same folder, including reads and peaks coverage, reads insert size, PCA and correlation matrix. The saturation curve analysis helps to determine if one should resequence or not. This can be assessed by looking at the shape of the curve. For instance, if the curve is still steeply increasing, then it might be needed to sequence the samples further. Since this a test datasets with few randomly sampled reads, the saturation curve has a weird shape, and does not seem to have reached a clear plateau, indicating a need for more sequencing:
 <img src="/docs/examples/png/ctl_1__saturation_curve.png" width="400" />
 
 Looking at the ATAC-Seq volcano plot for the hgm-4 vs stp-16 comparison, we can notice large peaks for spt-16 and hmg-4:
 <img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano__no_rtr.png" width="350" /> 
+
 This is due to RNA interference which induce a very strong sequencing signal at the repressed locus.
 
 Therefore, we repeat our analysis by excluding the regions of the targeted gene for ATAC-Seq samples, using the file `design/regions_to_remove.tsv` which contains:
@@ -178,22 +179,24 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--disable_all_enrichments               
 ```
 Looking at the volcano plot, we can see that articial signals at the hmg-4 and spt-16 locuses have been removed:
-<img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png" width="350" />      
+<img src="/docs/examples/png/hmg4_vs_spt16__ATAC_volcano.png" width="300" />      
 
 
 # Selecting Differential Analysis Subset filters
 
-At this stage, we can also look at which DAS (Differential Analysis Subset) filters could make sense to investigate. For instance, we can look at the volcano plots for ATAC-Seq and mRNA-Seq:
-<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_volcano.png" width="350" /> <img src="/docs/examples/png/hmg4_vs_ctl__mRNA_volcano.png" width="350" />
-We can see that the p-values are much smaller for mRNA-Seq than for ATAC-Seq, and only two peaks are significant opened while many genes are differentially expressed. 
-From these plots, one could run the analysis by using different -log10(FDR) cutoffs using these parameters: `--split__threshold_type FDR` and `--split__threshold_values [ 1.3, 3, 10 ]`. This would allow to dissect enrichment of differentially expressed genes at various significance cutoffs. 
-Alternatively, or complementarily, one could try to still check if there is consistency between the ATAC-Seq and mRNA-Seq data by selecting the top X most significant DAS. This can be done using these parameters: `--split__threshold_type rank` and `--split__threshold_values [ 200, 1000 ]`. 
+At this stage, we can also look at which DAS (Differential Analysis Subset) filters could make sense to investigate. For instance, we can look at the volcano plots for ATAC-Seq (left image) and mRNA-Seq (right image:
+<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_volcano.png" width="300" /> <img src="/docs/examples/png/hmg4_vs_ctl__mRNA_volcano.png" width="300" />
 
-We can also check if certain Peak Annotation (PA) filters would be interesting to investigate by looking at the FDR by PA plot:
-<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_FDR_by_PA.png" width="400" />
+We can see that the p-values are much smaller for mRNA-Seq than for ATAC-Seq. Indeed, only two peaks are significant opened, while many genes are differentially expressed. 
+From these plots, one could run the analysis by using different -log10(FDR) cutoffs using these parameters: `--split__threshold_type FDR` and `--split__threshold_values [ 1.3, 3, 10 ]` (please observe that -log10(1.3) ~= 0.05). This would allow to dissect enrichment of differentially expressed genes at various significance cutoffs. 
+Alternatively, one could try to check if there is consistency between the ATAC-Seq and mRNA-Seq results by selecting the top N most significant DAS, using these parameters: `--split__threshold_type rank` and `--split__threshold_values [ N ]`. 
+
+One can also check if certain Peak Annotation (PA) filters would be interesting to investigate by looking at the FDR by PA plot:
+<img src="/docs/examples/png/hmg4_vs_ctl__ATAC_FDR_by_PA.png" width="300" />
+
 In this case, no PA filter seem to be espcially enriched in significant peaks, therefore we can keep the default parameter: `--split__peak_assignment ['all']`.
 
-After having identified the PA filters to use, we can launch a new analysis that includes enrichment analysis. This step can be done very quickly when excluding functional enrichment and motifs enrichment analysis, as these are more computationally intensive (by default, all enrichment analysis steps are conducted). Indeed, enrichment of genomic regions, like ChIP-Seq, or comparisons between DASs can be done very rapidly as it is based on bed-files overlap using bedtools. We can now use this command to do a quick enrichment analysis:
+After having identified the PA filters to use, we can launch a new analysis run that conducts enrichment analysis this time. This step can be done very quickly when excluding functional enrichment and motifs enrichment analysis, as these are more computationally intensive (by default, all enrichment analysis steps are conducted). Indeed, enrichment of genomic regions, like ChIP-Seq, or comparisons between DASs can be done very rapidly as it is based on bed-files overlap using bedtools. We can now use this command to do a quick enrichment analysis:
 ```bash
 nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--res_dir results/tutorial              \
@@ -216,7 +219,7 @@ With:
 
 A key result to look at this point is the `Heatmaps__genes_self.pdf` and `Heatmaps__peaks_self.pdf` figures in the `results/tutorial/Figures_Merged/3_Enrichment_Analysis` folder. These figures will give a concise overview of how the various samples and comparisons correlate with each other. Here are the gene self-overlap figures for the top 1000 most significant DA entries per comparison, with first the DEGs (Differentially Expressed Genes), then the genes associated with DARs (Differentially Accessible regions), and finally the HA-HE and LA-LE genes (DEGs with neighbouring DARs with expected chromatin accessibility changes):
 
-<img src="/docs/examples/png/ATAC__all__1000__ctl__genes_self__heatmap.png" width="233" /> <img src="/docs/examples/png/mRNA__Null__1000__ctl__genes_self__heatmap.png" width="233" /> <img src="/docs/examples/png/both__Null__1000__ctl__genes_self__heatmap.png" width="233" />
+<img src="/docs/examples/png/ATAC__all__1000__ctl__genes_self__heatmap.png" width="233" /> <img src="/docs/examples/png/mRNA__Null__1000__ctl__genes_self__heatmap.png" width="233" /> <img src="/docs/examples/png/both__all__1000__ctl__genes_self__heatmap.png" width="233" />
 
 These figures reveal clearly concordant changes between the hmg-4 and the spt-16 knockdown in both experiment type. The similar number of DA entries is expected as we selected the top 1000 most significant DA entries per comparisons. However, it is striking to observe the same number of shared repressed regions/genes between knockdown of the hmg-4 and spt-16 in the ATAC-Seq and mRNA-Seq analysis (~290 each), while the ATAC-Seq pvalues were much higher. This result support the idea that p-values can not always directly be compared between assays and experiment to infer true functional/biological relevance of the results. And therefore, it can make sense to focus on the top N most significant entries between the two omics experimental results to study consistent chromatin and gene expression changes. Interestingly, while only ~30 repressed genes had a nearby closing in chromatin for both factors, we can see that a fifth of those are overlaping. 
 Altogether, these results indicate that using the ranks can be a useful way to combine the two omics data type. However, sequencing deeper the ATAC-Seq data would obviously be another good strategy to have more robust ATAC-Seq results.
@@ -235,7 +238,20 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--split__threshold_values [ 200, 1000 ]
 ```
 
-Please, note that the pipeline can currently break if the heatmap filtering parameters reduce certain DAS to 1 entry or less. If such crash occur, one can modify the `--heatmaps_filter__func_anno`, `--heatmaps_filter__CHIP`, and the `--heatmaps_filter__motifs` filters.
+Here are the KEGG enrichment results for ATAC-Seq, mRNA-Seq and both (from the `Figures_Merged/3_Enrichment_Analysis` folder):
+<img src="/docs/examples/png/ATAC__all__1000__ctl__func_anno_KEGG__heatmap.png" width="233" /> <img src="/docs/examples/png/mRNA__Null__1000__ctl__func_anno_KEGG__heatmap.png" width="233" /> <img src="/docs/examples/png/both__all__1000__ctl__func_anno_KEGG__heatmap.png" width="233" />
+We can see that genes associated with DARs are enriched in few pathways. 
+At the transcriptional level, we can see a large up-regulation of various metabolism pathways upon loss of FACT subunits.
+Finally, High Accessibility-High Expression (HA-HE) genes upon knockdown of spt-16 are also enriched in metabolisms pathways, while Low Accessibility-Low Expression (LA-LE) upon knockdown of both FACT subunit loss are enriched in protein export and phagosome.
+Of course, the biological interpretation of these results should be careful as this test datasets contains very few reads.
 
-The `--barplots_ggplot__*`, `--heatmaps_params__*`, and `--heatmaps_ggplot__*` parameters can further be used to adjust the barplot and heatmap parameters. 
+To have more details on the enrichment results, one can look at the detailed Excel (or csv) tables in the `Tables_Merged/3_Enrichment_Analysis` folder. Filtering the KEGG table for "both" (which keep only HA-HE and LA-LE gene sets) we obtain:
+<img src="/docs/examples/xlsx_png/both__all__1000__ctl__KEGG__table.png" width="700" />
 
+In this table, we can see that 3 out of 11 HA-HE genes upon hmg-4 knockdown are enriched in the "Phagosome" KEGG pathway (and these genes are indicated in the "genes_id" column). Therefore ~30 percent of HA-HE genes are members of this pathway, in contrast to only 2% of the background genes. This result in a p-value of 0.0015, an adjusted p-value of 0.026, and a Log2 Odd Ratio of 4.11. Please note that only 11 HA-HE genes, while there are 29 HA-HE genes for the hmg-4 vs control comparison, as shown in the figure above (the heatmap of the correlation between comparisons). This is because only genes that are present in the KEGG database are being considered for this analysis.
+
+*_Additional observations:_*
+ 
+ - Please, note that the pipeline can currently break if the heatmap filtering parameters reduce certain DAS to 1 entry or less. If such crash occur, one can modify the `--heatmaps_filter__func_anno`, `--heatmaps_filter__CHIP`, and the `--heatmaps_filter__motifs` filters.
+ 
+ -The `--barplots_ggplot__*`, `--heatmaps_params__*`, and `--heatmaps_ggplot__*` parameters can further be used to adjust the barplot and heatmap parameters. 
