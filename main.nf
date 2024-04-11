@@ -2743,24 +2743,27 @@ process DA_ATAC__saving_detailed_results_tables {
       FC_up     = L2FC > 0,
       FC_down   = L2FC < 0,
     	
-    	PA_gene   = genic,
-    	PA_interG = intergenic,
-    	PA_prom   = promoter,
-    	PA_5pUTR  = five_UTR, 
-    	PA_3pUTR  = three_UTR,
-    	PA_exon   = exon,
-    	PA_intron = intron,
-    	PA_downst = downstream,
-    	PA_distIn = distal_intergenic,
+    	PA_gene    = genic,
+    	PA_interG  = intergenic,
+    	PA_prom    = promoter,
+    	PA_5pUTR   = five_UTR, 
+    	PA_3pUTR   = three_UTR,
+    	PA_exon    = exon,
+    	PA_intron  = intron,
+    	PA_downst  = downstream,
+    	PA_distIn  = distal_intergenic,
     	
-    	PA_UTR    = five_UTR | three_UTR,
-      PA_TSS    = distance_to_tss == 0,
-      PA_genPro = genic | promoter,
-      PA_distNC = distal_intergenic | 
+    	PA_UTR     = five_UTR | three_UTR,
+      PA_TSS     = distance_to_tss == 0,
+      PA_genPro  = genic | promoter,
+      PA_distNC  = distal_intergenic | 
                   ( intron & !(promoter | five_UTR  | three_UTR  | exon)),
-      PA_3kb    = abs(distance_to_tss) > 3000,
-      PA_8kb    = abs(distance_to_tss) > 8000,
-      PA_30kb   = abs(distance_to_tss) > 30000,
+      PA_mt_3kb  = abs(distance_to_tss) > 3000,
+      PA_mt_8kb  = abs(distance_to_tss) > 8000,
+      PA_mt_30kb = abs(distance_to_tss) > 30000,
+      PA_lt_3kb  = abs(distance_to_tss) < 3000,
+      PA_lt_8kb  = abs(distance_to_tss) < 8000,
+      PA_lt_30kb = abs(distance_to_tss) < 30000,
     
     	jbrowse   = get_jbrowse_vec(chr, start, end)
     )
