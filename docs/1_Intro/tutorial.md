@@ -193,7 +193,7 @@ Looking at the volcano plot, we can see that articial signals at the hmg-4 and s
 
 # Selecting Differential Analysis Subset filters
 
-At this stage, we can also look at which DAS (Differential Analysis Subset) filters could make sense to use for splitting the Differential Analysis (DA) results into subsets. For instance, we can look at the volcano plots for ATAC-Seq (left image) and mRNA-Seq (right image:
+At this stage, we can also look at which DAS (Differential Analysis Subset) filters could make sense to use for splitting the Differential Analysis (DA) results into subsets. For instance, we can look at the volcano plots for ATAC-Seq (left image) and mRNA-Seq (right image):
 
 <img src="/docs/examples/png/hmg4_vs_ctl__ATAC_volcano.png" width="300" /> <img src="/docs/examples/png/hmg4_vs_ctl__mRNA_volcano.png" width="300" />
 
@@ -230,23 +230,23 @@ With:
 
 # Looking at correlation between comparisons for different experiment types
 
-At this point, a key result to look at is the `Heatmaps__genes_self.pdf` and `Heatmaps__peaks_self.pdf` figures in the `results/tutorial/Figures_Merged/3_Enrichment_Analysis` folder. These figures will give a concise overview of how the various comparisons correlate with each other. Here are the gene self-overlap figures for the top 1000 most significant Differential Analysis (DA) entries per comparison, with the DEGs (Differentially Expressed Genes) on the left, the genes associated with DARs (Differentially Accessible regions) in the middle, and the HA-HE and LA-LE genes (DEGs with neighbouring DARs with expected chromatin accessibility changes) on the right:
+At this point, a key result to look at is the `Heatmaps__genes_self.pdf` and `Heatmaps__peaks_self.pdf` figures in the `results/tutorial/Figures_Merged/3_Enrichment_Analysis` folder. These figures will give a concise overview of how the various comparisons correlate with each other. Here are the gene self-overlap figures for the top 1000 most significant Differential Analysis (DA) entries per comparison in the "ctl" group, with the DEGs (Differentially Expressed Genes) on the left, the genes associated with DARs (Differentially Accessible regions) in the middle, and the HA-HE (High chromatin Accessibility-High Expression) and LA-LE (Low chromatin Accessibility-Low Expression) genes on the right:
 
 <img src="/docs/examples/png/ATAC__all__1000__ctl__genes_self__heatmap.png" width="233" /> <img src="/docs/examples/png/mRNA__Null__1000__ctl__genes_self__heatmap.png" width="233" /> <img src="/docs/examples/png/both__all__1000__ctl__genes_self__heatmap.png" width="233" />
 
 These figures reveal a clear clustering between changes induced by the hmg-4 and the spt-16 knockdown in both experiment type, which is consistent with them being member of the same complex (the FACT complex). 
 
-The similar number of DA entries is expected as we selected the top 1000 most significant DA entries per comparisons. However, it is striking to observe the same number of shared repressed regions/genes between knockdown of the hmg-4 and spt-16 in the ATAC-Seq and mRNA-Seq analysis (~290 each), while the ATAC-Seq pvalues were much higher. 
+The similar overall number of DA entries per comparison is expected as we selected the top 1000 most significant DA entries per comparisons. However, it is striking to observe a similar number of shared closed regions and repressed genes between knockdown of the two subunits (~290 each), while the ATAC-Seq p-values were much higher. 
 
 This result support the idea that p-values can not always directly be compared between assays and experiment to infer true functional/biological relevance of the results. And therefore, it can make sense to focus on the top N most significant entries between the two omics experimental results to study consistent chromatin and gene expression changes. 
-Interestingly, while only ~30 repressed genes had a nearby closing in chromatin for both factors, we can see that a fifth of those are overlaping (adjusted p-value of 0.000015). 
+Interestingly, while only ~30 repressed genes had a nearby closing in chromatin for both factors, we can see that a fifth of those are overlaping (adjusted p-value of 0.000015 indicated in the table `results/tutorial/Tables_Merged/3_Enrichment_Analysis/genes_self.xlsx`). 
 
 Altogether, these results indicate that using p-vaule rank cutoffs can be a useful way to combine the two omics data type in the case of widely different significance levels. However, sequencing deeper the ATAC-Seq data would obviously be the recommended approach to have more robust ATAC-Seq results.
 
 
 # Running the full analysis
 
-Finally, we can complete the full analysis with this command:
+Finally, we can complete the full Cactus analysis with this command:
 ```bash
 nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--res_dir results/tutorial              \
@@ -257,7 +257,7 @@ nextflow run jsalignon/cactus -profile singularity -r $cactus_version \
 	--split__threshold_values [ 200, 1000 ]
 ```
 
-Since previous analyses are cached, this will only run the analysis steps that were not made before, which are functional annotations (defaults: KEGG and GO-BP) and motifs enrichment analyses.
+Since previous analyses are cached, this will only run the analysis steps that were not conducted before, which are functional annotations (defaults: KEGG and GO-BP) and motifs enrichment analyses.
 
 Here are the KEGG enrichment results for ATAC-Seq (left), mRNA-Seq (middle) and both (right) from the `results/tutorial/Figures_Merged/3_Enrichment_Analysis` folder:
 
@@ -265,16 +265,16 @@ Here are the KEGG enrichment results for ATAC-Seq (left), mRNA-Seq (middle) and 
 
 We can see that genes associated with DARs are enriched in few pathways. 
 
-At the transcriptional level, we can see a large up-regulation of various metabolism pathways upon loss of FACT subunits.
+At the transcriptional level, we can see a up-regulation of many metabolism pathways upon loss of FACT subunits.
 
-Finally, High Accessibility-High Expression (HA-HE) genes upon knockdown of spt-16 are also enriched in metabolism pathways, while Low Accessibility-Low Expression (LA-LE) genes upon knockdown of both FACT subunit are enriched in protein export and phagosome.
+Finally, HA-HE genes upon knockdown of spt-16 are also enriched in metabolism pathways, while LA-LE genes upon knockdown of both FACT subunit are enriched in protein export and phagosome.
 Of course, the biological interpretation of these results are very limited as the test datasets analysed contains few reads.
 
 To have more details on the enrichment results, one can look at the detailed Excel (or csv) tables in the `results/tutorial/Tables_Merged/3_Enrichment_Analysis` folder. Filtering the KEGG table for `Experiment Type (ET) = "both"` (which keeps only HA-HE and LA-LE gene sets), we obtain:
 
 <img src="/docs/examples/xlsx_png/both__all__1000__ctl__KEGG__table.png" width="700" />
 
-In this table, we can see that 3 (`ov_da` column) out of 11 (`tot_da` column) LA-LE genes upon hmg-4 knockdown are enriched in the "Phagosome" KEGG pathway (and these genes are indicated in the `genes_id` column). Therefore ~30 percent of HA-HE genes (`pt_da` column) are members of this pathway, in contrast to only 2% of the background genes (`pt_nda` column). This result in a p-value of 0.0015 (`pval` column), an adjusted p-value of 0.026 (`padj` column), and a Log2 Odds Ratio of 4.11 (`L2OR` column). Please note that the table indicates only 11 LA-LE genes for the hmg-4 vs control comparison, while there are in total 29 such genes, as shown in the heatmap of the correlation between comparisons above. This is because only genes that are present in the KEGG database are being considered for KEGG enrichment analyses.
+In this table, we can see that 3 (`ov_da` column) out of 11 (`tot_da` column) LA-LE genes upon hmg-4 knockdown are enriched in the "Phagosome" KEGG pathway (and these genes are indicated in the `genes_id` column). Therefore ~30 percent of LA-LE genes (`pt_da` column) are members of this pathway, in contrast to only 2% of the background genes (`pt_nda` column). This result in a p-value of 0.0015 (`pval` column), an adjusted p-value of 0.026 (`padj` column), and a Log2 Odds Ratio of 4.11 (`L2OR` column). Please note that the table indicates only 11 LA-LE genes for the hmg-4 vs control comparison, while there are in total 29 such genes, as shown in the heatmap of the correlation between comparisons above. This is because only genes that are present in the KEGG database are being considered for KEGG enrichment analyses.
 
 ***Additional observations:***
  
