@@ -252,7 +252,24 @@ get_bigwig_plot <- function(file, name, genome, chromosome, start, end,
 }
 
 
-plot_samples_and_ref <- function(chromosome, start, end, title, ylim = NULL){
+get_peak_track <- function(type){
+	peak_file = paste0('panels/', 'both_ATAC__all__', type, 
+		'__1.3__hmg4_vs_ctl__regions.bed')
+	if(type == 'up')   track_name = 'HA-HE' 
+	if(type == 'down') track_name = 'LA-LE' 
+	ref.df = read.table(peak_file, header = FALSE,
+                     stringsAsFactors = FALSE) 
+	ref.gr=GRanges(seqnames = ref.df[,1], ranges = IRanges(start = ref.df[,2], 
+					end = ref.df[,3]), strand = ref.df[,6], name = ref.df[,4])
+	ptrack = AnnotationTrack(ref.gr, name = track_name)
+	return(ptrack)
+}
+
+
+
+
+plot_samples_and_ref <- function(chromosome, start, end, title, type, 
+	ylim = NULL){
 	
 	genome = 'ce11'
 	
@@ -261,23 +278,32 @@ plot_samples_and_ref <- function(chromosome, start, end, title, ylim = NULL){
 	l_bw_p = imap(l_bw, ~get_bigwig_plot(.x, .y, genome, chromosome, start, end,
 	ylim))
 
+	ptrack = get_peak_track(type)
+
 	ensGenes = get_ensGenes(genome, chromosome, start, end)
 
-	plotTracks(c(l_bw_p, list(ensGenes)), from = start, to = end, main = title,
+	plotTracks(c(l_bw_p, list(ptrack, ensGenes)), from = start, to = end, main = title,
 		type = 'histogram', background.title = 'darkgrey')
 
 }
 
+# checking the top genes
+dt = openxlsx::read.xlsx('panels/hmg4_vs_ctl__res_filter.xlsx') %>% setDT
+dt[ET == 'both_ATAC' & L2FC > 1]$gene_name[1]  # "R03H10.6"
+dt[ET == 'both_ATAC' & L2FC < -1]$gene_name[1] # "ZK381.2"
+
 
 pdf('tmp1.pdf', width = 7, height = 3.5)
-	plot_samples_and_ref('chrII', 4170264, 4175498, title = 'R03H10.6', ylim = c(0, 500))
-	plot_samples_and_ref('chrII', 13832095, 13834431, title = 'F08G2.5', ylim = c(0, 500))
+	plot_samples_and_ref('chrII', 4170264, 4175498, title = 'R03H10.6', 
+		type = 'up', ylim = c(0, 500))
+	plot_samples_and_ref('chrIV', 6964492, 6968982, title = 'ZK381.2', 
+		type = 'down', ylim = c(0, 500))
 dev.off()
 
-gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=output.pdf \
-   -dPDFFitPage -dDEVICEWIDTHPOINTS=595 -dDEVICEHEIGHTPOINTS=842 \
-   -c "<</PageOffset [0 0]>> setpagedevice" \
-   -f input.pdf \
-   -c "<</PageOffset [0 -421]>> setpagedevice" \
-   -f input.pdf
+
+system('qpdf --rotate=+90 tmp1.pdf rotated.pdf')
+system('a5toa4 rotated.pdf')
+system('qpdf --rotate=+270 rotated-sidebyside.pdf Figure_S5.pdf')
+file.remove(c('tmp1.pdf', 'rotated.pdf', 'rotated-sidebyside.pdf'))
+
 
