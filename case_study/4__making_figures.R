@@ -201,6 +201,7 @@ p_EN_1   = plot_figures(v_files_3_EN_fig[1:12])
 p_EN_2_1 = plot_figures(v_files_3_EN_fig[13:14], nrow = 1,
 	v_labels = letters[12 + (1:2)])
 p_EN_2_2 = plot_tables(v_files_3_EN_tab, 
+
 	v_labels = letters[12 + (3:10)], nrow = 5)
 p_EN_2 = ggpubr::ggarrange(p_EN_2_1, p_EN_2_2, nrow = 2, ncol = 1, 
 	heights = c(0.25, 0.75) )
@@ -219,21 +220,41 @@ library(Gviz)
 library(rtracklayer)
 library(purrr)
 
-l_bw = list.files('panels', pattern = '*.bw', full.names = T) %>% 
-		setNames(., gsub('.*\\/', '', .) %>% gsub('\\.bw', '', .)) %>% as.list
+
+
+  # track="Ensembl Genes"  table = "ensGene"
+ # track="NCBI RefSeq"
+                      # track="Genscan Genes", table = "genscan", 
+
+# get_ensGenes <- function(genome, chromosome, start, end){
+# 	ensGenes = UcscTrack(genome = genome, chromosome = chromosome, 
+#                       track="NCBI RefSeq", table = "ncbiRefSeqCurated", 
+#                       from = start, to = end,
+#                       trackType = "GeneRegionTrack", 
+#                       rstarts = "exonStarts", rends = "exonEnds",
+#                       gene = "name",  #, symbol = "name2"
+#                       transcript = "name", strand = "strand", 
+#                       fill = "#960000", name = "Ensembl Genes",
+#                       transcriptAnnotation="symbol")
+# 	return(ensGenes)
+# }
 
 get_ensGenes <- function(genome, chromosome, start, end){
 	ensGenes = UcscTrack(genome = genome, chromosome = chromosome, 
-                      track="Ensembl Genes", table = "ensGene", 
+                      track="NCBI RefSeq", table = "refGene", 
+                       # track="Ensembl Genes", table = "ensemblSource",
                       from = start, to = end,
                       trackType = "GeneRegionTrack", 
                       rstarts = "exonStarts", rends = "exonEnds",
-                      gene = "name", symbol = "name2", 
+                      gene = "name2", symbol = "name2", 
                       transcript = "name", strand = "strand", 
-                      fill = "#960000", name = "Ensembl Genes",
-                      transcriptAnnotation="gene")
+                      fill = "#960000", showId = TRUE, geneSymbol = TRUE)
+                      # ,
+                      # transcriptAnnotation="name")
+	# ?GeneRegionTrack
 	return(ensGenes)
 }
+
 
 get_bigwig_plot <- function(file, name, genome, chromosome, start, end, 
 	ylim = NULL){
@@ -287,19 +308,121 @@ plot_samples_and_ref <- function(chromosome, start, end, title, type,
 
 }
 
+l_bw = list.files('panels', pattern = '(ctl|hmg4).*.bw', full.names = T) %>% 
+		setNames(., gsub('.*\\/', '', .) %>% gsub('\\.bw', '', .)) %>% as.list
+
 # checking the top genes
+# dt = openxlsx::read.xlsx('panels/hmg4_vs_ctl__res_filter.xlsx') %>% setDT
 dt = openxlsx::read.xlsx('panels/hmg4_vs_ctl__res_filter.xlsx') %>% setDT
-dt[ET == 'both_ATAC' & L2FC > 1]$gene_name[1]  # "R03H10.6"
-dt[ET == 'both_ATAC' & L2FC < -1]$gene_name[1] # "ZK381.2"
+# dt[ET == 'both_ATAC' & L2FC > 1]$gene_name[1]  # "R03H10.6"
+# dt[ET == 'both_ATAC' & L2FC < -1]$gene_name[1] # "ZK381.2"
+
+dt[ET == 'both_ATAC' & L2FC > 0]$gene_name[1]  # "R03H10.6"
+dt[ET == 'both_ATAC' & L2FC < 0]$gene_name[1] # "ZK381.2"
+
+
+# plot_samples_and_ref <- function(chromosome, start, end, title, type, 
+# 	ylim = NULL){
+	
+# 	genome = 'ce11'
+	
+# 	ensGenes = get_ensGenes(genome, chromosome, start, end)
+
+# 	plotTracks(list(ensGenes), from = start, to = end, main = title,
+# 		type = 'histogram', background.title = 'darkgrey')
+
+# }
+
+
+# get_ensGenes <- function(genome, chromosome, start, end){
+# 	ensGenes = UcscTrack(genome = genome, chromosome = chromosome, 
+#                       # track="NCBI RefSeq", table = "ncbiRefSeqCurated", 
+#                        track="Ensembl Genes", table = "ensGene",
+#                       from = start, to = end,
+#                       trackType = "GeneRegionTrack", 
+#                       rstarts = "exonStarts", rends = "exonEnds",
+#                       gene = "name",  #, symbol = "name2"
+#                       transcript = "name", strand = "strand", 
+#                       fill = "#960000", name = "Ensembl Genes",
+#                       transcriptAnnotation="symbol")
+# 	return(ensGenes)
+# }
+
+
+# # ncbiRefSeqCurated
+
+# get_ensGenes <- function(genome, chromosome, start, end){
+# 	ensGenes = UcscTrack(genome = genome, chromosome = chromosome, 
+#                       track="NCBI RefSeq", table = "refGene", 
+#                        # track="Ensembl Genes", table = "ensemblSource",
+#                       from = start, to = end,
+#                       trackType = "GeneRegionTrack", 
+#                       rstarts = "exonStarts", rends = "exonEnds",
+#                       gene = "name2", symbol = "name2", 
+#                       transcript = "name", strand = "strand", 
+#                       fill = "#960000", showId = TRUE, geneSymbol = TRUE)
+#                       # ,
+#                       # transcriptAnnotation="name")
+# 	# ?GeneRegionTrack
+# 	return(ensGenes)
+# }
+
+
+# pdf('tmp1.pdf', width = 7, height = 3.5)
+# 	# plot_samples_and_ref('chrII', 13948590, 13949933 , title = 'sre-44', 
+# 	# 	type = 'up', ylim = c(0, 350))
+# 	plot_samples_and_ref('chrIV', 14398414, 14417994, title = 'xdh-1', 
+# 		type = 'down', ylim = c(0, 1100))
+# dev.off()
+
+
+
+# pdf('tmp1.pdf', width = 7, height = 3.5)
+# 	plot_samples_and_ref('chrII', 13948590, 13952933 , title = 'sre-44', 
+# 		type = 'up', ylim = c(0, 500))
+# 	plot_samples_and_ref('chrIV', 14400114, 14413894, title = 'xdh-1', 
+# 		type = 'down', ylim = c(0, 500))
+# # dev.off()
+# nhr-76
+
+
+# pdf('tmp1.pdf', width = 7, height = 3.5)
+# 	# plot_samples_and_ref('chrIII', 8238001, 8239423, title = 'tsp-1', 
+# 	# 	type = 'up', ylim = c(0, 2000))
+# 	# plot_samples_and_ref('chrIII', 831982, 836814, title = 'zip-2', 
+# 	# 	type = 'up', ylim = c(0, 2000))
+# 	# plot_samples_and_ref('chrIV', 626537, 634963, title = 'nhr-76', 
+# 	# 	type = 'down', ylim = c(0, 500))
+# dev.off()
+
+# III:8238001..8239423 
+
+
+	# plot_samples_and_ref('chrII', 13832095, 13834631, title = 'F08G2.5', 
+	# 	type = 'up', ylim = c(0, 2000))
+
+	# plot_samples_and_ref('chrIII', 834401, 834591, title = 'zip-2', 
+	# 	type = 'up', ylim = c(0, 2000))
 
 
 pdf('tmp1.pdf', width = 7, height = 3.5)
-	plot_samples_and_ref('chrII', 4170264, 4175498, title = 'R03H10.6', 
+	plot_samples_and_ref('chrIII', 8236501, 8239980, title = 'tsp-1', 
 		type = 'up', ylim = c(0, 500))
-	plot_samples_and_ref('chrIV', 6964492, 6968982, title = 'ZK381.2', 
-		type = 'down', ylim = c(0, 500))
+	# plot_samples_and_ref('chrII', 4170264, 4175498, title = 'R03H10.6', 
+	# 	type = 'up', ylim = c(0, 500))
+	# plot_samples_and_ref('chrII', 13832095, 13834631, title = 'F08G2.5', 
+	# 	type = 'up', ylim = c(0, 2000))
+	# plot_samples_and_ref('chrIV', 6964492, 6968982, title = 'ZK381.2', 
+	# 	type = 'down', ylim = c(0, 500))
+	# plot_samples_and_ref('chrIII', 831982, 836814, title = 'zip-2', 
+	# 	type = 'down', ylim = c(0, 500))
+	# plot_samples_and_ref('chrIV', 626537, 634963, title = 'nhr-76', 
+	# 	type = 'down', ylim = c(0, 500))
 dev.off()
 
+
+
+# zip-2
 
 system('qpdf --rotate=+90 tmp1.pdf rotated.pdf')
 system('a5toa4 rotated.pdf')
