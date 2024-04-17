@@ -13,6 +13,10 @@ R
 library(ggplot2)
 library(magrittr)
 library(data.table)
+library(Gviz)
+library(rtracklayer)
+library(purrr)
+library(openxlsx)
 
 readRDS1 <- function(x) readRDS(paste0('panels/', x))
 pdf_a4   <- function(x, ...) pdf(x, paper = 'a4r', ...)
@@ -38,7 +42,7 @@ p4 = readRDS1('ATAC__all__1.3__ctl__peaks_self__heatmap__human.rds') + ggtitle('
 pp = ggpubr::ggarrange(p1, p2, p3, p4, ncol = 2, nrow = 2, common.legend = T, 
 	legend = 'right', labels = letters[1:4])
 
-pdf('Figure_5.pdf', width = 7.5, height = 7.5)
+pdf('Figure_4.pdf', width = 7.5, height = 7.5)
 	print(pp)
 dev.off()
 
@@ -63,7 +67,7 @@ p1 = p1 + theme(
 pp = ggpubr::ggarrange(p1, p2, p3, p4, ncol = 4, nrow = 1, common.legend = T, 
 	legend = 'right', labels = letters[1:4], widths = c(1.19, 1.3, 1.02, 1.4))
 
-pdf('Figure_6.pdf', width = 7, height = 5.7)
+pdf('Figure_5.pdf', width = 7, height = 5.7)
 	print(pp)
 dev.off()
 
@@ -79,7 +83,7 @@ p2 = p2 + theme(plot.title = element_text(hjust = 1))
 pp = ggpubr::ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = T, 
 	legend = 'right', labels = letters[1:2])
 
-pdf('Figure_7.pdf', width = 7, height = 7)
+pdf('Figure_6.pdf', width = 7, height = 7)
 	print(pp)
 dev.off()
 
@@ -103,7 +107,7 @@ p1 = p1 + theme(
 pp = ggpubr::ggarrange(p1, p2, p3, ncol = 3, nrow = 1, common.legend = T, 
 	legend = 'right', labels = letters[1:3], widths = c(1.2, 1.03, 1.27))
 
-pdf('Figure_8.pdf', width = 7, height = 3.5)
+pdf('Figure_7.pdf', width = 7, height = 3.5)
 	print(pp)
 dev.off()
 
@@ -161,10 +165,12 @@ v_png_files = c(list.files('../../docs/examples/png', full.names = T),
 				list.files('../../docs/examples/xlsx_png', full.names = T))
 
 v_files_1_QC_reads = grep1('\\/(pca|spearman|ctl_1__(reads|insert))')
-v_files_1_QC_peaks = grep1('(\\/(ctl_1__(peaks|average)|ATAC__peaks)|saturation_curve)')
-v_files_1_QC       = c(v_files_1_QC_reads, v_files_1_QC_peaks)
+v_files_1_QC_satur = grep1('\\/ctl_1__saturation_curve')
+v_files_1_QC_peaks = grep1('(\\/(ctl_1__(peaks|average)|ATAC__peaks))')
+v_files_1_QC       = c(v_files_1_QC_reads, v_files_1_QC_satur, 
+	v_files_1_QC_peaks)
 p_QC = plot_figures(v_files_1_QC)
-pdf('Figure_S2.pdf', width = 7, height = 10)
+pdf('Figure_S1.pdf', width = 7, height = 10)
 	print(p_QC)
 dev.off()
 
@@ -186,7 +192,7 @@ p_DA_2_2 = plot_tables(v_files_2_DA_tab, v_labels = letters[12 + (4:10)],
 	nrow = 5)
 p_DA_2 = ggpubr::ggarrange(p_DA_2_1, p_DA_2_2, nrow = 2, ncol = 1, 
 	heights = c(0.25, 0.75) )
-pdf('Figure_S3.pdf', width = 7, height = 10)
+pdf('Figure_S2.pdf', width = 7, height = 10)
 	print(p_DA_1)
 	print(p_DA_2)
 dev.off()
@@ -205,7 +211,7 @@ p_EN_2_2 = plot_tables(v_files_3_EN_tab,
 	v_labels = letters[12 + (3:10)], nrow = 5)
 p_EN_2 = ggpubr::ggarrange(p_EN_2_1, p_EN_2_2, nrow = 2, ncol = 1, 
 	heights = c(0.25, 0.75) )
-pdf('Figure_S4.pdf', width = 7, height = 10)
+pdf('Figure_S3.pdf', width = 7, height = 10)
 	print(p_EN_1)
 	print(p_EN_2)
 dev.off()
@@ -216,28 +222,8 @@ dev.off()
 # https://jnicolaus.com/tutorials-old/gviztutorial.html
 # https://ivanek.github.io/Gviz/reference/plotTracks.html
 
-library(Gviz)
-library(rtracklayer)
-library(purrr)
 
 
-
-  # track="Ensembl Genes"  table = "ensGene"
- # track="NCBI RefSeq"
-                      # track="Genscan Genes", table = "genscan", 
-
-# get_ensGenes <- function(genome, chromosome, start, end){
-# 	ensGenes = UcscTrack(genome = genome, chromosome = chromosome, 
-#                       track="NCBI RefSeq", table = "ncbiRefSeqCurated", 
-#                       from = start, to = end,
-#                       trackType = "GeneRegionTrack", 
-#                       rstarts = "exonStarts", rends = "exonEnds",
-#                       gene = "name",  #, symbol = "name2"
-#                       transcript = "name", strand = "strand", 
-#                       fill = "#960000", name = "Ensembl Genes",
-#                       transcriptAnnotation="symbol")
-# 	return(ensGenes)
-# }
 
 get_ensGenes <- function(genome, chromosome, start, end){
 	ensGenes = UcscTrack(genome = genome, chromosome = chromosome, 
@@ -249,9 +235,8 @@ get_ensGenes <- function(genome, chromosome, start, end){
                       gene = "name2", symbol = "name2", 
                       transcript = "name", strand = "strand", 
                       fill = "#960000", showId = TRUE, geneSymbol = TRUE)
-                      # ,
-                      # transcriptAnnotation="name")
 	# ?GeneRegionTrack
+	# https://genome.ucsc.edu/cgi-bin/hgTables?hgsid=2127429502_LdAOU7oroxVxnxNJPIAbY9BcGbOW&clade=worm&org=C.+elegans&db=ce11&hgta_group=genes&hgta_track=refSeqComposite&hgta_table=refGene&hgta_regionType=genome&position=chrII%3A14%2C646%2C376-14%2C667%2C875&hgta_outputType=primaryTable&hgta_outFileName=
 	return(ensGenes)
 }
 
@@ -308,125 +293,30 @@ plot_samples_and_ref <- function(chromosome, start, end, title, type,
 
 }
 
-l_bw = list.files('panels', pattern = '(ctl|hmg4).*.bw', full.names = T) %>% 
-		setNames(., gsub('.*\\/', '', .) %>% gsub('\\.bw', '', .)) %>% as.list
+l_bw = list.files('panels', pattern = '(ctl|hmg4).*.bw', 
+	full.names = T)[c(4:6, 1:3)] %>% setNames(., gsub('.*\\/', '', .) %>% 
+	gsub('\\.bw', '', .)) %>% as.list
 
-# checking the top genes
+# # checking the top genes
+# # dt = openxlsx::read.xlsx('panels/hmg4_vs_ctl__res_filter.xlsx') %>% setDT
 # dt = openxlsx::read.xlsx('panels/hmg4_vs_ctl__res_filter.xlsx') %>% setDT
-dt = openxlsx::read.xlsx('panels/hmg4_vs_ctl__res_filter.xlsx') %>% setDT
-# dt[ET == 'both_ATAC' & L2FC > 1]$gene_name[1]  # "R03H10.6"
-# dt[ET == 'both_ATAC' & L2FC < -1]$gene_name[1] # "ZK381.2"
-
-dt[ET == 'both_ATAC' & L2FC > 0]$gene_name[1]  # "R03H10.6"
-dt[ET == 'both_ATAC' & L2FC < 0]$gene_name[1] # "ZK381.2"
+# dt[ET == 'both_ATAC' & L2FC > 0]$gene_name[1:4] # "R03H10.6" "F08G2.5"  "zip-2"    "tsp-1"
+# dt[ET == 'both_ATAC' & L2FC < 0]$gene_name[1:4] # "nhr-76"  "ceh-60"  "F11E6.8" "ZK381.2"
 
 
-# plot_samples_and_ref <- function(chromosome, start, end, title, type, 
-# 	ylim = NULL){
-	
-# 	genome = 'ce11'
-	
-# 	ensGenes = get_ensGenes(genome, chromosome, start, end)
-
-# 	plotTracks(list(ensGenes), from = start, to = end, main = title,
-# 		type = 'histogram', background.title = 'darkgrey')
-
-# }
-
-
-# get_ensGenes <- function(genome, chromosome, start, end){
-# 	ensGenes = UcscTrack(genome = genome, chromosome = chromosome, 
-#                       # track="NCBI RefSeq", table = "ncbiRefSeqCurated", 
-#                        track="Ensembl Genes", table = "ensGene",
-#                       from = start, to = end,
-#                       trackType = "GeneRegionTrack", 
-#                       rstarts = "exonStarts", rends = "exonEnds",
-#                       gene = "name",  #, symbol = "name2"
-#                       transcript = "name", strand = "strand", 
-#                       fill = "#960000", name = "Ensembl Genes",
-#                       transcriptAnnotation="symbol")
-# 	return(ensGenes)
-# }
-
-
-# # ncbiRefSeqCurated
-
-# get_ensGenes <- function(genome, chromosome, start, end){
-# 	ensGenes = UcscTrack(genome = genome, chromosome = chromosome, 
-#                       track="NCBI RefSeq", table = "refGene", 
-#                        # track="Ensembl Genes", table = "ensemblSource",
-#                       from = start, to = end,
-#                       trackType = "GeneRegionTrack", 
-#                       rstarts = "exonStarts", rends = "exonEnds",
-#                       gene = "name2", symbol = "name2", 
-#                       transcript = "name", strand = "strand", 
-#                       fill = "#960000", showId = TRUE, geneSymbol = TRUE)
-#                       # ,
-#                       # transcriptAnnotation="name")
-# 	# ?GeneRegionTrack
-# 	return(ensGenes)
-# }
-
-
-# pdf('tmp1.pdf', width = 7, height = 3.5)
-# 	# plot_samples_and_ref('chrII', 13948590, 13949933 , title = 'sre-44', 
-# 	# 	type = 'up', ylim = c(0, 350))
-# 	plot_samples_and_ref('chrIV', 14398414, 14417994, title = 'xdh-1', 
-# 		type = 'down', ylim = c(0, 1100))
-# dev.off()
-
-
-
-# pdf('tmp1.pdf', width = 7, height = 3.5)
-# 	plot_samples_and_ref('chrII', 13948590, 13952933 , title = 'sre-44', 
-# 		type = 'up', ylim = c(0, 500))
-# 	plot_samples_and_ref('chrIV', 14400114, 14413894, title = 'xdh-1', 
-# 		type = 'down', ylim = c(0, 500))
-# # dev.off()
-# nhr-76
-
-
-# pdf('tmp1.pdf', width = 7, height = 3.5)
-# 	# plot_samples_and_ref('chrIII', 8238001, 8239423, title = 'tsp-1', 
-# 	# 	type = 'up', ylim = c(0, 2000))
-# 	# plot_samples_and_ref('chrIII', 831982, 836814, title = 'zip-2', 
-# 	# 	type = 'up', ylim = c(0, 2000))
-# 	# plot_samples_and_ref('chrIV', 626537, 634963, title = 'nhr-76', 
-# 	# 	type = 'down', ylim = c(0, 500))
-# dev.off()
-
-# III:8238001..8239423 
-
-
-	# plot_samples_and_ref('chrII', 13832095, 13834631, title = 'F08G2.5', 
-	# 	type = 'up', ylim = c(0, 2000))
-
-	# plot_samples_and_ref('chrIII', 834401, 834591, title = 'zip-2', 
-	# 	type = 'up', ylim = c(0, 2000))
-
-
-pdf('tmp1.pdf', width = 7, height = 3.5)
-	plot_samples_and_ref('chrIII', 8236501, 8239980, title = 'tsp-1', 
-		type = 'up', ylim = c(0, 500))
-	# plot_samples_and_ref('chrII', 4170264, 4175498, title = 'R03H10.6', 
-	# 	type = 'up', ylim = c(0, 500))
-	# plot_samples_and_ref('chrII', 13832095, 13834631, title = 'F08G2.5', 
-	# 	type = 'up', ylim = c(0, 2000))
-	# plot_samples_and_ref('chrIV', 6964492, 6968982, title = 'ZK381.2', 
-	# 	type = 'down', ylim = c(0, 500))
-	# plot_samples_and_ref('chrIII', 831982, 836814, title = 'zip-2', 
-	# 	type = 'down', ylim = c(0, 500))
-	# plot_samples_and_ref('chrIV', 626537, 634963, title = 'nhr-76', 
-	# 	type = 'down', ylim = c(0, 500))
+pdf('tmp1.pdf', width = 7, height = 7)
+	plot_samples_and_ref('chrIII', 8236501, 8239980, 
+		title = 'Example of a HA-HE gene', 
+		type = 'up', ylim = c(0, 500)) # tsp-1
+	plot_samples_and_ref('chrIV', 626537, 634963,
+		title = 'Example of a LA-LE gene', 
+		type = 'down', ylim = c(0, 500)) # nhr-76
 dev.off()
 
 
-
-# zip-2
-
 system('qpdf --rotate=+90 tmp1.pdf rotated.pdf')
 system('a5toa4 rotated.pdf')
-system('qpdf --rotate=+270 rotated-sidebyside.pdf Figure_S5.pdf')
+system('qpdf --rotate=+270 rotated-sidebyside.pdf Figure_S6.pdf')
 file.remove(c('tmp1.pdf', 'rotated.pdf', 'rotated-sidebyside.pdf'))
 
 
