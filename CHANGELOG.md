@@ -30,16 +30,17 @@ Types of changes
 
 ### Added
 
- - [#19](https://github.com/jsalignon/cactus/pull/19) - Added a tutorial section in the documentation and an associated script.
- - [#19](https://github.com/jsalignon/cactus/pull/19) - Added figures for the manuscript: genome track plots, examples of figures and tables from the worm test dataset.
- - [#19, commit 8ab3377](https://github.com/jsalignon/cactus/commit/8ab33772fd9493a542478ebc1746ae3eb9af0cc3) - Added Peak Annotation filters to keep only peaks at less than 3, 8 or 30 kilobases to their closest gene.
- - [#19, commit 7f797f8](https://github.com/jsalignon/cactus/commit/7f797f892db6d83f9409eea33d5cf658ebe6ad4b) - Added ChIPseeker options to ignore upstream or downstream of peak for closest gene annotation.
+ - [#20](https://github.com/jsalignon/cactus/pull/20) - Added a tutorial section in the documentation and an associated script.
+ - [#20](https://github.com/jsalignon/cactus/pull/20) - Added figures for the manuscript: genome track plots, examples of figures and tables from the worm test dataset.
+ - [#20, commit 8ab3377](https://github.com/jsalignon/cactus/commit/8ab33772fd9493a542478ebc1746ae3eb9af0cc3) - Added Peak Annotation filters to keep only peaks at less than 3, 8 or 30 kilobases to their closest gene.
+ - [#20, commit 7f797f8](https://github.com/jsalignon/cactus/commit/7f797f892db6d83f9409eea33d5cf658ebe6ad4b) - Added ChIPseeker options to ignore upstream or downstream of peak for closest gene annotation.
+ - [#19](https://github.com/jsalignon/cactus/pull/19) - Added quickstart scripts.
 
 ### Changed
 
 ### Fixed
 
- - [#19, commit 250afb6](https://github.com/jsalignon/cactus/commit/250afb6174c3e976ec9eda72da480732daf8a938#diff-6401496ba455b9488ffa902a6e4d7732b2c60ff2d77c5c3ef96b28a7ac7d3b28) - Fixing a typo which prevented bigWig files from being saved.
+ - [#20, commit 250afb6](https://github.com/jsalignon/cactus/commit/250afb6174c3e976ec9eda72da480732daf8a938#diff-6401496ba455b9488ffa902a6e4d7732b2c60ff2d77c5c3ef96b28a7ac7d3b28) - Fixing a typo which prevented bigWig files from being saved.
 
 ### Deprecated
 
