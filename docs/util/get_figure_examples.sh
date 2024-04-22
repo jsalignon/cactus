@@ -14,17 +14,17 @@ tools_manager=singularity
 
 species=worm ; cd $test_dir/$tools_manager/$species
 # nextflow run  jsalignon/cactus -r hotfix/0.8.1  -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/full_test.yml --split__threshold_values [1000] --res_dir 'results/almost_full_test'
-nextflow run  jsalignon/cactus -r v0.8.6  -profile $tools_manager \
+nextflow run  jsalignon/cactus -r v0.9.0  -profile $tools_manager \
   --executor_local_cpus $cpu_nb --executor_local_memory $memory_size \
   --references_dir $cactus_dir/references/$figshare_version \
   -params-file parameters/full_test.yml --split__threshold_values [1000] \
-  --res_dir 'results/v0.8.6'
+  --res_dir 'results/v0.9.0'
 
 nextflow run  jsalignon/cactus -r revisions  -profile $tools_manager \
   --executor_local_cpus $cpu_nb --executor_local_memory $memory_size \
   --references_dir $cactus_dir/references/$figshare_version \
   -params-file parameters/full_test.yml --split__threshold_values [1000] \
-  --res_dir 'results/v0.8.6_revisions'
+  --res_dir 'results/v0.9.0_revisions'
 
 # nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/full_test.yml --split__threshold_values [1000] --res_dir 'results/almost_full_test'
 # nextflow run  jsalignon/cactus -r main -latest -profile $tools_manager --executor_local_cpus $cpu_nb --executor_local_memory $memory_size --references_dir $cactus_dir/references/$figshare_version -params-file parameters/no_enrich__no_rtr.yml
@@ -58,7 +58,7 @@ res_worm_dir="$test_dir_2/worm/results/"
 res_fly_dir="$test_dir_2/fly/results/"
 
 # run_worm_dir="$res_worm_dir/almost_full_test"
-run_worm_dir="$res_worm_dir/v0.8.6_revisions"
+run_worm_dir="$res_worm_dir/v0.9.0_revisions"
 run_worm_figure_dir="$run_worm_dir/Figures_Individual"
 run_worm_tables_dir="$run_worm_dir/Tables_Merged"
 
