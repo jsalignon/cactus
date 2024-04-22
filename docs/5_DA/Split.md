@@ -1,7 +1,7 @@
 
 <img src="/docs/images/logo_cactus.png" width="400" />
 
-* [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
+* [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Tutorial](/docs/1_Intro/tutorial.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/Data.md), [Design](/docs/3_Inputs/Design.md), [Parameters](/docs/3_Inputs/Parameters.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
@@ -30,8 +30,8 @@
 ### Description
 This process splits Differential Analysis results into subsets (i.e., DAS - Differential Analysis Subsets) in order to do enrichment analysis on many different angles and extract the most information out of the data.  
 4 filters are used to split:
-  - ET: Experiment Type. Can be either 'ATAC', 'mRNA', 'both', 'both_ATAC', or 'both_mRNA'.  
-  - PA: DAR Peak Annotation. Can be any combination of 'all', 'PA_gene', 'PA_interG', 'PA_prom', 'PA_5pUTR', 'PA_3pUTR', 'PA_exon', 'PA_intron', 'PA_downst', 'PA_distIn', 'PA_UTR', 'PA_TSS', 'PA_genPro', 'PA_distNC', 'PA_3kb', 'PA_8kb', 'PA_30kb'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included).
+  - ET: Experiment Type. Can be either 'ATAC', 'mRNA', 'both', 'both_ATAC', or 'both_mRNA'.
+  - PA: DAR Peak Annotation. Can be any combination of 'all', 'PA_gene', 'PA_interG', 'PA_prom', 'PA_5pUTR', 'PA_3pUTR', 'PA_exon', 'PA_intron', 'PA_downst', 'PA_distIn', 'PA_UTR', 'PA_TSS', 'PA_genPro', 'PA_distNC', 'PA_mt_3kb', 'PA_mt_8kb', 'PA_mt_30kb', 'PA_lt_3kb', 'PA_lt_8kb', 'PA_lt_30kb'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included).
   - FC: Fold Change type. To split up and down-regulated results.
   - TV: Theshold Value(s). To split results by significance thresholds. 
 

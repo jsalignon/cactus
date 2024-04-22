@@ -1,7 +1,7 @@
 
 <img src="/docs/images/logo_cactus.png" width="400" />
 
-* [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
+* [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Tutorial](/docs/1_Intro/tutorial.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/Data.md), [Design](/docs/3_Inputs/Design.md), [Parameters](/docs/3_Inputs/Parameters.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
@@ -69,6 +69,8 @@ Parameters of the [annotatePeak](https://rdrr.io/bioc/ChIPseeker/man/annotatePea
 - **_params.chipseeker__overlap_**: this parameter together with the *params.chipseeker__ignore_overlap* controls the genes to which peaks are assigned to. If *params.chipseeker__overlap* equals "all" and *params.chipseeker__ignore_overlap* equals 'FALSE' then if a peak overlaps to a genomic feature (i.e., exon, intron, 5'UTR, 3'UTR, CDS) it will be assigned to this gene. Otherwise, the peak will be assigned to the neighboring gene regardless of overlap with genomic features. Options: "all", "TSS". Default: 'all'.
 - **_params.chipseeker__ignore_overlap_**: this parameter together with the *params.chipseeker__overlap* controls the genes to which peaks are assigned to. If *params.chipseeker__overlap* equals "all" and *params.chipseeker__ignore_overlap* equals 'FALSE' then if a peak overlaps to a genomic feature (i.e., exon, intron, 5'UTR, 3'UTR, CDS) it will be assigned to this gene. Otherwise, the peak will be assigned to the neighboring gene regardless of overlap with genomic features. Options: "all", "TSS". Default: 'FALSE'.
 - **_params.chipseeker__annotation_priority_**: This parameter controls the order of priorities when there are overlaping features that overlap with the peak for assigning a genomic region for the "annotation" column. Default: "c('Promoter', '5UTR', '3UTR', 'Exon', 'Intron', 'Downstream', 'Intergenic')".
+- **_params.chipseeker__ignore_upstream_**: If 'TRUE' only annotate gene at the 3' of the peak. Options: "FALSE", "TRUE". Default: 'FALSE'.
+- **_params.chipseeker__ignore_downstream_**: If 'TRUE' only annotate gene at the 5' of the peak. Options: "FALSE", "TRUE". Default: 'FALSE'.
 
 ### Outputs
 - **Annotated peaks (data.frame object)**: `Processed_Data/2_Differential_Analysis/ATAC__all_peaks__dataframe/${comparison}__diffb_anno_peaks_df.rds`.
@@ -147,9 +149,12 @@ In addition, the following filtering columns are added:
   - PA_TSS: overlap with the TSS (distanceToTSS = 0)
   - PA_genPro: genic region or promoter
   - PA_distNC: peak is in a distal intergenic region or (in an intron but not in any of these regions: promoter, 5' UTR, 3' UTR and exon). distNC stands for distal noncoding. These regions have been shown in [Daugherty *et al.*](https://doi.org/10.1101/gr.226233.117) (First ATAC-Seq paper in *C. elegans*) to be enriched in active and repressed enhancers.  
-  - PA_{3,8,30}kb: absolute distance to the TSS higher than 3, 8 or 30 kilo bases
+  - PA_lt_{3,8,30}kb: absolute distance to the nearest gene TSS is less than 3, 8, or 30 kilo bases
+  - PA_mt_{3,8,30}kb: absolute distance to the nearest gene TSS is more than 3, 8, or 30 kilo bases
 
 These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern with the parameter *params.peak_assignment_for_splitting_subsets*. 
+
+> **_NOTE:_** The PA_prom filter uses the `chipseeker__promoter_up` and `chipseeker__promoter_down` Cactus parameters to define the promoter regions. By default this is defined as -1500/+500 to the TSS. However, users can use this filter as an abritrary "customizable" PA filter. This can help for instance to filter out peaks that are too far away from the TSS. For instance, using the PA_prom filter with `chipseeker__promoter_up = 8000` and `chipseeker__promoter_down = 8000` would give the same result as PA_mt_8kb.
 
 > **_NOTE:_** New filtering columns could be added in the future if needed.
 

@@ -702,8 +702,8 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
   publishDir path: "${res_dir}", mode: "${pub_mode}", saveAs: {
     if (it.indexOf(".pdf") > 0) 
         "Figures_Individual/1_Preprocessing/ATAC__reads__coverage/${it}"
-    else if (it.indexOf("_raw.bw") > 0) 
-        "Processed_Data/1_Preprocessing/ATAC__reads__bigwig_raw/${it}"
+    else if (it.indexOf(".bw") > 0) 
+        "Processed_Data/1_Preprocessing/ATAC__reads__bigwig/${it}"
   }
 
   when: 
@@ -731,6 +731,7 @@ process ATAC_QC_reads__computing_bigwig_tracks_and_plotting_coverage {
       --blackListFileName   ${params.blacklisted_regions} \
       --effectiveGenomeSize ${params.effective_genome_size} \
       --outFileName ${id}.bw
+
 
     plotCoverage \
       --bam ${bam} \
@@ -1940,7 +1941,9 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
     overlap             = '!{params.chipseeker__overlap}'
     ignore_overlap      = !{params.chipseeker__ignore_overlap}
     annotation_priority = !{params.chipseeker__annotation_priority}
-
+    ignore_upstream     = !{params.chipseeker__ignore_upstream}
+    ignore_downstream   = !{params.chipseeker__ignore_downstream}
+ 
     check_upstream_and_downstream_1 <- function (upstream, downstream){
         if (class(upstream) != class(downstream)) {
             stop("the type of upstream and downstream should be the same...")
@@ -1977,7 +1980,9 @@ process ATAC_QC_peaks__annotating_macs2_peaks {
     annotated_peaks = annotatePeak(peaks, TxDb = tx_db, level = 'gene',
                             tssRegion = c(-upstream, downstream), 
                             overlap = overlap, ignoreOverlap = ignore_overlap,
-                            genomicAnnotationPriority = annotation_priority)
+                            genomicAnnotationPriority = annotation_priority,
+                            ignoreUpstream = ignore_upstream,
+                            ignoreDownstream = ignore_downstream)
 
     genes = as.data.frame(annotated_peaks)$geneId
 
@@ -2612,13 +2617,17 @@ process DA_ATAC__annotating_diffbind_peaks {
     overlap             = '!{params.chipseeker__overlap}'
     ignore_overlap      = !{params.chipseeker__ignore_overlap}
     annotation_priority = !{params.chipseeker__annotation_priority}
-
+    ignore_upstream     = !{params.chipseeker__ignore_upstream}
+    ignore_downstream   = !{params.chipseeker__ignore_downstream}
+ 
 
     ##### annotating peaks
     anno_peak_cs = annotatePeak(diffbind_peaks_gr, TxDb = tx_db, level = 'gene',
                             tssRegion = c(-upstream, downstream), 
                             overlap = overlap, ignoreOverlap = ignore_overlap,
-                            genomicAnnotationPriority = annotation_priority)
+                            genomicAnnotationPriority = annotation_priority,
+                            ignoreUpstream = ignore_upstream,
+                            ignoreDownstream = ignore_downstream)
 
     ##### creating the data frame object
     anno_peak_gr = anno_peak_cs@anno
@@ -2734,24 +2743,27 @@ process DA_ATAC__saving_detailed_results_tables {
       FC_up     = L2FC > 0,
       FC_down   = L2FC < 0,
     	
-    	PA_gene   = genic,
-    	PA_interG = intergenic,
-    	PA_prom   = promoter,
-    	PA_5pUTR  = five_UTR, 
-    	PA_3pUTR  = three_UTR,
-    	PA_exon   = exon,
-    	PA_intron = intron,
-    	PA_downst = downstream,
-    	PA_distIn = distal_intergenic,
+    	PA_gene    = genic,
+    	PA_interG  = intergenic,
+    	PA_prom    = promoter,
+    	PA_5pUTR   = five_UTR, 
+    	PA_3pUTR   = three_UTR,
+    	PA_exon    = exon,
+    	PA_intron  = intron,
+    	PA_downst  = downstream,
+    	PA_distIn  = distal_intergenic,
     	
-    	PA_UTR    = five_UTR | three_UTR,
-      PA_TSS    = distance_to_tss == 0,
-      PA_genPro = genic | promoter,
-      PA_distNC = distal_intergenic | 
+    	PA_UTR     = five_UTR | three_UTR,
+      PA_TSS     = distance_to_tss == 0,
+      PA_genPro  = genic | promoter,
+      PA_distNC  = distal_intergenic | 
                   ( intron & !(promoter | five_UTR  | three_UTR  | exon)),
-      PA_3kb    = abs(distance_to_tss) > 3000,
-      PA_8kb    = abs(distance_to_tss) > 8000,
-      PA_30kb   = abs(distance_to_tss) > 30000,
+      PA_mt_3kb  = abs(distance_to_tss) > 3000,
+      PA_mt_8kb  = abs(distance_to_tss) > 8000,
+      PA_mt_30kb = abs(distance_to_tss) > 30000,
+      PA_lt_3kb  = abs(distance_to_tss) < 3000,
+      PA_lt_8kb  = abs(distance_to_tss) < 8000,
+      PA_lt_30kb = abs(distance_to_tss) < 30000,
     
     	jbrowse   = get_jbrowse_vec(chr, start, end)
     )

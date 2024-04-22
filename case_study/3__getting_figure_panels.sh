@@ -72,6 +72,14 @@ cp $case_study_dir_human_2_pro_3/Heatmaps__chrom_states/ATAC__all__1.3__ctl__chr
 # Tab S1: reprogramming genes defined in Figure 6L of the Kolundzic et al. study
 cp $case_study_dir_human_1/Tables_Merged/2_Differential_Analysis/res_simple.xlsx $case_study_copy_dir
 
+# Fig S2: HA-HE gene tracks
+find "$case_study_dir/worm/results/2024_04_09___worm_run_1/Processed_Data" -regex ".*\(hmg4\|ctl\).*.bw" -exec cp "{}" $case_study_copy_dir \;
+# find "$case_study_dir/worm/results/2024_04_09___worm_run_1/Processed_Data" -regex ".*\(hmg4\|ctl\).*.bw" -exec bash -c 'cp "$0" "${1}/$(basename "${0%.*}").bigWig"' {} "$case_study_copy_dir" \;
+cp "$case_study_dir/worm/results/2024_04_09___worm_run_1/Tables_Individual/2_Differential_Analysis/res_filter/hmg4_vs_ctl__res_filter.xlsx" $case_study_copy_dir
+cp "$case_study_dir/worm/results/2024_04_09___worm_run_1/Processed_Data/2_Differential_Analysis/DA_split__bed_regions/both_ATAC__all__up__1.3__hmg4_vs_ctl__regions.bed" $case_study_copy_dir
+cp "$case_study_dir/worm/results/2024_04_09___worm_run_1/Processed_Data/2_Differential_Analysis/DA_split__bed_regions/both_ATAC__all__down__1.3__hmg4_vs_ctl__regions.bed" $case_study_copy_dir
+
+
 
 # converting the heavy plots to png
 pdftoppm -rx 300 -ry 300 -png \

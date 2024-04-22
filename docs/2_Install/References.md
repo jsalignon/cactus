@@ -1,7 +1,7 @@
 
 <img src="/docs/images/logo_cactus.png" width="400" />
 
-* [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
+* [Introduction](/README.md): [Quick Start](/docs/1_Intro/Quick_start.md), [Tutorial](/docs/1_Intro/tutorial.md), [Flowchart](/docs/1_Intro/Flowchart.md), [Outputs structure](/docs/1_Intro/Outputs_structure.md)
 * [Install](/docs/2_Install/2_Install.md): [Dependencies](/docs/2_Install/Dependencies.md), [Containers](/docs/2_Install/Containers.md), [References](/docs/2_Install/References.md), [Test datasets](/docs/2_Install/Test_datasets.md)
 * [Inputs](/docs/3_Inputs/3_Inputs.md): [Data](/docs/3_Inputs/Data.md), [Design](/docs/3_Inputs/Design.md), [Parameters](/docs/3_Inputs/Parameters.md)
 * [1. Preprocessing](/docs/4_Prepro/4_Prepro.md): [ATAC reads](/docs/4_Prepro/ATAC_reads.md), [ATAC peaks](/docs/4_Prepro/ATAC_peaks.md), [mRNA](/docs/4_Prepro/mRNA.md)
@@ -53,13 +53,16 @@ Cactus uses a set of preparsed references that are used throughout the scripts. 
 The size of the Cactus references for each species is:
 
 | species | Size (Gb) | Assembly | Nickname | Ensembl Release |
-|:------:|:---------:|:--------:|:--------:|:---------------:|
-|  worm  |    1.3    | WBcel235 |   ce11   |       107       |
-|  fly   |    1.5    |  BDGP6   |   dm6    |       107       |
-| mouse  |   12.0    |  GRCm38  |   mm10   |       102       |
-| human  |   20.0    |  GRCh38  |   hg38   |       107       |
+|:------:|:---------:|:---------:|:--------:|:---------------:|
+|  worm  |    1.3    | WBcel235  |   ce11   |       107       |
+|  fly   |    1.5    | BDGP6.32  |   dm6    |       107       |
+| mouse  |   12.0    |  GRCm38   |   mm10   |       102       |
+| human  |   20.0    |  GRCh38   |   hg38   |       107       |
 
 The latest Ensembl release has been used for worm, fly and mouse (July 2022). For mouse, the older Ensembl release 102 (Nov. 2020) has been used together with the genome assembly mm10, since mm39 is not yet available in Homer and in the Encode bed files.
+Currently, Homer files were downloaded for genomes (v6.4), organisms (v6.3), and promoters (v5.5); and NCBI orgdb v3.14 were used to obtain KEGG pathways.
+
+Please, feel free to raise an issue on the Cactus' GitHub page if you need references with different version of the genomes or other tools, I will create that for you and make a new release hosted on Figshare.
 
 Note that in order to save space, on can download the species dataset, and then keep only the chromatin states of interests. Indeed, only one chromatin state file is used by Cactus, but several are available for users to chose depending on their conditions under study. For mouse and humans this should reduce the size of the dataset by respectively about 8 Gb and 1 Gb.
 
