@@ -149,8 +149,8 @@ In addition, the following filtering columns are added:
   - PA_TSS: overlap with the TSS (distanceToTSS = 0)
   - PA_genPro: genic region or promoter
   - PA_distNC: peak is in a distal intergenic region or (in an intron but not in any of these regions: promoter, 5' UTR, 3' UTR and exon). distNC stands for distal noncoding. These regions have been shown in [Daugherty *et al.*](https://doi.org/10.1101/gr.226233.117) (First ATAC-Seq paper in *C. elegans*) to be enriched in active and repressed enhancers.  
-  - PA_lt_{3,8,30}kb: absolute distance to the nearest gene TSS is less than 3, 8, or 30 kilo bases
-  - PA_mt_{3,8,30}kb: absolute distance to the nearest gene TSS is more than 3, 8, or 30 kilo bases
+  - PA_lt_{10kb,100kb,1mb}: absolute distance to the nearest gene TSS is less than 10 kilobases, 100 kilobases, or 1 megabase.
+  - PA_mt_{10kb,100kb,1mb}: absolute distance to the nearest gene TSS is more than 10 kilobases, 100 kilobases, or 1 megabase.
 
 These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern with the parameter *params.peak_assignment_for_splitting_subsets*. 
 

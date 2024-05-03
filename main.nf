@@ -2760,10 +2760,10 @@ process DA_ATAC__saving_detailed_results_tables {
                   ( intron & !(promoter | five_UTR  | three_UTR  | exon)),
       PA_mt_10kb  = abs(distance_to_tss) >   10000,
       PA_mt_100kb = abs(distance_to_tss) >  100000,
-      PA_mt_1Mb   = abs(distance_to_tss) > 1000000,
+      PA_mt_1mb   = abs(distance_to_tss) > 1000000,
       PA_lt_10kb  = abs(distance_to_tss) <   10000,
       PA_lt_100kb = abs(distance_to_tss) <  100000,
-      PA_lt_1Mb   = abs(distance_to_tss) < 1000000,
+      PA_lt_1mb   = abs(distance_to_tss) < 1000000,
     
     	jbrowse   = get_jbrowse_vec(chr, start, end)
     )
