@@ -2760,16 +2760,16 @@ process DA_ATAC__saving_detailed_results_tables {
                   ( intron & !(promoter | five_UTR  | three_UTR  | exon)),
       PA_mt_10kb  = abs(distance_to_tss) >   10000,
       PA_mt_100kb = abs(distance_to_tss) >  100000,
-      PA_mt_1mb   = abs(distance_to_tss) > 1000000,
+      PA_mt_500kb = abs(distance_to_tss) >  500000,
       PA_lt_10kb  = abs(distance_to_tss) <   10000,
       PA_lt_100kb = abs(distance_to_tss) <  100000,
-      PA_lt_1mb   = abs(distance_to_tss) < 1000000,
+      PA_lt_500kb = abs(distance_to_tss) <  500000,
     
     	jbrowse   = get_jbrowse_vec(chr, start, end)
     )
     
     res_detailed %<>% dplyr::select(
-      COMP:end, gene_name:counts_cond2, jbrowse, gene_chr:PA_lt_1mb)
+      COMP:end, gene_name:counts_cond2, jbrowse, gene_chr:PA_lt_500kb)
 
     # saving table
     saveRDS(res_detailed, paste0(COMP, '__res_detailed_atac.rds'))

@@ -149,12 +149,12 @@ In addition, the following filtering columns are added:
   - PA_TSS: overlap with the TSS (distanceToTSS = 0)
   - PA_genPro: genic region or promoter
   - PA_distNC: peak is in a distal intergenic region or (in an intron but not in any of these regions: promoter, 5' UTR, 3' UTR and exon). distNC stands for distal noncoding. These regions have been shown in [Daugherty *et al.*](https://doi.org/10.1101/gr.226233.117) (First ATAC-Seq paper in *C. elegans*) to be enriched in active and repressed enhancers.  
-  - PA_lt_{10kb,100kb,1mb}: absolute distance to the nearest gene TSS is less than 10 kilobases, 100 kilobases, or 1 megabase.
-  - PA_mt_{10kb,100kb,1mb}: absolute distance to the nearest gene TSS is more than 10 kilobases, 100 kilobases, or 1 megabase.
+  - PA_lt_{10,100,500}kb: absolute distance to the nearest gene TSS is less than 10, 100, or 500 kilobases. Note that 10 kb is a [historically commonly used](https://www.biostars.org/p/111349) cutoff for annotating ChIP-Seq peaks, and that 100 kb and 500 kb correspond to cutoffs for proximal and distal enhancers in mouse as defined in [Xie et al](https://doi.org/10.1016/j.xgen.2023.100342).
+  - PA_mt_{10,100,500}kb: absolute distance to the nearest gene TSS is more than 10, 100, or 500 kilobases.
 
 These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern with the parameter *params.peak_assignment_for_splitting_subsets*. 
 
-> **_NOTE:_** The PA_prom filter uses the `chipseeker__promoter_up` and `chipseeker__promoter_down` Cactus parameters to define the promoter regions. By default this is defined as -1500/+500 to the TSS. However, users can use this filter as an abritrary "customizable" PA filter. This can help for instance to filter out peaks that are too far away from the TSS. For instance, using the PA_prom filter with `chipseeker__promoter_up = 8000` and `chipseeker__promoter_down = 8000` would give the same result as PA_mt_8kb.
+> **_NOTE:_** The PA_prom filter uses the `chipseeker__promoter_up` and `chipseeker__promoter_down` Cactus parameters to define the promoter regions. By default this is defined as -1500/+500 to the TSS. However, users can use this filter as an abritrary "customizable" PA filter. This can help for instance to filter out peaks that are too far away from the TSS. For instance, using the PA_prom filter with `chipseeker__promoter_up = 10000` and `chipseeker__promoter_down = 10000` would give the same result as PA_lt_10kb.
 
 > **_NOTE:_** New filtering columns could be added in the future if needed.
 
