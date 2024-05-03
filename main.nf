@@ -2758,18 +2758,18 @@ process DA_ATAC__saving_detailed_results_tables {
       PA_genPro  = genic | promoter,
       PA_distNC  = distal_intergenic | 
                   ( intron & !(promoter | five_UTR  | three_UTR  | exon)),
-      PA_mt_3kb  = abs(distance_to_tss) > 3000,
-      PA_mt_8kb  = abs(distance_to_tss) > 8000,
-      PA_mt_30kb = abs(distance_to_tss) > 30000,
-      PA_lt_3kb  = abs(distance_to_tss) < 3000,
-      PA_lt_8kb  = abs(distance_to_tss) < 8000,
-      PA_lt_30kb = abs(distance_to_tss) < 30000,
+      PA_mt_10kb  = abs(distance_to_tss) >   10000,
+      PA_mt_100kb = abs(distance_to_tss) >  100000,
+      PA_mt_1Mb   = abs(distance_to_tss) > 1000000,
+      PA_lt_10kb  = abs(distance_to_tss) <   10000,
+      PA_lt_100kb = abs(distance_to_tss) <  100000,
+      PA_lt_1Mb   = abs(distance_to_tss) < 1000000,
     
     	jbrowse   = get_jbrowse_vec(chr, start, end)
     )
     
     res_detailed %<>% dplyr::select(
-      COMP:end, gene_name:counts_cond2, jbrowse, gene_chr:PA_30kb)
+      COMP:end, gene_name:counts_cond2, jbrowse, gene_chr:PA_lt_1Mb)
 
     # saving table
     saveRDS(res_detailed, paste0(COMP, '__res_detailed_atac.rds'))
