@@ -2687,7 +2687,9 @@ process DA_ATAC__saving_detailed_results_tables {
     COMP = '!{COMP}'
 
     df_annotated_peaks = readRDS('!{annotated_peaks}')
-    df_genes_metadata = readRDS('!{params.df_genes_metadata}')
+    df_genes_metadata  = readRDS('!{params.df_genes_metadata}')
+    less_than_X_b      = !{params.custom_distance__less_than_X_b}
+    more_than_Y_b      = !{params.custom_distance__more_than_Y_b}
 
 
     # setting up parameters
@@ -2758,13 +2760,14 @@ process DA_ATAC__saving_detailed_results_tables {
       PA_genPro  = genic | promoter,
       PA_distNC  = distal_intergenic | 
                   ( intron & !(promoter | five_UTR  | three_UTR  | exon)),
-      PA_mt_10kb  = abs(distance_to_tss) >   10000,
-      PA_mt_100kb = abs(distance_to_tss) >  100000,
-      PA_mt_500kb = abs(distance_to_tss) >  500000,
-      PA_lt_10kb  = abs(distance_to_tss) <   10000,
-      PA_lt_100kb = abs(distance_to_tss) <  100000,
-      PA_lt_500kb = abs(distance_to_tss) <  500000,
-    
+      
+      PA_lt10kb  = abs(distance_to_tss) <  10000,
+      PA_lt100kb = abs(distance_to_tss) < 100000,
+      PA_ltXkb   = abs(distance_to_tss) < less_than_X_b,
+      PA_mt10kb  = abs(distance_to_tss) >  10000,
+      PA_mt100kb = abs(distance_to_tss) > 100000,
+      PA_mtYkb   = abs(distance_to_tss) > more_than_Y_b,
+
     	jbrowse   = get_jbrowse_vec(chr, start, end)
     )
     
