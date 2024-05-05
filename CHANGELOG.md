@@ -28,8 +28,8 @@ Types of changes
 ## [v1.0.0](https://github.com/jsalignon/cactus/releases/tag/v1.0.0) - Aztekium, 05-05-2024
 
 ### Added
-- Added PA filters to keep peaks at less or more than 10 or 100 kilobases (lt10kb, lt100kb, mt10kb, mt100kb). [#21, 021de6f](https://github.com/jsalignon/cactus/commit/021de6f05c25ed834aee493d3128de774c79dff7)
-- Added PA filters to keep peaks at less than arbitrary defined cutoffs (ltXkb, mtYkb), with cutoffs defined with the new parameters *custom_distance__less_than_X_b* and *custom_distance__more_than_Y_b*. [#21, 021de6f](https://github.com/jsalignon/cactus/commit/021de6f05c25ed834aee493d3128de774c79dff7)
+- Added PA filters to keep peaks at less or more than 10 or 100 kilobases (lt10kb, lt100kb, mt10kb, mt100kb). [#22, 021de6f](https://github.com/jsalignon/cactus/commit/021de6f05c25ed834aee493d3128de774c79dff7)
+- Added PA filters to keep peaks at less than arbitrary defined cutoffs (ltXkb, mtYkb), with cutoffs defined with the new parameters *custom_distance__less_than_X_b* and *custom_distance__more_than_Y_b*. [#22, 021de6f](https://github.com/jsalignon/cactus/commit/021de6f05c25ed834aee493d3128de774c79dff7)
 
 ### Changed
 
@@ -39,7 +39,7 @@ Types of changes
 ### Deprecated
 
 ### Removed
-- Removed the PA filters: 3kb, 8kb, and 30kb. [#21](https://github.com/jsalignon/cactus/pull/21)
+- Removed the PA filters: 3kb, 8kb, and 30kb. [#22](https://github.com/jsalignon/cactus/pull/21)
 
 ### Dependencies
 
