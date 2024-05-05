@@ -154,7 +154,7 @@ In addition, the following filtering columns are added:
 
 These columns can all be used in the cactus configuration files to filter for peaks matching certain annotation pattern with the parameter *params.peak_assignment_for_splitting_subsets*. 
 
-> **_NOTE:_** The PA_prom filter uses the `chipseeker__promoter_up` and `chipseeker__promoter_down` Cactus parameters to define the promoter regions. By default this is defined as -1500/+500 to the TSS. However, users can use this filter as an abritrary "customizable" PA filter. This can help for instance to filter out peaks that are too far away from the TSS. For instance, using the PA_prom filter with `chipseeker__promoter_up = 10000` and `chipseeker__promoter_down = 10000` would give the same result as PA_lt_10kb.
+> **_NOTE:_** The PA_prom filter uses the `chipseeker__promoter_up` and `chipseeker__promoter_down` Cactus parameters to define the promoter regions. By default this is defined as -1500/+500 to the TSS. However, users can use this filter as an abritrary "customizable" PA filter. This can help for instance to filter out peaks that are too far away from the TSS. For instance, using the PA_prom filter with `chipseeker__promoter_up = 10000` and `chipseeker__promoter_down = 10000` would give the same result as PA_lt10kb.
 
 > **_NOTE:_** New filtering columns could be added in the future if needed.
 

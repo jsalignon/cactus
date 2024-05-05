@@ -2772,7 +2772,7 @@ process DA_ATAC__saving_detailed_results_tables {
     )
     
     res_detailed %<>% dplyr::select(
-      COMP:end, gene_name:counts_cond2, jbrowse, gene_chr:PA_lt_500kb)
+      COMP:end, gene_name:counts_cond2, jbrowse, gene_chr:PA_mtYkb)
 
     # saving table
     saveRDS(res_detailed, paste0(COMP, '__res_detailed_atac.rds'))
