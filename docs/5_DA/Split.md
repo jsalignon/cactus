@@ -31,7 +31,7 @@
 This process splits Differential Analysis results into subsets (i.e., DAS - Differential Analysis Subsets) in order to do enrichment analysis on many different angles and extract the most information out of the data.  
 4 filters are used to split:
   - ET: Experiment Type. Can be either 'ATAC', 'mRNA', 'both', 'both_ATAC', or 'both_mRNA'.
-  - PA: DAR Peak Annotation. Can be any combination of 'all', 'gene', 'interG', 'prom', '5pUTR', '3pUTR', 'exon', 'intron', 'downst', 'distIn', 'UTR', 'TSS', 'genPro', 'distNC', 'mt10kb', 'mt100kb', 'mtYkb', 'lt10kb', 'lt100kb', 'ltXkb'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included).
+  - PA: DAR Peak Annotation. Can be any combination of 'all', 'PA_gene', 'PA_interG', 'PA_prom', 'PA_5pUTR', 'PA_3pUTR', 'PA_exon', 'PA_intron', 'PA_downst', 'PA_distIn', 'PA_UTR', 'PA_TSS', 'PA_genPro', 'PA_distNC', 'PA_mt_3kb', 'PA_mt_8kb', 'PA_mt_30kb', 'PA_lt_3kb', 'PA_lt_8kb', 'PA_lt_30kb'. See [DA_ATAC__saving_detailed_results_tables](/docs/5_DA/DA_ATAC.md#DA_ATAC__saving_detailed_results_tables) for details. 'all' disable this filters (all peaks are included).
   - FC: Fold Change type. To split up and down-regulated results.
   - TV: Theshold Value(s). To split results by significance thresholds. 
 

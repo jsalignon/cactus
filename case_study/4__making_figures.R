@@ -72,6 +72,7 @@ pdf('Figure_5.pdf', width = 7, height = 5.7)
 dev.off()
 
 
+
 # Fig 7: CHIP both_atac and both_mrna heatmaps
 
 p1 = readRDS1('both_ATAC__all__1.3__ctl__CHIP__heatmap.rds') + ggtitle('human, DARs, CHIP,\n co-regulated genes')
@@ -169,11 +170,9 @@ v_files_1_QC_peaks = grep1('(\\/(ctl_1__(peaks|average)|ATAC__peaks))')
 v_files_1_QC       = c(v_files_1_QC_reads, v_files_1_QC_satur, 
 	v_files_1_QC_peaks)
 p_QC = plot_figures(v_files_1_QC)
-
 pdf('Figure_S1.pdf', width = 7, height = 10)
 	print(p_QC)
 dev.off()
-
 
 
 v_files_2_DA_fig   = grep1('\\/hmg4_vs_ctl__') %>% c(grep1('venn'))
@@ -320,15 +319,4 @@ system('a5toa4 rotated.pdf')
 system('qpdf --rotate=+270 rotated-sidebyside.pdf Figure_S6.pdf')
 file.remove(c('tmp1.pdf', 'rotated.pdf', 'rotated-sidebyside.pdf'))
 
-
-
-
-# converting all figures to tiff format for submission
-save_pdf_to_tif <- function(Fig_number){
-	system(paste0('gs -q -r500x500 -dNOPAUSE -sDEVICE=tiff24nc -sOutputFile=',
-		'tiff/Figure_', Fig_number, '.tiff Figure_', Fig_number, 
-		'.pdf -c quit'))
-}
-
-sapply(c(4:7, paste0('S', 1:3), 'S6'), save_pdf_to_tif)
 

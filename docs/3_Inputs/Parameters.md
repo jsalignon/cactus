@@ -200,8 +200,6 @@ See the function links for details and possible options. Details on the choice o
 
 **Annotations and figures:**
 - Parameters of the [annotatePeak](https://rdrr.io/bioc/ChIPseeker/man/annotatePeak.html) function -> see part 1. ATAC_peaks above.
-- **_params.custom_distance__less_than_X_b_**: Custom threshold for the PA_ltXkb filter used to select peaks below a given distance (in base pair) to the TSS of their closest gene. Default: 500000 (i.e., 500 kilobases).
-- **_params.custom_distance__more_than_Y_b_**: Custom threshold for the PA_mtYkb filter used to select peaks above a given distance (in base pair) to the TSS of their closest gene. Default: 500000 (i.e., 500 kilobases).
 - **_params.diffbind_plots__fdr_threshold_**: Peaks with FDR less than or equal to this value are colored in red in the volcano plot. Default: 0.05.
 - **_params.diffbind_plots__top_n_labels_**: The top n peaks with lowest FDR will have their annotated gene displayed on the volcano plot. Default: 15.
 
