@@ -39,7 +39,7 @@ Types of changes
 ### Deprecated
 
 ### Removed
-- Removed the PA filters: 3kb, 8kb, and 30kb. [#22](https://github.com/jsalignon/cactus/pull/21)
+- Removed the PA filters: 3kb, 8kb, and 30kb. [#22](https://github.com/jsalignon/cactus/pull/22)
 
 ### Dependencies
 
