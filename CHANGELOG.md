@@ -25,6 +25,24 @@ Types of changes
     Fixed for any bug fixes.
     Security in case of vulnerabilities. -->
 
+## [v1.0.0](https://github.com/jsalignon/cactus/releases/tag/v1.0.0) - Aztekium, 05-05-2024
+
+### Added
+- [#21, commit 021de6f](https://github.com/jsalignon/cactus/commit/021de6f05c25ed834aee493d3128de774c79dff7) - Added PA filters to keep peaks at less or more than 10 or 100 kilobases (lt10kb, lt100kb, mt10kb, mt100kb).
+- [#21, commit 021de6f](https://github.com/jsalignon/cactus/commit/021de6f05c25ed834aee493d3128de774c79dff7) - Added PA filters to keep peaks at less than arbitrary defined cutoffs (ltXkb, mtYkb), with cutoffs defined with the new parameters custom_distance__less_than_X_b and custom_distance__more_than_Y_b.
+
+### Changed
+
+### Fixed
+- [#21](https://github.com/jsalignon/cactus/pull/21); commits [5ac9710](https://github.com/jsalignon/cactus/commit/5ac9710ebac7341dd378db5cbfa0ec187e413b13#diff-6401496ba455b9488ffa902a6e4d7732b2c60ff2d77c5c3ef96b28a7ac7d3b28L2772) and [827df11](https://github.com/jsalignon/cactus/commit/827df11f8af185213762426fc8c9cbd08e1e15a2#diff-6401496ba455b9488ffa902a6e4d7732b2c60ff2d77c5c3ef96b28a7ac7d3b28L2775) - Fixed a small typo that was making the previous release (0.9.0) crash during the DA_ATAC__saving_detailed_results_tables process.
+
+### Deprecated
+
+### Removed
+- [#21](https://github.com/jsalignon/cactus/pull/21) - Removed the PA filters: 3kb, 8kb, and 30kb.
+
+### Dependencies
+
 
 ## [v0.9.0](https://github.com/jsalignon/cactus/releases/tag/v0.9.0) - Gymnocalycium, 22-04-2024
 

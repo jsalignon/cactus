@@ -47,7 +47,7 @@ We can export the nextflow version to make sure we use a compatible version:
 export NXF_VER=22.10.8
 ```
 
-For reproducibility purposes, it is useful to specify a version of Cactus whenever running an analysis. We will use the latest available version (v0.9.0) for this tutorial:
+For reproducibility purposes, it is useful to specify a version of Cactus whenever running an analysis. We will use the latest available version (v1.0.0) for this tutorial:
 ```bash
 cactus_version=0.9.0
 ```
