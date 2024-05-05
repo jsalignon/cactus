@@ -52,6 +52,6 @@ nextflow run jsalignon/cactus -profile $PROFILE \
 	--split__threshold_type "rank"
 
 ## Running the test dataset using Cactus version 0.8.6
-nextflow run jsalignon/cactus -r v0.9.0 -profile $PROFILE \
+nextflow run jsalignon/cactus -r v1.0.0 -profile $PROFILE \
 	-params-file parameters/full_test.yml
 
