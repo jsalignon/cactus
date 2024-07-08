@@ -13,7 +13,7 @@
 
 # Quickstart scripts
 
-Scripts are available to [install the dependencies](/docs/1_Intro/installing_dependencies.sh), [run the test datasets](/docs/1_Intro/running_the_test_datasets.sh), [troubleshoot issues](/docs/1_Intro/troubleshooting.sh), and, for researchers based in Sweden, [run Cactus](/docs/1_Intro/NAISS.sh) on [NAISS resources](https://supr.naiss.se/resource/) (including [rackham, bianca, miarka, snowy](https://docs.uppmax.uu.se/software/software-table/)). Please observe that the script to install dependencies is provided for convenience, but the commands may not be up to date; and it is recommended to follow the installation guidelines from the respective tools (links are provided in the [Dependencies](/docs/2_Install/Dependencies.md) section of the Cactus documentation).
+Scripts are available to [install the dependencies](/docs/1_Intro/installing_dependencies.sh), [run the test datasets](/docs/1_Intro/running_the_test_datasets.sh), [troubleshoot issues](/docs/1_Intro/troubleshooting.sh), and, for researchers based in Sweden, [run Cactus](/docs/1_Intro/NAISS.sh) on [NAISS resources](https://www.naiss.se/resources/) (including [rackham, bianca, miarka, snowy](https://docs.uppmax.uu.se/software/software-table/)). Please observe that the script to install dependencies is provided for convenience, but the commands may not be up to date; and it is recommended to follow the installation guidelines from the respective tools (links are provided in the [Dependencies](/docs/2_Install/Dependencies.md) section of the Cactus documentation).
 
 
 # Dependencies and profiles
