@@ -27,6 +27,7 @@ In this section, we describe how users can define the design of their experiment
  - *fastq_file_path*: can be either an absolute path or a relative path (recommended) from the directory where Cactus is run. In case of paired-end data, only the path of the R1 file should be indicated.
 
 >**_Note_:** If two files have the same sample_id, they will be considered to be different sequencing runs of the same sample and will be merged by Cactus. 
+>**_Note_:** This file can be empty if only mRNA-Seq data is analyzed, in which case the argument *params.experiment_types* should be set to *mRNA*.
 
 **Example:**
 ```
@@ -44,6 +45,7 @@ spt16_2 data/atac/sample_200K_reads_atac_SRX3029131_SRR5860431_R1.fastq.gz
 ## mRNA fastq
 
 **Description:** fastq files for mRNA-Seq. Same formatting as for [ATAC fastq](#ATAC-fastq).
+>**_Note_:** This file can be empty if only ATAC-Seq data is analyzed, in which case the argument *params.experiment_types* should be set to *atac*.
 
 
 

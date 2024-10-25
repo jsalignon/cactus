@@ -72,9 +72,9 @@ In addition, it is recommended to set up a [NextFlow Tower token](https://www.ne
 
 # Design
 
-- **_params.experiment_types_**: Analyze only ATAC-Seq data, only mRNA-Seq data or both data type. Options: 'both', 'atac', 'mrna'. Default: 'both'. 
-- **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq). Default: 'design/mrna_fastq.tsv'.
-- **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq). Default: 'design/atac_fastq.tsv'.
+- **_params.experiment_types_**: Analyze only ATAC-Seq data, only mRNA-Seq data or both data type. Options: 'both', 'atac', 'mRNA'. Default: 'both'. 
+- **_params.design__mrna_fastq_**: path to the [mRNA fastq design file](/docs/3_Inputs/Design.md#ATAC-fastq). Default: 'design/mrna_fastq.tsv'. This file can be empty if only ATAC-Seq data is analyzed, in which case the argument *params.experiment_types* should be set to *atac*.
+- **_params.design__atac_fastq_**: path to the [ATAC fastq design file](/docs/3_Inputs/Design.md#mRNA-fastq). Default: 'design/atac_fastq.tsv'. This file can be empty if only mRNA-Seq data is analyzed, in which case the argument *params.experiment_types* should be set to *mRNA*.
 - **_params.design__comparisons_**: path to the [comparisons design file](/docs/3_Inputs/Design.md#Comparisons). Default: 'design/comparisons.tsv'.
 - **_params.design__regions_to_remove_**: path to the [regions to remove design file](/docs/3_Inputs/Design.md#Regions-to-remove). Default: 'design/regions_to_remove.tsv'.
 - **_params.design__genes_to_remove_**: path to the [genes to remove design file](/docs/3_Inputs/Design.md#Genes-to-remove). Default: 'design/genes_to_remove.tsv'.

@@ -2504,6 +2504,8 @@ process DA_ATAC__doing_differential_analysis {
       score = round(-log10(p.value), 2))
     all_peaks_df %<>% dplyr::rename(chr = seqnames)
     all_peaks_df %<>% dplyr::select(chr, start, end, name, score, strand)
+    all_peaks_df$start %<>% as.integer
+    all_peaks_df$end   %<>% as.integer
     export_df_to_bed(all_peaks_df, paste0(COMP, '__all_peaks.bed'))
 
     '''
