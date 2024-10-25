@@ -3482,8 +3482,7 @@ process DA_split__splitting_differential_analysis_results_in_subsets {
       prom_bed_df = get_prom_bed_df_table(promoters_df1, res_simple_mRNA)
     }
 
-    res_filter$gene_peak = 
-      apply(res_filter[, c('gene_name', 'peak_id')], 1, paste, collapse = '_')
+    res_filter$gene_peak = paste0(res_filter$gene_name, '_', res_filter$peak_id)
 
     df_split1 = res_filter %>% dplyr::select(ET:TV) %>% .[!duplicated(.),]
 
